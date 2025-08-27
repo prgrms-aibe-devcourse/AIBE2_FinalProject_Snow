@@ -42,12 +42,20 @@ jobs:
               echo "JIRA_ASSIGNEE_ID=712020:7ca57986-fe55-494f-8995-4fbf2b586bd3" >> $GITHUB_ENV
               echo "HAS_ASSIGNEE=true" >> $GITHUB_ENV
               ;;
-            "developer2")
-              echo "JIRA_ASSIGNEE_ID=5eabcdef0123456789abcdef" >> $GITHUB_ENV
+            "onejm")
+              echo "JIRA_ASSIGNEE_ID=624fc821f3824d006a5d8cf9" >> $GITHUB_ENV
               echo "HAS_ASSIGNEE=true" >> $GITHUB_ENV
               ;;
-            "teamleader")
-              echo "JIRA_ASSIGNEE_ID=60fabcde1234567890abcde1" >> $GITHUB_ENV
+            "beakjinu")
+              echo "JIRA_ASSIGNEE_ID=712020:ecf19fdf-504c-4c4a-8464-19e088799956" >> $GITHUB_ENV
+              echo "HAS_ASSIGNEE=true" >> $GITHUB_ENV
+              ;;
+            "dearjh36")
+              echo "JIRA_ASSIGNEE_ID=712020:a1ad50de-c19a-489f-8890-097f05f91867" >> $GITHUB_ENV
+              echo "HAS_ASSIGNEE=true" >> $GITHUB_ENV
+              ;;
+            "sun-ryu")
+              echo "JIRA_ASSIGNEE_ID=712020:da1e48f7-8497-4e18-acb4-9698d333f267" >> $GITHUB_ENV
               echo "HAS_ASSIGNEE=true" >> $GITHUB_ENV
               ;;
             *)
