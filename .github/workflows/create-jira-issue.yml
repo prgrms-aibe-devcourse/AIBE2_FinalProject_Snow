@@ -83,7 +83,7 @@ jobs:
         if: env.HAS_ASSIGNEE == 'true'
         uses: atlassian/gajira-create@v3
         with:
-          project: SCRUM
+          project: TEST
           issuetype: Task
           summary: '${{ github.event.issue.title }}'
           description: '${{ steps.md2jira.outputs.output-text }}'
@@ -101,7 +101,7 @@ jobs:
         if: env.HAS_ASSIGNEE == 'false'
         uses: atlassian/gajira-create@v3
         with:
-          project: SCRUM
+          project: TEST
           issuetype: Task
           summary: '${{ github.event.issue.title }}'
           description: '${{ steps.md2jira.outputs.output-text }}'
