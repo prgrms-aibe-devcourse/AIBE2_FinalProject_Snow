@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Popin - 메인</title>
+</head>
+<body>
+<h1>Popin에 오신 것을 환영합니다!</h1>
+
+<!-- 로그인하지 않은 경우 -->
+<div sec:authorize="!isAuthenticated()">
+    <a href="/users/login">로그인</a> |
+    <a href="/users/new">회원가입</a>
+</div>
+
+<!-- 로그인한 경우 -->
+<div sec:authorize="isAuthenticated()">
+    <h2>안녕하세요, <span sec:authentication="name"></span>님!</h2>
+
+    <div sec:authorize="hasRole('ADMIN')">
+        <a href="/admin" style="color: red;">관리자 페이지</a>
+    </div>
+
+    <a href="/users/logout">로그아웃</a>
+</div>
+</body>
+</html>

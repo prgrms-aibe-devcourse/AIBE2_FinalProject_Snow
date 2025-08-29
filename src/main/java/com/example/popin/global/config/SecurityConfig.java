@@ -1,74 +1,57 @@
 package com.example.popin.global.config;
 
+import com.example.popin.domain.user.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final UserService userService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(authz -> authz
-                        .antMatchers(
-                                "/", "/home", "/login", "/error",
-                                "/swagger-ui/**", "/v3/api-docs/**",
-                                "/css/**", "/js/**", "/images/**"
-                        ).permitAll()
-
-                        // 관리자 페이지 - ADMIN 권한 필요
-                        .antMatchers("/admin/**").hasRole("ADMIN")
-
-                        // 일반 사용자 API - USER 권한 필요
-                        .antMatchers("/api/**").hasAnyRole("USER", "ADMIN")
-
-                        // 일반 사용자 페이지 - 인증만 필요
-                        .antMatchers("/user/**").authenticated()
-
-                        .anyRequest().authenticated()
-                )
                 .formLogin(form -> form
-                        .loginPage("/login")
-                        .defaultSuccessUrl("/dashboard", true)
-                        .failureUrl("/login?error=true")
+                        .loginPage("/users/login")
+                        .defaultSuccessUrl("/", true)
+                        .usernameParameter("username")
+                        .failureUrl("/users/login/error")
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout=true")
+                        .logoutRequestMatcher(new AntPathRequestMatcher("/users/logout"))
+                        .logoutSuccessUrl("/")
                         .permitAll()
                 )
-                .csrf().disable();
+                .authorizeHttpRequests(authz -> authz
+                        // 모든 사용자 접근 허용
+                        .antMatchers("/", "/users/**", "/css/**", "/js/**", "/images/**", "/error").permitAll()
+
+                        // 각 역할별 접근 권한
+                        .antMatchers("/admin/**").hasRole("ADMIN")
+                        .antMatchers("/host/**").hasRole("HOST")
+                        .antMatchers("/provider/**").hasRole("PROVIDER")
+
+                        // API는 로그인된 사용자만
+                        .antMatchers("/api/**").authenticated()
+
+                        // 나머지는 인증 필요
+                        .anyRequest().authenticated()
+                )
+                .userDetailsService(userService)
+                .csrf(csrf -> csrf.disable());
 
         return http.build();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        // 초기 테스트용 사용자들
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder().encode("admin123"))
-                .roles("ADMIN")
-                .build();
-
-        UserDetails user = User.builder()
-                .username("user")
-                .password(passwordEncoder().encode("user123"))
-                .roles("USER")
-                .build();
-
-        return new InMemoryUserDetailsManager(admin, user);
     }
 
     @Bean
