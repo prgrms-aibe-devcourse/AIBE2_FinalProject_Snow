@@ -26,7 +26,7 @@ jobs:
           PR_TITLE="${{ github.event.pull_request.title }}"
           echo "PR Title: $PR_TITLE"
           
-          # JIRA-KEY 패턴 추출 (예: SCRUM-123, PRJ-456 등)
+          # JIRA-KEY 패턴 추출 (예: POP-123, PRJ-456 등)
           JIRA_KEY=$(echo "$PR_TITLE" | grep -oE '[A-Z]+-[0-9]+' | head -n1)
           
           if [ ! -z "$JIRA_KEY" ]; then
@@ -43,7 +43,7 @@ jobs:
         uses: atlassian/gajira-transition@v3
         with:
           issue: ${{ steps.extract-key.outputs.JIRA_KEY }}
-          transition: 'In Review'
+          transition: '검토 중'
       
       - name: Transition to Done (PR merged)
         if: steps.extract-key.outputs.HAS_JIRA_KEY == 'true' && github.event.pull_request.merged == true
