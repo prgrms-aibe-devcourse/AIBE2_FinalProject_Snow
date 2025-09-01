@@ -1,31 +1,28 @@
 package com.example.popin.domain.mission;
 
-
 import com.example.popin.domain.missionset.MissionSet;
-import com.example.popin.domain.usermission.UserMission;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "mission")
+@Getter
+@Setter
 public class Mission {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String title;
     private String description;
+
+    // 정답(단순 비교용)
     private String answer;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
-    @ManyToOne
-    @JoinColumn(name = "mission_set_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "mission_set_id")
     private MissionSet missionSet;
-
-    @OneToMany(mappedBy = "mission", cascade = CascadeType.ALL)
-    private List<UserMission> userMissions = new ArrayList<>();
 }
