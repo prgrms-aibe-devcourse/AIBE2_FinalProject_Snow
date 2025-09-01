@@ -31,25 +31,51 @@ public class SecurityConfig {
                 .logout(logout -> logout
                         .logoutRequestMatcher(new AntPathRequestMatcher("/users/logout"))
                         .logoutSuccessUrl("/")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
                 .authorizeHttpRequests(authz -> authz
-                        // 모든 사용자 접근 허용
-                        .antMatchers("/", "/users/**", "/css/**", "/js/**", "/images/**", "/error").permitAll()
+                        // 정적 리소스는 모든 사용자 접근 허용
+                        .antMatchers("/css/**", "/js/**", "/images/**", "/static/**").permitAll()
+
+                        // HTML 템플릿 파일들 허용
+                        .antMatchers("/templates/**").permitAll()
+
+                        // 공개 페이지들
+                        .antMatchers("/", "/index.html", "/main").permitAll()
+
+                        // 사용자 관련 페이지
+                        .antMatchers("/users/**", "/error").permitAll()
 
                         // 각 역할별 접근 권한
                         .antMatchers("/admin/**").hasRole("ADMIN")
                         .antMatchers("/host/**").hasRole("HOST")
                         .antMatchers("/provider/**").hasRole("PROVIDER")
 
-                        // API는 로그인된 사용자만
+                        // API는 인증에 따라 처리 (일부는 public, 일부는 authenticated)
+                        .antMatchers("/api/public/**").permitAll()
+                        .antMatchers("/api/auth/**").permitAll()
                         .antMatchers("/api/**").authenticated()
 
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
                 .userDetailsService(userService)
-                .csrf(csrf -> csrf.disable());
+                .csrf(csrf -> csrf
+                        // API 경로는 CSRF 보호 제외 (REST API용)
+                        .ignoringAntMatchers("/api/**")
+                        // HTML 컴포넌트 로드도 CSRF 제외
+                        .ignoringAntMatchers("/html/**", "/components/**")
+                )
+                .headers(headers -> headers
+                        .frameOptions().deny()
+                        .contentTypeOptions().and()
+                )
+                .sessionManagement(session -> session
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false)
+                );
 
         return http.build();
     }

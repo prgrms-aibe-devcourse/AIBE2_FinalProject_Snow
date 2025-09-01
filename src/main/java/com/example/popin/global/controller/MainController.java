@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RequiredArgsConstructor
 public class MainController {
 
-    @GetMapping(value="/")
-    public String main(){
-        return "main";
-    }
+//    @GetMapping(value="/")
+//    public String main(){
+//        return "main";
+//    }
 }
