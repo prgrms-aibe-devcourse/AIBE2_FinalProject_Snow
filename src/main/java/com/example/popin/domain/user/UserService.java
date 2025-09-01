@@ -1,44 +1,48 @@
 package com.example.popin.domain.user;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import com.example.popin.domain.user.constant.AuthProvider;
+import com.example.popin.domain.user.constant.Role;
+import com.example.popin.domain.user.dto.SignupRequest;
+import com.example.popin.global.constant.ErrorCode;
+import com.example.popin.global.exception.GeneralException;
+import lombok.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
-public class UserService implements UserDetailsService {
+@Transactional(readOnly = true)
+public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public User saveUser(User user) {
-        validateDuplicateUser(user);
-        return userRepository.save(user);
-    }
+    @Transactional
+    public void signup(SignupRequest req){
 
-    private void validateDuplicateUser(User user) {
-        User findUser = userRepository.findByEmail(user.getEmail());
-        if (findUser != null) {
-            throw new IllegalStateException("이미 가입된 회원입니다.");
-        }
-    }
+        validateEmailNotExists(req.getEmail());
 
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email);
+        String encodedPassword = passwordEncoder.encode(req.getPassword());
 
-        if (user == null) {
-            throw new UsernameNotFoundException(email);
-        }
-
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getEmail())
-                .password(user.getPassword())
-                .roles(user.getRole().toString())
+        User user = User.builder()
+                .email(req.getEmail())
+                .password(encodedPassword)
+                .name(req.getName())
+                .nickname(req.getNickname())
+                .phone(req.getPhone())
+                .authProvider(AuthProvider.LOCAL)
+                .role(Role.USER)
                 .build();
+
+        userRepository.save(user);
     }
+
+    private void validateEmailNotExists(String email) {
+        if (userRepository.existsByEmail(email)){
+            throw new GeneralException(ErrorCode.DUPLICATE_EMAIL);
+        }
+    }
+
 }
