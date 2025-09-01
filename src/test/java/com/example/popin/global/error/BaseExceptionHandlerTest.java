@@ -24,6 +24,7 @@ class BaseExceptionHandlerTest {
         sut = new BaseExceptionHandler();
     }
 
+
     @DisplayName("[View] 일반 예외 처리 - 프로젝트 오류 응답")
     @Test
     void givenGeneralException_whenHandlingException_thenReturnsModelAndView() {
@@ -42,6 +43,7 @@ class BaseExceptionHandlerTest {
                 .containsEntry("errorCode", errorCode)
                 .containsEntry("message", errorCode.getMessage());
     }
+
 
     @DisplayName("[View] 기타 예외 처리 - 알 수 없는 오류 응답")
     @Test

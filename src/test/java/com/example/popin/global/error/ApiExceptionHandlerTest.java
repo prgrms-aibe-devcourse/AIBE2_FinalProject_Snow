@@ -41,6 +41,7 @@ class ApiExceptionHandlerTest {
         webRequest = new ServletWebRequest(new MockHttpServletRequest());
     }
 
+
     @DisplayName("[API] 검증 예외 처리 - 제약조건 위반 응답")
     @Test
     void givenValidationException_whenHandlingApiException_thenReturnsResponseEntity() {
@@ -57,6 +58,7 @@ class ApiExceptionHandlerTest {
                 .hasFieldOrPropertyWithValue("headers", HttpHeaders.EMPTY)
                 .hasFieldOrPropertyWithValue("statusCode", HttpStatus.BAD_REQUEST);
     }
+
 
     @DisplayName("[API] 일반 예외 처리 - 프로젝트 오류 응답")
     @Test
@@ -112,6 +114,7 @@ class ApiExceptionHandlerTest {
                 arguments(new HttpMessageNotWritableException(msg), HttpStatus.INTERNAL_SERVER_ERROR)
         );
     }
+
 
     @DisplayName("[API] 기타 예외 처리 - 알 수 없는 오류 응답 데이터 정의")
     @Test
