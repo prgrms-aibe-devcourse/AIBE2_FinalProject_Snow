@@ -41,7 +41,7 @@ class ApiExceptionHandlerTest {
         webRequest = new ServletWebRequest(new MockHttpServletRequest());
     }
 
-    @DisplayName("검증(제약조건) 오류 - 응답 데이터 정의")
+    @DisplayName("[API] 검증 예외 처리 - 제약조건 위반 응답")
     @Test
     void givenValidationException_whenHandlingApiException_thenReturnsResponseEntity() {
         // Given: Hibernate 제약조건 위반 예외 (DB 유니크 등)
@@ -58,7 +58,7 @@ class ApiExceptionHandlerTest {
                 .hasFieldOrPropertyWithValue("statusCode", HttpStatus.BAD_REQUEST);
     }
 
-    @DisplayName("프로젝트 일반 오류 - 응답 데이터 정의")
+    @DisplayName("[API] 일반 예외 처리 - 프로젝트 오류 응답")
     @Test
     void givenGeneralException_whenHandlingApiException_thenReturnsResponseEntity() {
         // Given
@@ -75,7 +75,7 @@ class ApiExceptionHandlerTest {
                 .hasFieldOrPropertyWithValue("statusCode", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @DisplayName("스프링이 던진 오류 - 응답 데이터 정의")
+    @DisplayName("[API] 스프링 예외 처리 - 프레임워크 오류 응답")
     @MethodSource
     @ParameterizedTest(name = "[{index}] {0} => {1}")
     void givenSpringException_whenHandlingApiException_thenReturnsResponseEntity(Exception e, HttpStatus httpStatus) {
@@ -113,7 +113,7 @@ class ApiExceptionHandlerTest {
         );
     }
 
-    @DisplayName("기타(전체) 오류 - 응답 데이터 정의")
+    @DisplayName("[API] 기타 예외 처리 - 알 수 없는 오류 응답 데이터 정의")
     @Test
     void givenOtherException_whenHandlingApiException_thenReturnsResponseEntity() {
         // Given

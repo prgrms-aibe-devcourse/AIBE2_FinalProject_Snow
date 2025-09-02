@@ -30,7 +30,7 @@ class BaseErrorControllerTest {
         this.mvc = mvc;
     }
 
-    @DisplayName("[view][GET] 에러 페이지 - 페이지 없음")
+    @DisplayName("[View] 잘못된 URI 요청 - 404 에러 페이지")
     @Test
     void givenWrongURI_whenRequestingPage_thenReturns404ErrorPage() throws Exception {
         // Given
@@ -41,7 +41,7 @@ class BaseErrorControllerTest {
                 .andDo(print());
     }
 
-    @DisplayName("[view][GET] /error - HTML 에러 페이지 렌더링")
+    @DisplayName("[View] /error 엔드포인트 - HTML 에러 페이지 렌더링")
     @Test
     void givenErrorEndpoint_whenRequestingHtml_thenRendersErrorView() throws Exception {
         // When & Then
