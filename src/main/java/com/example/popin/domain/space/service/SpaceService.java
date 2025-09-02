@@ -57,6 +57,19 @@ public class SpaceService {
                 .collect(Collectors.toList());
     }
 
+    //공간 상세보기
+    @Transactional(readOnly = true)
+    public SpaceResponseDto getDetail(User me, Long id) {
+        Space space = spaceRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("공간이 존재하지 않습니다."));
+
+        boolean mine = (me != null && space.getOwner().getId().equals(me.getId()));
+        if (!Boolean.TRUE.equals(space.getIsPublic()) && !mine) {
+            throw new IllegalArgumentException("조회 권한이 없습니다.");
+        }
+        return SpaceResponseDto.from(space);
+    }
+
     //공간 게시글 수정
     @Transactional
     public void update(User owner, Long id, SpaceUpdateRequestDto dto) {
@@ -123,14 +136,5 @@ public class SpaceService {
                 .collect(Collectors.toList());
     }
 
-    //내가 등록한 공간 단건 조회
-    @Transactional(readOnly = true)
-    public SpaceResponseDto getMine(User owner, Long id) {
-        log.debug("Fetching space ID: {} for owner: {}", id, owner.getId());
 
-        Space space = spaceRepository.findByIdAndOwner(id, owner)
-                .orElseThrow(() -> new IllegalArgumentException("공간이 없거나 접근 권한이 없습니다."));
-
-        return SpaceResponseDto.from(space);
-    }
 }

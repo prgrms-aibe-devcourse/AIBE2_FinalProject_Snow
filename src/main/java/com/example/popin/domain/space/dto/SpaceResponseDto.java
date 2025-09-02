@@ -54,6 +54,7 @@ public class SpaceResponseDto {
                 .title(space.getTitle())
                 .description(space.getDescription())
                 .address(space.getAddress())
+                .areaSize(space.getAreaSize())
                 .startDate(space.getStartDate())
                 .endDate(space.getEndDate())
                 .rentalFee(space.getRentalFee())

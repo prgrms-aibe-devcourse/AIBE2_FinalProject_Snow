@@ -243,6 +243,13 @@
             object-fit: cover;
             margin-left: 12px;
         }
+
+        .actions-inline { margin-top:10px; display:flex; gap:12px; }
+        .actions-inline .link {
+            background:none; border:none; padding:0; color:#2563eb; cursor:pointer; font-weight:600;
+        }
+        .actions-inline .link:hover { text-decoration:underline; }
+
     </style>
 </head>
 <body>
@@ -354,7 +361,11 @@
                             <div>임대료 : 하루 ${formatCurrency(space.rentalFee)} 만 원</div>
                             <div>주소 : ${space.address ?? '-'}</div>
                             <div>면적 : ${space.areaSize ?? '-'} m&sup2;</div><br>
-                            상세 정보 > 문의하기 > 신고 >
+                            <div class="actions-inline">
+                                <a class="link" href="/spaces/detail.html?id=${space.id}">상세정보</a>
+                                <button class="link" type="button" onclick="inquire(${space.id})">문의하기</button>
+                                <button class="link" type="button" onclick="reportSpace(${space.id})">신고</button>
+                            </div>
                         </div>
                     </div>
                     ${space.coverImageUrl ? `<img class="thumb" src="${space.coverImageUrl}" alt="thumbnail">` : ''}
@@ -410,6 +421,22 @@
     function formatCurrency(amount) {
         if (!amount) return '0';
         return amount.toLocaleString('ko-KR');
+    }
+    //문의 (추후 반영)
+    async function inquire(id){
+        try{
+            const res = await fetch(`/api/spaces/${id}/inquiries`, {method:'POST'});
+            if(res.ok) alert('문의 요청이 접수되었습니다.');
+            else alert('문의 요청 실패');
+        }catch(e){ console.error(e); alert('문의 중 오류'); }
+    }
+    //신고 (추후 반영)
+    async function reportSpace(id){
+        try{
+            const res = await fetch(`/api/spaces/${id}/reports`, {method:'POST'});
+            if(res.ok) alert('신고가 접수되었습니다.');
+            else alert('신고 실패');
+        }catch(e){ console.error(e); alert('신고 중 오류'); }
     }
 </script>
 </body>

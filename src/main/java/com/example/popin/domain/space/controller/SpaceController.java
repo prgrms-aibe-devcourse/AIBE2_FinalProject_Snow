@@ -40,12 +40,11 @@ public class SpaceController {
         return spaceService.listMine(me);
     }
 
-    //공간 단건 조회
+    //공간 상세 조회
     @GetMapping("/{id}")
-    public SpaceResponseDto getOne(@PathVariable Long id) {
-        User me = getCurrentUser();
-        log.debug("Fetching space ID: {} for user: {}", id, me.getEmail());
-        return spaceService.getMine(me, id);
+    public SpaceResponseDto getDetail(@PathVariable Long id) {
+        User me = getCurrentUserOrNull();
+        return spaceService.getDetail(me, id);
     }
 
     //공간 등록
@@ -86,6 +85,18 @@ public class SpaceController {
         return ResponseEntity.ok().build();
     }
 
+    //문의
+    @PostMapping("/{id}/inquiries")
+    public ResponseEntity<?> createInquiry(@PathVariable Long id) {
+        return ResponseEntity.accepted().build(); // 202 Accepted
+    }
+
+    //신고
+    @PostMapping("/{id}/reports")
+    public ResponseEntity<?> report(@PathVariable Long id) {
+        return ResponseEntity.accepted().build();
+    }
+
     //공통: 유효성 검증 실패 시 에러 응답 생성
     private ResponseEntity<Map<String, Object>> badRequest(BindingResult br) {
         Map<String, String> errors = new HashMap<>();
@@ -103,6 +114,14 @@ public class SpaceController {
             throw new IllegalStateException("로그인이 필요합니다.");
         }
         return user;
+    }
+    //모든 사용자
+    private User getCurrentUserOrNull() {
+        try {
+            return getCurrentUser(); // 네가 기존에 쓰던 메서드
+        } catch (Exception e) {
+            return null;
+        }
     }
 
 }
