@@ -1,6 +1,7 @@
 package com.example.popin.domain.space.dto;
 
 import com.example.popin.domain.space.entity.Space;
+import com.example.popin.domain.user.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,6 +17,7 @@ public class SpaceListResponseDto {
     private String title;
     private String address;
     private Integer areaSize;
+    private boolean mine;
 
 
     @JsonFormat(pattern = "yyyy-MM-dd")
@@ -30,7 +32,7 @@ public class SpaceListResponseDto {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime createdAt;
 
-    public static SpaceListResponseDto from(Space space) {
+    public static SpaceListResponseDto from(Space space, User me) {
         return SpaceListResponseDto.builder()
                 .id(space.getId())
                 .title(space.getTitle())
@@ -42,6 +44,7 @@ public class SpaceListResponseDto {
                 .rentalFee(space.getRentalFee())
                 .coverImageUrl(space.getCoverImageUrl())
                 .createdAt(space.getCreatedAt())
+                .mine(space.getOwner().equals(me))
                 .build();
     }
 }

@@ -27,8 +27,9 @@ public class SpaceController {
     // 모든 공간 목록 조회 (새로 추가)
     @GetMapping // 새로운 엔드포인트
     public List<SpaceListResponseDto> listAllSpaces() {
+        User me = getCurrentUser();
         log.debug("Listing all spaces");
-        return spaceService.listAll();
+        return spaceService.listAll(me);
     }
 
     //내 등록글 조회

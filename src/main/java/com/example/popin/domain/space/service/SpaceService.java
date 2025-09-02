@@ -50,10 +50,10 @@ public class SpaceService {
     }
     //모든 공간 목록 조회
     @Transactional(readOnly = true)
-    public List<SpaceListResponseDto> listAll() {
+    public List<SpaceListResponseDto> listAll(User me) {
         return spaceRepository.findByIsPublicTrueOrderByCreatedAtDesc()
                 .stream()
-                .map(SpaceListResponseDto::from)
+                .map(space -> SpaceListResponseDto.from(space, me))
                 .collect(Collectors.toList());
     }
 
@@ -119,7 +119,7 @@ public class SpaceService {
 
         return spaceRepository.findByOwnerOrderByCreatedAtDesc(owner)
                 .stream()
-                .map(SpaceListResponseDto::from)
+                .map(space -> SpaceListResponseDto.from(space, owner))
                 .collect(Collectors.toList());
     }
 
