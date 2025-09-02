@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>Mission</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        body{font-family:system-ui,-apple-system,sans-serif;max-width:720px;margin:40px auto}
+        label{display:block;margin:8px 0 4px} input{width:100%;padding:8px}
+        button{padding:10px 14px;margin-top:10px} pre{background:#f7f7f7;padding:12px}
+        .ok{color:#0a7}.err{color:#c22}
+        .card{border:1px solid #eee;padding:16px;border-radius:8px}
+    </style>
+</head>
+<body>
+<h1 id="title">Mission</h1>
+<p id="desc" class="card"></p>
+<div id="meta"></div>
+
+<section class="card">
+    <label>User ID</label>
+    <input id="userId" type="number" placeholder="예: 123">
+
+    <label>Answer</label>
+    <input id="answer" type="text" placeholder="정답 입력">
+
+    <button id="submitBtn">정답 제출</button>
+    <div id="msg" style="margin-top:10px;"></div>
+
+    <h3>응답</h3>
+    <pre id="resp"></pre>
+</section>
+
+<script src="/js/api.js"></script>
+<script src="/js/mission.js"></script>
+</body>
+</html>
