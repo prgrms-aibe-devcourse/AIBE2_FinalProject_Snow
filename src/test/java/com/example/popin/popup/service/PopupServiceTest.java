@@ -23,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -112,7 +113,7 @@ public class PopupServiceTest {
         // given
         Long popupId = 3L;
         given(popupRepository.findByIdWithDetails(popupId))
-                .willReturn(detailPopup);
+                .willReturn(Optional.of(detailPopup));
 
         // when
         PopupDetailResponseDto response = popupService.getPopupDetail(popupId);
@@ -135,7 +136,7 @@ public class PopupServiceTest {
         // given
         Long popupId = 999L;
         given(popupRepository.findByIdWithDetails(popupId))
-                .willReturn(null);
+                .willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> popupService.getPopupDetail(popupId))

@@ -4,8 +4,8 @@ import com.example.popin.global.common.BaseEntity;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "popups")
@@ -49,11 +49,13 @@ public class Popup extends BaseEntity {
     @Column(name = "is_featured")
     private Boolean isFeatured = false;
 
-    @OneToMany(mappedBy = "popup", cascade = CascadeType.ALL)
-    private List<PopupImage> images = new ArrayList<>();
+    @OneToMany(mappedBy = "popup", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OrderBy("sortOrder ASC")
+    private Set<PopupImage> images = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "popup", cascade = CascadeType.ALL)
-    private List<PopupHours> hours = new ArrayList<>();
+    @OneToMany(mappedBy = "popup", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OrderBy("dayOfWeek ASC")
+    private Set<PopupHours> hours = new LinkedHashSet<>();
 
     public boolean isFreeEntry() {
         return entryFee == null || entryFee == 0;

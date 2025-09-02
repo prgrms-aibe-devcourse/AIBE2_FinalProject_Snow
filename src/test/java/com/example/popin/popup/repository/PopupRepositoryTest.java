@@ -8,20 +8,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-@DataJpaTest
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional  // 각 테스트 후 롤백
 @DisplayName("PopupRepository 테스트")
 class PopupRepositoryTest {
-
-    @Autowired
-    private TestEntityManager entityManager;
 
     @Autowired
     private PopupRepository popupRepository;
@@ -33,16 +35,22 @@ class PopupRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        // 테스트 데이터 생성
-        ongoingPopup1 = PopupTestDataBuilder.createCompletePopup("진행중 팝업1", PopupStatus.ONGOING, 0);
-        ongoingPopup2 = PopupTestDataBuilder.createCompletePopup("진행중 팝업2", PopupStatus.ONGOING, 5000);
-        plannedPopup = PopupTestDataBuilder.createCompletePopup("계획된 팝업", PopupStatus.PLANNED, 3000);
-        endedPopup = PopupTestDataBuilder.createCompletePopup("종료된 팝업", PopupStatus.ENDED, 0);
+        // 기존 데이터 정리
+        popupRepository.deleteAll();
 
-        entityManager.persistAndFlush(ongoingPopup1);
-        entityManager.persistAndFlush(ongoingPopup2);
-        entityManager.persistAndFlush(plannedPopup);
-        entityManager.persistAndFlush(endedPopup);
+        // 테스트 데이터 생성 및 저장
+        ongoingPopup1 = popupRepository.save(
+                PopupTestDataBuilder.createCompletePopup("진행중 팝업1", PopupStatus.ONGOING, 0)
+        );
+        ongoingPopup2 = popupRepository.save(
+                PopupTestDataBuilder.createCompletePopup("진행중 팝업2", PopupStatus.ONGOING, 5000)
+        );
+        plannedPopup = popupRepository.save(
+                PopupTestDataBuilder.createCompletePopup("계획된 팝업", PopupStatus.PLANNED, 3000)
+        );
+        endedPopup = popupRepository.save(
+                PopupTestDataBuilder.createCompletePopup("종료된 팝업", PopupStatus.ENDED, 0)
+        );
     }
 
     @Test
@@ -80,22 +88,23 @@ class PopupRepositoryTest {
     @DisplayName("상세 조회 - 이미지와 운영시간 포함")
     void findByIdWithDetails() {
         // when
-        Popup result = popupRepository.findByIdWithDetails(ongoingPopup1.getId());
+        Optional<Popup> result = popupRepository.findByIdWithDetails(ongoingPopup1.getId());
 
         // then
-        assertThat(result).isNotNull();
-        assertThat(result.getTitle()).isEqualTo("진행중 팝업1");
-        assertThat(result.getImages()).hasSize(2);
-        assertThat(result.getHours()).hasSize(7);
+        assertThat(result).isPresent();
+        Popup popup = result.get();
+        assertThat(popup.getTitle()).isEqualTo("진행중 팝업1");
+        assertThat(popup.getImages()).hasSize(2);
+        assertThat(popup.getHours()).hasSize(7);
     }
 
     @Test
     @DisplayName("존재하지 않는 ID로 상세 조회")
     void findByIdWithDetails_NotFound() {
         // when
-        Popup result = popupRepository.findByIdWithDetails(999L);
+        Optional<Popup> result = popupRepository.findByIdWithDetails(999L);
 
         // then
-        assertThat(result).isNull();
+        assertThat(result).isEmpty();
     }
 }

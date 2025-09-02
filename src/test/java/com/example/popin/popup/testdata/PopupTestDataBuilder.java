@@ -6,8 +6,8 @@ import com.example.popin.domain.popup.entity.PopupImage;
 import com.example.popin.domain.popup.entity.PopupStatus;
 
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class PopupTestDataBuilder {
 
@@ -52,7 +52,7 @@ public class PopupTestDataBuilder {
     public static Popup createPopupWithImages(String title, PopupStatus status, Integer entryFee) {
         Popup popup = createPopup(title, status, entryFee);
 
-        List<PopupImage> images = new ArrayList<>();
+        Set<PopupImage> images = new LinkedHashSet<>();
         images.add(createPopupImage(popup, "https://example.com/image1.jpg", "메인 이미지", 0));
         images.add(createPopupImage(popup, "https://example.com/image2.jpg", "서브 이미지", 1));
         popup.setImages(images);
@@ -63,7 +63,7 @@ public class PopupTestDataBuilder {
     public static Popup createPopupWithHours(String title, PopupStatus status, Integer entryFee) {
         Popup popup = createPopup(title, status, entryFee);
 
-        List<PopupHours> hours = new ArrayList<>();
+        Set<PopupHours> hours = new LinkedHashSet<>();
         // 평일 (월~금)
         for (int i = 0; i < 5; i++) {
             hours.add(createPopupHours(popup, i, "10:00", "20:00"));
@@ -81,13 +81,13 @@ public class PopupTestDataBuilder {
         Popup popup = createPopup(title, status, entryFee);
 
         // 이미지 추가
-        List<PopupImage> images = new ArrayList<>();
+        Set<PopupImage> images = new LinkedHashSet<>();
         images.add(createPopupImage(popup, "https://example.com/image1.jpg", "메인 이미지", 0));
         images.add(createPopupImage(popup, "https://example.com/image2.jpg", "서브 이미지", 1));
         popup.setImages(images);
 
         // 운영시간 추가
-        List<PopupHours> hours = new ArrayList<>();
+        Set<PopupHours> hours = new LinkedHashSet<>();
         for (int i = 0; i < 7; i++) {
             if (i < 5) { // 평일
                 hours.add(createPopupHours(popup, i, "10:00", "20:00"));

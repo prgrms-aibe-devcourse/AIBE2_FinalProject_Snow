@@ -158,7 +158,7 @@ public class PopupControllerTest {
     void getPopupDetail_NotFound() throws Exception {
         mockMvc.perform(get("/api/popups/{popupId}", 999L))
                 .andDo(print())
-                .andExpect(status().isInternalServerError()); // 현재 IllegalArgumentException으로 처리됨
+                .andExpect(status().isNotFound());
     }
 
     @Test

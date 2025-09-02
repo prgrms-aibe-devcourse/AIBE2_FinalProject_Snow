@@ -4,10 +4,13 @@ import com.example.popin.domain.popup.entity.Popup;
 import com.example.popin.domain.popup.entity.PopupStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 @Repository
 public interface PopupRepository extends JpaRepository<Popup, Long> {
@@ -19,6 +22,7 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
     Page<Popup> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     // 팝업 상세 조회 (이미지, 시간 정보 포함)
-    @Query("SELECT p FROM Popup p LEFT JOIN FETCH p.images LEFT JOIN FETCH p.hours WHERE p.id = :id")
-    Popup findByIdWithDetails(@Param("id") Long id);
+    @EntityGraph(attributePaths = {"images", "hours"})
+    @Query("SELECT p FROM Popup p WHERE p.id = :id")
+    Optional<Popup> findByIdWithDetails(@Param("id") Long id);
 }

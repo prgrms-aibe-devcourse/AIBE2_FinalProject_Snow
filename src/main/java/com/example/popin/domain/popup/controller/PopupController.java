@@ -9,29 +9,22 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Valid;
+import javax.validation.Validator;
+import java.util.Set;
+
 @RestController
 @RequestMapping("/api/popups")
 @RequiredArgsConstructor
 public class PopupController {
 
     private final PopupService popupService;
+    private final Validator validator;
 
     // 팝업스토어 리스트 조회
     @GetMapping
-    public ResponseEntity<PopupListResponseDto> getPopupList(
-            @RequestParam(required = false) PopupStatus status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "DESC") String sortDirection) {
-
-        PopupListRequestDto request = new PopupListRequestDto();
-        request.setStatus(status);
-        request.setPage(page);
-        request.setSize(size);
-        request.setSortBy(sortBy);
-        request.setSortDirection(sortDirection);
-
+    public ResponseEntity<PopupListResponseDto> getPopupList(@Valid PopupListRequestDto request) {
         PopupListResponseDto response = popupService.getPopupList(request);
         return ResponseEntity.ok(response);
     }
