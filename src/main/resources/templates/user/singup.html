@@ -22,17 +22,6 @@
     </div>
 
     <div class="form-group">
-        <label>이름 *</label>
-        <input type="text" th:field="*{name}" placeholder="이름을 입력하세요"/>
-        <div th:errors="*{name}" class="error"></div>
-    </div>
-
-    <div class="form-group">
-        <label>닉네임</label>
-        <input type="text" th:field="*{nickname}" placeholder="닉네임을 입력하세요"/>
-    </div>
-
-    <div class="form-group">
         <label>이메일 *</label>
         <input type="email" th:field="*{email}" placeholder="이메일을 입력하세요"/>
         <div th:errors="*{email}" class="error"></div>
@@ -43,6 +32,18 @@
         <input type="password" th:field="*{password}" placeholder="8-16자 비밀번호"/>
         <div th:errors="*{password}" class="error"></div>
     </div>
+
+    <div class="form-group">
+        <label>이름 *</label>
+        <input type="text" th:field="*{name}" placeholder="이름을 입력하세요"/>
+        <div th:errors="*{name}" class="error"></div>
+    </div>
+
+    <div class="form-group">
+        <label>닉네임</label>
+        <input type="text" th:field="*{nickname}" placeholder="닉네임을 입력하세요"/>
+    </div>
+
 
     <div class="form-group">
         <label>전화번호</label>

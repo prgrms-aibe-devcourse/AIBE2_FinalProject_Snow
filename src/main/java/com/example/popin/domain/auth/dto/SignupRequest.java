@@ -1,4 +1,4 @@
-package com.example.popin.domain.user.dto;
+package com.example.popin.domain.auth.dto;
 
 import lombok.*;
 

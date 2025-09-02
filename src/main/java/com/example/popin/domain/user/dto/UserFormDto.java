@@ -1,4 +1,4 @@
-package com.example.popin.domain.user;
+package com.example.popin.domain.user.dto;
 
 import lombok.Getter;
 import lombok.Setter;

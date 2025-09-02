@@ -1,5 +1,6 @@
 package com.example.popin.domain.user;
 
+import com.example.popin.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

@@ -1,6 +1,6 @@
-package com.example.popin.domain.user;
+package com.example.popin.domain.user.entity;
 
-import com.example.popin.domain.user.constant.AuthProvider;
+import com.example.popin.domain.auth.constant.AuthProvider;
 import com.example.popin.domain.user.constant.Role;
 import com.example.popin.global.common.BaseEntity;
 import lombok.*;
@@ -8,7 +8,7 @@ import lombok.*;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "user")
+@Table(name = "users")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
