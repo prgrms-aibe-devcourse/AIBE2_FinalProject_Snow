@@ -1,24 +1,23 @@
 package com.example.popin.domain.missionset;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import com.example.popin.domain.missionset.dto.MissionSetViewDto;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/mission-sets")
-@RequiredArgsConstructor
 public class MissionSetController {
+
     private final MissionSetService missionSetService;
 
-    @PostMapping
-    public ResponseEntity<MissionSet> create(@RequestBody MissionSet missionSet) {
-        return ResponseEntity.ok(missionSetService.create(missionSet));
+    public MissionSetController(MissionSetService missionSetService) {
+        this.missionSetService = missionSetService;
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<MissionSet> get(@PathVariable Long id) {
-        return missionSetService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @GetMapping("/by-popup/{popupId}")
+    public List<MissionSetViewDto> byPopup(@PathVariable Long popupId,
+                                           @RequestParam(required = false) Long userId) {
+        return missionSetService.getByPopup(popupId, userId);
     }
 }

@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 )
 @Getter
 @Setter
-@ToString(exclude = {"user", "mission"})
+@ToString(exclude = {"user", "mission.js"})
 public class UserMission extends BaseEntity {
 
     @Id

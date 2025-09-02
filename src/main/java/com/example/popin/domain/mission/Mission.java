@@ -7,7 +7,7 @@ import lombok.Setter;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "mission")
+@Table(name = "mission.js")
 @Getter
 @Setter
 public class Mission {

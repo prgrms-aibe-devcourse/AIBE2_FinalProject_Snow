@@ -38,7 +38,7 @@ public class UserMissionService {
     @Transactional
     public SubmitAnswerResponseDto submitAnswer(Long missionId, Long userId, String answer) {
         Mission mission = missionRepository.findById(missionId)
-                .orElseThrow(() -> new NoSuchElementException("mission not found"));
+                .orElseThrow(() -> new NoSuchElementException("mission.js not found"));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("user not found"));
 
