@@ -2,6 +2,7 @@ package com.example.popin.domain.popup.entity;
 
 import com.example.popin.global.common.BaseEntity;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import javax.persistence.*;
 import java.util.LinkedHashSet;
@@ -49,11 +50,13 @@ public class Popup extends BaseEntity {
     @Column(name = "is_featured")
     private Boolean isFeatured = false;
 
-    @OneToMany(mappedBy = "popup", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "popup", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @BatchSize(size = 50)
     @OrderBy("sortOrder ASC")
     private Set<PopupImage> images = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "popup", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "popup", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @BatchSize(size = 50)
     @OrderBy("dayOfWeek ASC")
     private Set<PopupHours> hours = new LinkedHashSet<>();
 

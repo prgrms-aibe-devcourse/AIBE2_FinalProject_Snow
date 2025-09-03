@@ -8,6 +8,7 @@ import com.example.popin.domain.popup.entity.Popup;
 import com.example.popin.domain.popup.entity.PopupStatus;
 import com.example.popin.domain.popup.repository.PopupRepository;
 import com.example.popin.domain.popup.service.PopupService;
+import com.example.popin.global.exception.PopupNotFoundException;
 import com.example.popin.popup.testdata.PopupTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -140,7 +141,7 @@ public class PopupServiceTest {
 
         // when & then
         assertThatThrownBy(() -> popupService.getPopupDetail(popupId))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(PopupNotFoundException.class)
                 .hasMessage("팝업을 찾을 수 없습니다: " + popupId);
     }
 }

@@ -16,11 +16,11 @@ public class PopupHours extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "popup_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "popup_id", nullable = false)
     private Popup popup;
 
-    @Column(name = "day_of_week")
+    @Column(name = "day_of_week", nullable = false)
     private Integer dayOfWeek; // 0=Mon..6=Sun
 
     @Column(name = "open_time")

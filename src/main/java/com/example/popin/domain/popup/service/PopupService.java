@@ -4,6 +4,7 @@ import com.example.popin.domain.popup.dto.request.PopupListRequestDto;
 import com.example.popin.domain.popup.dto.response.*;
 import com.example.popin.domain.popup.entity.*;
 import com.example.popin.domain.popup.repository.PopupRepository;
+import com.example.popin.global.exception.PopupNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
@@ -45,10 +46,7 @@ public class PopupService {
 
     public PopupDetailResponseDto getPopupDetail(Long popupId) {
         Popup popup = popupRepository.findByIdWithDetails(popupId)
-                .orElseThrow(() -> {
-                    log.warn("팝업을 찾을 수 없습니다 - ID: {}", popupId);
-                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "Popup not found: " + popupId);
-                });
+                .orElseThrow(() -> new PopupNotFoundException(popupId));
 
         log.info("팝업 상세 조회 완료 - ID: {}, 제목: {}, 이미지 수: {}, 운영시간 수: {}",
                 popup.getId(), popup.getTitle(), popup.getImages().size(), popup.getHours().size());
