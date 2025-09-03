@@ -1,11 +1,13 @@
 package com.example.popin.popup.service;
 
 import com.example.popin.domain.popup.dto.request.PopupListRequestDto;
+import com.example.popin.domain.popup.dto.request.PopupSearchRequestDto;
 import com.example.popin.domain.popup.dto.response.PopupDetailResponseDto;
 import com.example.popin.domain.popup.dto.response.PopupListResponseDto;
 import com.example.popin.domain.popup.dto.response.PopupSummaryResponseDto;
 import com.example.popin.domain.popup.entity.Popup;
 import com.example.popin.domain.popup.entity.PopupStatus;
+import com.example.popin.domain.popup.entity.Tag;
 import com.example.popin.domain.popup.repository.PopupRepository;
 import com.example.popin.domain.popup.service.PopupService;
 import com.example.popin.global.exception.PopupNotFoundException;
@@ -22,9 +24,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -46,6 +46,12 @@ public class PopupServiceTest {
     private Popup samplePopup2;
     private Popup detailPopup;
 
+    // 검색용 테스트 데이터
+    private Popup seoulCafePopup;
+    private Popup busanArtPopup;
+    private Tag cafeTag;
+    private Tag artTag;
+
     @BeforeEach
     void setUp() {
         samplePopup1 = PopupTestDataBuilder.createCompletePopup("무료 팝업", PopupStatus.ONGOING, 0);
@@ -56,6 +62,29 @@ public class PopupServiceTest {
 
         detailPopup = PopupTestDataBuilder.createCompletePopup("상세 팝업", PopupStatus.ONGOING, 5000);
         detailPopup.setId(3L);
+
+        // 검색용 테스트 데이터 설정
+        cafeTag = new Tag();
+        cafeTag.setId(1L);
+        cafeTag.setName("카페");
+
+        artTag = new Tag();
+        artTag.setId(2L);
+        artTag.setName("아트");
+
+        seoulCafePopup = PopupTestDataBuilder.createCompletePopup("서울 카페 팝업", PopupStatus.ONGOING, 3000);
+        seoulCafePopup.setId(4L);
+        seoulCafePopup.setRegion("서울");
+        Set<Tag> cafeTagSet = new HashSet<>();
+        cafeTagSet.add(cafeTag);
+        seoulCafePopup.setTags(cafeTagSet);
+
+        busanArtPopup = PopupTestDataBuilder.createCompletePopup("부산 아트 갤러리", PopupStatus.ONGOING, 10000);
+        busanArtPopup.setId(5L);
+        busanArtPopup.setRegion("부산");
+        Set<Tag> artTagSet = new HashSet<>();
+        artTagSet.add(artTag);
+        busanArtPopup.setTags(artTagSet);
     }
 
     @Test
@@ -106,6 +135,157 @@ public class PopupServiceTest {
         // then
         assertThat(response.getPopups()).hasSize(1);
         assertThat(response.getPopups().get(0).getStatus()).isEqualTo(PopupStatus.ONGOING);
+    }
+
+    @Test
+    @DisplayName("팝업 검색 - 제목으로 검색")
+    void searchPopups_ByTitle() {
+        // given
+        List<Popup> popups = Arrays.asList(seoulCafePopup);
+        Page<Popup> popupPage = new PageImpl<>(popups, PageRequest.of(0, 20), 1);
+
+        PopupSearchRequestDto request = new PopupSearchRequestDto();
+        request.setTitle("카페");
+
+        given(popupRepository.searchPopups(eq("카페"), eq(null), any(Pageable.class)))
+                .willReturn(popupPage);
+
+        // when
+        PopupListResponseDto response = popupService.searchPopups(request);
+
+        // then
+        assertThat(response.getPopups()).hasSize(1);
+        assertThat(response.getPopups().get(0).getTitle()).isEqualTo("서울 카페 팝업");
+        assertThat(response.getTotalElements()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("팝업 검색 - 지역으로 검색")
+    void searchPopups_ByRegion() {
+        // given
+        List<Popup> popups = Arrays.asList(seoulCafePopup);
+        Page<Popup> popupPage = new PageImpl<>(popups, PageRequest.of(0, 20), 1);
+
+        PopupSearchRequestDto request = new PopupSearchRequestDto();
+        request.setRegion("서울");
+
+        given(popupRepository.searchPopups(eq(null), eq("서울"), any(Pageable.class)))
+                .willReturn(popupPage);
+
+        // when
+        PopupListResponseDto response = popupService.searchPopups(request);
+
+        // then
+        assertThat(response.getPopups()).hasSize(1);
+        assertThat(response.getPopups().get(0).getTitle()).isEqualTo("서울 카페 팝업");
+    }
+
+    @Test
+    @DisplayName("팝업 검색 - 태그로 검색")
+    void searchPopups_ByTags() {
+        // given
+        List<Popup> popups = Arrays.asList(seoulCafePopup);
+        Page<Popup> popupPage = new PageImpl<>(popups, PageRequest.of(0, 20), 1);
+
+        PopupSearchRequestDto request = new PopupSearchRequestDto();
+        request.setTags(Arrays.asList("카페"));
+
+        given(popupRepository.searchPopupsByTags(eq(Arrays.asList("카페")), eq(null), eq(null), any(Pageable.class)))
+                .willReturn(popupPage);
+
+        // when
+        PopupListResponseDto response = popupService.searchPopups(request);
+
+        // then
+        assertThat(response.getPopups()).hasSize(1);
+        assertThat(response.getPopups().get(0).getTitle()).isEqualTo("서울 카페 팝업");
+    }
+
+    @Test
+    @DisplayName("팝업 검색 - 여러 태그로 검색")
+    void searchPopups_ByMultipleTags() {
+        // given
+        List<Popup> popups = Arrays.asList(seoulCafePopup, busanArtPopup);
+        Page<Popup> popupPage = new PageImpl<>(popups, PageRequest.of(0, 20), 2);
+
+        PopupSearchRequestDto request = new PopupSearchRequestDto();
+        request.setTags(Arrays.asList("카페", "아트"));
+
+        given(popupRepository.searchPopupsByTags(eq(Arrays.asList("카페", "아트")), eq(null), eq(null), any(Pageable.class)))
+                .willReturn(popupPage);
+
+        // when
+        PopupListResponseDto response = popupService.searchPopups(request);
+
+        // then
+        assertThat(response.getPopups()).hasSize(2);
+        assertThat(response.getPopups())
+                .extracting(PopupSummaryResponseDto::getTitle)
+                .containsExactly("서울 카페 팝업", "부산 아트 갤러리");
+    }
+
+    @Test
+    @DisplayName("팝업 검색 - 복합 조건 검색 (제목 + 지역)")
+    void searchPopups_Multiple() {
+        // given
+        List<Popup> popups = Arrays.asList(seoulCafePopup);
+        Page<Popup> popupPage = new PageImpl<>(popups, PageRequest.of(0, 20), 1);
+
+        PopupSearchRequestDto request = new PopupSearchRequestDto();
+        request.setTitle("카페");
+        request.setRegion("서울");
+
+        given(popupRepository.searchPopups(eq("카페"), eq("서울"), any(Pageable.class)))
+                .willReturn(popupPage);
+
+        // when
+        PopupListResponseDto response = popupService.searchPopups(request);
+
+        // then
+        assertThat(response.getPopups()).hasSize(1);
+        assertThat(response.getPopups().get(0).getTitle()).isEqualTo("서울 카페 팝업");
+    }
+
+    @Test
+    @DisplayName("팝업 검색 - 태그 + 지역 복합 조건")
+    void searchPopups_TagsWithRegion() {
+        // given
+        List<Popup> popups = Arrays.asList(seoulCafePopup);
+        Page<Popup> popupPage = new PageImpl<>(popups, PageRequest.of(0, 20), 1);
+
+        PopupSearchRequestDto request = new PopupSearchRequestDto();
+        request.setTags(Arrays.asList("카페"));
+        request.setRegion("서울");
+
+        given(popupRepository.searchPopupsByTags(eq(Arrays.asList("카페")), eq(null), eq("서울"), any(Pageable.class)))
+                .willReturn(popupPage);
+
+        // when
+        PopupListResponseDto response = popupService.searchPopups(request);
+
+        // then
+        assertThat(response.getPopups()).hasSize(1);
+        assertThat(response.getPopups().get(0).getTitle()).isEqualTo("서울 카페 팝업");
+    }
+
+    @Test
+    @DisplayName("팝업 검색 - 검색 결과 없음")
+    void searchPopups_NoResults() {
+        // given
+        Page<Popup> emptyPage = new PageImpl<>(Arrays.asList(), PageRequest.of(0, 20), 0);
+
+        PopupSearchRequestDto request = new PopupSearchRequestDto();
+        request.setTitle("존재하지않는팝업");
+
+        given(popupRepository.searchPopups(eq("존재하지않는팝업"), eq(null), any(Pageable.class)))
+                .willReturn(emptyPage);
+
+        // when
+        PopupListResponseDto response = popupService.searchPopups(request);
+
+        // then
+        assertThat(response.getPopups()).isEmpty();
+        assertThat(response.getTotalElements()).isEqualTo(0);
     }
 
     @Test
