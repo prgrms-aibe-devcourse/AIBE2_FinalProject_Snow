@@ -67,6 +67,8 @@ public class SecurityConfig {
                         .ignoringAntMatchers("/api/**")
                         // HTML 컴포넌트 로드도 CSRF 제외
                         .ignoringAntMatchers("/html/**", "/components/**")
+                        // 로그인 에러로 추가
+                        .ignoringAntMatchers("/users/login", "/users/logout")
                 )
                 .headers(headers -> headers
                         .frameOptions().deny()
