@@ -49,7 +49,7 @@ public class FileStorageService {
             log.info("File saved: {}", target);
 
             // WebMvcConfig의 /images/** 매핑에 맞춰서 반환
-            return "/images/" + filename;
+            return "/uploads/" + filename;
 
         } catch (IOException e) {
             log.error("File save failed", e);
