@@ -32,6 +32,16 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(e, ErrorCode.INTERNAL_ERROR, request);
     }
 
+    @ExceptionHandler(PopupNotFoundException.class)
+    public ResponseEntity<Object> handlePopupNotFound(PopupNotFoundException e, WebRequest request) {
+        ErrorCode errorCode = e.getErrorCode();
+        ApiErrorResponse errorResponse = ApiErrorResponse.of(errorCode, e.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(errorResponse);
+    }
+
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(
             Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
