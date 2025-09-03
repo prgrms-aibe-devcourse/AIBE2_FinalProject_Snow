@@ -1,6 +1,5 @@
-package com.example.popin.domain.usermission;
+package com.example.popin.domain.mission.entity;
 
-import com.example.popin.domain.mission.Mission;
 import com.example.popin.domain.user.User;
 import com.example.popin.global.common.BaseEntity;
 import lombok.Getter;

@@ -1,5 +1,6 @@
-package com.example.popin.domain.missionset;
+package com.example.popin.domain.mission.repository;
 
+import com.example.popin.domain.mission.entity.MissionSet;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.UUID;

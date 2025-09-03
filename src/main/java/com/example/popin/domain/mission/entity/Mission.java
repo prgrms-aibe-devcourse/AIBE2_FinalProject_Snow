@@ -1,6 +1,5 @@
-package com.example.popin.domain.mission;
+package com.example.popin.domain.mission.entity;
 
-import com.example.popin.domain.missionset.MissionSet;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;

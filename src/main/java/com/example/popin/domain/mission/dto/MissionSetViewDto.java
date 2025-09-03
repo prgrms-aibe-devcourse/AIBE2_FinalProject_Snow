@@ -1,4 +1,4 @@
-package com.example.popin.domain.missionset.dto;
+package com.example.popin.domain.mission.dto;
 
 import lombok.Getter;
 import lombok.Setter;

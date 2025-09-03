@@ -1,10 +1,13 @@
-package com.example.popin.domain.usermission;
+package com.example.popin.domain.mission.service;
 
-import com.example.popin.domain.mission.Mission;
-import com.example.popin.domain.mission.MissionRepository;
+import com.example.popin.domain.mission.entity.Mission;
+import com.example.popin.domain.mission.entity.UserMission;
+import com.example.popin.domain.mission.entity.UserMissionStatus;
+import com.example.popin.domain.mission.repository.MissionRepository;
 import com.example.popin.domain.user.User;
 import com.example.popin.domain.user.UserRepository;
-import com.example.popin.domain.usermission.dto.SubmitAnswerResponseDto;
+import com.example.popin.domain.mission.dto.SubmitAnswerResponseDto;
+import com.example.popin.domain.mission.repository.UserMissionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

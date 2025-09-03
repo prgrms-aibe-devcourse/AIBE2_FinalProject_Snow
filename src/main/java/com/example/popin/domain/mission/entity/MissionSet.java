@@ -1,6 +1,5 @@
-package com.example.popin.domain.missionset;
+package com.example.popin.domain.mission.entity;
 
-import com.example.popin.domain.mission.Mission;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
@@ -39,4 +38,7 @@ public class MissionSet {
 
     @OneToMany(mappedBy = "missionSet", cascade = CascadeType.ALL, orphanRemoval = false)
     private List<Mission> missions = new ArrayList<>();
+
+    @Column(name = "reward_pin", length = 80)
+    private String rewardPin;
 }

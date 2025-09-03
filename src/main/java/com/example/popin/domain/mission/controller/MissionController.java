@@ -1,5 +1,7 @@
-package com.example.popin.domain.mission;
+package com.example.popin.domain.mission.controller;
 
+import com.example.popin.domain.mission.entity.Mission;
+import com.example.popin.domain.mission.repository.MissionRepository;
 import com.example.popin.domain.mission.dto.MissionDto;
 import org.springframework.web.bind.annotation.*;
 

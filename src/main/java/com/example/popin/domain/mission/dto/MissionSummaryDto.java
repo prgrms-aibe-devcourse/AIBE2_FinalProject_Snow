@@ -1,6 +1,6 @@
-package com.example.popin.domain.missionset.dto;
+package com.example.popin.domain.mission.dto;
 
-import com.example.popin.domain.usermission.UserMissionStatus;
+import com.example.popin.domain.mission.entity.UserMissionStatus;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -10,10 +10,6 @@
         <div class="modal-title" id="modal-title"></div>
         <div class="modal-desc" id="modal-desc"></div>
 
-        <div style="background:#f6f6f6;border:1px dashed #ccc;border-radius:10px;height:120px;display:grid;place-items:center;margin-bottom:12px;">
-          <span style="color:#888">이미지 업로드 영역(추후 연결)</span>
-        </div>
-
         <label style="display:block;font-weight:600;margin-bottom:6px;">정답 입력</label>
         <input id="modal-answer" type="text" placeholder="정답 또는 코드" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
         <div class="modal-actions">

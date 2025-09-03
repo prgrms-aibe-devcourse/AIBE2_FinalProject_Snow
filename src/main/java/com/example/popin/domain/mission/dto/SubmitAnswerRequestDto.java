@@ -1,10 +1,9 @@
-package com.example.popin.domain.usermission.dto;
+package com.example.popin.domain.mission.dto;
 
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter

@@ -1,7 +1,7 @@
-package com.example.popin.domain.mission;
+package com.example.popin.domain.mission.service;
 
-import com.example.popin.domain.mission.Mission;
-import com.example.popin.domain.mission.MissionRepository;
+import com.example.popin.domain.mission.entity.Mission;
+import com.example.popin.domain.mission.repository.MissionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

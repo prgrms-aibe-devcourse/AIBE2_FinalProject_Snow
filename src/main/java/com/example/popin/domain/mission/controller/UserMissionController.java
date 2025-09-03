@@ -1,11 +1,11 @@
-package com.example.popin.domain.usermission;
+package com.example.popin.domain.mission.controller;
 
+import com.example.popin.domain.mission.entity.UserMission;
+import com.example.popin.domain.mission.service.UserMissionService;
 import com.example.popin.domain.user.UserService;
-import com.example.popin.domain.usermission.dto.SubmitAnswerRequestDto;
-import com.example.popin.domain.usermission.dto.SubmitAnswerResponseDto;
-import org.springframework.http.HttpStatus;
+import com.example.popin.domain.mission.dto.SubmitAnswerRequestDto;
+import com.example.popin.domain.mission.dto.SubmitAnswerResponseDto;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
