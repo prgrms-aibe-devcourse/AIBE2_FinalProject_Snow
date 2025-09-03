@@ -1,7 +1,6 @@
-// src/main/java/com/example/popin/MPg_Provider/controller/ProviderApiController.java
 package com.example.popin.domain.MPg_Provider.controller;
 
-import com.example.popin.space.entity.Space;
+import com.example.popin.domain.space.entity.Space;
 import com.example.popin.domain.MPg_Provider.service.ProviderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
