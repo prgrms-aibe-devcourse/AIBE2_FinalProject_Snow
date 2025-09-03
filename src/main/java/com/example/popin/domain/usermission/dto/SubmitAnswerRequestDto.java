@@ -9,9 +9,6 @@ import javax.validation.constraints.NotNull;
 @Getter
 @Setter
 public class SubmitAnswerRequestDto {
-    @NotNull
-    private Long userId;
-
     @NotBlank
     private String answer;
 }

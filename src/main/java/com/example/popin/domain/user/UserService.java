@@ -26,6 +26,11 @@ public class UserService implements UserDetailsService {
             throw new IllegalStateException("이미 가입된 회원입니다.");
         }
     }
+    public Long getUserIdByUsername(String username) {
+        User u = userRepository.findByEmail(username);
+        if (u == null) throw new java.util.NoSuchElementException("user not found");
+        return u.getId();
+    }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {

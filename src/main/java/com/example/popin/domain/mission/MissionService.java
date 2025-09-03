@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -16,7 +17,7 @@ public class MissionService {
         return missionRepository.save(mission);
     }
 
-    public Optional<Mission> findById(Long id) {
+    public Optional<Mission> findById(UUID id) {
         return missionRepository.findById(id);
     }
 }

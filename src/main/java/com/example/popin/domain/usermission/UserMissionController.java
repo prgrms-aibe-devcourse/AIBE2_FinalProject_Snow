@@ -1,15 +1,19 @@
 package com.example.popin.domain.usermission;
 
+import com.example.popin.domain.user.UserService;
 import com.example.popin.domain.usermission.dto.SubmitAnswerRequestDto;
 import com.example.popin.domain.usermission.dto.SubmitAnswerResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/user-missions")
@@ -17,9 +21,11 @@ import java.util.Optional;
 public class UserMissionController {
 
     private final UserMissionService userMissionService;
+    private final UserService userService;
 
-    public UserMissionController(UserMissionService userMissionService) {
+    public UserMissionController(UserMissionService userMissionService, UserService userService) {
         this.userMissionService = userMissionService;
+        this.userService = userService;
     }
 
     @PostMapping
@@ -34,17 +40,27 @@ public class UserMissionController {
         return ResponseEntity.notFound().build();
     }
 
+
     @PostMapping("/{missionId}/submit-answer")
     public ResponseEntity<SubmitAnswerResponseDto> submitAnswer(
-            @PathVariable Long missionId,
+            @PathVariable UUID missionId,
+            Principal principal,
             @RequestBody @Valid SubmitAnswerRequestDto req
     ) {
-        SubmitAnswerResponseDto res =
-                userMissionService.submitAnswer(missionId, req.getUserId(), req.getAnswer());
+        Long userId = null;
 
+        if (principal != null) {
+            userId = userService.getUserIdByUsername(principal.getName());
+        }
 
-        HttpStatus status = res.isPass() ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
+        // TODO: 로그인 개발 완료후 수정 필요
+        if (userId == null) {
+            userId = 1L;
+        }
 
-        return new ResponseEntity<SubmitAnswerResponseDto>(res, status);
+        SubmitAnswerResponseDto res = userMissionService.submitAnswer(missionId, userId, req.getAnswer());
+        return ResponseEntity.ok(res);
     }
+
+
 }

@@ -5,12 +5,14 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class MissionDto {
-    private Long id;
+    private UUID id;
     private String title;
     private String description;
-    private Long missionSetId; // 미션이 속한 세트 id
+    private UUID missionSetId; // 미션이 속한 세트 id
 }

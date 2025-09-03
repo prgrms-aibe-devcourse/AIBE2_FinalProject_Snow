@@ -125,6 +125,33 @@ class SimpleApiService {
     async getMainData() {
         return await this.get('/main');
     }
+
+
+    // === 미션 관련 API ===
+
+    // 미션 단건 조회
+    async getMission(missionId) {
+        return await this.get(`/missions/${encodeURIComponent(missionId)}`);
+    }
+
+    // (옵션) 미션 목록 조회 ?missionSetId=
+    async listMissions(params = {}) {
+        let url = '/missions';
+        if (params.missionSetId != null) {
+            url += `?missionSetId=${encodeURIComponent(params.missionSetId)}`;
+        }
+        return await this.get(url);
+    }
+
+    async getMissionSetsByPopup(popupId) {
+        const url = `/mission-sets/by-popup/${encodeURIComponent(popupId)}`;
+        return this.get(url);
+    }
+
+    async submitMissionAnswer(missionId, answer) {
+        return this.post(`/user-missions/${encodeURIComponent(missionId)}/submit-answer`, { answer });
+    }
+
 }
 
 // 전역 API 서비스 인스턴스

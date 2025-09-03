@@ -3,18 +3,24 @@ package com.example.popin.domain.mission;
 import com.example.popin.domain.missionset.MissionSet;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.util.UUID;
 
 @Entity
-@Table(name = "mission.js")
+@Table(name = "mission")
 @Getter
 @Setter
 public class Mission {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "id", columnDefinition = "BINARY(16)")
+    @Type(type = "org.hibernate.type.UUIDBinaryType")
+    private UUID id;
 
     private String title;
     private String description;
