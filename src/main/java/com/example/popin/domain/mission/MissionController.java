@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -18,14 +19,14 @@ public class MissionController {
     }
 
     @GetMapping("/{id}")
-    public MissionDto get(@PathVariable Long id) {
+    public MissionDto get(@PathVariable UUID id) {
         Mission m = missionRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("mission.js not found"));
+                .orElseThrow(() -> new NoSuchElementException("mission not found"));
         return toDto(m);
     }
 
     @GetMapping
-    public List<MissionDto> list(@RequestParam(required = false) Long missionSetId) {
+    public List<MissionDto> list(@RequestParam(required = false) UUID missionSetId) {
         List<Mission> list = (missionSetId == null)
                 ? missionRepository.findAll()
                 : missionRepository.findByMissionSet_Id(missionSetId);
@@ -33,7 +34,7 @@ public class MissionController {
     }
 
     private MissionDto toDto(Mission m) {
-        Long msId = (m.getMissionSet() != null) ? m.getMissionSet().getId() : null;
+        UUID msId = (m.getMissionSet() != null) ? m.getMissionSet().getId() : null;
         return new MissionDto(m.getId(), m.getTitle(), m.getDescription(), msId);
     }
 }

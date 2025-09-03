@@ -3,11 +3,14 @@ package com.example.popin.domain.missionset;
 import com.example.popin.domain.mission.Mission;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "mission_set")
@@ -16,8 +19,12 @@ import java.util.List;
 public class MissionSet {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "id", columnDefinition = "BINARY(16)")
+    @Type(type = "org.hibernate.type.UUIDBinaryType")
+    private UUID id;
+
 
     @Column(name = "popup_id", nullable = false)
     private Long popupId;

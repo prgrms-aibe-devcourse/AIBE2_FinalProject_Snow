@@ -1,0 +1,57 @@
+/* 미션 보드 */
+.mission-board { padding: 16px; }
+.mission-head { margin-bottom: 16px; }
+.mission-head .title { font-size: 20px; font-weight: 700; }
+.mission-head .subtitle { color: #666; margin-top: 6px; }
+
+/* 2 x 3 그리드 */
+.mission-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px 24px;
+    margin-top: 16px;
+}
+
+/* 스탬프 원형 */
+.mission-item {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.mission-stamp {
+    width: 96px; height: 96px; border: 3px solid #f5a3c7; border-radius: 50%;
+    background: #ffeaf4; position: relative; display: grid; place-items: center;
+    transition: transform .1s ease;
+}
+.mission-stamp:hover { transform: scale(1.02); }
+.mission-name { font-weight: 700; color: #555; }
+
+/* 완료 표시 (체크/취소선 느낌) */
+.mission-stamp.done::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+            linear-gradient(45deg, transparent 45%, rgba(220,0,100,.15) 46%, rgba(220,0,100,.15) 54%, transparent 55%),
+            radial-gradient(circle at 50% 50%, rgba(240,0,120,.25) 0 48%, transparent 49%);
+    border-radius: 50%;
+}
+.mission-name.done { color: #aaa; text-decoration: line-through; }
+
+/* 완수 버튼(와이어프레임 하단) */
+.mission-complete-btn {
+    width: 100%; margin-top: 18px; padding: 12px 14px; border: 0; border-radius: 10px;
+    background: #4B5AE4; color: #fff; font-weight: 700;
+}
+
+/* 모달 */
+.modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; z-index: 999;
+}
+.modal-card {
+    width: min(92vw, 420px); background: #fff; border-radius: 12px; padding: 16px;
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    box-shadow: 0 8px 28px rgba(0,0,0,.2);
+}
+.modal-title { font-weight: 700; margin-bottom: 10px; }
+.modal-desc { color:#666; margin-bottom: 12px; }
+.modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px;}
+.btn { padding:10px 14px; border-radius:8px; border:1px solid #ddd; background:#fff }
+.btn.primary { background:#4B5AE4; color:#fff; border-color:#4B5AE4 }
+.btn:disabled { opacity:.6; }

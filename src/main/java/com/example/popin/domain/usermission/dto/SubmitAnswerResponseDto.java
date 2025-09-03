@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -13,7 +15,7 @@ public class SubmitAnswerResponseDto {
 
     private boolean isPass;
     private UserMissionStatus status;
-    private Long missionSetId;
+    private UUID missionSetId;
     private long successCount;
     private Integer requiredCount;
     private boolean isCleared;

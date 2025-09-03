@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserMissionService {
@@ -36,9 +37,9 @@ public class UserMissionService {
     }
 
     @Transactional
-    public SubmitAnswerResponseDto submitAnswer(Long missionId, Long userId, String answer) {
+    public SubmitAnswerResponseDto submitAnswer(UUID missionId, Long userId, String answer) {
         Mission mission = missionRepository.findById(missionId)
-                .orElseThrow(() -> new NoSuchElementException("mission.js not found"));
+                .orElseThrow(() -> new NoSuchElementException("mission not found"));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("user not found"));
 
