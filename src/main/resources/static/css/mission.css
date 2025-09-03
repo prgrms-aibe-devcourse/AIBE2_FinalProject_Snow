@@ -1,0 +1,92 @@
+/* 미션 보드 */
+.mission-board { padding: 16px; text-align: center; }
+.mission-head { margin-bottom: 20px; }
+.mission-head .title { font-size: 20px; font-weight: 700; }
+.mission-head .subtitle {
+    font-size: 14px;
+    color: #444;
+    margin-top: 8px;
+    line-height: 1.4;
+}
+
+/* 2 x 3 그리드 */
+.mission-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px 28px;
+    margin-top: 20px;
+    justify-items: center;
+}
+
+/* 스탬프 원형 */
+.mission-item {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.mission-stamp {
+    width: 96px; height: 96px; border: 3px solid #f5a3c7; border-radius: 50%;
+    background: #ffeaf4; position: relative; display: grid; place-items: center;
+    transition: transform .1s ease;
+}
+.mission-stamp:hover { transform: scale(1.02); }
+.mission-name { font-weight: 700; color: #555; }
+
+/* 완료 표시 (체크/취소선 느낌) */
+.mission-stamp.done::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+            radial-gradient(circle at 50% 50%, rgba(240,0,120,.25) 0 48%, transparent 49%);
+    border-radius: 50%;
+}
+/* 완료 버튼 */
+.mission-complete-btn {
+    width: 100%;
+    margin-top: 18px;
+    padding: 12px 14px;
+    border: 0;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 700;
+    transition: background .2s ease;
+}
+
+.mission-complete-btn.enabled {
+    background: #4B5AE4; /* 완료 가능 */
+}
+
+.mission-complete-btn.disabled {
+    background: #B6BCF7; /* 아직 완료 불가 */
+    cursor: not-allowed;
+}
+
+/* 모달 배경 */
+.modal-backdrop {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+/* 모달 카드 */
+.modal-card {
+    width: min(92vw, 420px);
+    max-width: 420px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.25);
+    position: relative;
+}
+
+
+.modal-title { font-weight: 700; margin-bottom: 10px; }
+.modal-desc { color:#666; margin-bottom: 12px; }
+.modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+
+.btn { padding:10px 14px; border-radius:8px; border:1px solid #ddd; background:#fff }
+.btn.primary { background:#4B5AE4; color:#fff; border-color:#4B5AE4 }
+.btn:disabled { opacity:.6; }

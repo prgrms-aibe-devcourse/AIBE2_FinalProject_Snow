@@ -1,0 +1,15 @@
+package com.example.popin.domain.reward.repository;
+
+import com.example.popin.domain.reward.entity.UserReward;
+import com.example.popin.domain.reward.entity.UserRewardStatus;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.*;
+
+public interface UserRewardRepository extends JpaRepository<UserReward, Long> {
+
+    Optional<UserReward> findByUserIdAndMissionSetId(Long userId, UUID missionSetId);
+
+    Optional<UserReward> findByUserIdAndMissionSetIdAndStatus(
+            Long userId, UUID missionSetId, UserRewardStatus status);
+}
