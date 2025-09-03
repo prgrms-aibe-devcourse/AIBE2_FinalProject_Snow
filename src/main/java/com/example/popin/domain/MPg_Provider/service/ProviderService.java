@@ -23,8 +23,11 @@ public class ProviderService {
     }
 
     public List<Space> findMySpaces(String email) {
-        User owner = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
+        User owner = userRepository.findByEmail(email);
+        if (owner == null) {
+            throw new IllegalArgumentException("사용자 없음");
+        }
         return spaceRepository.findByOwner(owner);
+
     }
 }
