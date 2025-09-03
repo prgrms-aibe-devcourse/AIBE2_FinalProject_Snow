@@ -1,15 +1,21 @@
 /* 미션 보드 */
-.mission-board { padding: 16px; }
-.mission-head { margin-bottom: 16px; }
+.mission-board { padding: 16px; text-align: center; }
+.mission-head { margin-bottom: 20px; }
 .mission-head .title { font-size: 20px; font-weight: 700; }
-.mission-head .subtitle { color: #666; margin-top: 6px; }
+.mission-head .subtitle {
+    font-size: 14px;
+    color: #444;
+    margin-top: 8px;
+    line-height: 1.4;
+}
 
 /* 2 x 3 그리드 */
 .mission-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px 24px;
-    margin-top: 16px;
+    gap: 20px 28px;
+    margin-top: 20px;
+    justify-items: center;
 }
 
 /* 스탬프 원형 */
@@ -28,30 +34,59 @@
 .mission-stamp.done::after {
     content: ""; position: absolute; inset: 0;
     background:
-            linear-gradient(45deg, transparent 45%, rgba(220,0,100,.15) 46%, rgba(220,0,100,.15) 54%, transparent 55%),
             radial-gradient(circle at 50% 50%, rgba(240,0,120,.25) 0 48%, transparent 49%);
     border-radius: 50%;
 }
-.mission-name.done { color: #aaa; text-decoration: line-through; }
-
-/* 완수 버튼(와이어프레임 하단) */
+/* 완료 버튼 */
 .mission-complete-btn {
-    width: 100%; margin-top: 18px; padding: 12px 14px; border: 0; border-radius: 10px;
-    background: #4B5AE4; color: #fff; font-weight: 700;
+    width: 100%;
+    margin-top: 18px;
+    padding: 12px 14px;
+    border: 0;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 700;
+    transition: background .2s ease;
 }
 
-/* 모달 */
+.mission-complete-btn.enabled {
+    background: #4B5AE4; /* 완료 가능 */
+}
+
+.mission-complete-btn.disabled {
+    background: #B6BCF7; /* 아직 완료 불가 */
+    cursor: not-allowed;
+}
+
+/* 모달 배경 */
 .modal-backdrop {
-    position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; z-index: 999;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
 }
+
+/* 모달 카드 */
 .modal-card {
-    width: min(92vw, 420px); background: #fff; border-radius: 12px; padding: 16px;
-    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-    box-shadow: 0 8px 28px rgba(0,0,0,.2);
+    width: min(92vw, 420px);
+    max-width: 420px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.25);
+    position: relative;
 }
+
+
 .modal-title { font-weight: 700; margin-bottom: 10px; }
 .modal-desc { color:#666; margin-bottom: 12px; }
-.modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px;}
+.modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+
 .btn { padding:10px 14px; border-radius:8px; border:1px solid #ddd; background:#fff }
 .btn.primary { background:#4B5AE4; color:#fff; border-color:#4B5AE4 }
 .btn:disabled { opacity:.6; }

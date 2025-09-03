@@ -1,5 +1,6 @@
 package com.example.popin.domain.mission.entity;
 
+import com.example.popin.global.common.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
@@ -12,7 +13,7 @@ import java.util.UUID;
 @Table(name = "mission")
 @Getter
 @Setter
-public class Mission {
+public class Mission extends BaseEntity {
 
     @Id
     @GeneratedValue(generator = "uuid2")

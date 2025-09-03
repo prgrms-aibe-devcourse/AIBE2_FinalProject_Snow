@@ -1,5 +1,6 @@
 package com.example.popin.domain.reward.entity;
 
+import com.example.popin.global.common.BaseEntity;
 import lombok.*;
 import javax.persistence.*;
 import java.util.UUID;
@@ -8,7 +9,7 @@ import java.util.UUID;
 @Table(name = "reward_option",
         indexes = {@Index(name="idx_option_mission_set", columnList = "mission_set_id")})
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class RewardOption {
+public class RewardOption extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -3,52 +3,61 @@
   function qs(key){ return new URLSearchParams(location.search).get(key); }
 
   function openMissionModal({ mission, onSubmit }) {
+    // 배경
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop';
-    backdrop.innerHTML = `
-      <div class="modal-card">
-        <div class="modal-title" id="modal-title"></div>
-        <div class="modal-desc" id="modal-desc"></div>
 
-        <label style="display:block;font-weight:600;margin-bottom:6px;">정답 입력</label>
-        <input id="modal-answer" type="text" placeholder="정답 또는 코드" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
-        <div class="modal-actions">
-          <button class="btn" id="modal-cancel">취소</button>
-          <button class="btn primary" id="modal-submit">submit</button>
-        </div>
-      </div>
-    `;
+    // 카드
+    const card = document.createElement('div');
+    card.className = 'modal-card';
+    card.innerHTML = `
+    <div class="modal-title">${mission.title || ('mission ' + mission.id)}</div>
+    <div class="modal-desc">${mission.description || ''}</div>
+
+    <label style="display:block;font-weight:600;margin-bottom:6px;">정답 입력</label>
+    <input id="modal-answer" type="text" placeholder="정답 또는 코드"
+           style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
+    <div class="modal-actions">
+      <button class="btn" id="modal-cancel">취소</button>
+      <button class="btn primary" id="modal-submit">제출</button>
+    </div>
+  `;
+
+    // 합치기
+    backdrop.appendChild(card);
     document.body.appendChild(backdrop);
-    backdrop.style.display = 'block';
 
-    $('#modal-title').textContent = mission.title || ('mission ' + mission.id);
-    $('#modal-desc').textContent  = mission.description || '';
-
-    function close(){ document.body.removeChild(backdrop); }
-    $('#modal-cancel').onclick = close;
-    $('#modal-submit').onclick = async function(){
-      const answer = $('#modal-answer').value;
+    // 이벤트
+    function close() {
+      document.body.removeChild(backdrop);
+    }
+    card.querySelector('#modal-cancel').onclick = close;
+    card.querySelector('#modal-submit').onclick = async function () {
+      const answer = card.querySelector('#modal-answer').value;
       await onSubmit(answer).catch(err => alert(err?.message || '제출 실패'));
       close();
     };
   }
 
+
   function renderMissionBoard({ mount, setView, onOpenMission }) {
     const remaining = Math.max(0, (setView.requiredCount || 0) - (setView.successCount || 0));
+
     mount.innerHTML = `
-      <section class="mission-board">
-        <div class="mission-head">
-          <div class="title">STAMP MISSION</div>
-          <div class="subtitle"><strong>${remaining}</strong>개의 미션을 더 완료하시고 리워드를 받아가세요!</div>
-        </div>
+    <section class="mission-board">
+      <div class="mission-head">
+        <div class="title">STAMP MISSION</div>
+        <div class="subtitle"><strong>${remaining}</strong>개의 미션을 더 완료하시고 리워드를 받아가세요!</div>
+      </div>
 
-        <div class="mission-grid" id="mission-grid"></div>
+      <div class="mission-grid" id="mission-grid"></div>
 
-        <button class="mission-complete-btn" id="complete-btn" ${remaining > 0 ? 'disabled' : ''}>
-          미션 완료
-        </button>
-      </section>
-    `;
+      <!-- disabled 속성 대신 class로 상태 관리 -->
+      <button class="mission-complete-btn ${remaining > 0 ? 'disabled' : 'enabled'}" id="complete-btn">
+        미션 완료
+      </button>
+    </section>
+  `;
 
     const grid = $('#mission-grid');
     (setView.missions || []).slice(0, 6).forEach(m => {
@@ -56,18 +65,20 @@
       const item = document.createElement('div');
       item.className = 'mission-item';
       item.innerHTML = `
-        <div class="mission-stamp ${done ? 'done' : ''}"></div>
-        <div class="mission-name ${done ? 'done' : ''}">${m.title || ('mission' + m.id)}</div>
-      `;
+      <div class="mission-stamp ${done ? 'done' : ''}"></div>
+      <div class="mission-name ${done ? 'done' : ''}">${m.title || ('mission' + m.id)}</div>
+    `;
       item.onclick = () => onOpenMission(m);
       grid.appendChild(item);
     });
 
+    // 리워드 룰렛 연결
     $('#complete-btn').onclick = function(){
       if (remaining > 0) return;
-      alert('축하합니다! 리워드 지급 플로우로 이동합니다.');
+      rewardClaim(setView.missionSetId);
     };
   }
+
 
   window.Pages = window.Pages || {};
   Pages.missionBoard = async function ({ popupId, setIndex = 0 } = {}) {
@@ -82,7 +93,6 @@
     }
 
     mount.innerHTML = `<div class="content-section"><h2 class="content-title">로딩 중...</h2><div class="loading"></div></div>`;
-
 
     let data;
     try {
@@ -104,7 +114,7 @@
         onSubmit: async (answer) => {
           const res = await apiService.submitMissionAnswer(mission.id, answer);
 
-          // 제출 후 새로고침
+          // 제출 후 다시 보드 갱신
           const refreshed = await apiService.getMissionSetsByPopup(popupId);
           const sv = refreshed.find(s => s.missionSetId === setView.missionSetId) || setView;
           renderMissionBoard({ mount, setView: sv, onOpenMission: handleOpen });
