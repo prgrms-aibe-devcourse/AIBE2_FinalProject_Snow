@@ -29,6 +29,6 @@ public class Mission extends BaseEntity {
     private String answer;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "mission_set_id")
+    @JoinColumn(name = "mission_set_id", nullable = false)
     private MissionSet missionSet;
 }
