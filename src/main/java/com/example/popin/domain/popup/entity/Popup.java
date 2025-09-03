@@ -71,7 +71,7 @@ public class Popup extends BaseEntity {
             joinColumns = @JoinColumn(name = "popup_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
-    private Set<Tag> tags;
+    private Set<Tag> tags = new LinkedHashSet<>();
 
     public boolean isFreeEntry() {
         return entryFee == null || entryFee == 0;

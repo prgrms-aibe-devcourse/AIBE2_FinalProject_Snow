@@ -24,12 +24,15 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -257,7 +260,7 @@ public class PopupServiceTest {
         request.setTags(Arrays.asList("카페"));
         request.setRegion("서울");
 
-        given(popupRepository.searchPopupsByTags(eq(Arrays.asList("카페")), eq(null), eq("서울"), any(Pageable.class)))
+        given(popupRepository.searchPopupsByTags(eq(Arrays.asList("카페")), isNull(), eq("서울"), any(Pageable.class)))
                 .willReturn(popupPage);
 
         // when
@@ -277,7 +280,7 @@ public class PopupServiceTest {
         PopupSearchRequestDto request = new PopupSearchRequestDto();
         request.setTitle("존재하지않는팝업");
 
-        given(popupRepository.searchPopups(eq("존재하지않는팝업"), eq(null), any(Pageable.class)))
+        given(popupRepository.searchPopups(eq("존재하지않는팝업"), isNull(), any(Pageable.class)))
                 .willReturn(emptyPage);
 
         // when

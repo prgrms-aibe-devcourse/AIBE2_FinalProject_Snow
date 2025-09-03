@@ -17,9 +17,9 @@ public class Tag extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", unique = true, nullable = false)
+    @Column(name = "name", nullable = false, unique = true, length = 100)
     private String name;
 
     @ManyToMany(mappedBy = "tags")
-    private Set<Popup> popups = new LinkedHashSet<>();
+    private Set<Popup> popups;
 }

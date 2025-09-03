@@ -9,11 +9,9 @@ import com.example.popin.global.exception.PopupNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,37 +34,32 @@ public class PopupService {
                 .map(this::convertToSummaryResponseDto)
                 .collect(Collectors.toList());
 
-        return PopupListResponseDto.builder()
-                .popups(popupDtos)
-                .totalPages(popupPage.getTotalPages())
-                .totalElements(popupPage.getTotalElements())
-                .currentPage(popupPage.getNumber())
-                .size(popupPage.getSize())
-                .hasNext(popupPage.hasNext())
-                .hasPrevious(popupPage.hasPrevious())
-                .build();
+        return buildPopupListResponse(popupPage, popupDtos);
     }
 
     public PopupListResponseDto searchPopups(PopupSearchRequestDto request) {
         Pageable pageable = createPageable(request.getPage(), request.getSize(),
                 request.getSortBy(), request.getSortDirection());
 
+        // 입력값 정제 및 정규화
+        String title = (request.getTitle() != null && !request.getTitle().trim().isEmpty())
+                ? request.getTitle().trim() : null;
+        String region = (request.getRegion() != null && !request.getRegion().trim().isEmpty())
+                ? request.getRegion().trim() : null;
+        List<String> tags = CollectionUtils.isEmpty(request.getTags()) ? null
+                : request.getTags().stream()
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .distinct()
+                .collect(Collectors.toList());
+
         Page<Popup> popupPage;
 
         // 태그가 있는 경우와 없는 경우로 분리
-        if (!CollectionUtils.isEmpty(request.getTags())) {
-            popupPage = popupRepository.searchPopupsByTags(
-                    request.getTags(),
-                    request.getTitle(),
-                    request.getRegion(),
-                    pageable
-            );
+        if (!CollectionUtils.isEmpty(tags)) {
+            popupPage = popupRepository.searchPopupsByTags(tags, title, region, pageable);
         } else {
-            popupPage = popupRepository.searchPopups(
-                    request.getTitle(),
-                    request.getRegion(),
-                    pageable
-            );
+            popupPage = popupRepository.searchPopups(title, region, pageable);
         }
 
         List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
@@ -75,7 +68,7 @@ public class PopupService {
                 .collect(Collectors.toList());
 
         log.info("팝업 검색 완료 - 제목: {}, 지역: {}, 태그: {}, 결과 수: {}",
-                request.getTitle(), request.getRegion(), request.getTags(), popupPage.getTotalElements());
+                title, region, tags, popupPage.getTotalElements());
 
         return buildPopupListResponse(popupPage, popupDtos);
     }
@@ -187,12 +180,10 @@ public class PopupService {
     }
 
     private Pageable createPageable(int page, int size, String sortBy, String sortDirection) {
-        Sort sort = Sort.by(
-                sortDirection.equalsIgnoreCase("ASC")
-                        ? Sort.Direction.ASC
-                        : Sort.Direction.DESC,
-                sortBy
-        );
-        return PageRequest.of(page, size, sort);
+        String prop = (sortBy == null || sortBy.isBlank()) ? "createdAt" : sortBy;
+        Sort.Direction dir = ("ASC".equalsIgnoreCase(sortDirection)) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        int p = Math.max(0, page);
+        int s = Math.min(Math.max(1, size), 100);
+        return PageRequest.of(p, s, Sort.by(dir, prop));
     }
 }
