@@ -4,6 +4,7 @@ import com.example.popin.domain.popup.entity.Popup;
 import com.example.popin.domain.popup.entity.PopupHours;
 import com.example.popin.domain.popup.entity.PopupImage;
 import com.example.popin.domain.popup.entity.PopupStatus;
+import com.example.popin.domain.popup.entity.Tag;
 
 import java.time.LocalTime;
 import java.util.LinkedHashSet;
@@ -27,6 +28,10 @@ public class PopupTestDataBuilder {
         popup.setIsFeatured(entryFee == 0); // 무료면 추천
         popup.setBrandId(1L);
         popup.setVenueId(1L);
+        popup.setRegion("서울"); // 기본값으로 서울 설정
+        popup.setAddress("서울시 강남구 테헤란로 123");
+        popup.setLatitude(37.5665);
+        popup.setLongitude(126.9780);
         return popup;
     }
 
@@ -47,6 +52,12 @@ public class PopupTestDataBuilder {
         hours.setCloseTime(LocalTime.parse(closeTime));
         hours.setNote(dayOfWeek < 5 ? "평일" : "주말");
         return hours;
+    }
+
+    public static Tag createTag(String name) {
+        Tag tag = new Tag();
+        tag.setName(name);
+        return tag;
     }
 
     public static Popup createPopupWithImages(String title, PopupStatus status, Integer entryFee) {
@@ -77,6 +88,26 @@ public class PopupTestDataBuilder {
         return popup;
     }
 
+    public static Popup createPopupWithTags(String title, PopupStatus status, Integer entryFee, Set<Tag> tags) {
+        Popup popup = createCompletePopup(title, status, entryFee);
+        popup.setTags(tags);
+        return popup;
+    }
+
+    public static Popup createPopupWithRegion(String title, PopupStatus status, Integer entryFee, String region) {
+        Popup popup = createCompletePopup(title, status, entryFee);
+        popup.setRegion(region);
+        return popup;
+    }
+
+    public static Popup createPopupWithTagsAndRegion(String title, PopupStatus status, Integer entryFee,
+                                                     Set<Tag> tags, String region) {
+        Popup popup = createCompletePopup(title, status, entryFee);
+        popup.setTags(tags);
+        popup.setRegion(region);
+        return popup;
+    }
+
     public static Popup createCompletePopup(String title, PopupStatus status, Integer entryFee) {
         Popup popup = createPopup(title, status, entryFee);
 
@@ -98,5 +129,52 @@ public class PopupTestDataBuilder {
         popup.setHours(hours);
 
         return popup;
+    }
+
+    // 검색 테스트용 팝업 빌더들
+    public static PopupBuilder builder() {
+        return new PopupBuilder();
+    }
+
+    public static class PopupBuilder {
+        private String title = "테스트 팝업";
+        private PopupStatus status = PopupStatus.ONGOING;
+        private Integer entryFee = 0;
+        private String region = "서울";
+        private Set<Tag> tags = new LinkedHashSet<>();
+
+        public PopupBuilder title(String title) {
+            this.title = title;
+            return this;
+        }
+
+        public PopupBuilder status(PopupStatus status) {
+            this.status = status;
+            return this;
+        }
+
+        public PopupBuilder entryFee(Integer entryFee) {
+            this.entryFee = entryFee;
+            return this;
+        }
+
+        public PopupBuilder region(String region) {
+            this.region = region;
+            return this;
+        }
+
+        public PopupBuilder addTag(Tag tag) {
+            this.tags.add(tag);
+            return this;
+        }
+
+        public PopupBuilder tags(Set<Tag> tags) {
+            this.tags = tags;
+            return this;
+        }
+
+        public Popup build() {
+            return createPopupWithTagsAndRegion(title, status, entryFee, tags, region);
+        }
     }
 }

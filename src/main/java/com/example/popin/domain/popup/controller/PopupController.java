@@ -1,6 +1,7 @@
 package com.example.popin.domain.popup.controller;
 
 import com.example.popin.domain.popup.dto.request.PopupListRequestDto;
+import com.example.popin.domain.popup.dto.request.PopupSearchRequestDto;
 import com.example.popin.domain.popup.dto.response.PopupDetailResponseDto;
 import com.example.popin.domain.popup.dto.response.PopupListResponseDto;
 import com.example.popin.domain.popup.entity.PopupStatus;
@@ -26,6 +27,13 @@ public class PopupController {
     @GetMapping
     public ResponseEntity<PopupListResponseDto> getPopupList(@Valid PopupListRequestDto request) {
         PopupListResponseDto response = popupService.getPopupList(request);
+        return ResponseEntity.ok(response);
+    }
+
+    // 팝업스토어 검색
+    @GetMapping("/search")
+    public ResponseEntity<PopupListResponseDto> searchPopups(@Valid PopupSearchRequestDto request) {
+        PopupListResponseDto response = popupService.searchPopups(request);
         return ResponseEntity.ok(response);
     }
 

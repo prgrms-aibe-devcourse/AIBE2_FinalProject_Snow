@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -25,4 +26,24 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
     @EntityGraph(attributePaths = {"images", "hours"})
     @Query("SELECT p FROM Popup p WHERE p.id = :id")
     Optional<Popup> findByIdWithDetails(@Param("id") Long id);
+
+    // 팝업 검색 (제목, 지역으로만)
+    @Query("SELECT DISTINCT p FROM Popup p " +
+            "WHERE (:title IS NULL OR TRIM(:title) = '' OR LOWER(p.title) LIKE LOWER(CONCAT('%', :title, '%'))) " +
+            "AND (:region IS NULL OR TRIM(:region) = '' OR LOWER(p.region) = LOWER(:region))")
+    Page<Popup> searchPopups(
+            @Param("title") String title,
+            @Param("region") String region,
+            Pageable pageable);
+
+    // 태그로 팝업 검색 (제목, 지역 조건 포함)
+    @Query("SELECT DISTINCT p FROM Popup p JOIN p.tags t " +
+            "WHERE t.name IN :tagNames " +
+            "AND (:title IS NULL OR TRIM(:title) = '' OR LOWER(p.title) LIKE LOWER(CONCAT('%', :title, '%'))) " +
+            "AND (:region IS NULL OR TRIM(:region) = '' OR LOWER(p.region) = LOWER(:region))")
+    Page<Popup> searchPopupsByTags(
+            @Param("tagNames") List<String> tagNames,
+            @Param("title") String title,
+            @Param("region") String region,
+            Pageable pageable);
 }
