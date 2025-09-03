@@ -14,7 +14,13 @@
         }
 
         // 옵션 목록
-        const options = await apiService.get(`/rewards/options/${encodeURIComponent(missionSetId)}`);
+        let options;
+        try {
+            options = await apiService.get(`/rewards/options/${encodeURIComponent(missionSetId)}`);
+        } catch (e) {
+            alert("리워드 옵션 조회에 실패했습니다. 잠시 후 다시 시도해주세요.");
+            return;
+        }
         if (!options || options.length === 0) {
             alert("리워드 옵션이 없습니다.");
             return;
