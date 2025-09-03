@@ -33,6 +33,11 @@ public class Popup extends BaseEntity {
     @Column(name = "entry_fee")
     private Integer entryFee = 0;
 
+    private String region;
+    private String address;
+    private Double latitude;
+    private Double longitude;
+
     @Column(name = "reservation_available")
     private Boolean reservationAvailable = false;
 
@@ -59,6 +64,14 @@ public class Popup extends BaseEntity {
     @BatchSize(size = 50)
     @OrderBy("dayOfWeek ASC")
     private Set<PopupHours> hours = new LinkedHashSet<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "popup_tags",
+            joinColumns = @JoinColumn(name = "popup_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tag> tags;
 
     public boolean isFreeEntry() {
         return entryFee == null || entryFee == 0;

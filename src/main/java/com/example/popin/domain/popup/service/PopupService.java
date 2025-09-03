@@ -1,6 +1,7 @@
 package com.example.popin.domain.popup.service;
 
 import com.example.popin.domain.popup.dto.request.PopupListRequestDto;
+import com.example.popin.domain.popup.dto.request.PopupSearchRequestDto;
 import com.example.popin.domain.popup.dto.response.*;
 import com.example.popin.domain.popup.entity.*;
 import com.example.popin.domain.popup.repository.PopupRepository;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -25,7 +27,8 @@ public class PopupService {
     private final PopupRepository popupRepository;
 
     public PopupListResponseDto getPopupList(PopupListRequestDto request) {
-        Pageable pageable = createPageable(request);
+        Pageable pageable = createPageable(request.getPage(), request.getSize(),
+                request.getSortBy(), request.getSortDirection());
         Page<Popup> popupPage = getPopups(request.getStatus(), pageable);
 
         List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
@@ -44,6 +47,39 @@ public class PopupService {
                 .build();
     }
 
+    public PopupListResponseDto searchPopups(PopupSearchRequestDto request) {
+        Pageable pageable = createPageable(request.getPage(), request.getSize(),
+                request.getSortBy(), request.getSortDirection());
+
+        Page<Popup> popupPage;
+
+        // 태그가 있는 경우와 없는 경우로 분리
+        if (!CollectionUtils.isEmpty(request.getTags())) {
+            popupPage = popupRepository.searchPopupsByTags(
+                    request.getTags(),
+                    request.getTitle(),
+                    request.getRegion(),
+                    pageable
+            );
+        } else {
+            popupPage = popupRepository.searchPopups(
+                    request.getTitle(),
+                    request.getRegion(),
+                    pageable
+            );
+        }
+
+        List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
+                .stream()
+                .map(this::convertToSummaryResponseDto)
+                .collect(Collectors.toList());
+
+        log.info("팝업 검색 완료 - 제목: {}, 지역: {}, 태그: {}, 결과 수: {}",
+                request.getTitle(), request.getRegion(), request.getTags(), popupPage.getTotalElements());
+
+        return buildPopupListResponse(popupPage, popupDtos);
+    }
+
     public PopupDetailResponseDto getPopupDetail(Long popupId) {
         Popup popup = popupRepository.findByIdWithDetails(popupId)
                 .orElseThrow(() -> new PopupNotFoundException(popupId));
@@ -59,6 +95,18 @@ public class PopupService {
         } else {
             return popupRepository.findAllByOrderByCreatedAtDesc(pageable);
         }
+    }
+
+    private PopupListResponseDto buildPopupListResponse(Page<Popup> popupPage, List<PopupSummaryResponseDto> popupDtos) {
+        return PopupListResponseDto.builder()
+                .popups(popupDtos)
+                .totalPages(popupPage.getTotalPages())
+                .totalElements(popupPage.getTotalElements())
+                .currentPage(popupPage.getNumber())
+                .size(popupPage.getSize())
+                .hasNext(popupPage.hasNext())
+                .hasPrevious(popupPage.hasPrevious())
+                .build();
     }
 
     private PopupSummaryResponseDto convertToSummaryResponseDto(Popup popup) {
@@ -138,13 +186,13 @@ public class PopupService {
                 .build();
     }
 
-    private Pageable createPageable(PopupListRequestDto request) {
+    private Pageable createPageable(int page, int size, String sortBy, String sortDirection) {
         Sort sort = Sort.by(
-                request.getSortDirection().equalsIgnoreCase("ASC")
+                sortDirection.equalsIgnoreCase("ASC")
                         ? Sort.Direction.ASC
                         : Sort.Direction.DESC,
-                request.getSortBy()
+                sortBy
         );
-        return PageRequest.of(request.getPage(), request.getSize(), sort);
+        return PageRequest.of(page, size, sort);
     }
 }
