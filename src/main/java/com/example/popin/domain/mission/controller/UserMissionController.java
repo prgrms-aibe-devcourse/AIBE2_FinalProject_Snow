@@ -53,9 +53,11 @@ public class UserMissionController {
             userId = userService.getUserIdByUsername(principal.getName());
         }
 
-        // TODO: 로그인 개발 완료후 수정 필요
-        if (userId == null) {
-            userId = 1L;
+        // 인증 필요
+        if (principal == null || userId == null) {
+            return ResponseEntity
+                .status(org.springframework.http.HttpStatus.UNAUTHORIZED)
+                .build();
         }
 
         SubmitAnswerResponseDto res = userMissionService.submitAnswer(missionId, userId, req.getAnswer());
