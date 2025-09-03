@@ -1,6 +1,7 @@
 package com.example.popin.global.jwt;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -50,12 +51,17 @@ public class JwtUtil {
                 .compact();
     }
 
-    public Claims extractClaims(String token){
-        return Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+    public Claims extractClaims(String token) {
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (ExpiredJwtException e) {
+            // 만료된 토큰도 payload(claims)는 꺼낼 수 있으니 필요하면 반환
+            return e.getClaims();
+        }
     }
 
 
@@ -102,11 +108,23 @@ public class JwtUtil {
         }
     }
 
+    /*
     public boolean isTokenExpired(String token){
         Date expiration  = extractClaims(token).getExpiration();
         boolean expired  = expiration  .before(new Date());
         log.debug("토큰 만료 여부 : {}", expired );
         return expired;
+    }*/
+
+    // 테스트 익셉션
+    public boolean isTokenExpired(String token) {
+        try {
+            Date expiration = extractClaims(token).getExpiration();
+            return expiration.before(new Date());
+        } catch (ExpiredJwtException e) {
+            // 만료된 경우에도 Claims는 e.getClaims() 안에 들어 있음
+            return true;
+        }
     }
 
     public boolean validateToken(String token){

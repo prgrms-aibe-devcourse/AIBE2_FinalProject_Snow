@@ -4,6 +4,7 @@ package com.example.popin.global.error;
 import com.example.popin.global.constant.ErrorCode;
 import com.example.popin.global.error.ApiErrorResponse;
 import com.example.popin.global.exception.GeneralException;
+import com.example.popin.global.exception.PopupNotFoundException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
