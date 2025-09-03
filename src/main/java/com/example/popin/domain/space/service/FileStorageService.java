@@ -17,6 +17,10 @@ public class FileStorageService {
     @Value("${uploadPath}")
     private String uploadPath;
 
+    private static final java.util.Set<String> ALLOWED_CONTENT_TYPES =
+            java.util.Set.of("image/jpeg", "image/png", "image/gif", "images/webp");
+    private static final java.util.Set<String> ALLOWED_EXT =
+            java.util.Set.of(".jpg", ".jpeg", ".png", ".gif", ".webp");
     //파일 저장
     public String save(MultipartFile file) {
         if (file == null || file.isEmpty()) {
@@ -39,6 +43,14 @@ public class FileStorageService {
                     .filter(name -> name.contains("."))
                     .map(name -> name.substring(name.lastIndexOf(".")))
                     .orElse("");
+            String lowerExt = ext.toLowerCase();
+            if (!ALLOWED_EXT.contains(lowerExt)) {
+                throw new IllegalArgumentException("허용되지 않은 파일 형식입니다.");
+            }
+            String contentType = Optional.ofNullable(file.getContentType()).orElse("").toLowerCase();
+            if (!ALLOWED_CONTENT_TYPES.contains(contentType)) {
+                throw new IllegalArgumentException("허용되지 않은 콘텐츠 타입입니다.");
+            }
 
             // UUID + 확장자로 파일명 생성
             String filename = UUID.randomUUID() + ext;
@@ -48,7 +60,7 @@ public class FileStorageService {
             Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
             log.info("File saved: {}", target);
 
-            // WebMvcConfig의 /images/** 매핑에 맞춰서 반환
+            // WebMvcConfig의 /uploads/** 매핑에 맞춰서 반환
             return "/uploads/" + filename;
 
         } catch (IOException e) {

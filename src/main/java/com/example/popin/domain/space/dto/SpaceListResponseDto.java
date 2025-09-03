@@ -44,7 +44,7 @@ public class SpaceListResponseDto {
                 .rentalFee(space.getRentalFee())
                 .coverImageUrl(space.getCoverImageUrl())
                 .createdAt(space.getCreatedAt())
-                .mine(space.getOwner().equals(me))
+                .mine(me != null && java.util.Objects.equals(space.getOwner().getId(), me.getId()))
                 .build();
     }
 }

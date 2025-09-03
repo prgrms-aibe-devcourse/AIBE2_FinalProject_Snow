@@ -6,13 +6,18 @@ import com.example.popin.domain.user.User;
 import com.example.popin.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.net.URI;
 import java.util.*;
 
 @RestController
@@ -24,8 +29,8 @@ public class SpaceController {
     private final SpaceService spaceService;
     private final UserRepository userRepository;
 
-    // 모든 공간 목록 조회 (새로 추가)
-    @GetMapping // 새로운 엔드포인트
+    // 모든 공간 목록 조회
+    @GetMapping
     public List<SpaceListResponseDto> listAllSpaces() {
         User me = getCurrentUser();
         log.debug("Listing all spaces");
@@ -107,20 +112,23 @@ public class SpaceController {
     //현재 로그인한 User 조회
     private User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = (auth != null) ? auth.getName() : null;
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+        String email = auth.getName();
 
         User user = userRepository.findByEmail(email);
         if (user == null) {
-            throw new IllegalStateException("로그인이 필요합니다.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"존재하지 않는 사용자입니다.");
         }
         return user;
     }
     //모든 사용자
     private User getCurrentUserOrNull() {
         try {
-            return getCurrentUser(); // 네가 기존에 쓰던 메서드
-        } catch (Exception e) {
-            return null;
+            return getCurrentUser();
+        } catch (ResponseStatusException e) {
+            return null; //unauthenticated -> treat as anonymous
         }
     }
 
