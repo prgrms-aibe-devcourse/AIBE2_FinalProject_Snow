@@ -87,19 +87,15 @@
                     // 서버 claim
                     apiService
                         .post("/rewards/claim", {
-                            missionSetId: missionSetId,
+                            missionSetId,
                             optionId: chosen.id,
                         })
-                        .then((res) => {
-                            if (res.ok) {
-                                alert(`축하합니다! [${chosen.name}] 리워드 당첨 🎉`);
-                            } else {
-                                alert(`발급 실패: ${res.error || "알 수 없는 오류"}`);
-                            }
+                        .then(() => {
+                            alert(`축하합니다! [${chosen.name}] 리워드 당첨 🎉`);
                             close();
                         })
                         .catch((err) => {
-                            alert("리워드 발급 실패: " + (err.message || err));
+                            alert("리워드 발급 실패: " + (err?.message || err || "알 수 없는 오류"));
                             close();
                         });
                 }
