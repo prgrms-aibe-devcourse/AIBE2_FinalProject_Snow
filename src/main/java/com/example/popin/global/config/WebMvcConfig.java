@@ -14,10 +14,5 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/images/**")
                 .addResourceLocations("classpath:/static/images/");
-
-        // 업로드된 파일
-        String dir = uploadPath.endsWith("/") ? uploadPath : uploadPath + "/";
-        registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:" + dir);
     }
 }
