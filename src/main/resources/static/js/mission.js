@@ -11,9 +11,12 @@
     const card = document.createElement('div');
     card.className = 'modal-card';
     card.innerHTML = `
-    <div class="modal-title">${mission.title || ('mission ' + mission.id)}</div>
-    <div class="modal-desc">${mission.description || ''}</div>
-
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-desc" id="modal-desc"></div>
+    `;
+    // Safe text injection
+    card.querySelector('#modal-title').textContent = mission.title || ('mission ' + mission.id);
+    card.querySelector('#modal-desc').textContent = mission.description || '';
     <label style="display:block;font-weight:600;margin-bottom:6px;">정답 입력</label>
     <input id="modal-answer" type="text" placeholder="정답 또는 코드"
            style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
