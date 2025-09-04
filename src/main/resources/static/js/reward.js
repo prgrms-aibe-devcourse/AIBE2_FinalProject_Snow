@@ -1,4 +1,3 @@
-// reward.js
 (function () {
     // 리워드 룰렛 UI 열기
     async function openRewardRoulette(missionSetId) {
