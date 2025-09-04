@@ -22,6 +22,7 @@ public class ProviderService {
         this.userRepository = userRepository;
     }
 
+    // '공간대여'에서 등록한 내 공간 리스트
     public List<Space> findMySpaces(String email) {
         User owner = userRepository.findByEmail(email);
         if (owner == null) {
