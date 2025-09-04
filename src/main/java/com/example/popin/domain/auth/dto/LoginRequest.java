@@ -10,7 +10,7 @@ import javax.validation.constraints.NotBlank;
 @Getter
 @Setter
 @NoArgsConstructor
-@JsonIgnoreProperties(value = { "password" })
+@JsonIgnoreProperties(ignoreUnknown = true)
 @ToString(exclude = "password")
 public class LoginRequest {
 

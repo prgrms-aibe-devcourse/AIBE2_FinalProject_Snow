@@ -91,28 +91,39 @@ public class AuthService implements UserDetailsService {
     public LoginResponse login(LoginRequest request){
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND, "이메일 또는 비밀번호가 올바르지 않습니다."));
+                .orElseThrow(() -> {
+                    log.warn("존재하지 않는 이메일: {}", request.getEmail());
+                    return new GeneralException(ErrorCode.LOGIN_FAILED);
+                });
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())){
-            throw new GeneralException(ErrorCode.BAD_REQUEST, "이메일 또는 비밀번호가 올바르지 않습니다.");
+            log.warn("비밀번호 불일치: {}", request.getEmail());
+            throw new GeneralException(ErrorCode.LOGIN_FAILED);
         }
 
-        String accessToken = jwtUtil.createToken(
-                user.getId(),
-                user.getEmail(),
-                user.getName(),
-                user.getRole().name()
-        );
+        try {
+            // JWT 토큰 생성
+            String accessToken = jwtUtil.createToken(
+                    user.getId(),
+                    user.getEmail(),
+                    user.getName(),
+                    user.getRole().name()
+            );
 
-        log.info("로그인 성공: {}", request.getEmail());
+            log.info("로그인 성공: {}", request.getEmail());
 
-        return LoginResponse.of(
-                accessToken,
-                user.getId(),
-                user.getEmail(),
-                user.getName(),
-                user.getRole().name()
-        );
+            return LoginResponse.of(
+                    accessToken,
+                    user.getId(),
+                    user.getEmail(),
+                    user.getName(),
+                    user.getRole().name()
+            );
+
+        } catch (Exception e) {
+            log.error("JWT 토큰 생성 실패: {}", e.getMessage(), e);
+            throw new GeneralException(ErrorCode.INTERNAL_ERROR, "로그인 처리 중 오류가 발생했습니다.");
+        }
 
     }
 

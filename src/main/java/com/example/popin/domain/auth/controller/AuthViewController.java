@@ -1,13 +1,15 @@
 package com.example.popin.domain.auth.controller;
 
 import com.example.popin.domain.auth.AuthService;
-import com.example.popin.domain.auth.dto.SignupRequest;
+import com.example.popin.domain.auth.dto.LoginRequest;
+import com.example.popin.domain.auth.dto.LoginResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 @Controller
 @RequestMapping("/auth")
@@ -16,10 +18,19 @@ public class AuthViewController {
 
     private final AuthService authService;
 
-    @GetMapping("/signup")
-    public String signup(){
-
-        return "auth/signup";
-
+    @GetMapping("/login")
+    public String loginPage() {
+        return "forward:/auth/login.html";
     }
+
+    @GetMapping("/logout")
+    public String logout() {
+        return "redirect:/auth/login?logout=true";
+    }
+
+    @GetMapping("/signup")
+    public String signupPage() {
+        return "forward:/auth/signup.html";
+    }
+
 }
