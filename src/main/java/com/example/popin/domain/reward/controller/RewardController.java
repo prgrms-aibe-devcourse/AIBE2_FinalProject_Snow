@@ -112,10 +112,16 @@ public class RewardController {
     }
 
     private Long resolveUserId(Principal principal) {
-        if (principal != null) {
-            Long id = userService.getUserIdByUsername(principal.getName());
-            if (id != null) return id;
+        if (principal == null) {
+            throw new IllegalStateException("로그인 정보가 없습니다.");
         }
-        return 1L; // TODO: 개발용 fallback
+
+        Long id = userService.getUserIdByUsername(principal.getName());
+        if (id == null) {
+            throw new IllegalStateException("사용자 ID를 찾을 수 없습니다: " + principal.getName());
+        }
+
+        return id;
     }
+
 }
