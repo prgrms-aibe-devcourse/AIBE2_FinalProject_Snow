@@ -107,6 +107,15 @@ public class MissionSetService {
         return result;
     }
 
+    /** 특정 미션셋 목록 조회 **/
+    public MissionSetViewDto getOne(UUID missionSetId, Long userId) {
+        MissionSet ms = missionSetRepository.findById(missionSetId)
+                .orElseThrow(() -> new IllegalArgumentException("MissionSet not found"));
+        return MissionSetViewDto.of(ms, userId, userMissionRepository);
+    }
+
+
+
     @Transactional(readOnly = true)
     public List<MissionSetViewDto> getByPopup(Long popupId) {
         return getByPopup(popupId, null);

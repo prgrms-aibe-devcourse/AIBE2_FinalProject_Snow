@@ -5,7 +5,9 @@ import com.example.popin.domain.mission.service.MissionSetService;
 import com.example.popin.domain.user.UserService;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/mission-sets")
@@ -19,12 +21,21 @@ public class MissionSetController {
         this.userService = userService;
     }
 
-    @GetMapping("/by-popup/{popupId}")
-    public List<MissionSetViewDto> byPopup(@PathVariable Long popupId, java.security.Principal principal) {
-        Long userId = 1L; //TODO: 실제 userid값 받아오도록 수정 필요
-        //if (principal != null) {
-        //    userId = userService.getUserIdByUsername(principal.getName());
-        //}
-        return missionSetService.getByPopup(popupId, userId);
+    @GetMapping("/{missionSetId}")
+    public MissionSetViewDto byMissionSet(@PathVariable UUID missionSetId, Principal principal) {
+        if (principal == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증된 사용자가 없습니다.");
+        }
+        Long userId = userService.getUserIdByUsername(principal.getName());
+        if (userId == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "해당 사용자를 찾을 수 없습니다: " + principal.getName());
+        }
+        try {
+            return missionSetService.getOne(missionSetId, userId);
+        } catch (NoSuchElementException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
     }
+
 }
