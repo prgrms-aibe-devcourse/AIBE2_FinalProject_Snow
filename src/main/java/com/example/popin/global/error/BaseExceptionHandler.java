@@ -3,6 +3,7 @@ package com.example.popin.global.error;
 import com.example.popin.global.constant.ErrorCode;
 import com.example.popin.global.exception.GeneralException;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
@@ -11,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
 
-@ControllerAdvice
+@ControllerAdvice(assignableTypes = {Controller.class})
 public class BaseExceptionHandler {
 
     @ExceptionHandler(GeneralException.class)
