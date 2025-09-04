@@ -53,7 +53,7 @@ public class AuthApiController {
         }
 
     }
-
+/*
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @CookieValue(value = "REFRESH_TOKEN", required = false) String refreshToken,
@@ -63,7 +63,7 @@ public class AuthApiController {
         if (refreshToken != null && !refreshToken.isBlank()){
             authService.revokeRe
         }
-    }
+    }*/
 
 
     @GetMapping("/check-email")
