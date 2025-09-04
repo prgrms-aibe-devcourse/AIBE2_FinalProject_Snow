@@ -21,7 +21,7 @@ const Pages = {
         }
     },
 
-    // 마이페이지 - 공간제공자
+    // == 마이페이지 - 공간제공자 ===
     async mypageProvider() {
         try {
             // 1) 템플릿 먼저 로드
@@ -111,7 +111,7 @@ const Pages = {
                 document.getElementById('main-content').innerHTML = html;
             }
         }
-    }, // 여기 추가
+    },// 페이지 추가
 };
 
 window.Pages = Pages;

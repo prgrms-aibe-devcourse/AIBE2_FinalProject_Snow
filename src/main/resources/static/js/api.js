@@ -158,6 +158,7 @@ class SimpleApiService {
 // 전역 API 서비스 인스턴스
 const apiService = new SimpleApiService();
 
+//  === 마이페이지 - 공간제공자 API ===
 //마이페이지 - 공간제공자의 내 등록 공간 로드
 apiService.getMySpaces = async function () {
     const res = await fetch('/api/spaces/mine', {
