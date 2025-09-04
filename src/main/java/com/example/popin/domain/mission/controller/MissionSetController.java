@@ -24,15 +24,18 @@ public class MissionSetController {
     @GetMapping("/{missionSetId}")
     public MissionSetViewDto byMissionSet(@PathVariable UUID missionSetId, Principal principal) {
         if (principal == null) {
-            throw new IllegalStateException("인증된 사용자가 없습니다.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증된 사용자가 없습니다.");
         }
-
         Long userId = userService.getUserIdByUsername(principal.getName());
         if (userId == null) {
-            throw new IllegalArgumentException("해당 사용자를 찾을 수 없습니다: " + principal.getName());
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "해당 사용자를 찾을 수 없습니다: " + principal.getName());
         }
-
-        return missionSetService.getOne(missionSetId, userId);
+        try {
+            return missionSetService.getOne(missionSetId, userId);
+        } catch (NoSuchElementException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
     }
 
 }
