@@ -152,6 +152,30 @@ class SimpleApiService {
     async submitMissionAnswer(missionId, answer) {
         return this.post(`/user-missions/${encodeURIComponent(missionId)}/submit-answer`, { answer });
     }
+    // === 공간 ===
+    // DELETE 요청
+    async delete(endpoint) {
+        try {
+            const response = await fetch(`${this.baseURL}${endpoint}`, {
+                method: 'DELETE',
+                headers: this.getHeaders()
+            });
+
+            if (response.status === 401) {
+                this.removeToken();
+                throw new Error('인증이 필요합니다.');
+            }
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            // 보통 빈 응답이지만, 서버가 JSON을 주면 파싱
+            const ct = response.headers.get('content-type') || '';
+            return ct.includes('application/json') ? await response.json() : true;
+        } catch (err) {
+            console.error('API DELETE Error:', err);
+            throw err;
+        }
+    }
 
 }
 
@@ -168,4 +192,33 @@ apiService.getMySpaces = async function () {
     });
     if (!res.ok) throw new Error('failed to load my spaces');
     return await res.json();
+};
+
+// === 공간대여 API ===
+
+// 목록 조회 (필요하면 params 객체로 필터링 지원)
+apiService.listSpaces = async function (params = {}) {
+    const sp = new URLSearchParams(params);
+    const spList = sp.toString() ? `?${sp.toString()}` : '';
+    return await this.get(`/spaces${spList}`);
+};
+
+// 상세 조회 (향후 상세 페이지에서 사용 예정)
+apiService.getSpace = async function (spaceId) {
+    return await this.get(`/spaces/${encodeURIComponent(spaceId)}`);
+};
+
+// 삭제
+apiService.deleteSpace = async function (spaceId) {
+    return await this.delete(`/spaces/${encodeURIComponent(spaceId)}`);
+};
+
+// 문의하기 (바디 필요 없으면 빈 객체)
+apiService.inquireSpace = async function (spaceId) {
+    return await this.post(`/spaces/${encodeURIComponent(spaceId)}/inquiries`, {});
+};
+
+// 신고하기 (바디 필요 없으면 빈 객체)
+apiService.reportSpace = async function (spaceId) {
+    return await this.post(`/spaces/${encodeURIComponent(spaceId)}/reports`, {});
 };

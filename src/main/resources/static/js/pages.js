@@ -111,7 +111,170 @@ const Pages = {
                 document.getElementById('main-content').innerHTML = html;
             }
         }
-    },// 페이지 추가
+    },
+    // === 공간 목록 페이지 ===
+    async spaceList() {
+        try {
+            // 템플릿 로드
+            const spaceListHtml = await TemplateLoader.load('pages/space-list');
+            document.getElementById('main-content').innerHTML = spaceListHtml;
+
+            // 공간 목록 데이터 로드
+            await this.loadSpaces();
+        } catch (error) {
+            console.error('공간 목록 페이지 로드 실패:', error);
+            document.getElementById('main-content').innerHTML = '<div class="alert alert-error">페이지를 불러올 수 없습니다.</div>';
+        }
+    },
+
+    // 공간 목록 데이터 로드
+    async loadSpaces() {
+        try {
+            const spaces = await apiService.listSpaces();
+
+            document.getElementById('loading').style.display = 'none';
+
+            if (spaces.length === 0) {
+                document.getElementById('emptyState').style.display = 'block';
+            } else {
+                this.displaySpaces(spaces);
+            }
+        } catch (error) {
+            console.error('공간 목록 로드 실패:', error);
+            document.getElementById('loading').innerHTML = '목록을 불러오는데 실패했습니다.';
+        }
+    },
+
+    // 공간 목록 표시
+    displaySpaces(spaces) {
+        const spaceListContainer = document.getElementById('spaceList');
+        spaceListContainer.innerHTML = '';
+
+        spaces.forEach(space => {
+            const spaceCard = this.createSpaceCard(space);
+            spaceListContainer.appendChild(spaceCard);
+        });
+    },
+
+    // 공간 카드 생성
+    createSpaceCard(space) {
+        const card = document.createElement('div');
+        card.className = 'space-card';
+
+        card.innerHTML = `
+            <div class="space-header">
+                <div>
+                    <h4 class="card-title">${space.title ?? '(제목 없음)'}</h4><br>
+                    <div class="space-details">
+                        <div>등록자 : ${space.ownerName ?? '-'}</div>
+                        <div>임대료 : 하루 ${this.formatCurrency(space.rentalFee)} 만 원</div>
+                        <div>주소 : ${space.address ?? '-'}</div>
+                        <div>면적 : ${space.areaSize ?? '-'} m&sup2;</div><br>
+                        <div class="actions-inline">
+                            <button class="link" onclick="Pages.spaceDetail(${space.id})">상세정보</button>
+                            <button class="link" onclick="Pages.inquireSpace(${space.id})">문의하기</button>
+                            <button class="link" onclick="Pages.reportSpace(${space.id})">신고</button>
+                        </div>
+                    </div>
+                </div>
+                ${space.coverImageUrl ? `<img class="thumb" src="${space.coverImageUrl}" alt="thumbnail">` : ''}
+            </div>
+            <div class="space-meta">
+                <span>등록일: ${this.formatDate(space.createdAt)}</span>
+                <div class="space-actions">
+                    ${space.mine ? `
+                        <button class="action-btn edit" onclick="Pages.editSpace(${space.id})">수정</button>
+                        <button class="action-btn delete" onclick="Pages.deleteSpace(${space.id})">삭제</button>
+                    ` : ``}
+                </div>
+            </div>
+        `;
+
+        return card;
+    },
+
+    // 공간 상세 페이지
+    async spaceDetail(spaceId) {
+        console.log('공간 상세 페이지:', spaceId);
+        // TODO: 상세 페이지 템플릿 구현
+    },
+
+    // 공간 등록 페이지
+    async spaceRegister() {
+        console.log('공간 등록 페이지');
+        // TODO: 등록 페이지 템플릿 구현
+    },
+
+    // 공간 수정
+    async editSpace(spaceId) {
+        console.log('공간 수정:', spaceId);
+        // TODO: 수정 페이지 구현
+    },
+
+    // 공간 삭제
+    async deleteSpace(spaceId) {
+        if (confirm('정말로 이 공간을 삭제하시겠습니까?')) {
+            try {
+                await apiService.deleteSpace(spaceId);
+                alert('공간이 삭제되었습니다.');
+                await this.loadSpaces(); // 목록 새로고침
+            } catch (error) {
+                console.error('공간 삭제 실패:', error);
+                alert('삭제에 실패했습니다.');
+            }
+        }
+    },
+
+    // 문의하기
+    async inquireSpace(spaceId) {
+        try {
+            await apiService.inquireSpace(spaceId);
+            alert('문의 요청이 접수되었습니다.');
+        } catch (error) {
+            console.error('문의 실패:', error);
+            alert('문의 중 오류가 발생했습니다.');
+        }
+    },
+
+    // 신고하기
+    async reportSpace(spaceId) {
+        try {
+            await apiService.reportSpace(spaceId);
+            alert('신고가 접수되었습니다.');
+        } catch (error) {
+            console.error('신고 실패:', error);
+            alert('신고 중 오류가 발생했습니다.');
+        }
+    },
+
+    // 날짜 포맷팅
+    formatDate(dateString) {
+        if (!dateString) return '날짜 정보 없음';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ko-KR');
+    },
+
+    // 통화 포맷팅
+    formatCurrency(amount) {
+        if (!amount) return '0';
+        return amount.toLocaleString('ko-KR');
+    },
+};
+
+// 북마크 탭 클릭 시 → 공간 목록 페이지로 연결 (임시)
+Pages.bookmark = async function() {
+    console.log('Pages.spaceList 시작');
+    try {
+        const tpl = await TemplateLoader.load('pages/space-list');
+        document.getElementById('main-content').innerHTML = tpl;
+
+        console.log('템플릿 로드 완료, API 호출 전');
+        const spaces = await apiService.listSpaces();  // 여기 로그
+        console.log('API 응답:', spaces);
+
+    } catch (e) {
+        console.error('spaceList 오류', e);
+    }
 };
 
 window.Pages = Pages;
