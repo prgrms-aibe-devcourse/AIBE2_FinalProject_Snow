@@ -1,4 +1,4 @@
-package com.example.popin.domain.MPg_Provider.entity;
+package com.example.popin.domain.mpg_provider.entity;
 
 import com.example.popin.global.common.BaseEntity;
 import lombok.Getter;

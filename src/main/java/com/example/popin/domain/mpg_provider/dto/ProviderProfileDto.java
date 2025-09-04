@@ -1,6 +1,6 @@
-package com.example.popin.domain.MPg_Provider.dto;
+package com.example.popin.domain.mpg_provider.dto;
 
-import com.example.popin.domain.MPg_Provider.entity.ProviderProfile;
+import com.example.popin.domain.mpg_provider.entity.ProviderProfile;
 
 public class ProviderProfileDto {
     public Long id;
