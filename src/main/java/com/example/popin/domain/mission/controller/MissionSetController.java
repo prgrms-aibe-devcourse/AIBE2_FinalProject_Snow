@@ -3,10 +3,13 @@ package com.example.popin.domain.mission.controller;
 import com.example.popin.domain.mission.dto.MissionSetViewDto;
 import com.example.popin.domain.mission.service.MissionSetService;
 import com.example.popin.domain.user.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @RestController
