@@ -80,20 +80,17 @@
   async function renderMissionBoard({ mount, setView, onOpenMission }) {
     const remaining = Math.max(0, (setView.requiredCount || 0) - (setView.successCount || 0));
 
-    // 서버의 실제 응답 형태에 영향 안 받도록: 버튼 렌더링과 바인딩을 분리
     let myReward = null;
     try {
       myReward = await apiService.get(`/rewards/my/${setView.missionSetId}`);
     } catch (_) { /* ignore */ }
 
-    // 버튼 렌더
     let btnHtml = '';
     if (myReward && myReward.status === 'ISSUED') {
       btnHtml = `<button class="mission-complete-btn enabled" id="reward-redeem-btn">리워드 수령하기</button>`;
     } else if (myReward && myReward.status === 'REDEEMED') {
       btnHtml = `<button class="mission-complete-btn disabled">수령 완료</button>`;
     } else {
-      // 아직 발급 전이거나, 응답이 실패/예상과 다를 때도 '미션 완료' 버튼 노출
       btnHtml = `<button class="mission-complete-btn ${remaining > 0 ? 'disabled' : 'enabled'}" id="complete-btn">미션 완료</button>`;
     }
 
@@ -108,7 +105,6 @@
       </section>
     `;
 
-    // 미션 타일
     const grid = $('#mission-grid');
     (setView.missions || []).slice(0, 6).forEach(m => {
       const done = String(m.userStatus || '') === 'SUCCESS';
@@ -130,7 +126,7 @@
           alert('룰렛 모듈이 로드되지 않았습니다.');
           return;
         }
-        rewardClaim(setView.missionSetId); // reward.js
+        rewardClaim(setView.missionSetId);
       };
     }
 
@@ -142,13 +138,12 @@
 
   // 엔트리
   window.Pages = window.Pages || {};
-  Pages.missionBoard = async function ({ popupId, setIndex = 0 } = {}) {
-    popupId = (popupId || qs('popupId') || '').toString();
-    if (popupId.indexOf('?') >= 0) popupId = popupId.split('?')[0];
+  Pages.missionBoard = async function ({ missionSetId } = {}) {
+    missionSetId = (missionSetId || qs('missionSetId') || '').toString();
 
     const mount = $('#main-content');
-    if (!popupId || isNaN(Number(popupId))) {
-      mount.innerHTML = `<div class="content-section"><h2 class="content-title">popupId가 올바르지 않습니다.</h2></div>`;
+    if (!missionSetId) {
+      mount.innerHTML = `<div class="content-section"><h2 class="content-title">missionSetId가 올바르지 않습니다.</h2></div>`;
       return;
     }
 
@@ -156,17 +151,17 @@
 
     let data;
     try {
-      data = await apiService.getMissionSetsByPopup(popupId);
+      data = await apiService.getMissionSet(missionSetId);
     } catch (e) {
       mount.innerHTML = `<div class="content-section"><h2 class="content-title">불러오기 실패</h2><p>${e.message || e}</p></div>`;
       return;
     }
-    if (!Array.isArray(data) || data.length === 0) {
-      mount.innerHTML = `<div class="content-section"><h2 class="content-title">미션 없음</h2><p>이 팝업에 등록된 미션셋이 없습니다.</p></div>`;
+    if (!data) {
+      mount.innerHTML = `<div class="content-section"><h2 class="content-title">미션셋 없음</h2><p>해당 missionSetId에 해당하는 미션셋이 없습니다.</p></div>`;
       return;
     }
 
-    const setView = data[Math.min(setIndex, data.length - 1)];
+    const setView = data;
 
     const handleOpen = (mission) => {
       openMissionModal({
@@ -174,10 +169,8 @@
         onSubmit: async (answer) => {
           const res = await apiService.submitMissionAnswer(mission.id, answer);
 
-          // 보드 새로고침
-          const refreshed = await apiService.getMissionSetsByPopup(popupId);
-          const sv = refreshed.find(s => s.missionSetId === setView.missionSetId) || setView;
-          await renderMissionBoard({ mount, setView: sv, onOpenMission: handleOpen });
+          const refreshed = await apiService.getMissionSet(missionSetId);
+          await renderMissionBoard({ mount, setView: refreshed, onOpenMission: handleOpen });
 
           alert(res?.pass ? '미션 성공! 🎉' : '오답/미완료입니다 😢');
         }

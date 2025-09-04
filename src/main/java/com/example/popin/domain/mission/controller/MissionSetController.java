@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/mission-sets")
@@ -20,18 +21,18 @@ public class MissionSetController {
         this.userService = userService;
     }
 
-    @GetMapping("/by-popup/{popupId}")
-    public List<MissionSetViewDto> byPopup(@PathVariable Long popupId, Principal principal) {
-        Long userId = null;
-
-        if (principal != null) {
-            userId = userService.getUserIdByUsername(principal.getName());
+    @GetMapping("/{missionSetId}")
+    public MissionSetViewDto byMissionSet(@PathVariable UUID missionSetId, Principal principal) {
+        if (principal == null) {
+            throw new IllegalStateException("인증된 사용자가 없습니다.");
         }
 
+        Long userId = userService.getUserIdByUsername(principal.getName());
         if (userId == null) {
-            throw new IllegalStateException("로그인한 사용자 정보를 찾을 수 없습니다.");
+            throw new IllegalArgumentException("해당 사용자를 찾을 수 없습니다: " + principal.getName());
         }
 
-        return missionSetService.getByPopup(popupId, userId);
+        return missionSetService.getOne(missionSetId, userId);
     }
+
 }

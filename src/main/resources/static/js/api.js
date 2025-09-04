@@ -143,10 +143,11 @@ class SimpleApiService {
         return await this.get(url);
     }
 
-    async getMissionSetsByPopup(popupId) {
-        const url = `/mission-sets/by-popup/${encodeURIComponent(popupId)}`;
+    async getMissionSet(missionSetId) {
+        const url = `/mission-sets/${encodeURIComponent(missionSetId)}`;
         return this.get(url);
     }
+
 
     async submitMissionAnswer(missionId, answer) {
         return this.post(`/user-missions/${encodeURIComponent(missionId)}/submit-answer`, { answer });
