@@ -3,7 +3,7 @@ package com.example.popin.domain.MPg_Provider.service;
 
 import com.example.popin.domain.space.entity.Space;
 import com.example.popin.domain.space.repository.SpaceRepository;
-import com.example.popin.domain.user.User;
+import com.example.popin.domain.user.entity.User;
 import com.example.popin.domain.user.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,11 +24,8 @@ public class ProviderService {
 
     // '공간대여'에서 등록한 내 공간 리스트
     public List<Space> findMySpaces(String email) {
-        User owner = userRepository.findByEmail(email);
-        if (owner == null) {
-            throw new IllegalArgumentException("사용자 없음");
-        }
+        User owner = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
         return spaceRepository.findByOwner(owner);
-
     }
 }
