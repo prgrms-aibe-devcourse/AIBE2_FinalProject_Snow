@@ -23,14 +23,17 @@ public class RewardOption extends BaseEntity {
     @Column(nullable = false)
     private int total;
 
+    //발급된 개수
     @Column(nullable = false)
     private int issued;
 
     @Version
     private long version;
 
+    //남은 재고
     public int getRemaining() { return Math.max(0, total - issued); }
 
+    //제고 초과 방지
     public void consumeOne() {
         if (getRemaining() <= 0) throw new IllegalStateException("OUT_OF_STOCK");
         issued++;
