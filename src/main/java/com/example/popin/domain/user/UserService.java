@@ -1,30 +1,30 @@
 package com.example.popin.domain.user;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import com.example.popin.domain.user.entity.User;
+import com.example.popin.global.constant.ErrorCode;
+import com.example.popin.global.exception.GeneralException;
+import lombok.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
-public class UserService implements UserDetailsService {
+@Transactional(readOnly = true)
+public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public User saveUser(User user) {
-        validateDuplicateUser(user);
-        return userRepository.save(user);
+    public User findById(Long id){
+        return userRepository.findById(id)
+                .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND));
     }
 
-    private void validateDuplicateUser(User user) {
-        User findUser = userRepository.findByEmail(user.getEmail());
-        if (findUser != null) {
-            throw new IllegalStateException("이미 가입된 회원입니다.");
-        }
+    public User findByEmail(String email){
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND));
     }
     public Long getUserIdByUsername(String username) {
         User u = userRepository.findByEmail(username);
@@ -32,18 +32,25 @@ public class UserService implements UserDetailsService {
         return u.getId();
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email);
+    @Transactional
+    public void updateProfile(Long userId, String name, String nickname, String phone){
 
-        if (user == null) {
-            throw new UsernameNotFoundException(email);
-        }
+        User user = findById(userId);
+        user.updateProfile(name, nickname, phone);
 
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getEmail())
-                .password(user.getPassword())
-                .roles(user.getRole().toString())
-                .build();
     }
+
+
+    @Transactional
+    public void changePassword(Long userId, String newPassword){
+
+        User user = findById(userId);
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        user.changePassword(encodedPassword);
+
+    }
+
+
+
+
 }

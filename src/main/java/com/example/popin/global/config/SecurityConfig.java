@@ -1,83 +1,96 @@
 package com.example.popin.global.config;
 
-import com.example.popin.domain.user.UserService;
+import com.example.popin.domain.auth.AuthService;
+import com.example.popin.global.jwt.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    private final UserService userService;
+    private final AuthService authService;
+    private final JwtFilter jwtFilter;
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception{
+        return config.getAuthenticationManager();
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                .csrf().disable()
+
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+
+                .and()
+
+                // HTML 페이지용, 일단 세션 기반으로 만들어둠
+                // 추후 필요없으면 삭제
                 .formLogin(form -> form
-                        .loginPage("/users/login")
-                        .defaultSuccessUrl("/", true)
-                        .usernameParameter("username")
-                        .failureUrl("/users/login/error")
+                        .loginPage("/auth/login")
+                        .defaultSuccessUrl("/",true)
+                        .usernameParameter("email")
+                        .failureUrl("/auth/login?error=true")
                         .permitAll()
                 )
+
                 .logout(logout -> logout
-                        .logoutRequestMatcher(new AntPathRequestMatcher("/users/logout"))
+                        .logoutRequestMatcher(new AntPathRequestMatcher("/auth/logout"))
                         .logoutSuccessUrl("/")
                         .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID")
+                        .deleteCookies("JSESSIONID","jwtToken")
                         .permitAll()
                 )
-                .authorizeHttpRequests(authz -> authz
-                        // 정적 리소스는 모든 사용자 접근 허용
-                        .antMatchers("/css/**", "/js/**", "/images/**", "/static/**").permitAll()
 
-                        // HTML 템플릿 파일들 허용
-                        .antMatchers("/templates/**").permitAll()
+                .authorizeRequests(authz -> authz
 
-                        // 공개 페이지들
-                        .antMatchers("/", "/index.html", "/main").permitAll()
+                        .antMatchers("/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico").permitAll()
 
-                        // 사용자 관련 페이지
-                        .antMatchers("/users/**", "/error").permitAll()
+                        // 공개 페이지
+                        // TODO : 팝업 리스트, 검색 등 경로 설정되면 추가하기
+                        .antMatchers("/", "/index.html", "/main", "/error").permitAll()
 
-                        // 각 역할별 접근 권한
+                        .antMatchers("/auth/**").permitAll()
+
+                        .antMatchers("/api/auth/**").permitAll()
+
+                        // TODO : HOST, PROVIDER 경로 설정되면 바꾸기
                         .antMatchers("/admin/**").hasRole("ADMIN")
                         .antMatchers("/host/**").hasRole("HOST")
                         .antMatchers("/provider/**").hasRole("PROVIDER")
 
-                        // API는 인증에 따라 처리 (일부는 public, 일부는 authenticated)
                         .antMatchers("/api/public/**").permitAll()
-                        .antMatchers("/api/auth/**").permitAll()
                         .antMatchers("/api/**").authenticated()
 
-                        // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
-                .userDetailsService(userService)
-                .csrf(csrf -> csrf
-                        // API 경로는 CSRF 보호 제외 (REST API용)
-                        .ignoringAntMatchers("/api/**")
-                        // HTML 컴포넌트 로드도 CSRF 제외
-                        .ignoringAntMatchers("/html/**", "/components/**")
-                        // 로그인 에러로 추가
-                        .ignoringAntMatchers("/users/login", "/users/logout")
-                )
+
+                .userDetailsService(authService)
+
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+
                 .headers(headers -> headers
-                        .frameOptions().deny()
-                        .contentTypeOptions().and()
-                )
-                .sessionManagement(session -> session
-                        .maximumSessions(1)
-                        .maxSessionsPreventsLogin(false)
+                        .frameOptions().deny() // 클릭재킹 방지
+                        .contentTypeOptions().and() // MIME 스니핑 방지
                 );
+
 
         return http.build();
     }

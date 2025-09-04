@@ -1,6 +1,7 @@
-package com.example.popin.global.exception;
+package com.example.popin.global.error;
 
 import com.example.popin.global.constant.ErrorCode;
+import com.example.popin.global.exception.GeneralException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;

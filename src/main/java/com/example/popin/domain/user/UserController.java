@@ -1,5 +1,7 @@
 package com.example.popin.domain.user;
 
+import com.example.popin.domain.user.dto.UserFormDto;
+import com.example.popin.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -25,20 +27,6 @@ public class UserController {
         return "user/userForm";
     }
 
-    @PostMapping("/new")
-    public String newUser(@Valid UserFormDto userFormDto, BindingResult bindingResult, Model model) {
-        if (bindingResult.hasErrors()) {
-            return "user/userForm";
-        }
-        try {
-            User user = User.createUser(userFormDto, passwordEncoder);
-            userService.saveUser(user);
-        } catch (IllegalStateException e) {
-            model.addAttribute("errorMessage", e.getMessage());
-            return "user/userForm";
-        }
-        return "redirect:/";
-    }
 
     @GetMapping("/login")
     public String loginUser() {
