@@ -22,7 +22,7 @@ import static org.mockito.BDDMockito.*;
 
 @DisplayName("AuthService 로그인 단위 테스트")
 @ExtendWith(MockitoExtension.class)
-class AuthServiceLoginTest {
+class AuthServiceTest {
 
     @InjectMocks
     private AuthService authService;

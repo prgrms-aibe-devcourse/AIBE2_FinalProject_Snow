@@ -20,6 +20,9 @@ public class JwtUtil {
     private final long expirationMs = 6 * 60 * 60 * 1000; // 6시간
 
     public JwtUtil(@Value("${jwt.secret}") String secret) {
+        if (secret == null ) {
+                throw new IllegalArgumentException("JWT secret must be at least 32 characters long for HS256");
+        }
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
@@ -43,6 +46,7 @@ public class JwtUtil {
 
         return Jwts.builder()
                 .setSubject(email)
+                .claim("userId", userId)
                 .claim("name", name)
                 .claim("role", role)
                 .setIssuedAt(now)
@@ -69,7 +73,7 @@ public class JwtUtil {
         try {
             return extractClaims(token).getSubject();
         } catch (Exception e) {
-
+            log.error("토큰에서 email 추출 실패 : {}", e.getMessage());
             return null;
         }
     }

@@ -99,7 +99,7 @@ public class AuthService implements UserDetailsService {
 
         String accessToken = jwtUtil.createToken(
                 user.getId(),
-                user.getName(),
+                user.getEmail(),
                 user.getName(),
                 user.getRole().name()
         );

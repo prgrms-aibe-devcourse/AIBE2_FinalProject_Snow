@@ -7,6 +7,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -37,6 +38,14 @@ public class JwtFilter extends OncePerRequestFilter {
                 log.debug("✅ 토큰 유효함");
 
                 String email = jwtUtil.getEmail(token);
+
+                if (!StringUtils.hasText(email)) {
+                    log.warn("❌ 토큰에 email(subject)이 없음 -> invalid token 처리");
+                    SecurityContextHolder.clearContext();
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증 실패 : 토큰에 사용자 정보가 없습니다.");
+                    return;
+                }
+
                 UserDetails userDetails = authService.loadUserByUsername(email);
 
                 UsernamePasswordAuthenticationToken authenticationToken =
