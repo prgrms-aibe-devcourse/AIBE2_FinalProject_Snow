@@ -13,7 +13,6 @@
     card.innerHTML = `
     <div class="modal-title" id="modal-title"></div>
     <div class="modal-desc" id="modal-desc"></div>
-    `;
     // Safe text injection
     card.querySelector('#modal-title').textContent = mission.title || ('mission ' + mission.id);
     card.querySelector('#modal-desc').textContent = mission.description || '';

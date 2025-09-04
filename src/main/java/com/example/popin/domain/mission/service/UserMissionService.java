@@ -4,7 +4,7 @@ import com.example.popin.domain.mission.entity.Mission;
 import com.example.popin.domain.mission.entity.UserMission;
 import com.example.popin.domain.mission.entity.UserMissionStatus;
 import com.example.popin.domain.mission.repository.MissionRepository;
-import com.example.popin.domain.user.User;
+import com.example.popin.domain.user.entity.User;
 import com.example.popin.domain.user.UserRepository;
 import com.example.popin.domain.mission.dto.SubmitAnswerResponseDto;
 import com.example.popin.domain.mission.repository.UserMissionRepository;

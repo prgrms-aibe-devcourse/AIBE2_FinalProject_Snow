@@ -27,10 +27,10 @@ public class UserService {
                 .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND));
     }
     public Long getUserIdByUsername(String username) {
-        User u = userRepository.findByEmail(username);
-        if (u == null) throw new java.util.NoSuchElementException("user not found");
-        return u.getId();
+        User u = userRepository.findByEmail(username).orElse(null);
+        return u != null ? u.getId() : null;
     }
+
 
     @Transactional
     public void updateProfile(Long userId, String name, String nickname, String phone){
