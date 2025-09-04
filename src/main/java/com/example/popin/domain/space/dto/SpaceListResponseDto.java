@@ -1,7 +1,7 @@
 package com.example.popin.domain.space.dto;
 
 import com.example.popin.domain.space.entity.Space;
-import com.example.popin.domain.user.User;
+import com.example.popin.domain.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;

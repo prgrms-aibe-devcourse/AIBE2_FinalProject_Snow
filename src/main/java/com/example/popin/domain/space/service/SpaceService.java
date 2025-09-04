@@ -3,7 +3,7 @@ package com.example.popin.domain.space.service;
 import com.example.popin.domain.space.dto.*;
 import com.example.popin.domain.space.entity.Space;
 import com.example.popin.domain.space.repository.SpaceRepository;
-import com.example.popin.domain.user.User;
+import com.example.popin.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
