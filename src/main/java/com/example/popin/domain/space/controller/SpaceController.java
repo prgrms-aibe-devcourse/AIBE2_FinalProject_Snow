@@ -2,7 +2,7 @@ package com.example.popin.domain.space.controller;
 
 import com.example.popin.domain.space.dto.*;
 import com.example.popin.domain.space.service.SpaceService;
-import com.example.popin.domain.user.User;
+import com.example.popin.domain.user.entity.User;
 import com.example.popin.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -117,19 +117,17 @@ public class SpaceController {
         }
         String email = auth.getName();
 
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"존재하지 않는 사용자입니다.");
-        }
-        return user;
+        return userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.UNAUTHORIZED, "존재하지 않는 사용자입니다."));
     }
-    //모든 사용자
+
+    // 모든 사용자
     private User getCurrentUserOrNull() {
         try {
             return getCurrentUser();
         } catch (ResponseStatusException e) {
-            return null; //unauthenticated -> treat as anonymous
+            return null; // unauthenticated → treat as anonymous
         }
     }
-
 }
