@@ -1,4 +1,4 @@
-package com.example.popin.domain.MPg_Provider.service;
+package com.example.popin.domain.mpg_provider.service;
 
 import com.example.popin.domain.space.entity.Space;
 import com.example.popin.domain.space.repository.SpaceRepository;

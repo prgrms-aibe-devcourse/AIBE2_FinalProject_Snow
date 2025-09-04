@@ -1,6 +1,6 @@
-package com.example.popin.domain.MPg_Provider.controller;
+package com.example.popin.domain.mpg_provider.controller;
 
-import com.example.popin.domain.MPg_Provider.service.ProviderService;
+import com.example.popin.domain.mpg_provider.service.ProviderService;
 import com.example.popin.domain.space.entity.Space;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

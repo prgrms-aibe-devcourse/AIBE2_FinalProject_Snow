@@ -1,6 +1,6 @@
-package com.example.popin.domain.MPg_Provider.repository;
+package com.example.popin.domain.mpg_provider.repository;
 
-import com.example.popin.domain.MPg_Provider.entity.ProviderProfile;
+import com.example.popin.domain.mpg_provider.entity.ProviderProfile;
 import com.example.popin.domain.space.entity.Space;
 import com.example.popin.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
