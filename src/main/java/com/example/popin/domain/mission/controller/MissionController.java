@@ -3,6 +3,7 @@ package com.example.popin.domain.mission.controller;
 import com.example.popin.domain.mission.entity.Mission;
 import com.example.popin.domain.mission.repository.MissionRepository;
 import com.example.popin.domain.mission.dto.MissionDto;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,14 +12,11 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/missions")
 public class MissionController {
 
     private final MissionRepository missionRepository;
-
-    public MissionController(MissionRepository missionRepository) {
-        this.missionRepository = missionRepository;
-    }
 
     @GetMapping("/{id}")
     public MissionDto get(@PathVariable UUID id) {

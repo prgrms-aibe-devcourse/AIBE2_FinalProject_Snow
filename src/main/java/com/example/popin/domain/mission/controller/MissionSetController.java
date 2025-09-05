@@ -3,26 +3,23 @@ package com.example.popin.domain.mission.controller;
 import com.example.popin.domain.mission.dto.MissionSetViewDto;
 import com.example.popin.domain.mission.service.MissionSetService;
 import com.example.popin.domain.user.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/mission-sets")
 public class MissionSetController {
 
     private final MissionSetService missionSetService;
     private final UserService userService;
 
-    public MissionSetController(MissionSetService missionSetService, UserService userService) {
-        this.missionSetService = missionSetService;
-        this.userService = userService;
-    }
 
     @GetMapping("/{missionSetId}")
     public MissionSetViewDto byMissionSet(@PathVariable UUID missionSetId, Principal principal) {

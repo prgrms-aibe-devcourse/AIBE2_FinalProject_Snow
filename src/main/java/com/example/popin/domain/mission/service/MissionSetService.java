@@ -7,7 +7,6 @@ import com.example.popin.domain.mission.entity.UserMission;
 import com.example.popin.domain.mission.entity.UserMissionStatus;
 import com.example.popin.domain.mission.repository.MissionSetRepository;
 import com.example.popin.domain.mission.repository.UserMissionRepository;
-import com.example.popin.domain.user.UserService;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
