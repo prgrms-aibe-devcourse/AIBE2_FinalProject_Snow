@@ -49,7 +49,7 @@ public class RewardException extends RuntimeException {
     // PIN 인증 실패
     public static class InvalidStaffPin extends GeneralException {
         public InvalidStaffPin() {
-            super(ErrorCode.VALIDATION_ERROR, "PIN 인증에 실패했습니다.");
+            super(ErrorCode.UNAUTHORIZED, "PIN 인증에 실패했습니다.");
         }
     }
 }
