@@ -2,6 +2,7 @@ package com.example.popin.domain.mission.entity;
 
 import com.example.popin.global.common.BaseEntity;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
@@ -37,11 +38,12 @@ public class Mission extends BaseEntity {
     private String answer;
 
     // 생성자
-    public Mission(MissionSet missionSet, String title, String description, String answer) {
-        this.missionSet = missionSet;
+    @Builder
+    public Mission(String title, String description, String answer, MissionSet missionSet) {
         this.title = title;
         this.description = description;
         this.answer = answer;
+        this.missionSet = missionSet;
     }
 
     public void setMissionSet(MissionSet missionSet) {

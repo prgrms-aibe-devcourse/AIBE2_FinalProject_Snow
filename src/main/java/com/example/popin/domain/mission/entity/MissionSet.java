@@ -2,6 +2,7 @@ package com.example.popin.domain.mission.entity;
 
 import com.example.popin.global.common.BaseEntity;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
@@ -44,6 +45,7 @@ public class MissionSet extends BaseEntity {
     private String rewardPin;
 
     // 생성자
+    @Builder
     public MissionSet(Long popupId, Integer requiredCount, String status, String rewardPin) {
         this.popupId = popupId;
         this.requiredCount = requiredCount;

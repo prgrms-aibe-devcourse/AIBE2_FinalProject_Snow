@@ -2,6 +2,7 @@ package com.example.popin.domain.reward.entity;
 
 import com.example.popin.global.common.BaseEntity;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -40,6 +41,7 @@ public class RewardOption extends BaseEntity {
     private long version;
 
     // 생성자
+    @Builder
     public RewardOption(UUID missionSetId, String name, int total) {
         this.missionSetId = missionSetId;
         this.name = name;

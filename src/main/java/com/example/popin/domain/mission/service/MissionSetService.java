@@ -18,9 +18,7 @@ public class MissionSetService {
     private final MissionSetRepository missionSetRepository;
     private final UserMissionRepository userMissionRepository;
 
-    public MissionSetService(MissionSetRepository missionSetRepository,
-                             UserMissionRepository userMissionRepository,
-                             UserService userService) {
+    public MissionSetService(MissionSetRepository missionSetRepository, UserMissionRepository userMissionRepository) {
         this.missionSetRepository = missionSetRepository;
         this.userMissionRepository = userMissionRepository;
     }
@@ -34,6 +32,7 @@ public class MissionSetService {
         return toViewDto(ms, userId);
     }
 
+    //MissionSet 엔티티를 화면 표시용 DTO (MissionSetViewDto)로 변환
     private MissionSetViewDto toViewDto(MissionSet set, Long userId) {
         List<MissionSummaryDto> missions =
                 Optional.ofNullable(set.getMissions()).orElse(Collections.emptyList())
