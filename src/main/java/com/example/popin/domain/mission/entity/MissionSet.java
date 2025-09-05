@@ -1,8 +1,9 @@
 package com.example.popin.domain.mission.entity;
 
 import com.example.popin.global.common.BaseEntity;
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 
@@ -13,9 +14,8 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "mission_set")
 @Getter
-@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MissionSet extends BaseEntity {
 
     @Id
@@ -25,14 +25,14 @@ public class MissionSet extends BaseEntity {
     @Type(type = "org.hibernate.type.UUIDBinaryType")
     private UUID id;
 
-
     @Column(name = "popup_id", nullable = false)
     private Long popupId;
 
     @Column(name = "required_count")
     private Integer requiredCount;
 
-    private String status;
+    @Column(nullable = false, length = 20)
+    private String status = "ACTIVE"; // 기본값 예시
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
@@ -42,4 +42,27 @@ public class MissionSet extends BaseEntity {
 
     @Column(name = "reward_pin", length = 80)
     private String rewardPin;
+
+    // 생성자
+    public MissionSet(Long popupId, Integer requiredCount, String status, String rewardPin) {
+        this.popupId = popupId;
+        this.requiredCount = requiredCount;
+        this.status = status;
+        this.rewardPin = rewardPin;
+    }
+
+    // 비즈니스 메서드
+    public void addMission(Mission mission) {
+        this.missions.add(mission);
+        mission.setMissionSet(this);
+    }
+
+    public void complete() {
+        this.status = "COMPLETED";
+        this.completedAt = LocalDateTime.now();
+    }
+
+    public boolean isCompleted() {
+        return "COMPLETED".equals(this.status);
+    }
 }

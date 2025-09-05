@@ -24,7 +24,7 @@ public class MissionController {
     public MissionDto get(@PathVariable UUID id) {
         Mission m = missionRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("mission not found"));
-        return toDto(m);
+        return MissionDto.from(m);
     }
 
     @GetMapping
@@ -32,11 +32,8 @@ public class MissionController {
         List<Mission> list = (missionSetId == null)
                 ? missionRepository.findAll()
                 : missionRepository.findByMissionSet_Id(missionSetId);
-        return list.stream().map(this::toDto).collect(Collectors.toList());
+        return list.stream().map(MissionDto::from).collect(Collectors.toList());
     }
 
-    private MissionDto toDto(Mission m) {
-        UUID msId = (m.getMissionSet() != null) ? m.getMissionSet().getId() : null;
-        return new MissionDto(m.getId(), m.getTitle(), m.getDescription(), msId);
-    }
+
 }

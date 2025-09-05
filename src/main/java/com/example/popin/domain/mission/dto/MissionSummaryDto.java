@@ -1,16 +1,16 @@
 package com.example.popin.domain.mission.dto;
 
 import com.example.popin.domain.mission.entity.UserMissionStatus;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.UUID;
 
 @Getter
-@Setter
+@Builder
 public class MissionSummaryDto {
-    private UUID id;
-    private String title;
-    private String description;
-    private UserMissionStatus userStatus;  // PENDING / SUCCESS / FAIL
+    private final UUID id;
+    private final String title;
+    private final String description;
+    private final UserMissionStatus userStatus;  // PENDING / SUCCESS / FAIL
 }

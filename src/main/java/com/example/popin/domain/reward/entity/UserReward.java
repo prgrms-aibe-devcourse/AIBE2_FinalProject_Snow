@@ -1,7 +1,11 @@
 package com.example.popin.domain.reward.entity;
 
 import com.example.popin.global.common.BaseEntity;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -18,10 +22,12 @@ import java.util.UUID;
                 @Index(name = "idx_user_set_status", columnList = "user_id, mission_set_id, status")
         }
 )
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserReward extends BaseEntity {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name="user_id", nullable = false)
@@ -41,13 +47,32 @@ public class UserReward extends BaseEntity {
     @Column(name = "redeemed_at")
     private LocalDateTime redeemedAt; // 수령 완료 시각
 
-    /** 발급 시각은 BaseEntity의 created_at 사용 */
+    // 발급 시각은 BaseEntity의 created_at 사용
     @Transient
-    public LocalDateTime getIssuedAt() { return super.getCreatedAt(); }
+    public LocalDateTime getIssuedAt() {
+        return super.getCreatedAt();
+    }
 
-    /** 상태 전환 헬퍼(선택) */
+    // 생성자
+    @Builder
+    public UserReward(Long userId,
+                      UUID missionSetId,
+                      RewardOption option,
+                      UserRewardStatus status) {
+        this.userId = userId;
+        this.missionSetId = missionSetId;
+        this.option = option;
+        this.status = status;
+    }
+
+    // 상태 전환 메서드
     public void markRedeemed() {
         this.status = UserRewardStatus.REDEEMED;
         this.redeemedAt = LocalDateTime.now();
+    }
+
+    public void markCanceled() {
+        this.status = UserRewardStatus.CANCELED;
+        this.redeemedAt = null;
     }
 }

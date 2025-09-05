@@ -1,12 +1,18 @@
 package com.example.popin.domain.reward.dto.request;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import javax.validation.constraints.NotNull;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Data
+@Getter
+@NoArgsConstructor
 public class ClaimRequestDto {
-    @NotNull private UUID missionSetId;
-    @NotNull private Long optionId;
+
+    @NotNull
+    private UUID missionSetId;
+
+    @NotNull
+    private Long optionId;
 }

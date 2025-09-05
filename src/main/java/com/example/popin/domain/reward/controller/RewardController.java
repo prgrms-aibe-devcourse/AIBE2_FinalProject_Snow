@@ -50,7 +50,7 @@ public class RewardController {
     public ResponseEntity<ClaimResponseDto> claim(@RequestBody @Valid ClaimRequestDto req,
                                                   Principal principal) {
         Long userId = resolveUserId(principal);
-        var rw = rewardService.claim(req.getMissionSetId(), req.getOptionId(), userId);
+        UserReward rw = rewardService.claim(req.getMissionSetId(), req.getOptionId(), userId);
         return ResponseEntity.ok(
                 ClaimResponseDto.builder()
                         .ok(true)
@@ -69,7 +69,7 @@ public class RewardController {
     ) {
         Long userId = resolveUserId(principal);
         try {
-            var rw = rewardService.redeem(req.getMissionSetId(), userId, req.getStaffPin());
+            UserReward rw = rewardService.redeem(req.getMissionSetId(), userId, req.getStaffPin());
             return ResponseEntity.ok(
                     RedeemResponseDto.builder()
                             .ok(true)
@@ -90,7 +90,6 @@ public class RewardController {
         }
     }
 
-
     // 내 리워드 조회 (이미 발급 받았는지 확인)
     @GetMapping("/my/{missionSetId}")
     public ResponseEntity<UserRewardResponseDto> myReward(@PathVariable UUID missionSetId,
@@ -98,7 +97,7 @@ public class RewardController {
         Long userId = resolveUserId(principal);
         Optional<UserReward> found = rewardService.findUserReward(userId, missionSetId);
         if (found.isPresent()) {
-            var rw = found.get();
+            UserReward rw = found.get();
             return ResponseEntity.ok(
                     UserRewardResponseDto.builder()
                             .ok(true)
