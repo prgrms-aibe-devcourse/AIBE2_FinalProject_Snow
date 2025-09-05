@@ -1,4 +1,3 @@
-// src/main/java/com/example/popin/MPg_Provider/service/ProviderService.java
 package com.example.popin.domain.mpg_provider.service;
 
 import com.example.popin.domain.space.entity.Space;
@@ -14,9 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -66,7 +63,7 @@ public class ProviderService {
         SpaceReservation reservation = srRepository.findByIdAndSpaceOwner(reservationId, provider)
                 .orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않거나 승인 권한이 없습니다."));
 
-        // 날짜 중복 재확인 (동시성 문제 방지)
+        // 날짜 중복 재확인
         long overlappingCount = srRepository.countOverlappingReservations(
                 reservation.getSpace(), reservation.getStartDate(), reservation.getEndDate());
         if (overlappingCount > 0) {

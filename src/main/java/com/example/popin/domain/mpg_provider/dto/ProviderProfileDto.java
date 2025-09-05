@@ -26,14 +26,4 @@ public class ProviderProfileDto {
         d.accountHolder = p.getAccountHolder();
         return d;
     }
-
-    public void applyTo(ProviderProfile p) {
-        if (this.name != null) p.setName(this.name);
-        if (this.phone != null) p.setPhone(this.phone);
-        if (this.businessRegistrationNumber != null) p.setBusinessRegistrationNumber(this.businessRegistrationNumber);
-        if (this.bankName != null) p.setBankName(this.bankName);
-        if (this.accountNumber != null) p.setAccountNumber(this.accountNumber);
-        if (this.accountHolder != null) p.setAccountHolder(this.accountHolder);
-        // verified는 운영 승인 로직에서만 변경한다면 여기서는 건드리지 않음
-    }
 }

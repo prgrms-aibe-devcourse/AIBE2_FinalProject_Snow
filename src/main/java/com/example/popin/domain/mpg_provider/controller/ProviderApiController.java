@@ -19,21 +19,21 @@ public class ProviderApiController {
 
     private final ProviderService service;
 
-    // 내 등록 공간 리스트 (마이페이지 카드용)
+    // 내 등록 공간 리스트 (마이페이지 내 등록 공간 카드) && 카드 상세는 space에 구현
     @GetMapping("/spaces")
     public ResponseEntity<List<Space>> loadMySpaceInProfile(Principal principal) {
         String email = principal.getName();
         return ResponseEntity.ok(service.findMySpaces(email));
     }
 
-    // 내 공간에 신청된 예약 목록
+    // 내 공간에 신청된 예약 목록 (마이페이지 공간 예약 리스트 카드)
     @GetMapping("/reservations")
     public ResponseEntity<List<SpaceReservationListResponseDto>> getReservationsToMySpaces(Principal principal) {
         String email = principal.getName();
         return ResponseEntity.ok(service.getReservationsToMySpaces(email));
     }
 
-    // 예약 상세 조회
+    // 예약 상세 조회 ()
     @GetMapping("/reservations/{id}")
     public ResponseEntity<SpaceReservationResponseDto> getReservationDetail(
             @PathVariable Long id, Principal principal) {
