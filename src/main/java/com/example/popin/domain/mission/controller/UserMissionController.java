@@ -28,10 +28,16 @@ public class UserMissionController {
         this.userService = userService;
     }
 
-    @PostMapping
-    public ResponseEntity<UserMission> create(@RequestBody UserMission userMission) {
-        return ResponseEntity.ok(userMissionService.create(userMission));
+    @PostMapping("/{missionId}")
+    public ResponseEntity<UserMission> create(
+            @PathVariable UUID missionId,
+            Principal principal
+    ) {
+        Long userId = userService.getUserIdByUsername(principal.getName());
+        UserMission userMission = userMissionService.create(userId, missionId);
+        return ResponseEntity.ok(userMission);
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<UserMission> get(@PathVariable Long id) {
@@ -49,8 +55,12 @@ public class UserMissionController {
     ) {
         Long userId = null;
 
+
         if (principal != null) {
-            userId = userService.getUserIdByUsername(principal.getName());
+            String name = principal.getName();
+            System.out.println("[DEBUG] principal.getName() = " + name);
+            userId = userService.getUserIdByUsername(name);
+            System.out.println("[DEBUG] userId from DB = " + userId);
         }
 
         // 인증 필요
