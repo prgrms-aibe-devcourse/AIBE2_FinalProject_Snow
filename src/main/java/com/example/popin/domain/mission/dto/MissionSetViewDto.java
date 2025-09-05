@@ -1,5 +1,6 @@
 package com.example.popin.domain.mission.dto;
 
+import com.example.popin.domain.mission.entity.MissionSet;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -20,17 +21,13 @@ public class MissionSetViewDto {
     private final Long successCount;
     private final Boolean cleared;
 
-    public static MissionSetViewDto from(UUID missionSetId,
-                                         Long popupId,
-                                         Integer requiredCount,
+    public static MissionSetViewDto from(MissionSet set, Long userId,
                                          List<MissionSummaryDto> missions,
-                                         Long userId,
-                                         Long successCount,
-                                         Boolean cleared) {
+                                         Long successCount, boolean cleared) {
         return MissionSetViewDto.builder()
-                .missionSetId(missionSetId)
-                .popupId(popupId)
-                .requiredCount(requiredCount)
+                .missionSetId(set.getId())
+                .popupId(set.getPopupId())
+                .requiredCount(set.getRequiredCount())
                 .missions(missions)
                 .totalMissions(missions != null ? missions.size() : 0)
                 .userId(userId)
@@ -38,4 +35,5 @@ public class MissionSetViewDto {
                 .cleared(cleared)
                 .build();
     }
+
 }
