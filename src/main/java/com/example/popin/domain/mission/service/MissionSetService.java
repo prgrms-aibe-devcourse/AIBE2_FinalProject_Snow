@@ -82,14 +82,7 @@ public class MissionSetService {
         int req = (set.getRequiredCount() == null ? 0 : set.getRequiredCount());
         boolean cleared = successCnt >= req;
 
-        return MissionSetViewDto.from(
-                set.getId(),
-                set.getPopupId(),
-                set.getRequiredCount(),
-                missions,
-                userId,
-                successCnt,
-                cleared
-        );
+        return MissionSetViewDto.from(set, userId, missions, successCnt, cleared);
+
     }
 }
