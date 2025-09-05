@@ -6,11 +6,12 @@ import com.example.popin.domain.mission.repository.MissionSetRepository;
 import com.example.popin.domain.mission.repository.UserMissionRepository;
 import com.example.popin.domain.reward.entity.*;
 import com.example.popin.domain.reward.repository.*;
+import com.example.popin.global.exception.RewardException;
+import com.example.popin.global.exception.MissionException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -30,24 +31,29 @@ public class RewardService {
     // 발급: 유저당 1회 / 미션 조건 충족 / 옵션 재고 차감
     @Transactional
     public UserReward claim(UUID missionSetId, Long optionId, Long userId) {
-        // 이미 발급된 게 있으면 그대로 반환(idempotent)
+        // 이미 발급된 게 있으면 그대로 반환 (idempotent)
         var existing = rewardRepository.findByUserIdAndMissionSetId(userId, missionSetId);
-        if (existing.isPresent()) return existing.get();
+        if (existing.isPresent()) {
+            throw new RewardException.AlreadyClaimed();
+        }
 
         // 미션 조건 확인
         MissionSet set = missionSetRepository.findById(missionSetId)
-                .orElseThrow(() -> new IllegalArgumentException("NO_MISSION_SET"));
+                .orElseThrow(MissionException.MissionSetNotFound::new);
         int required = Optional.ofNullable(set.getRequiredCount()).orElse(0);
         long success = userMissionRepository.countByUser_IdAndMission_MissionSet_IdAndStatus(
                 userId, missionSetId, UserMissionStatus.COMPLETED);
-        if (success < required) throw new IllegalStateException("NOT_CLEARED");
+        if (success < required) {
+            throw new MissionException.MissionNotCleared();
+        }
 
         // 옵션 잠금 + 재고 차감
         RewardOption opt = optionRepository.lockById(optionId)
-                .orElseThrow(() -> new IllegalArgumentException("INVALID_OPTION"));
-        if (!opt.getMissionSetId().equals(missionSetId))
-            throw new IllegalArgumentException("OPTION_NOT_IN_SET");
-        opt.consumeOne(); // 재고 없으면 OUT_OF_STOCK
+                .orElseThrow(RewardException.OptionNotFound::new);
+        if (!opt.getMissionSetId().equals(missionSetId)) {
+            throw new RewardException.OptionNotInMissionSet();
+        }
+        opt.consumeOne(); // 재고 없으면 RewardException.OutOfStock 발생
 
         // 지급 레코드 생성
         UserReward rw = UserReward.builder()
@@ -56,6 +62,7 @@ public class RewardService {
                 .option(opt)
                 .status(UserRewardStatus.ISSUED)
                 .build();
+
         return rewardRepository.save(rw);
     }
 
@@ -63,20 +70,21 @@ public class RewardService {
     public UserReward redeem(UUID missionSetId, Long userId, String staffPinPlain) {
         UserReward rw = rewardRepository.findByUserIdAndMissionSetIdAndStatus(
                 userId, missionSetId, UserRewardStatus.ISSUED
-        ).orElseThrow(() -> new IllegalStateException("NOT_ISSUED"));
+        ).orElseThrow(RewardException.NotIssued::new);
 
         MissionSet set = missionSetRepository.findById(missionSetId)
-                .orElseThrow(() -> new IllegalStateException("NO_MISSION_SET"));
+                .orElseThrow(MissionException.MissionSetNotFound::new);
 
         String stored = set.getRewardPin(); // 평문 저장 사용
-        if (stored == null || stored.isBlank())
-            throw new IllegalStateException("NO_STAFF_PIN");
-
-        if (!Objects.equals(stored, staffPinPlain)) {
-            throw new IllegalArgumentException("INVALID_STAFF_PIN");
+        if (stored == null || stored.isBlank()) {
+            throw new RewardException.NoStaffPin();
         }
 
-        rw.markRedeemed();
+        if (!Objects.equals(stored, staffPinPlain)) {
+            throw new RewardException.InvalidStaffPin();
+        }
+
+        rw.markRedeemed(); // 내부에서 status=REDEEMED, redeemedAt=now()
 
         return rw;
     }
@@ -85,5 +93,4 @@ public class RewardService {
     public Optional<UserReward> findUserReward(Long userId, UUID missionSetId) {
         return rewardRepository.findByUserIdAndMissionSetId(userId, missionSetId);
     }
-
 }

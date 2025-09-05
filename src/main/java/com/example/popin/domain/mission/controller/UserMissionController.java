@@ -52,12 +52,11 @@ public class UserMissionController {
     ) {
         Long userId = null;
 
+        //TODO: 사용자 받아오기 config로 대체 예정
 
         if (principal != null) {
             String name = principal.getName();
-            System.out.println("[DEBUG] principal.getName() = " + name);
             userId = userService.getUserIdByUsername(name);
-            System.out.println("[DEBUG] userId from DB = " + userId);
         }
 
         // 인증 필요

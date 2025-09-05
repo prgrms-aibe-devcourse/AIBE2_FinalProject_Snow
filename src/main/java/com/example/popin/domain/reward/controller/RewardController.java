@@ -32,8 +32,7 @@ public class RewardController {
     // 옵션 목록 (잔여량 포함)
     @GetMapping("/options/{missionSetId}")
     public List<OptionViewResponseDto> options(@PathVariable UUID missionSetId) {
-        List<RewardOption> list = rewardService.listOptions(missionSetId);
-        return list.stream()
+        return rewardService.listOptions(missionSetId).stream()
                 .map(o -> OptionViewResponseDto.builder()
                         .id(o.getId())
                         .name(o.getName())
@@ -63,31 +62,17 @@ public class RewardController {
 
     // 수령 (PIN 입력)
     @PostMapping("/redeem")
-    public ResponseEntity<RedeemResponseDto> redeem(
-            @RequestBody @Valid RedeemRequestDto req,
-            Principal principal
-    ) {
+    public ResponseEntity<RedeemResponseDto> redeem(@RequestBody @Valid RedeemRequestDto req,
+                                                    Principal principal) {
         Long userId = resolveUserId(principal);
-        try {
-            UserReward rw = rewardService.redeem(req.getMissionSetId(), userId, req.getStaffPin());
-            return ResponseEntity.ok(
-                    RedeemResponseDto.builder()
-                            .ok(true)
-                            .status(rw.getStatus().name())
-                            .redeemedAt(rw.getRedeemedAt())
-                            .build()
-            );
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            // 400으로 내려주고, 메시지를 'PIN 인증 실패'로 변환
-            return ResponseEntity
-                    .badRequest()
-                    .body(RedeemResponseDto.builder()
-                            .ok(false)
-                            .status("FAILED")
-                            .error("PIN 인증 실패")
-                            .build()
-                    );
-        }
+        UserReward rw = rewardService.redeem(req.getMissionSetId(), userId, req.getStaffPin());
+        return ResponseEntity.ok(
+                RedeemResponseDto.builder()
+                        .ok(true)
+                        .status(rw.getStatus().name())
+                        .redeemedAt(rw.getRedeemedAt())
+                        .build()
+        );
     }
 
     // 내 리워드 조회 (이미 발급 받았는지 확인)
@@ -95,22 +80,20 @@ public class RewardController {
     public ResponseEntity<UserRewardResponseDto> myReward(@PathVariable UUID missionSetId,
                                                           Principal principal) {
         Long userId = resolveUserId(principal);
-        Optional<UserReward> found = rewardService.findUserReward(userId, missionSetId);
-        if (found.isPresent()) {
-            UserReward rw = found.get();
-            return ResponseEntity.ok(
-                    UserRewardResponseDto.builder()
-                            .ok(true)
-                            .status(rw.getStatus().name())
-                            .optionId(rw.getOption().getId())
-                            .optionName(rw.getOption().getName())
-                            .build()
-            );
-        }
-        return ResponseEntity.ok(UserRewardResponseDto.builder().ok(false).build());
+        return rewardService.findUserReward(userId, missionSetId)
+                .map(rw -> ResponseEntity.ok(
+                        UserRewardResponseDto.builder()
+                                .ok(true)
+                                .status(rw.getStatus().name())
+                                .optionId(rw.getOption().getId())
+                                .optionName(rw.getOption().getName())
+                                .build()
+                ))
+                .orElse(ResponseEntity.ok(UserRewardResponseDto.builder().ok(false).build()));
     }
 
     private Long resolveUserId(Principal principal) {
+        //TODO: 사용자 받아오기 config로 대체 예정
         if (principal == null) {
             throw new IllegalStateException("로그인 정보가 없습니다.");
         }

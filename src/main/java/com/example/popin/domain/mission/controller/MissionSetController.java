@@ -3,13 +3,11 @@ package com.example.popin.domain.mission.controller;
 import com.example.popin.domain.mission.dto.MissionSetViewDto;
 import com.example.popin.domain.mission.service.MissionSetService;
 import com.example.popin.domain.user.UserService;
+import com.example.popin.global.exception.MissionException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @RestController
@@ -20,22 +18,17 @@ public class MissionSetController {
     private final MissionSetService missionSetService;
     private final UserService userService;
 
-
     @GetMapping("/{missionSetId}")
     public MissionSetViewDto byMissionSet(@PathVariable UUID missionSetId, Principal principal) {
+        //TODO: 사용자 받아오기 config로 대체 예정
         if (principal == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증된 사용자가 없습니다.");
+            throw new MissionException.Unauthorized("인증된 사용자가 없습니다.");
         }
         Long userId = userService.getUserIdByUsername(principal.getName());
         if (userId == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    "해당 사용자를 찾을 수 없습니다: " + principal.getName());
+            throw new MissionException.Unauthorized("해당 사용자를 찾을 수 없습니다: " + principal.getName());
         }
-        try {
-            return missionSetService.getOne(missionSetId, userId);
-        } catch (NoSuchElementException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
-    }
 
+        return missionSetService.getOne(missionSetId, userId);
+    }
 }
