@@ -1,18 +1,18 @@
 package com.example.popin.domain.mission.service;
 
+import com.example.popin.domain.mission.dto.SubmitAnswerResponseDto;
 import com.example.popin.domain.mission.entity.Mission;
 import com.example.popin.domain.mission.entity.UserMission;
 import com.example.popin.domain.mission.entity.UserMissionStatus;
 import com.example.popin.domain.mission.repository.MissionRepository;
-import com.example.popin.domain.user.entity.User;
-import com.example.popin.domain.user.UserRepository;
-import com.example.popin.domain.mission.dto.SubmitAnswerResponseDto;
 import com.example.popin.domain.mission.repository.UserMissionRepository;
+import com.example.popin.domain.user.UserRepository;
+import com.example.popin.domain.user.entity.User;
+import com.example.popin.global.exception.MissionException;
+import com.example.popin.global.exception.UserException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -30,78 +30,69 @@ public class UserMissionService {
         this.missionRepository = missionRepository;
         this.userRepository = userRepository;
     }
+
+    // 유저 미션 상태 생성
     @Transactional
     public UserMission create(Long userId, UUID missionId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저 없음: " + userId));
+                .orElseThrow(() -> new UserException.UserNotFound(userId));
         Mission mission = missionRepository.findById(missionId)
-                .orElseThrow(() -> new IllegalArgumentException("미션 없음: " + missionId));
+                .orElseThrow(MissionException.MissionNotFound::new);
 
-        UserMission um = new UserMission();
-        um.setUser(user);
-        um.setMission(mission);
-        um.setStatus(UserMissionStatus.PENDING);
-
-        return userMissionRepository.save(um);
+        return userMissionRepository.save(new UserMission(user, mission));
     }
 
-
+    //유저 미션 단건 조회
     public Optional<UserMission> findById(Long id) {
         return userMissionRepository.findById(id);
     }
 
+    // 정답 제출
     @Transactional
     public SubmitAnswerResponseDto submitAnswer(UUID missionId, Long userId, String answer) {
         Mission mission = missionRepository.findById(missionId)
-                .orElseThrow(() -> new NoSuchElementException("mission not found"));
+                .orElseThrow(MissionException.MissionNotFound::new);
+
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("user not found"));
+                .orElseThrow(() -> new UserException.UserNotFound(userId));
 
         UserMission um = userMissionRepository.findByUser_IdAndMission_Id(userId, missionId)
-                .orElseGet(() -> {
-                    UserMission n = new UserMission();
-                    n.setUser(user);
-                    n.setMission(mission);
-                    n.setStatus(UserMissionStatus.PENDING);
-                    return userMissionRepository.save(n);
-                });
+                .orElseGet(() -> userMissionRepository.save(new UserMission(user, mission)));
 
         boolean pass;
-        if (um.getStatus() == UserMissionStatus.SUCCESS) {
-            pass = true;
+        if (um.getStatus() == UserMissionStatus.COMPLETED) {
+            pass = true; // 이미 완료된 경우 pass
         } else {
             pass = isCorrect(mission.getAnswer(), answer);
             if (pass) {
-                um.setStatus(UserMissionStatus.SUCCESS);
-                um.setCompletedAt(LocalDateTime.now());
+                um.markCompleted();
             } else {
-                um.setStatus(UserMissionStatus.FAIL);
+                um.markFail();
+                throw new MissionException.InvalidAnswer();
             }
             userMissionRepository.save(um);
         }
 
         long successCnt = userMissionRepository
                 .countByUser_IdAndMission_MissionSet_IdAndStatus(
-                        userId, mission.getMissionSet().getId(), UserMissionStatus.SUCCESS);
+                        userId, mission.getMissionSet().getId(), UserMissionStatus.COMPLETED);
 
-        boolean cleared = successCnt >= (mission.getMissionSet().getRequiredCount() == null ? 0
-                : mission.getMissionSet().getRequiredCount());
+        boolean cleared = successCnt >=
+                Optional.ofNullable(mission.getMissionSet().getRequiredCount()).orElse(0);
 
-        SubmitAnswerResponseDto dto = new SubmitAnswerResponseDto();
-        dto.setPass(pass);
-        dto.setStatus(um.getStatus());
-        dto.setMissionSetId(mission.getMissionSet().getId());
-        dto.setSuccessCount(successCnt);
-        dto.setRequiredCount(mission.getMissionSet().getRequiredCount());
-        dto.setCleared(cleared);
-        return dto;
+        return SubmitAnswerResponseDto.builder()
+                .pass(pass)
+                .status(um.getStatus())
+                .missionSetId(mission.getMissionSet().getId())
+                .successCount(successCnt)
+                .requiredCount(mission.getMissionSet().getRequiredCount())
+                .cleared(cleared)
+                .build();
     }
 
     private boolean isCorrect(String expected, String provided) {
         if (expected == null || provided == null) return false;
-        String a = normalize(expected);
-        String b = normalize(provided);
-        return a.equals(b);
+        return normalize(expected).equals(normalize(provided));
     }
 
     private String normalize(String s) {

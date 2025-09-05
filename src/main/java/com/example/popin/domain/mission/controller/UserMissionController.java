@@ -5,6 +5,7 @@ import com.example.popin.domain.mission.service.UserMissionService;
 import com.example.popin.domain.user.UserService;
 import com.example.popin.domain.mission.dto.SubmitAnswerRequestDto;
 import com.example.popin.domain.mission.dto.SubmitAnswerResponseDto;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 
@@ -16,17 +17,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/user-missions")
 @Validated
 public class UserMissionController {
 
     private final UserMissionService userMissionService;
     private final UserService userService;
-
-    public UserMissionController(UserMissionService userMissionService, UserService userService) {
-        this.userMissionService = userMissionService;
-        this.userService = userService;
-    }
 
     @PostMapping("/{missionId}")
     public ResponseEntity<UserMission> create(
@@ -55,12 +52,11 @@ public class UserMissionController {
     ) {
         Long userId = null;
 
+        //TODO: 사용자 받아오기 config로 대체 예정
 
         if (principal != null) {
             String name = principal.getName();
-            System.out.println("[DEBUG] principal.getName() = " + name);
             userId = userService.getUserIdByUsername(name);
-            System.out.println("[DEBUG] userId from DB = " + userId);
         }
 
         // 인증 필요

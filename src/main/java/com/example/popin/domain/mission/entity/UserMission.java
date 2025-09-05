@@ -2,9 +2,9 @@ package com.example.popin.domain.mission.entity;
 
 import com.example.popin.domain.user.entity.User;
 import com.example.popin.global.common.BaseEntity;
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -18,8 +18,7 @@ import java.time.LocalDateTime;
         )
 )
 @Getter
-@Setter
-@ToString(exclude = {"user", "mission"})
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserMission extends BaseEntity {
 
     @Id
@@ -28,12 +27,12 @@ public class UserMission extends BaseEntity {
 
     // User FK
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     // Mission FK
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "mission_id")
+    @JoinColumn(name = "mission_id", nullable = false)
     private Mission mission;
 
     @Enumerated(EnumType.STRING)
@@ -42,4 +41,47 @@ public class UserMission extends BaseEntity {
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
+
+    // 생성자
+    public UserMission(User user, Mission mission) {
+        this.user = user;
+        this.mission = mission;
+        this.status = UserMissionStatus.PENDING;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public void setMission(Mission mission) {
+        this.mission = mission;
+    }
+
+    public void setStatus(UserMissionStatus status) {
+        this.status = status;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
+    }
+
+    // 비즈니스 메서드
+    public void markCompleted() {
+        this.status = UserMissionStatus.COMPLETED;
+        this.completedAt = LocalDateTime.now();
+    }
+
+    public void markFail() {
+        this.status = UserMissionStatus.FAIL;
+        this.completedAt = LocalDateTime.now();
+    }
+
+    public void markPending() {
+        this.status = UserMissionStatus.PENDING;
+        this.completedAt = null;
+    }
+
+    public boolean isCompleted() {
+        return this.status == UserMissionStatus.COMPLETED;
+    }
 }

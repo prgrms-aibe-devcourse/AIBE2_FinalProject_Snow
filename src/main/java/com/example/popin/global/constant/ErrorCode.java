@@ -29,6 +29,8 @@ public enum ErrorCode {
     INVALID_TOKEN(20003, HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
     ACCESS_DENIED(20004, HttpStatus.FORBIDDEN, "접근이 거부되었습니다."),
     UNAUTHORIZED(20005, HttpStatus.UNAUTHORIZED, "권한이 없습니다."),
+    CONFLICT(20006, HttpStatus.CONFLICT, "리소스 충돌이 발생했습니다."),
+
 
     POPUP_NOT_FOUND(40404, HttpStatus.NOT_FOUND, "팝업을 찾을 수 없습니다"),
     POPUP_ACCESS_DENIED(40304, HttpStatus.FORBIDDEN, "팝업 접근 권한이 없습니다"),

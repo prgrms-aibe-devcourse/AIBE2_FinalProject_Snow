@@ -107,7 +107,7 @@
 
     const grid = $('#mission-grid');
     (setView.missions || []).slice(0, 6).forEach(m => {
-      const done = String(m.userStatus || '') === 'SUCCESS';
+      const done = String(m.userStatus || '') === 'COMPLETED';
       const item = document.createElement('div');
       item.className = 'mission-item';
       item.innerHTML = `
