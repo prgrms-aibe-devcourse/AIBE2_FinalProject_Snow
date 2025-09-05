@@ -98,6 +98,31 @@ class SimpleApiService {
         }
     }
 
+    // PUT 요청 (추가됨)
+    async put(endpoint, data) {
+        try {
+            const response = await fetch(`${this.baseURL}${endpoint}`, {
+                method: 'PUT',
+                headers: this.getHeaders(),
+                body: JSON.stringify(data)
+            });
+
+            if (response.status === 401) {
+                this.removeToken();
+                throw new Error('인증이 필요합니다.');
+            }
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('API PUT Error:', error);
+            throw error;
+        }
+    }
+
     // 로그인
     async login(username, password) {
         const result = await this.post('/auth/login', { username, password });
@@ -126,7 +151,6 @@ class SimpleApiService {
         return await this.get('/main');
     }
 
-
     // === 미션 관련 API ===
 
     // 미션 단건 조회
@@ -148,24 +172,43 @@ class SimpleApiService {
         return this.get(url);
     }
 
-
     async submitMissionAnswer(missionId, answer) {
         return this.post(`/user-missions/${encodeURIComponent(missionId)}/submit-answer`, { answer });
+    }
+
+    // === 마이페이지 - 공간제공자 API  ===
+
+    // 내 등록 공간 목록
+    async getMySpaces() {
+        return await this.get('/provider/spaces');
+    }
+
+    // 내 공간에 신청된 예약 목록
+    async getMyReservations() {
+        return await this.get('/provider/reservations');
+    }
+
+    // 예약 상세 조회
+    async getReservationDetail(reservationId) {
+        return await this.get(`/provider/reservations/${reservationId}`);
+    }
+
+    // 예약 승인
+    async acceptReservation(reservationId) {
+        return await this.put(`/provider/reservations/${reservationId}/accept`);
+    }
+
+    // 예약 거절
+    async rejectReservation(reservationId) {
+        return await this.put(`/provider/reservations/${reservationId}/reject`);
+    }
+
+    // 예약 현황 통계
+    async getReservationStats() {
+        return await this.get('/provider/reservations/stats');
     }
 
 }
 
 // 전역 API 서비스 인스턴스
 const apiService = new SimpleApiService();
-
-//  === 마이페이지 - 공간제공자 API ===
-//마이페이지 - 공간제공자의 내 등록 공간 로드
-apiService.getMySpaces = async function () {
-    const res = await fetch('/api/spaces/mine', {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' },
-        credentials: 'include'
-    });
-    if (!res.ok) throw new Error('failed to load my spaces');
-    return await res.json();
-};
