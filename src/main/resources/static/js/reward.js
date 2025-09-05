@@ -35,19 +35,20 @@
       z-index:9999;
     `;
         backdrop.innerHTML = `
-      <div class="modal-card" style="background:#fff; padding:20px; border-radius:12px; text-align:center; position:relative;">
-        <h3 style="margin-bottom:12px;">리워드 룰렛</h3>
-        <div class="roulette-container" style="position:relative; width:300px; height:300px; margin:0 auto;">
-          <canvas id="rouletteCanvas" width="300" height="300"></canvas>
-          <div style="position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:28px;">▼</div>
-        </div>
-        <div style="display:flex; gap:8px; justify-content:center; margin-top:16px;">
-          <button id="spin-btn" class="btn primary flex-btn">돌리기</button>
-          <button id="close-btn" class="btn flex-btn">닫기</button>
-        </div>
+  <div class="modal-card" style="background:#fff; padding:20px; border-radius:30px; text-align:center; position:relative;">
+    <button id="close-btn" 
+            style="position:absolute; top:10px; right:10px; border:none; background:transparent; font-size:20px; cursor:pointer;">✕</button>
 
-      </div>
-    `;
+    <div class="roulette-container" style="position:relative; width:400px; height:400px; margin:30px auto;">
+      <canvas id="rouletteCanvas" width="300" height="300"></canvas>
+      <div style="position:absolute;top:-25px;left:50%;transform:translateX(-50%);font-size:40px;color:#79f;">▼</div>
+    </div>
+    <div style="display:flex; gap:8px; justify-content:center; margin-top:16px;">
+      <button id="spin-btn" class="btn primary flex-btn">돌리기</button>
+    </div>
+  </div>
+`;
+
         document.body.appendChild(backdrop);
 
         const canvas = backdrop.querySelector("#rouletteCanvas");
@@ -116,11 +117,14 @@
         const h = ctx.canvas.height;
         const cx = w / 2;
         const cy = h / 2;
-        const r = w / 2;
+        const r = w / 2 - 10; // 여유 공간
         const step = (2 * Math.PI) / options.length;
 
         ctx.clearRect(0, 0, w, h);
 
+        const colors = ["#79f", "#e0e7ff"];
+
+        // 섹터 그리기
         options.forEach((opt, i) => {
             const start = i * step + (angle * Math.PI) / 180;
             const end = start + step;
@@ -128,23 +132,51 @@
             ctx.beginPath();
             ctx.moveTo(cx, cy);
             ctx.arc(cx, cy, r, start, end);
-            ctx.fillStyle = i % 2 === 0 ? "#f77" : "#79f";
-            ctx.strokeStyle = "#aaa";
+            ctx.closePath();
+
+            ctx.fillStyle = colors[i % colors.length];
             ctx.fill();
-            ctx.lineWidth = 2;
+
+            ctx.strokeStyle = "#e3e3e3"; // 얇은 경계선
+            ctx.lineWidth = 1;
             ctx.stroke();
 
-            // 텍스트
+            // 텍스트 (섹터 중앙 근처)
             ctx.save();
             ctx.translate(cx, cy);
             ctx.rotate(start + step / 2);
-            ctx.textAlign = "right";
+            ctx.textAlign = "center";
             ctx.fillStyle = "#fff";
-            ctx.font = "bold 14px sans-serif";
-            ctx.fillText(opt.name, r - 10, 5);
+            ctx.font = "bold 20px sans-serif";
+            ctx.fillText(opt.name, r * 0.7, 5); // r*0.7 위치 (안쪽에 글씨)
             ctx.restore();
         });
+
+        // 1) 바깥쪽 전용 그림자 (투명 stroke)
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, r + 10, 0, 2 * Math.PI); // r보다 크게
+        ctx.lineWidth = 20;
+        ctx.strokeStyle = "transparent";
+
+        ctx.shadowColor = "rgba(0,0,0,0.3)";
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 4;
+
+        ctx.stroke();
+        ctx.restore();
+
+        // 2) 실제 외곽선
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+        ctx.lineWidth = 20;
+        ctx.strokeStyle = "#dfdfdf"; // 회색
+        ctx.stroke();
     }
+
+
+
 
     function easeOut(t) {
         return 1 - Math.pow(1 - t, 3);
