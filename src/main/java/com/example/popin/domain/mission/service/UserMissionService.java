@@ -30,10 +30,21 @@ public class UserMissionService {
         this.missionRepository = missionRepository;
         this.userRepository = userRepository;
     }
+    @Transactional
+    public UserMission create(Long userId, UUID missionId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저 없음: " + userId));
+        Mission mission = missionRepository.findById(missionId)
+                .orElseThrow(() -> new IllegalArgumentException("미션 없음: " + missionId));
 
-    public UserMission create(UserMission userMission) {
-        return userMissionRepository.save(userMission);
+        UserMission um = new UserMission();
+        um.setUser(user);
+        um.setMission(mission);
+        um.setStatus(UserMissionStatus.PENDING);
+
+        return userMissionRepository.save(um);
     }
+
 
     public Optional<UserMission> findById(Long id) {
         return userMissionRepository.findById(id);
