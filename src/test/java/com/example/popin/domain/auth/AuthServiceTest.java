@@ -18,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.*;
 
 @DisplayName("AuthService 로그인 단위 테스트")
@@ -57,13 +58,22 @@ class AuthServiceTest {
     void givenValidRequest_whenLogin_thenReturnsLoginResponse() {
         // Given
         LoginRequest request = new LoginRequest();
-        given(userRepository.findByEmail(request.getEmail()))
+        request.setEmail(mockUser.getEmail());
+        request.setPassword("raw-password");
+
+        given(userRepository.findByEmail(eq(mockUser.getEmail())))
                 .willReturn(Optional.of(mockUser));
-        given(passwordEncoder.matches(request.getPassword(), mockUser.getPassword()))
+
+        given(passwordEncoder.matches(eq("raw-password"), eq(mockUser.getPassword())))
                 .willReturn(true);
-        given(jwtUtil.createToken(mockUser.getId(), mockUser.getName(),
-                mockUser.getName(), mockUser.getRole().name()))
-                .willReturn("jwt-token");
+
+        // 토큰 생성 (id, email, nickname, role 순서)
+        given(jwtUtil.createToken(
+                eq(mockUser.getId()),
+                eq(mockUser.getEmail()),
+                eq(mockUser.getName()),
+                eq(mockUser.getRole().name())
+        )).willReturn("jwt-token");
 
         // When
         LoginResponse response = authService.login(request);

@@ -8,7 +8,10 @@ import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -41,6 +44,11 @@ class JwtUtilTest {
         assertThat(token).isNotNull();
         assertThat(token).isNotEmpty();
         assertThat(token.split("\\.")).hasSize(3); // JWT는 3개 부분으로 구성
+
+        // 토큰에서 정보 추출 검증
+        assertThat(sut.getEmail(token)).isEqualTo(testEmail);
+        assertThat(sut.getName(token)).isEqualTo(testName);
+        assertThat(sut.getRole(token)).isEqualTo(testRole);
     }
     @DisplayName("userId를 포함한 토큰을 생성하면 JWT 토큰이 반환된다")
     @Test
@@ -52,6 +60,23 @@ class JwtUtilTest {
         assertThat(token).isNotNull();
         assertThat(token).isNotEmpty();
         assertThat(token.split("\\.")).hasSize(3);
+
+        // userId는 현재 구현에서 토큰에 저장되지 않으므로 null 확인
+        assertThat(sut.getUserId(token)).isNull();
+    }
+
+
+    @DisplayName("새로 생성된 토큰은 만료되지 않은 상태이다")
+    @Test
+    void givenFreshToken_whenCheckExpired_thenReturnsFalse() {
+        // Given
+        String token = sut.createToken(testEmail, testName, testRole);
+
+        // When
+        boolean isExpired = sut.isTokenExpired(token);
+
+        // Then
+        assertThat(isExpired).isFalse();
     }
 
     @DisplayName("유효한 토큰에서 이메일을 추출하면 올바른 이메일을 반환한다")
@@ -103,6 +128,7 @@ class JwtUtilTest {
         assertThat(sut.getEmail(invalidToken)).isNull();
         assertThat(sut.getName(invalidToken)).isNull();
         assertThat(sut.getRole(invalidToken)).isNull();
+        assertThat(sut.getUserId(invalidToken)).isNull();
     }
 
     @DisplayName("유효한 토큰의 만료 여부를 확인하면 false를 반환한다")
@@ -153,17 +179,32 @@ class JwtUtilTest {
         assertThat(isValid).isTrue();
     }
 
-    @DisplayName("잘못된 토큰을 검증하면 false를 반환한다")
-    @Test
-    void givenInvalidToken_whenValidate_thenReturnsFalse() {
-        // Given
-        String invalidToken = "invalid.token.here";
-
+    @DisplayName("잘못된 형식의 토큰은 검증에 실패한다")
+    @ParameterizedTest
+    @ValueSource(strings = {"invalid.token", "not.a.jwt.token", "completely-wrong-format"})
+    void givenInvalidToken_whenValidate_thenReturnsFalse(String invalidToken) {
         // When
         boolean isValid = sut.validateToken(invalidToken);
 
         // Then
         assertThat(isValid).isFalse();
+    }
+
+    @DisplayName("토큰 만료 시간이 6시간으로 설정되는지 확인한다")
+    @Test
+    void givenToken_whenCheckExpiration_thenExpiresInSixHours() {
+        // Given
+        String token = sut.createToken(testEmail, testName, testRole);
+        Claims claims = sut.extractClaims(token);
+
+        // When
+        Date issuedAt = claims.getIssuedAt();
+        Date expiration = claims.getExpiration();
+        long diffInMillis = expiration.getTime() - issuedAt.getTime();
+        long diffInHours = diffInMillis / (1000 * 60 * 60);
+
+        // Then
+        assertThat(diffInHours).isEqualTo(6); // 6시간
     }
 
     @DisplayName("만료된 토큰을 검증하면 false를 반환한다")
@@ -202,17 +243,17 @@ class JwtUtilTest {
         assertThat(claims.getExpiration()).isNotNull();
     }
 
-    @DisplayName("빈 문자열이나 null 토큰에 대해 적절히 처리된다")
-    @Test
-    void givenNullOrEmptyToken_whenProcessToken_thenHandlesGracefully() {
+    @DisplayName("null이나 빈 토큰에 대해 적절히 처리한다")
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" ", "   "})
+    void givenNullOrEmptyToken_whenProcessToken_thenHandlesGracefully(String token) {
         // When & Then
-        assertThat(sut.getEmail(null)).isNull();
-        assertThat(sut.getEmail("")).isNull();
-        assertThat(sut.getName(null)).isNull();
-        assertThat(sut.getRole(null)).isNull();
-
-        assertThat(sut.validateToken(null)).isFalse();
-        assertThat(sut.validateToken("")).isFalse();
+        assertThat(sut.getEmail(token)).isNull();
+        assertThat(sut.getName(token)).isNull();
+        assertThat(sut.getRole(token)).isNull();
+        assertThat(sut.getUserId(token)).isNull();
+        assertThat(sut.validateToken(token)).isFalse();
     }
 
     @DisplayName("userId가 포함된 토큰에서 userId를 추출할 수 있다 - 현재는 구현되지 않음")
@@ -227,4 +268,24 @@ class JwtUtilTest {
         // Then - 현재 구현에서는 userId가 토큰에 저장되지 않아 null 반환
         assertThat(extractedUserId).isNull();
     }
+
+    @DisplayName("특수문자가 포함된 정보로도 토큰 생성이 가능하다")
+    @Test
+    void givenSpecialCharacters_whenCreateToken_thenWorksCorrectly() {
+        // Given
+        String specialEmail = "test+special@sub-domain.co.kr";
+        String specialName = "테스트 유저 (특수문자 #@!)";
+        String specialRole = "ADMIN";
+
+        // When
+        String token = sut.createToken(specialEmail, specialName, specialRole);
+
+        // Then
+        assertThat(token).isNotNull();
+        assertThat(sut.getEmail(token)).isEqualTo(specialEmail);
+        assertThat(sut.getName(token)).isEqualTo(specialName);
+        assertThat(sut.getRole(token)).isEqualTo(specialRole);
+        assertThat(sut.validateToken(token)).isTrue();
+    }
+
 }

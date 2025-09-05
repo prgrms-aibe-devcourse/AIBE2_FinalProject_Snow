@@ -18,7 +18,8 @@ public enum ErrorCode {
     VALIDATION_ERROR(10002, HttpStatus.BAD_REQUEST, "유효성 검사 오류입니다."),
     NOT_FOUND(10003, HttpStatus.NOT_FOUND, "요청한 리소스를 찾을 수 없습니다."),
     USER_NOT_FOUND(10004, HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
-    DUPLICATE_EMAIL(10005, HttpStatus.BAD_REQUEST, "중복된 이메일입니다."),
+    LOGIN_FAILED(10005, HttpStatus.BAD_REQUEST, "이메일 또는 비밀번호가 올바르지 않습니다."),
+    DUPLICATE_EMAIL(10006,  HttpStatus.BAD_REQUEST, "중복된 이메일입니다."),
 
 
     INTERNAL_ERROR(20000, HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."),
@@ -39,7 +40,7 @@ public enum ErrorCode {
     private final String message;
 
     public String getDetailedMessage(Throwable e) {
-        return String.format("%s - %s", this.message, e.getMessage());
+        return String.format("%s %s", this.message, e.getMessage());
     }
 
     public String withMessage(String customMessage) {
