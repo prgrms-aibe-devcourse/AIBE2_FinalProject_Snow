@@ -88,16 +88,16 @@ public class AuthService implements UserDetailsService {
 
     }
 
-    public LoginResponse login(LoginRequest request){
+    public LoginResponse login(LoginRequest req){
 
-        User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmail(req.getEmail())
                 .orElseThrow(() -> {
-                    log.warn("존재하지 않는 이메일: {}", request.getEmail());
+                    log.warn("존재하지 않는 이메일: {}", req.getEmail());
                     return new GeneralException(ErrorCode.LOGIN_FAILED);
                 });
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())){
-            log.warn("비밀번호 불일치: {}", request.getEmail());
+        if (!passwordEncoder.matches(req.getPassword(), user.getPassword())){
+            log.warn("비밀번호 불일치: {}", req.getEmail());
             throw new GeneralException(ErrorCode.LOGIN_FAILED);
         }
 
@@ -110,7 +110,7 @@ public class AuthService implements UserDetailsService {
                     user.getRole().name()
             );
 
-            log.info("로그인 성공: {}", request.getEmail());
+            log.info("로그인 성공: {}", req.getEmail());
 
             return LoginResponse.of(
                     accessToken,

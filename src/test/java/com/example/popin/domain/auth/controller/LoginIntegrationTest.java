@@ -124,7 +124,7 @@ class LoginIntegrationTest {
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.errorCode").value(ErrorCode.BAD_REQUEST.getCode()))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.LOGIN_FAILED.getCode()))
                 .andExpect(jsonPath("$.message").exists())
                 .andDo(print());
     }
@@ -143,7 +143,7 @@ class LoginIntegrationTest {
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.errorCode").value(ErrorCode.BAD_REQUEST.getCode()))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.LOGIN_FAILED.getCode()))
                 .andExpect(jsonPath("$.message").exists())
                 .andDo(print());
     }

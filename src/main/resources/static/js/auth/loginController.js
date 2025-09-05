@@ -30,6 +30,8 @@ class LoginController {
         }
 
         if (urlParams.get('logout')) {
+            // 클라이언트 저장 토큰 제거
+            try { this.apiService.removeToken(); } catch (e) { console.warn('토큰 제거 실패', e); }
             this.ui.showAlert('로그아웃되었습니다.', 'success');
         }
 

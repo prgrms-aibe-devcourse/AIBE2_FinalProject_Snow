@@ -47,10 +47,11 @@ class LoginUI {
         });
 
         // Enter 키 처리
-        document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !this.elements.button.disabled) {
-                e.preventDefault();
-                this.elements.form.dispatchEvent(new Event('submit'));
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                if (this.elements.button.disabled) {
+                    e.preventDefault(); // 버튼이 비활성화일 때만 막음
+                }
             }
         });
     }

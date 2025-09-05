@@ -53,8 +53,8 @@ class LoginValidator {
      * @returns {Object} { isValid: boolean, errors: Object }
      */
     static validateForm(formData) {
-        const email = formData.get('email').trim();
-        const password = formData.get('password');
+        const email = String(formData.get('email') ?? '').trim();
+        const password = String(formData.get('password') ?? '');
 
         const emailResult = this.validateEmail(email);
         const passwordResult = this.validatePassword(password);

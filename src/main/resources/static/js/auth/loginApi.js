@@ -36,7 +36,7 @@ class LoginApiService {
                 return data;
             } catch (error) {
                 // 네트워크 에러인 경우 재시도
-                if (error instanceof TypeError) {
+                if (error instanceof TypeError || error?.name === 'AbortError')  {
                     if (attempt === this.maxRetries) {
                         throw new Error('네트워크 연결을 확인해주세요. 잠시 후 다시 시도해주세요.');
                     }
@@ -141,14 +141,27 @@ class LoginApiService {
      * @returns {boolean} 만료 여부
      */
     isTokenExpired() {
-        const loginTime = this.getStorage().getItem('loginTime');
-        if (!loginTime) return true;
+        const token = this.getStoredToken();
+        if (!token) return true;
+        const expSec = this.getJwtExp(token);
+        if (!expSec) return true;
+        // exp is seconds since epoch
+        return Date.now() >= expSec * 1000;
+    }
 
+    getJwtExp(token) {
         try {
-            const hoursElapsed = (Date.now() - new Date(loginTime).getTime()) / (1000 * 60 * 60);
-            return hoursElapsed > 24;
-        } catch (e) {
-            return true;
+            const payload = this.decodeBase64Url(token.split('.')[1] || '');
+            const obj = JSON.parse(payload);
+            return typeof obj.exp === 'number' ? obj.exp : null;
+        } catch (_) {
+            return null;
         }
+    }
+
+    decodeBase64Url(b64url) {
+        const b64 = b64url.replace(/-/g, '+').replace(/_/g, '/');
+        const json = decodeURIComponent(atob(b64).split('').map(c => '%' + c.charCodeAt(0).toString(16).padStart(2, '0')).join(''));
+        return json;
     }
 }
