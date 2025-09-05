@@ -2,6 +2,7 @@ package com.example.popin.domain.mpg_provider.controller;
 
 import com.example.popin.domain.space.entity.Space;
 import com.example.popin.domain.mpg_provider.service.ProviderService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,14 +10,11 @@ import java.security.Principal;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/provider")
 public class ProviderApiController {
 
     private final ProviderService service;
-
-    public ProviderApiController(ProviderService service) {
-        this.service = service;
-    }
 
     // 내 등록 공간 리스트 (마이페이지 카드용)
     @GetMapping("/spaces")
