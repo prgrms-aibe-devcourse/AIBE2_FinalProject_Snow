@@ -8,21 +8,28 @@ class SimpleApiService {
     // 로컬 스토리지에서 토큰 가져오기
     getStoredToken() {
         try {
-            return localStorage.getItem('authToken');
-        } catch (error) {
-            console.warn('localStorage 접근 불가, 세션 스토리지 사용');
-            return sessionStorage.getItem('authToken');
+            const raw =
+                localStorage.getItem('accessToken') ||
+                localStorage.getItem('authToken')   ||
+                sessionStorage.getItem('accessToken') ||
+                sessionStorage.getItem('authToken');
+            return (raw || '').trim();
+        } catch {
+            return null;
         }
     }
 
     // 토큰 저장
     storeToken(token) {
+        const clean = String(token || '').trim();
         try {
-            localStorage.setItem('authToken', token);
-        } catch (error) {
-            sessionStorage.setItem('authToken', token);
+            localStorage.setItem('accessToken', clean);
+            localStorage.setItem('authToken',   clean);
+        } catch {
+            sessionStorage.setItem('accessToken', clean);
+            sessionStorage.setItem('authToken',   clean);
         }
-        this.token = token;
+        this.token = clean;
     }
 
     // 토큰 제거
@@ -54,7 +61,8 @@ class SimpleApiService {
         try {
             const response = await fetch(`${this.baseURL}${endpoint}`, {
                 method: 'GET',
-                headers: this.getHeaders()
+                headers: this.getHeaders(),
+                credentials: 'include'
             });
 
             if (response.status === 401) {
@@ -79,7 +87,8 @@ class SimpleApiService {
             const response = await fetch(`${this.baseURL}${endpoint}`, {
                 method: 'POST',
                 headers: this.getHeaders(),
-                body: JSON.stringify(data)
+                body: JSON.stringify(data),
+                credentials: 'include'
             });
 
             if (response.status === 401) {
@@ -152,13 +161,14 @@ class SimpleApiService {
     async submitMissionAnswer(missionId, answer) {
         return this.post(`/user-missions/${encodeURIComponent(missionId)}/submit-answer`, { answer });
     }
-    // === 공간 ===
+
     // DELETE 요청
     async delete(endpoint) {
         try {
             const response = await fetch(`${this.baseURL}${endpoint}`, {
                 method: 'DELETE',
-                headers: this.getHeaders()
+                headers: this.getHeaders(),
+                credentials: 'include'
             });
 
             if (response.status === 401) {
@@ -182,43 +192,104 @@ class SimpleApiService {
 // 전역 API 서비스 인스턴스
 const apiService = new SimpleApiService();
 
-//  === 마이페이지 - 공간제공자 API ===
-//마이페이지 - 공간제공자의 내 등록 공간 로드
-apiService.getMySpaces = async function () {
-    const res = await fetch('/api/spaces/mine', {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' },
-        credentials: 'include'
-    });
-    if (!res.ok) throw new Error('failed to load my spaces');
-    return await res.json();
-};
-
 // === 공간대여 API ===
 
-// 목록 조회 (필요하면 params 객체로 필터링 지원)
-apiService.listSpaces = async function (params = {}) {
+// 공간 목록 조회
+apiService.listSpaces = async function(params = {}) {
     const sp = new URLSearchParams(params);
-    const spList = sp.toString() ? `?${sp.toString()}` : '';
-    return await this.get(`/spaces${spList}`);
+    const query = sp.toString() ? `?${sp.toString()}` : '';
+    return await this.get(`/spaces${query}`);
 };
 
-// 상세 조회 (향후 상세 페이지에서 사용 예정)
-apiService.getSpace = async function (spaceId) {
+// 내 공간 목록 조회
+apiService.getMySpaces = async function() {
+    return await this.get('/spaces/mine');
+};
+
+// 공간 상세 조회
+apiService.getSpace = async function(spaceId) {
     return await this.get(`/spaces/${encodeURIComponent(spaceId)}`);
 };
 
-// 삭제
-apiService.deleteSpace = async function (spaceId) {
+// 공간 등록
+apiService.createSpace = async function(formData) {
+    try {
+        const response = await fetch(`${this.baseURL}/spaces`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${this.getStoredToken()}`
+            },
+            body: formData,
+            credentials: 'include'
+        });
+
+        if (response.status === 401) {
+            this.removeToken();
+            throw new Error('인증이 필요합니다.');
+        }
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('공간 등록 API Error:', error);
+        throw error;
+    }
+};
+
+
+
+
+// 공간 수정
+apiService.updateSpace = async function(spaceId, formData) {
+    try {
+        const response = await fetch(`${this.baseURL}/spaces/${encodeURIComponent(spaceId)}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${this.getStoredToken()}`
+            },
+            body: formData,
+            credentials: 'include'
+        });
+
+        if (response.status === 401) {
+            this.removeToken();
+            throw new Error('401');
+        }
+        if (!response.ok) {
+            throw new Error(`${response.status}`);
+        }
+
+        const text = await response.text();
+        if (!text || text.trim().length === 0) {
+            return true; // 빈 응답도 성공으로 처리
+        }
+        try {
+            return JSON.parse(text);
+        } catch {
+            return text; // JSON 아니면 그냥 텍스트 반환
+        }
+    } catch (error) {
+        console.error('공간 수정 API Error:', error);
+        throw error;
+    }
+};
+
+
+
+// 공간 삭제
+apiService.deleteSpace = async function(spaceId) {
     return await this.delete(`/spaces/${encodeURIComponent(spaceId)}`);
 };
 
-// 문의하기 (바디 필요 없으면 빈 객체)
-apiService.inquireSpace = async function (spaceId) {
+// 문의하기
+apiService.inquireSpace = async function(spaceId) {
     return await this.post(`/spaces/${encodeURIComponent(spaceId)}/inquiries`, {});
 };
 
-// 신고하기 (바디 필요 없으면 빈 객체)
-apiService.reportSpace = async function (spaceId) {
+// 신고하기
+apiService.reportSpace = async function(spaceId) {
     return await this.post(`/spaces/${encodeURIComponent(spaceId)}/reports`, {});
 };
