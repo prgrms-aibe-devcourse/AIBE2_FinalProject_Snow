@@ -80,10 +80,29 @@ const SpaceDetailPage = {
                 if (act === 'list') this.goList();
                 else if (act === 'edit') this.editSpace(id);
                 else if (act === 'delete') this.deleteSpace(id);
-                else if (act === 'inquire') this.inquireSpace(id);
-                else if (act === 'report') this.reportSpace(id);
+                else if (act === 'reserve') this.reserveSpace(id);
             });
         });
+    },
+    // 예약하기 형식만 (아직 hostprofile) 존재하지 않음
+    async reserveSpace(spaceId) {
+        try {
+            // 👉 지금은 형식만, 나중에 로그인 Host 정보 붙이면 됨
+            const result = await apiService.post('/space-reservations', {
+                spaceId: Number(spaceId),
+                brand: "임시브랜드",          // TODO: Host 프로필 연동
+                popupTitle: "임시팝업",       // TODO: Host 프로필 연동
+                startDate: "2025-09-10",     // TODO: UI에서 선택
+                endDate: "2025-09-12",       // TODO: UI에서 선택
+                contactPhone: "010-0000-0000", // TODO: Host 프로필 연동
+                message: "임시 신청 메세지"    // TODO: UI에서 입력
+            });
+
+            alert(`예약 신청 완료! (ID: ${result.id})`);
+        } catch (e) {
+            console.error('예약 실패:', e);
+            alert('예약 신청 실패');
+        }
     },
 
     getThumbUrl(space) {
