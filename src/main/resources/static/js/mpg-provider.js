@@ -70,7 +70,7 @@ const ProviderPage = {
         const card = document.createElement('div');
         card.className = 'card space-card';
 
-        const detailUrl = `/spaces/detail.html?id=${encodeURIComponent(space.id)}`;
+        const detailUrl = `/templates/pages/space-detail.html?id=${encodeURIComponent(space.id)}`;
 
         // 썸네일
         const thumbWrap = document.createElement('div');
@@ -87,6 +87,10 @@ const ProviderPage = {
             thumbWrap.appendChild(img);
         }
 
+        //  썸네일 클릭 → 상세 페이지 이동
+        const goDetail = () => { window.location.href = detailUrl; };
+        thumbWrap.addEventListener('click', goDetail);
+
         // 정보 영역
         const info = document.createElement('div');
         info.className = 'info';
@@ -94,13 +98,11 @@ const ProviderPage = {
         const title = document.createElement('div');
         title.className = 'title linklike';
         title.textContent = space.title || '등록 공간';
+        title.addEventListener('click', goDetail);
 
         const desc = document.createElement('div');
         desc.className = 'desc linklike';
         desc.textContent = space.description || '공간 설명';
-
-        const goDetail = () => { window.location.href = detailUrl; };
-        title.addEventListener('click', goDetail);
         desc.addEventListener('click', goDetail);
 
         info.append(title, desc);
@@ -121,8 +123,16 @@ const ProviderPage = {
         btnDel.className = 'btn icon';
         btnDel.title = '삭제';
         btnDel.textContent = '🗑️';
-        btnDel.addEventListener('click', () => {
-            alert(`공간(ID=${space.id}) 삭제 API 호출 예정`);
+        btnDel.addEventListener('click', async () => {
+            if (!confirm(`정말로 "${space.title}" 공간을 삭제하시겠습니까?`)) return;
+            try {
+                await apiService.deleteSpace(space.id);
+                alert('공간이 삭제되었습니다.');
+                card.remove();
+            } catch (err) {
+                console.error('공간 삭제 실패:', err);
+                alert('공간 삭제에 실패했습니다.');
+            }
         });
 
         actions.append(btnMap, btnDel);
@@ -130,6 +140,7 @@ const ProviderPage = {
 
         return card;
     },
+
 
     // 예약 목록 렌더링
     renderReservations(reservations) {

@@ -100,9 +100,24 @@ function showNotifications() {
     // 알림 템플릿 로드 예정
 }
 
-function goToProfile() {
-    console.log('프로필 클릭');
-    // 프로필 템플릿 로드 예정
+// 프로필 선택 시 이동
+async function goToProfile() {
+    try {
+        const role = getUserRole(); // 지금은 'PROVIDER' 문자열 반환
+
+        if (role === 'PROVIDER') {
+            location.assign('/templates/pages/mpg-provider.html');
+        } else if (role === 'HOST') {
+            location.assign('/templates/pages/mpg-host.html');
+        } else {
+            alert('로그인이 필요합니다.');
+            location.assign('/templates/pages/auth/login.html');
+        }
+    } catch (err) {
+        console.error('프로필 이동 실패:', err);
+        alert('로그인이 필요합니다.');
+        location.assign('/templates/pages/auth/login.html');
+    }
 }
 
 // 알림 메시지 표시
@@ -179,5 +194,5 @@ function createFooterByRole() {
 // 사용자 역할 가져오기 함수 (테스트용으로 쓰고 나중엔 실제로 가져오게)
 function getUserRole() {
 
-    return 'USER'; // ROLE을 입력
+    return 'PROVIDER'; // ROLE을 입력
 }
