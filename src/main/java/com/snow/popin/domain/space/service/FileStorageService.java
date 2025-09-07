@@ -18,7 +18,7 @@ public class FileStorageService {
     private String uploadPath;
 
     private static final java.util.Set<String> ALLOWED_CONTENT_TYPES =
-            java.util.Set.of("image/jpeg", "image/png", "image/gif", "images/webp");
+            java.util.Set.of("image/jpeg", "image/png", "image/gif", "image/webp");
     private static final java.util.Set<String> ALLOWED_EXT =
             java.util.Set.of(".jpg", ".jpeg", ".png", ".gif", ".webp");
     //파일 저장
