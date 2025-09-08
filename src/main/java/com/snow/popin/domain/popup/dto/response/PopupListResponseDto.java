@@ -1,11 +1,9 @@
 package com.snow.popin.domain.popup.dto.response;
 
 import lombok.Builder;
-import lombok.Data;
 
 import java.util.List;
 
-@Data
 @Builder
 public class PopupListResponseDto {
     private List<PopupSummaryResponseDto> popups;

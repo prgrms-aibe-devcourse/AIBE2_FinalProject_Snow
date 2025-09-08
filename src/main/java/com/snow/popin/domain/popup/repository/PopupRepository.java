@@ -28,22 +28,36 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
     Optional<Popup> findByIdWithDetails(@Param("id") Long id);
 
     // 팝업 검색 (제목, 지역으로만)
-    @Query("SELECT DISTINCT p FROM Popup p " +
+    @Query("SELECT DISTINCT p FROM Popup p LEFT JOIN p.venue v " +
             "WHERE (:title IS NULL OR TRIM(:title) = '' OR LOWER(p.title) LIKE LOWER(CONCAT('%', :title, '%'))) " +
-            "AND (:region IS NULL OR TRIM(:region) = '' OR LOWER(p.region) = LOWER(:region))")
+            "AND (:region IS NULL OR TRIM(:region) = '' OR LOWER(v.region) = LOWER(:region))")
     Page<Popup> searchPopups(
             @Param("title") String title,
             @Param("region") String region,
             Pageable pageable);
 
     // 태그로 팝업 검색 (제목, 지역 조건 포함)
-    @Query("SELECT DISTINCT p FROM Popup p JOIN p.tags t " +
+    @Query("SELECT DISTINCT p FROM Popup p " +
+            "LEFT JOIN p.venue v " +
+            "JOIN p.tags t " +
             "WHERE t.name IN :tagNames " +
             "AND (:title IS NULL OR TRIM(:title) = '' OR LOWER(p.title) LIKE LOWER(CONCAT('%', :title, '%'))) " +
-            "AND (:region IS NULL OR TRIM(:region) = '' OR LOWER(p.region) = LOWER(:region))")
+            "AND (:region IS NULL OR TRIM(:region) = '' OR LOWER(v.region) = LOWER(:region))")
     Page<Popup> searchPopupsByTags(
             @Param("tagNames") List<String> tagNames,
             @Param("title") String title,
             @Param("region") String region,
             Pageable pageable);
+
+    // venue별 팝업 조회
+    @Query("SELECT p FROM Popup p WHERE p.venue.id = :venueId ORDER BY p.createdAt DESC")
+    Page<Popup> findByVenueId(@Param("venueId") Long venueId, Pageable pageable);
+
+    // 특정 지역의 팝업 조회
+    @Query("SELECT p FROM Popup p LEFT JOIN p.venue v WHERE v.region = :region ORDER BY p.createdAt DESC")
+    Page<Popup> findByRegion(@Param("region") String region, Pageable pageable);
+
+    // 주차 가능한 venue의 팝업 조회
+    @Query("SELECT p FROM Popup p LEFT JOIN p.venue v WHERE v.parkingAvailable = true ORDER BY p.createdAt DESC")
+    Page<Popup> findByParkingAvailable(Pageable pageable);
 }

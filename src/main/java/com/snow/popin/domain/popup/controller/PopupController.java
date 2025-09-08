@@ -34,7 +34,7 @@ public class PopupController {
         return ResponseEntity.ok(response);
     }
 
-    // 팜업스토어 상세 조회
+    // 팝업스토어 상세 조회
     @GetMapping("/{popupId}")
     public ResponseEntity<PopupDetailResponseDto> getPopupDetail(@PathVariable Long popupId) {
         PopupDetailResponseDto response = popupService.getPopupDetail(popupId);

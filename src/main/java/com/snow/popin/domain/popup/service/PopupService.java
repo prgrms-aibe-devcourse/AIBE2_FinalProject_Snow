@@ -95,6 +95,32 @@ public class PopupService {
         }
     }
 
+    // venue별 팝업 조회
+    public PopupListResponseDto getPopupsByVenue(Long venueId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Popup> popupPage = popupRepository.findByVenueId(venueId, pageable);
+
+        List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
+                .stream()
+                .map(this::convertToSummaryResponseDto)
+                .collect(Collectors.toList());
+
+        return buildPopupListResponse(popupPage, popupDtos);
+    }
+
+    // 지역별 팝업 조회
+    public PopupListResponseDto getPopupsByRegion(String region, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Popup> popupPage = popupRepository.findByRegion(region, pageable);
+
+        List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
+                .stream()
+                .map(this::convertToSummaryResponseDto)
+                .collect(Collectors.toList());
+
+        return buildPopupListResponse(popupPage, popupDtos);
+    }
+
     private PopupListResponseDto buildPopupListResponse(Page<Popup> popupPage, List<PopupSummaryResponseDto> popupDtos) {
         return PopupListResponseDto.builder()
                 .popups(popupDtos)
@@ -116,7 +142,7 @@ public class PopupService {
                 .id(popup.getId())
                 .title(popup.getTitle())
                 .summary(popup.getSummary())
-                .period(popup.getPeriod())
+                .period(popup.getPeriodText())
                 .status(popup.getStatus())
                 .mainImageUrl(popup.getMainImageUrl())
                 .isFeatured(popup.getIsFeatured())
@@ -128,6 +154,10 @@ public class PopupService {
                 .createdAt(popup.getCreatedAt())
                 .updatedAt(popup.getUpdatedAt())
                 .images(imageDtos)
+                .venueName(popup.getVenueName())
+                .venueAddress(popup.getVenueAddress())
+                .region(popup.getRegion())
+                .parkingAvailable(popup.getParkingAvailable())
                 .build();
     }
 
@@ -143,11 +173,11 @@ public class PopupService {
         return PopupDetailResponseDto.builder()
                 .id(popup.getId())
                 .brandId(popup.getBrandId())
-                .venueId(popup.getVenueId())
+                .venueId(popup.getVenue() != null ? popup.getVenue().getId() : null)
                 .title(popup.getTitle())
                 .summary(popup.getSummary())
                 .description(popup.getDescription())
-                .period(popup.getPeriod())
+                .period(popup.getPeriodText())
                 .status(popup.getStatus())
                 .mainImageUrl(popup.getMainImageUrl())
                 .isFeatured(popup.getIsFeatured())
@@ -162,6 +192,12 @@ public class PopupService {
                 .updatedAt(popup.getUpdatedAt())
                 .images(imageDtos)
                 .hours(hoursDtos)
+                .venueName(popup.getVenueName())
+                .venueAddress(popup.getVenueAddress())
+                .region(popup.getRegion())
+                .latitude(popup.getLatitude())
+                .longitude(popup.getLongitude())
+                .parkingAvailable(popup.getParkingAvailable())
                 .build();
     }
 
