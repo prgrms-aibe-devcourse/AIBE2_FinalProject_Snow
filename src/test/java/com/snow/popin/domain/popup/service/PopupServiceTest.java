@@ -1,4 +1,4 @@
-package com.snow.popin.popup.service;
+package com.snow.popin.domain.popup.service;
 
 import com.snow.popin.domain.popup.dto.request.PopupListRequestDto;
 import com.snow.popin.domain.popup.dto.request.PopupSearchRequestDto;
@@ -9,9 +9,8 @@ import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.entity.PopupStatus;
 import com.snow.popin.domain.popup.entity.Tag;
 import com.snow.popin.domain.popup.repository.PopupRepository;
-import com.snow.popin.domain.popup.service.PopupService;
+import com.snow.popin.domain.popup.testdata.PopupTestDataBuilder;
 import com.snow.popin.global.exception.PopupNotFoundException;
-import com.snow.popin.popup.testdata.PopupTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,6 +23,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -55,39 +55,54 @@ public class PopupServiceTest {
     private Tag cafeTag;
     private Tag artTag;
 
+    // Reflection을 사용한 필드 설정 헬퍼 메서드
+    private static void setField(Object target, String fieldName, Object value) {
+        try {
+            Field field = target.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(target, value);
+        } catch (Exception e) {
+            throw new RuntimeException("필드 설정 실패: " + fieldName, e);
+        }
+    }
+
     @BeforeEach
     void setUp() {
         samplePopup1 = PopupTestDataBuilder.createCompletePopup("무료 팝업", PopupStatus.ONGOING, 0);
-        samplePopup1.setId(1L);
+        setField(samplePopup1, "id", 1L);
 
         samplePopup2 = PopupTestDataBuilder.createCompletePopup("유료 팝업", PopupStatus.ONGOING, 10000);
-        samplePopup2.setId(2L);
+        setField(samplePopup2, "id", 2L);
 
         detailPopup = PopupTestDataBuilder.createCompletePopup("상세 팝업", PopupStatus.ONGOING, 5000);
-        detailPopup.setId(3L);
+        setField(detailPopup, "id", 3L);
 
         // 검색용 테스트 데이터 설정
-        cafeTag = new Tag();
-        cafeTag.setId(1L);
-        cafeTag.setName("카페");
+        cafeTag = PopupTestDataBuilder.createTag("카페");
+        setField(cafeTag, "id", 1L);
 
-        artTag = new Tag();
-        artTag.setId(2L);
-        artTag.setName("아트");
+        artTag = PopupTestDataBuilder.createTag("아트");
+        setField(artTag, "id", 2L);
 
         seoulCafePopup = PopupTestDataBuilder.createCompletePopup("서울 카페 팝업", PopupStatus.ONGOING, 3000);
-        seoulCafePopup.setId(4L);
-        seoulCafePopup.setRegion("서울");
+        setField(seoulCafePopup, "id", 4L);
+
+        // venue의 region 설정
+        setField(seoulCafePopup.getVenue(), "region", "서울");
+
         Set<Tag> cafeTagSet = new HashSet<>();
         cafeTagSet.add(cafeTag);
-        seoulCafePopup.setTags(cafeTagSet);
+        setField(seoulCafePopup, "tags", cafeTagSet);
 
         busanArtPopup = PopupTestDataBuilder.createCompletePopup("부산 아트 갤러리", PopupStatus.ONGOING, 10000);
-        busanArtPopup.setId(5L);
-        busanArtPopup.setRegion("부산");
+        setField(busanArtPopup, "id", 5L);
+
+        // venue의 region 설정
+        setField(busanArtPopup.getVenue(), "region", "부산");
+
         Set<Tag> artTagSet = new HashSet<>();
         artTagSet.add(artTag);
-        busanArtPopup.setTags(artTagSet);
+        setField(busanArtPopup, "tags", artTagSet);
     }
 
     @Test
@@ -98,7 +113,7 @@ public class PopupServiceTest {
         Page<Popup> popupPage = new PageImpl<>(popups, PageRequest.of(0, 20), 2);
 
         PopupListRequestDto request = new PopupListRequestDto();
-        request.setStatus(null); // 전체 조회
+        setField(request, "status", null); // 전체 조회
 
         given(popupRepository.findAllByOrderByCreatedAtDesc(any(Pageable.class)))
                 .willReturn(popupPage);
@@ -127,7 +142,7 @@ public class PopupServiceTest {
         Page<Popup> popupPage = new PageImpl<>(popups, PageRequest.of(0, 20), 1);
 
         PopupListRequestDto request = new PopupListRequestDto();
-        request.setStatus(PopupStatus.ONGOING);
+        setField(request, "status", PopupStatus.ONGOING);
 
         given(popupRepository.findByStatusOrderByCreatedAtDesc(eq(PopupStatus.ONGOING), any(Pageable.class)))
                 .willReturn(popupPage);
@@ -148,7 +163,7 @@ public class PopupServiceTest {
         Page<Popup> popupPage = new PageImpl<>(popups, PageRequest.of(0, 20), 1);
 
         PopupSearchRequestDto request = new PopupSearchRequestDto();
-        request.setTitle("카페");
+        setField(request, "title", "카페");
 
         given(popupRepository.searchPopups(eq("카페"), eq(null), any(Pageable.class)))
                 .willReturn(popupPage);
@@ -170,7 +185,7 @@ public class PopupServiceTest {
         Page<Popup> popupPage = new PageImpl<>(popups, PageRequest.of(0, 20), 1);
 
         PopupSearchRequestDto request = new PopupSearchRequestDto();
-        request.setRegion("서울");
+        setField(request, "region", "서울");
 
         given(popupRepository.searchPopups(eq(null), eq("서울"), any(Pageable.class)))
                 .willReturn(popupPage);
@@ -191,7 +206,7 @@ public class PopupServiceTest {
         Page<Popup> popupPage = new PageImpl<>(popups, PageRequest.of(0, 20), 1);
 
         PopupSearchRequestDto request = new PopupSearchRequestDto();
-        request.setTags(Arrays.asList("카페"));
+        setField(request, "tags", Arrays.asList("카페"));
 
         given(popupRepository.searchPopupsByTags(eq(Arrays.asList("카페")), eq(null), eq(null), any(Pageable.class)))
                 .willReturn(popupPage);
@@ -212,7 +227,7 @@ public class PopupServiceTest {
         Page<Popup> popupPage = new PageImpl<>(popups, PageRequest.of(0, 20), 2);
 
         PopupSearchRequestDto request = new PopupSearchRequestDto();
-        request.setTags(Arrays.asList("카페", "아트"));
+        setField(request, "tags", Arrays.asList("카페", "아트"));
 
         given(popupRepository.searchPopupsByTags(eq(Arrays.asList("카페", "아트")), eq(null), eq(null), any(Pageable.class)))
                 .willReturn(popupPage);
@@ -235,8 +250,8 @@ public class PopupServiceTest {
         Page<Popup> popupPage = new PageImpl<>(popups, PageRequest.of(0, 20), 1);
 
         PopupSearchRequestDto request = new PopupSearchRequestDto();
-        request.setTitle("카페");
-        request.setRegion("서울");
+        setField(request, "title", "카페");
+        setField(request, "region", "서울");
 
         given(popupRepository.searchPopups(eq("카페"), eq("서울"), any(Pageable.class)))
                 .willReturn(popupPage);
@@ -257,8 +272,8 @@ public class PopupServiceTest {
         Page<Popup> popupPage = new PageImpl<>(popups, PageRequest.of(0, 20), 1);
 
         PopupSearchRequestDto request = new PopupSearchRequestDto();
-        request.setTags(Arrays.asList("카페"));
-        request.setRegion("서울");
+        setField(request, "tags", Arrays.asList("카페"));
+        setField(request, "region", "서울");
 
         given(popupRepository.searchPopupsByTags(eq(Arrays.asList("카페")), isNull(), eq("서울"), any(Pageable.class)))
                 .willReturn(popupPage);
@@ -278,7 +293,7 @@ public class PopupServiceTest {
         Page<Popup> emptyPage = new PageImpl<>(Arrays.asList(), PageRequest.of(0, 20), 0);
 
         PopupSearchRequestDto request = new PopupSearchRequestDto();
-        request.setTitle("존재하지않는팝업");
+        setField(request, "title", "존재하지않는팝업");
 
         given(popupRepository.searchPopups(eq("존재하지않는팝업"), isNull(), any(Pageable.class)))
                 .willReturn(emptyPage);

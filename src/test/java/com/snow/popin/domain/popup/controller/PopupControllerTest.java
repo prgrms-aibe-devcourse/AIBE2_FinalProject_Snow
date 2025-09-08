@@ -1,11 +1,11 @@
-package com.snow.popin.popup.controller;
+package com.snow.popin.domain.popup.controller;
 
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.entity.PopupStatus;
 import com.snow.popin.domain.popup.entity.Tag;
 import com.snow.popin.domain.popup.repository.PopupRepository;
 import com.snow.popin.domain.popup.repository.TagRepository;
-import com.snow.popin.popup.testdata.PopupTestDataBuilder;
+import com.snow.popin.domain.popup.testdata.PopupTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -58,15 +58,12 @@ public class PopupControllerTest {
 
         // 기본 테스트 데이터 생성
         Popup popup1 = PopupTestDataBuilder.createCompletePopup("무료 팝업스토어", PopupStatus.ONGOING, 0);
-        popup1.setRegion("경기");
         savedPopupId1 = popupRepository.save(popup1).getId();
 
         Popup popup2 = PopupTestDataBuilder.createCompletePopup("유료 팝업스토어", PopupStatus.ONGOING, 8000);
-        popup2.setRegion("인천");
         savedPopupId2 = popupRepository.save(popup2).getId();
 
         Popup popup3 = PopupTestDataBuilder.createCompletePopup("계획된 팝업스토어", PopupStatus.PLANNED, 5000);
-        popup3.setRegion("부산");
         savedPopupId3 = popupRepository.save(popup3).getId();
 
         // 검색용 태그 생성

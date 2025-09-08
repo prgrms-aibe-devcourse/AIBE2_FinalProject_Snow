@@ -2,14 +2,12 @@ package com.snow.popin.domain.popup.entity;
 
 import com.snow.popin.global.common.BaseEntity;
 import lombok.Getter;
-import lombok.Setter;
 
 import javax.persistence.*;
 
 @Entity
 @Table(name = "popup_images")
 @Getter
-@Setter
 public class PopupImage extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

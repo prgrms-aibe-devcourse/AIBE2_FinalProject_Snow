@@ -1,10 +1,8 @@
 package com.snow.popin.domain.popup.dto.response;
 
 import lombok.Builder;
-import lombok.Data;
 import java.time.LocalTime;
 
-@Data
 @Builder
 public class PopupHoursResponseDto {
     private Long id;

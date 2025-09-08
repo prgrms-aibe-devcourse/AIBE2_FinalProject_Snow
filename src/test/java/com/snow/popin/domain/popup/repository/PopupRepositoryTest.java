@@ -1,11 +1,9 @@
-package com.snow.popin.popup.repository;
+package com.snow.popin.domain.popup.repository;
 
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.entity.PopupStatus;
 import com.snow.popin.domain.popup.entity.Tag;
-import com.snow.popin.domain.popup.repository.PopupRepository;
-import com.snow.popin.domain.popup.repository.TagRepository;
-import com.snow.popin.popup.testdata.PopupTestDataBuilder;
+import com.snow.popin.domain.popup.testdata.PopupTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,9 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
@@ -56,55 +52,74 @@ class PopupRepositoryTest {
         tagRepository.deleteAll();
 
         // 태그 생성
-        cafeTag = new Tag();
-        cafeTag.setName("카페");
+        cafeTag = PopupTestDataBuilder.createTag("카페");
         cafeTag = tagRepository.save(cafeTag);
 
-        artTag = new Tag();
-        artTag.setName("아트");
+        artTag = PopupTestDataBuilder.createTag("아트");
         artTag = tagRepository.save(artTag);
 
-        restaurantTag = new Tag();
-        restaurantTag.setName("레스토랑");
+        restaurantTag = PopupTestDataBuilder.createTag("레스토랑");
         restaurantTag = tagRepository.save(restaurantTag);
 
         // 기본 테스트 데이터 생성 및 저장
-        ongoingPopup1 = PopupTestDataBuilder.createCompletePopup("진행중 팝업1", PopupStatus.ONGOING, 0);
-        ongoingPopup1.setRegion("경기");
+        ongoingPopup1 = PopupTestDataBuilder.builder()
+                .title("진행중 팝업1")
+                .status(PopupStatus.ONGOING)
+                .entryFee(0)
+                .region("경기")
+                .build();
         popupRepository.save(ongoingPopup1);
 
-        ongoingPopup2 = PopupTestDataBuilder.createCompletePopup("진행중 팝업2", PopupStatus.ONGOING, 5000);
-        ongoingPopup2.setRegion("인천");
+        ongoingPopup2 = PopupTestDataBuilder.builder()
+                .title("진행중 팝업2")
+                .status(PopupStatus.ONGOING)
+                .entryFee(5000)
+                .region("인천")
+                .build();
         popupRepository.save(ongoingPopup2);
 
-        plannedPopup = PopupTestDataBuilder.createCompletePopup("계획된 팝업", PopupStatus.PLANNED, 3000);
-        plannedPopup.setRegion("대전");
+        plannedPopup = PopupTestDataBuilder.builder()
+                .title("계획된 팝업")
+                .status(PopupStatus.PLANNED)
+                .entryFee(3000)
+                .region("대전")
+                .build();
         popupRepository.save(plannedPopup);
 
-        endedPopup = PopupTestDataBuilder.createCompletePopup("종료된 팝업", PopupStatus.ENDED, 0);
-        endedPopup.setRegion("광주");
+        endedPopup = PopupTestDataBuilder.builder()
+                .title("종료된 팝업")
+                .status(PopupStatus.ENDED)
+                .entryFee(0)
+                .region("광주")
+                .build();
         popupRepository.save(endedPopup);
 
         // 검색용 테스트 데이터 생성
-        seoulCafePopup = PopupTestDataBuilder.createCompletePopup("서울 카페 팝업", PopupStatus.ONGOING, 3000);
-        seoulCafePopup.setRegion("서울");
-        Set<Tag> cafeTagSet = new HashSet<>();
-        cafeTagSet.add(cafeTag);
-        seoulCafePopup.setTags(cafeTagSet);
+        seoulCafePopup = PopupTestDataBuilder.builder()
+                .title("서울 카페 팝업")
+                .status(PopupStatus.ONGOING)
+                .entryFee(3000)
+                .region("서울")
+                .addTag(cafeTag)
+                .build();
         seoulCafePopup = popupRepository.save(seoulCafePopup);
 
-        busanArtPopup = PopupTestDataBuilder.createCompletePopup("부산 아트 갤러리", PopupStatus.ONGOING, 10000);
-        busanArtPopup.setRegion("부산");
-        Set<Tag> artTagSet = new HashSet<>();
-        artTagSet.add(artTag);
-        busanArtPopup.setTags(artTagSet);
+        busanArtPopup = PopupTestDataBuilder.builder()
+                .title("부산 아트 갤러리")
+                .status(PopupStatus.ONGOING)
+                .entryFee(10000)
+                .region("부산")
+                .addTag(artTag)
+                .build();
         busanArtPopup = popupRepository.save(busanArtPopup);
 
-        seoulRestaurantPopup = PopupTestDataBuilder.createCompletePopup("서울 레스토랑 팝업", PopupStatus.ONGOING, 15000);
-        seoulRestaurantPopup.setRegion("서울");
-        Set<Tag> restaurantTagSet = new HashSet<>();
-        restaurantTagSet.add(restaurantTag);
-        seoulRestaurantPopup.setTags(restaurantTagSet);
+        seoulRestaurantPopup = PopupTestDataBuilder.builder()
+                .title("서울 레스토랑 팝업")
+                .status(PopupStatus.ONGOING)
+                .entryFee(15000)
+                .region("서울")
+                .addTag(restaurantTag)
+                .build();
         seoulRestaurantPopup = popupRepository.save(seoulRestaurantPopup);
     }
 

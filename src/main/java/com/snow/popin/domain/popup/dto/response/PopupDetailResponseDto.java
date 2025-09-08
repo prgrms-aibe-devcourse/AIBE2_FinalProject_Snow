@@ -2,12 +2,12 @@ package com.snow.popin.domain.popup.dto.response;
 
 import com.snow.popin.domain.popup.entity.PopupStatus;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
+@Getter
 @Builder
 public class PopupDetailResponseDto {
     private Long id;
@@ -35,4 +35,11 @@ public class PopupDetailResponseDto {
 
     private List<PopupImageResponseDto> images;
     private List<PopupHoursResponseDto> hours;
+
+    private String venueName;
+    private String venueAddress;
+    private String region;
+    private Double latitude;
+    private Double longitude;
+    private Boolean parkingAvailable;
 }
