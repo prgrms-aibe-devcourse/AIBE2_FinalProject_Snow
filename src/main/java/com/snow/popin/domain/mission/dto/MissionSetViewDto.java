@@ -4,6 +4,7 @@ import com.snow.popin.domain.mission.entity.MissionSet;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,16 +25,21 @@ public class MissionSetViewDto {
     public static MissionSetViewDto from(MissionSet set, Long userId,
                                          List<MissionSummaryDto> missions,
                                          Long successCount, boolean cleared) {
+        List<MissionSummaryDto> safeMissions =
+                (missions == null) ? Collections.emptyList() : missions;
+        int totalMissions = safeMissions.size();
+
         return MissionSetViewDto.builder()
                 .missionSetId(set.getId())
                 .popupId(set.getPopupId())
                 .requiredCount(set.getRequiredCount())
-                .missions(missions)
-                .totalMissions(missions != null ? missions.size() : 0)
+                .missions(safeMissions)
+                .totalMissions(totalMissions)
                 .userId(userId)
                 .successCount(successCount)
                 .cleared(cleared)
                 .build();
     }
+
 
 }
