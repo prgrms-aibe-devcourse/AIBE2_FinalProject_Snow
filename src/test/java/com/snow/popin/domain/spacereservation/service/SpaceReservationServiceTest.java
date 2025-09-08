@@ -48,7 +48,6 @@ class SpaceReservationServiceTest {
     void setUp() {
         // HOST 사용자
         hostUser = User.builder()
-                .id(1L)
                 .email("host@test.com")
                 .name("HOST 사용자")
                 .role(Role.HOST)
@@ -56,7 +55,6 @@ class SpaceReservationServiceTest {
 
         // PROVIDER 사용자 (공간 소유자)
         providerUser = User.builder()
-                .id(2L)
                 .email("provider@test.com")
                 .name("PROVIDER 사용자")
                 .role(Role.USER)
@@ -120,7 +118,6 @@ class SpaceReservationServiceTest {
     void createReservation_Fail_NotHost() {
         // given
         User normalUser = User.builder()
-                .id(3L)
                 .email("user@test.com")
                 .role(Role.USER)
                 .build();
