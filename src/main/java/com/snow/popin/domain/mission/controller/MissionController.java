@@ -20,9 +20,9 @@ public class MissionController {
 
     @GetMapping("/{id}")
     public MissionDto get(@PathVariable UUID id) {
-        Mission m = missionRepository.findById(id)
+        Mission mission = missionRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("mission not found"));
-        return MissionDto.from(m);
+        return MissionDto.from(mission);
     }
 
     @GetMapping

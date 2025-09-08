@@ -56,21 +56,21 @@ public class UserMissionService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException.UserNotFound(userId));
 
-        UserMission um = userMissionRepository.findByUser_IdAndMission_Id(userId, missionId)
+        UserMission userMission = userMissionRepository.findByUser_IdAndMission_Id(userId, missionId)
                 .orElseGet(() -> userMissionRepository.save(new UserMission(user, mission)));
 
         boolean pass;
-        if (um.getStatus() == UserMissionStatus.COMPLETED) {
+        if (userMission.getStatus() == UserMissionStatus.COMPLETED) {
             pass = true; // 이미 완료된 경우 pass
         } else {
             pass = isCorrect(mission.getAnswer(), answer);
             if (pass) {
-                um.markCompleted();
+                userMission.markCompleted();
             } else {
-                um.markFail();
+                userMission.markFail();
                 throw new MissionException.InvalidAnswer();
             }
-            userMissionRepository.save(um);
+            userMissionRepository.save(userMission);
         }
 
         long successCnt = userMissionRepository
@@ -82,7 +82,7 @@ public class UserMissionService {
 
         return SubmitAnswerResponseDto.builder()
                 .pass(pass)
-                .status(um.getStatus())
+                .status(userMission.getStatus())
                 .missionSetId(mission.getMissionSet().getId())
                 .successCount(successCnt)
                 .requiredCount(mission.getMissionSet().getRequiredCount())

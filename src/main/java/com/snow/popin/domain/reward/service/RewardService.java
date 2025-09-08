@@ -43,9 +43,9 @@ public class RewardService {
         }
 
         // 미션 조건 확인
-        MissionSet set = missionSetRepository.findById(missionSetId)
+        MissionSet missionSet = missionSetRepository.findById(missionSetId)
                 .orElseThrow(MissionException.MissionSetNotFound::new);
-        int required = Optional.ofNullable(set.getRequiredCount()).orElse(0);
+        int required = Optional.ofNullable(missionSet.getRequiredCount()).orElse(0);
         long success = userMissionRepository.countByUser_IdAndMission_MissionSet_IdAndStatus(
                 userId, missionSetId, UserMissionStatus.COMPLETED);
         if (success < required) {
@@ -61,26 +61,26 @@ public class RewardService {
         opt.consumeOne(); // 재고 없으면 RewardException.OutOfStock 발생
 
         // 지급 레코드 생성
-        UserReward rw = UserReward.builder()
+        UserReward userReward = UserReward.builder()
                 .userId(userId)
                 .missionSetId(missionSetId)
                 .option(opt)
                 .status(UserRewardStatus.ISSUED)
                 .build();
 
-        return rewardRepository.save(rw);
+        return rewardRepository.save(userReward);
     }
 
     @Transactional
     public UserReward redeem(UUID missionSetId, Long userId, String staffPinPlain) {
-        UserReward rw = rewardRepository.findByUserIdAndMissionSetIdAndStatus(
+        UserReward userReward = rewardRepository.findByUserIdAndMissionSetIdAndStatus(
                 userId, missionSetId, UserRewardStatus.ISSUED
         ).orElseThrow(RewardException.NotIssued::new);
 
-        MissionSet set = missionSetRepository.findById(missionSetId)
+        MissionSet missionSet = missionSetRepository.findById(missionSetId)
                 .orElseThrow(MissionException.MissionSetNotFound::new);
 
-        String stored = set.getRewardPin(); // 평문 저장 사용
+        String stored = missionSet.getRewardPin(); // 평문 저장 사용
         if (stored == null || stored.isBlank()) {
             throw new RewardException.NoStaffPin();
         }
@@ -89,9 +89,9 @@ public class RewardService {
             throw new RewardException.InvalidStaffPin();
         }
 
-        rw.markRedeemed(); // 내부에서 status=REDEEMED, redeemedAt=now()
+        userReward.markRedeemed(); // 내부에서 status=REDEEMED, redeemedAt=now()
 
-        return rw;
+        return userReward;
     }
 
     @Transactional(readOnly = true)

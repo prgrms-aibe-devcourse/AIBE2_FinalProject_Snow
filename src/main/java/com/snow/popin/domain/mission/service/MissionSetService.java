@@ -52,21 +52,22 @@ public class MissionSetService {
         Map<UUID, UserMissionStatus> statusByMission = new HashMap<>();
 
         if (userId != null) {
-            List<UserMission> ums = userMissionRepository
+            List<UserMission> userMissions = userMissionRepository
                     .findByUser_IdAndMission_MissionSet_Id(userId, set.getId());
 
-            if (ums == null) {
+            if (userMissions == null) {
                 throw new MissionException.MissionNotFound();
             }
 
-            for (UserMission um : ums) {
-                if (um.getMission() != null) {
-                    statusByMission.put(um.getMission().getId(), um.getStatus());
+            for (UserMission userMission : userMissions) {
+                if (userMission.getMission() != null) {
+                    statusByMission.put(userMission.getMission().getId(), userMission.getStatus());
                 }
-                if (um.getStatus() == UserMissionStatus.COMPLETED) {
+                if (userMission.getStatus() == UserMissionStatus.COMPLETED) {
                     successCnt++;
                 }
             }
+
 
             // userStatus 반영
             missions = missions.stream()
