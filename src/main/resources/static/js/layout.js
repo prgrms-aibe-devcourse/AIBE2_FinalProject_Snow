@@ -120,6 +120,98 @@ async function goToProfile() {
     }
 }
 
+// === 사용자 정보 가져오기 ===
+function getUserInfo() {
+    try {
+        const storage = localStorage.getItem('userId') ? localStorage : sessionStorage;
+
+        return {
+            userId: storage.getItem('userId'),
+            email: storage.getItem('userEmail'),
+            name: storage.getItem('userName'),
+            role: storage.getItem('userRole'),
+            loginTime: storage.getItem('loginTime')
+        };
+    } catch (error) {
+        console.warn('사용자 정보 조회 실패:', error);
+        return {};
+    }
+}
+
+// === 로그아웃 관련 ===
+async function performLogout() {
+    try {
+        showAlert('로그아웃 중...', 'info');
+
+        // LogoutController 사용
+        const success = await logoutController.performLogout({
+            showConfirm: false,  // 이미 확인했으므로
+            redirectUrl: '/auth/login?logout=true'
+        });
+
+        if (!success) {
+            throw new Error('로그아웃 처리 실패');
+        }
+
+    } catch (error) {
+        console.error('로그아웃 실패:', error);
+        showAlert('로그아웃 중 오류가 발생했습니다.', 'error');
+
+        // 오류가 발생해도 강제로 로그인 페이지로 이동
+        setTimeout(() => {
+            window.location.href = '/auth/login';
+        }, 2000);
+    }
+}
+
+// === 인증 체크 ===
+function checkAuthOnPageLoad() {
+    // 현재 페이지가 로그인 페이지가 아닌 경우에만 체크
+    if (!window.location.pathname.includes('/auth/')) {
+        const token = apiService.getStoredToken();
+        if (!token || isTokenExpired(token)) {
+            console.log('인증되지 않은 사용자, 로그인 페이지로 리다이렉트');
+            window.location.href = '/auth/login';
+            return false;
+        }
+    }
+    return true;
+}
+
+// === 토큰 만료 체크 ===
+function isTokenExpired(token) {
+    if (!token) return true;
+
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return Date.now() >= payload.exp * 1000;
+    } catch (error) {
+        return true;
+    }
+}
+
+// === 자동 로그아웃 설정 ===
+function setupAutoLogout() {
+    // 5분마다 토큰 체크
+    setInterval(() => {
+        const token = apiService.getStoredToken();
+        if (token && isTokenExpired(token) && !window.location.pathname.includes('/auth/')) {
+            showAlert('세션이 만료되었습니다. 로그인 페이지로 이동합니다.', 'warning');
+
+            // LogoutController를 통한 자동 로그아웃
+            logoutController.autoLogout('세션이 만료되었습니다.', '/auth/login?expired=true');
+        }
+    }, 5 * 60 * 1000);
+
+    // 페이지 포커스 시 토큰 체크
+    window.addEventListener('focus', () => {
+        const token = apiService.getStoredToken();
+        if (token && isTokenExpired(token) && !window.location.pathname.includes('/auth/')) {
+            logoutController.autoLogout('세션이 만료되었습니다.', '/auth/login?expired=true');
+        }
+    });
+}
+
 // 알림 메시지 표시
 function showAlert(message, type = 'info') {
     const alertDiv = document.createElement('div');
@@ -137,6 +229,7 @@ function showAlert(message, type = 'info') {
         }, 3000);
     }
 }
+
 // 역할에 따른 푸터 생성 함수
 function createFooterByRole() {
     const userRole = getUserRole();
@@ -193,6 +286,14 @@ function createFooterByRole() {
 
 // 사용자 역할 가져오기 함수 (테스트용으로 쓰고 나중엔 실제로 가져오게)
 function getUserRole() {
-
     return 'PROVIDER'; // ROLE을 입력
 }
+
+// === 초기화 ===
+document.addEventListener('DOMContentLoaded', () => {
+    // 인증 체크
+    if (checkAuthOnPageLoad()) {
+        // 자동 로그아웃 설정
+        setupAutoLogout();
+    }
+});

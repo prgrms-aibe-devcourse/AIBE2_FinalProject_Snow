@@ -1,6 +1,8 @@
 package com.snow.popin.global.error;
 
+
 import com.snow.popin.global.constant.ErrorCode;
+
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

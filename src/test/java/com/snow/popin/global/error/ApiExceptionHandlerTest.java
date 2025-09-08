@@ -52,8 +52,11 @@ class ApiExceptionHandlerTest {
         ResponseEntity<Object> response = sut.validation(e, webRequest);
 
         // Then
+        assertThat((ApiErrorResponse) response.getBody())
+                .usingRecursiveComparison()
+                .ignoringFields("timestamp")
+                .isEqualTo(ApiErrorResponse.of(ErrorCode.VALIDATION_ERROR, e));
         assertThat(response)
-                .hasFieldOrPropertyWithValue("body", ApiErrorResponse.of(ErrorCode.VALIDATION_ERROR, e))
                 .hasFieldOrPropertyWithValue("headers", HttpHeaders.EMPTY)
                 .hasFieldOrPropertyWithValue("statusCode", HttpStatus.BAD_REQUEST);
     }
@@ -70,8 +73,11 @@ class ApiExceptionHandlerTest {
         ResponseEntity<Object> response = sut.general(e, webRequest);
 
         // Then
+        assertThat((ApiErrorResponse) response.getBody())
+                .usingRecursiveComparison()
+                .ignoringFields("timestamp")
+                .isEqualTo(ApiErrorResponse.of(errorCode, e));
         assertThat(response)
-                .hasFieldOrPropertyWithValue("body", ApiErrorResponse.of(errorCode, e))
                 .hasFieldOrPropertyWithValue("headers", HttpHeaders.EMPTY)
                 .hasFieldOrPropertyWithValue("statusCode", HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -89,8 +95,11 @@ class ApiExceptionHandlerTest {
                 sut.handleExceptionInternal(e, null, headers, httpStatus, webRequest);
 
         // Then
+        assertThat((ApiErrorResponse) response.getBody())
+                .usingRecursiveComparison()
+                .ignoringFields("timestamp")
+                .isEqualTo(ApiErrorResponse.of(errorCode, e));
         assertThat(response)
-                .hasFieldOrPropertyWithValue("body", ApiErrorResponse.of(errorCode, e))
                 .hasFieldOrPropertyWithValue("headers", headers)
                 .hasFieldOrPropertyWithValue("statusCode", httpStatus)
                 .extracting(ResponseEntity::getBody)
@@ -125,8 +134,11 @@ class ApiExceptionHandlerTest {
         ResponseEntity<Object> response = sut.exception(e, webRequest);
 
         // Then
+        assertThat((ApiErrorResponse) response.getBody())
+                .usingRecursiveComparison()
+                .ignoringFields("timestamp")
+                .isEqualTo(ApiErrorResponse.of(ErrorCode.INTERNAL_ERROR, e));
         assertThat(response)
-                .hasFieldOrPropertyWithValue("body", ApiErrorResponse.of(ErrorCode.INTERNAL_ERROR, e))
                 .hasFieldOrPropertyWithValue("headers", HttpHeaders.EMPTY)
                 .hasFieldOrPropertyWithValue("statusCode", HttpStatus.INTERNAL_SERVER_ERROR);
     }

@@ -10,6 +10,7 @@ import com.snow.popin.domain.reward.repository.RewardOptionRepository;
 import com.snow.popin.domain.user.UserRepository;
 import com.snow.popin.domain.user.constant.Role;
 import com.snow.popin.domain.user.entity.User;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -17,7 +18,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -32,7 +34,7 @@ public class DataInitializer implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public void run(String... args) {
+    public void run(String... args) throws Exception {
         createDummyUsers();
         createDummyMissions();
     }
@@ -106,9 +108,7 @@ public class DataInitializer implements CommandLineRunner {
         );
         rewardOptionRepository.saveAll(options);
 
-
         log.info("생성된 MissionSet ID: {}", missionSet.getId());
         log.info("미션/리워드 더미 데이터 생성 완료");
     }
-
 }

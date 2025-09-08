@@ -1,10 +1,10 @@
 /**
  * 로그인 페이지 메인 컨트롤러
- * API, UI, Validator를 조합하여 로그인 플로우를 관리
+ * LoginApi, UI, Validator를 조합하여 로그인 플로우를 관리
  */
 class LoginController {
     constructor() {
-        this.apiService = new LoginApiService();
+        this.loginApi = new LoginApi();
         this.ui = new LoginUI();
 
         this.init();
@@ -30,13 +30,19 @@ class LoginController {
         }
 
         if (urlParams.get('logout')) {
-            // 클라이언트 저장 토큰 제거
-            try { this.apiService.removeToken(); } catch (e) { console.warn('토큰 제거 실패', e); }
             this.ui.showAlert('로그아웃되었습니다.', 'success');
         }
 
+        if (urlParams.get('expired')) {
+            this.ui.showAlert('세션이 만료되었습니다. 다시 로그인해주세요.', 'error');
+        }
+
+        if (urlParams.get('message')) {
+            this.ui.showAlert(decodeURIComponent(urlParams.get('message')), 'info');
+        }
+
         // URL 파라미터 정리
-        if (urlParams.has('error') || urlParams.has('logout')) {
+        if (urlParams.toString()) {
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     }
@@ -45,16 +51,16 @@ class LoginController {
      * 기존 토큰 확인 및 자동 리다이렉트
      */
     async checkExistingToken() {
-        const token = this.apiService.getStoredToken();
+        const token = this.loginApi.getStoredToken();
 
-        if (token && !this.apiService.isTokenExpired()) {
+        if (token && !this.loginApi.isTokenExpired()) {
             const shouldRedirect = confirm('이미 로그인되어 있습니다. 메인 페이지로 이동하시겠습니까?');
             if (shouldRedirect) {
                 window.location.href = '/';
             }
         } else if (token) {
             // 만료된 토큰 제거
-            this.apiService.removeToken();
+            this.loginApi.removeToken();
             this.ui.showAlert('로그인이 만료되었습니다. 다시 로그인해주세요.', 'error');
         }
     }
@@ -87,11 +93,11 @@ class LoginController {
         this.ui.toggleLoading(true);
 
         try {
-            const response = await this.apiService.login(email, password);
+            const response = await this.loginApi.login(email, password);
 
             if (response.accessToken) {
                 // 토큰 저장
-                this.apiService.storeToken(response.accessToken, response);
+                this.loginApi.storeToken(response.accessToken, response);
 
                 // 성공 메시지 표시
                 this.ui.showAlert('로그인 성공! 메인 페이지로 이동합니다.', 'success');

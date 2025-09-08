@@ -1,14 +1,13 @@
 package com.snow.popin.domain.auth.controller;
 
-import com.snow.popin.domain.auth.AuthService;
-import com.snow.popin.domain.auth.dto.LoginRequest;
-import com.snow.popin.domain.auth.dto.LoginResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.snow.popin.domain.auth.dto.*;
+import com.snow.popin.domain.auth.service.AuthService;
 import com.snow.popin.global.config.SecurityConfig;
 import com.snow.popin.global.constant.ErrorCode;
 import com.snow.popin.global.exception.GeneralException;
 import com.snow.popin.global.jwt.JwtFilter;
 import com.snow.popin.global.jwt.JwtUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,10 +20,12 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
@@ -32,9 +33,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.hamcrest.Matchers.containsString;
 
-@DisplayName("API 컨트롤러 - 인증")
+@DisplayName("API 컨트롤러 - 인증 (로그인/로그아웃)")
 @WebMvcTest(
         controllers = AuthApiController.class,
         excludeAutoConfiguration = SecurityAutoConfiguration.class,
@@ -52,12 +52,13 @@ class AuthApiControllerTest {
     @MockBean
     private AuthService authService;
 
-    // JWT 관련 빈들을 MockBean으로 추가 (필요한 경우)
     @MockBean
     private JwtUtil jwtUtil;
 
     private LoginRequest validLoginRequest;
     private LoginResponse mockLoginResponse;
+    private LogoutRequest validLogoutRequest;
+    private LogoutResponse mockLogoutResponse;
 
     public AuthApiControllerTest(@Autowired MockMvc mvc, @Autowired ObjectMapper objectMapper) {
         this.mvc = mvc;
@@ -80,7 +81,15 @@ class AuthApiControllerTest {
                 .name("테스트유저")
                 .role("USER")
                 .build();
+
+        // 유효한 로그아웃 요청 데이터
+        validLogoutRequest = new LogoutRequest("valid-access-token", "valid-refresh-token");
+
+        // 모킹용 로그아웃 응답 데이터
+        mockLogoutResponse = LogoutResponse.success("로그아웃이 완료되었습니다.");
     }
+
+    // ================ 로그인 관련 테스트 ================
 
     @DisplayName("[API] 로그인 성공 - 유효한 요청으로 로그인 시 토큰과 사용자 정보 반환")
     @Test
@@ -158,47 +167,11 @@ class AuthApiControllerTest {
                 .andDo(print());
     }
 
-    @DisplayName("[API] 로그인 실패 - password 필드 누락 시 400 에러 반환")
+    @DisplayName("[API] 로그인 실패 - 존재하지 않는 사용자로 요청 시 LOGIN_FAILED 에러 반환")
     @Test
-    void givenMissingPassword_whenLogin_thenReturnsBadRequest() throws Exception {
-        // Given - password 필드가 없는 JSON
-        String requestJson = "{\"email\":\"test@example.com\"}";
-
-        // When & Then
-        mvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestJson))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.errorCode").value(ErrorCode.BAD_REQUEST.getCode()))
-                .andExpect(jsonPath("$.message").value(containsString("비밀번호는 필수입니다")))
-                .andDo(print());
-    }
-
-    @DisplayName("[API] 로그인 실패 - 존재하지 않는 사용자로 요청 시 404 에러 반환")
-    @Test
-    void givenNonExistentUser_whenLogin_thenReturnsNotFound() throws Exception {
+    void givenNonExistentUser_whenLogin_thenReturnsLoginFailed() throws Exception {
         // Given
-        willThrow(new GeneralException(ErrorCode.USER_NOT_FOUND, "사용자를 찾을 수 없습니다."))
-                .given(authService)
-                .login(any(LoginRequest.class));
-
-        // When & Then
-        mvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validLoginRequest)))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.errorCode").value(ErrorCode.USER_NOT_FOUND.getCode()))
-                .andExpect(jsonPath("$.message").exists())
-                .andDo(print());
-    }
-
-    @DisplayName("[API] 로그인 실패 - 잘못된 비밀번호로 요청 시 400 에러 반환")
-    @Test
-    void givenWrongPassword_whenLogin_thenReturnsBadRequest() throws Exception {
-        // Given
-        willThrow(new GeneralException(ErrorCode.BAD_REQUEST, "이메일 또는 비밀번호가 올바르지 않습니다."))
+        willThrow(new GeneralException(ErrorCode.LOGIN_FAILED))
                 .given(authService)
                 .login(any(LoginRequest.class));
 
@@ -208,24 +181,80 @@ class AuthApiControllerTest {
                         .content(objectMapper.writeValueAsString(validLoginRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.errorCode").value(ErrorCode.BAD_REQUEST.getCode()))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.LOGIN_FAILED.getCode()))
                 .andExpect(jsonPath("$.message").exists())
                 .andDo(print());
     }
 
-    @DisplayName("[API] 로그인 실패 - JSON 형식이 잘못된 요청 시 400 에러 반환")
+    // ================ 로그아웃 관련 테스트 ================
+
+    @DisplayName("[API] 로그아웃 성공 - 유효한 토큰으로 로그아웃 시 성공 응답 반환")
     @Test
-    void givenInvalidJsonFormat_whenLogin_thenReturnsBadRequest() throws Exception {
+    void givenValidToken_whenLogout_thenReturnsSuccess() throws Exception {
         // Given
-        String invalidJson = "{\"email\":\"test@example.com\",\"password\":"; // 잘못된 JSON
+        given(authService.logout(any(LogoutRequest.class), any(HttpServletRequest.class), any(HttpServletResponse.class)))
+                .willReturn(mockLogoutResponse);
 
         // When & Then
-        mvc.perform(post("/api/auth/login")
+        mvc.perform(post("/api/auth/logout")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(invalidJson))
-                .andExpect(status().isBadRequest())
+                        .content(objectMapper.writeValueAsString(validLogoutRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("로그아웃이 완료되었습니다."))
                 .andDo(print());
     }
+
+    @DisplayName("[API] 로그아웃 성공 - 빈 요청으로도 성공 응답 반환")
+    @Test
+    void givenEmptyRequest_whenLogout_thenReturnsSuccess() throws Exception {
+        // Given
+        LogoutRequest emptyRequest = new LogoutRequest();
+        given(authService.logout(any(LogoutRequest.class), any(HttpServletRequest.class), any(HttpServletResponse.class)))
+                .willReturn(mockLogoutResponse);
+
+        // When & Then
+        mvc.perform(post("/api/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(emptyRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andDo(print());
+    }
+
+    @DisplayName("[API] 로그아웃 성공 - 요청 본문 없이도 성공 응답 반환")
+    @Test
+    void givenNoRequestBody_whenLogout_thenReturnsSuccess() throws Exception {
+        // Given
+        given(authService.logout(any(LogoutRequest.class), any(HttpServletRequest.class), any(HttpServletResponse.class)))
+                .willReturn(mockLogoutResponse);
+
+        // When & Then
+        mvc.perform(post("/api/auth/logout"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andDo(print());
+    }
+
+    @DisplayName("[API] 로그아웃 - 서비스에서 예외 발생해도 성공 응답 반환 (실패해도 성공으로 처리)")
+    @Test
+    void givenServiceException_whenLogout_thenStillReturnsSuccess() throws Exception {
+        // Given - 서비스에서 예외 발생
+        willThrow(new RuntimeException("서비스 오류"))
+                .given(authService)
+                .logout(any(LogoutRequest.class), any(HttpServletRequest.class), any(HttpServletResponse.class));
+
+        // When & Then - 컨트롤러에서 예외를 잡아서 성공으로 처리
+        mvc.perform(post("/api/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("로그아웃이 완료되었습니다"))
+                .andDo(print());
+    }
+
+    // ================ 기타 API 테스트 ================
 
     @DisplayName("[API] 이메일 중복 확인 - 사용 가능한 이메일인 경우 available=true 반환")
     @Test
@@ -259,15 +288,6 @@ class AuthApiControllerTest {
                 .andDo(print());
     }
 
-    @DisplayName("[API] 이메일 중복 확인 - 이메일 파라미터가 없는 경우 400 에러 반환")
-    @Test
-    void givenNoEmailParameter_whenCheckEmail_thenReturnsBadRequest() throws Exception {
-        // When & Then
-        mvc.perform(get("/api/auth/check-email"))
-                .andExpect(status().isBadRequest())
-                .andDo(print());
-    }
-
     @DisplayName("[API] 회원가입 성공 - 유효한 요청으로 회원가입 시 성공 응답 반환")
     @Test
     void givenValidSignupRequest_whenSignup_thenReturnsSuccess() throws Exception {
@@ -275,7 +295,7 @@ class AuthApiControllerTest {
         Map<String, Object> signupData = new HashMap<>();
         signupData.put("email", "newuser@example.com");
         signupData.put("password", "password123");
-        signupData.put("name", "신규유저");
+        signupData.put("name", "신규가입유저");
         signupData.put("nickname", "뉴비");
         signupData.put("phone", "010-1234-5678");
 

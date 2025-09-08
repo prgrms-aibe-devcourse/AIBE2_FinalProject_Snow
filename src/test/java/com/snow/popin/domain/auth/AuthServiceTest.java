@@ -3,24 +3,28 @@ package com.snow.popin.domain.auth;
 import com.snow.popin.domain.auth.constant.AuthProvider;
 import com.snow.popin.domain.auth.dto.LoginRequest;
 import com.snow.popin.domain.auth.dto.LoginResponse;
-import com.snow.popin.domain.user.*;
+import com.snow.popin.domain.auth.service.AuthService;
 import com.snow.popin.domain.user.UserRepository;
 import com.snow.popin.domain.user.constant.Role;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.global.constant.ErrorCode;
 import com.snow.popin.global.exception.GeneralException;
 import com.snow.popin.global.jwt.JwtUtil;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.*;
+import static org.mockito.BDDMockito.given;
 
 @DisplayName("AuthService 로그인 단위 테스트")
 @ExtendWith(MockitoExtension.class)
@@ -43,7 +47,6 @@ class AuthServiceTest {
     @BeforeEach
     void setUp() {
         mockUser = User.builder()
-                .id(1L)
                 .email("test@example.com")
                 .password("encodedPw")
                 .name("테스트유저")

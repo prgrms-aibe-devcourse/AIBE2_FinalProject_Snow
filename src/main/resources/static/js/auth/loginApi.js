@@ -2,7 +2,7 @@
  * 로그인 API 서비스
  * 로그인 관련 HTTP 통신과 토큰 관리를 담당
  */
-class LoginApiService {
+class LoginApi {
     constructor() {
         this.baseURL = '/api';
         this.maxRetries = 3;
@@ -78,14 +78,17 @@ class LoginApiService {
     }
 
     /**
-     * 토큰과 사용자 정보 저장
+     * 토큰과 사용자 정보 저장 (api.js 활용)
      * @param {string} token 액세스 토큰
      * @param {Object} userInfo 사용자 정보
      */
     storeToken(token, userInfo) {
+        // api.js의 토큰 저장 메서드 사용
+        apiService.storeToken(token);
+
+        // 사용자 정보 저장
         const storage = this.getStorage();
         const data = {
-            accessToken: token,
             userName: userInfo.name,
             userEmail: userInfo.email,
             userId: String(userInfo.userId),
@@ -99,18 +102,22 @@ class LoginApiService {
     }
 
     /**
-     * 저장된 토큰 반환
+     * 저장된 토큰 반환 (api.js 활용)
      * @returns {string|null} 액세스 토큰
      */
     getStoredToken() {
-        return this.getStorage().getItem('accessToken');
+        return apiService.getStoredToken();
     }
 
     /**
-     * 토큰 및 사용자 정보 제거
+     * 토큰 및 사용자 정보 제거 (api.js 활용)
      */
     removeToken() {
-        const keys = ['accessToken', 'userName', 'userEmail', 'userId', 'userRole', 'loginTime'];
+        // api.js의 토큰 제거 메서드 사용
+        apiService.removeToken();
+
+        // 사용자 정보도 제거
+        const keys = ['userName', 'userEmail', 'userId', 'userRole', 'loginTime'];
         keys.forEach(key => {
             try {
                 localStorage.removeItem(key);
@@ -137,14 +144,16 @@ class LoginApiService {
     }
 
     /**
-     * 토큰 만료 여부 확인 (24시간 기준)
+     * 토큰 만료 여부 확인 (JWT 디코딩)
      * @returns {boolean} 만료 여부
      */
     isTokenExpired() {
         const token = this.getStoredToken();
         if (!token) return true;
+
         const expSec = this.getJwtExp(token);
         if (!expSec) return true;
+
         // exp is seconds since epoch
         return Date.now() >= expSec * 1000;
     }
