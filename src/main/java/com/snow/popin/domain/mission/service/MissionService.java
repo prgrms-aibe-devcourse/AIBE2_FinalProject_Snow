@@ -5,12 +5,14 @@ import com.snow.popin.domain.mission.repository.MissionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class MissionService {
+
     private final MissionRepository missionRepository;
 
     public Mission create(Mission mission) {
@@ -19,5 +21,13 @@ public class MissionService {
 
     public Optional<Mission> findById(UUID id) {
         return missionRepository.findById(id);
+    }
+
+    public List<Mission> findAll() {
+        return missionRepository.findAll();
+    }
+
+    public List<Mission> findByMissionSetId(UUID missionSetId) {
+        return missionRepository.findByMissionSet_Id(missionSetId);
     }
 }

@@ -48,13 +48,13 @@ public class RewardController {
     public ResponseEntity<ClaimResponseDto> claim(@RequestBody @Valid ClaimRequestDto req,
                                                   Principal principal) {
         Long userId = resolveUserId(principal);
-        UserReward rw = rewardService.claim(req.getMissionSetId(), req.getOptionId(), userId);
+        UserReward userReward = rewardService.claim(req.getMissionSetId(), req.getOptionId(), userId);
         return ResponseEntity.ok(
                 ClaimResponseDto.builder()
                         .ok(true)
-                        .rewardId(rw.getId())
-                        .status(rw.getStatus().name())
-                        .optionId(rw.getOption().getId())
+                        .rewardId(userReward.getId())
+                        .status(userReward.getStatus().name())
+                        .optionId(userReward.getOption().getId())
                         .build()
         );
     }
@@ -64,12 +64,12 @@ public class RewardController {
     public ResponseEntity<RedeemResponseDto> redeem(@RequestBody @Valid RedeemRequestDto req,
                                                     Principal principal) {
         Long userId = resolveUserId(principal);
-        UserReward rw = rewardService.redeem(req.getMissionSetId(), userId, req.getStaffPin());
+        UserReward userReward = rewardService.redeem(req.getMissionSetId(), userId, req.getStaffPin());
         return ResponseEntity.ok(
                 RedeemResponseDto.builder()
                         .ok(true)
-                        .status(rw.getStatus().name())
-                        .redeemedAt(rw.getRedeemedAt())
+                        .status(userReward.getStatus().name())
+                        .redeemedAt(userReward.getRedeemedAt())
                         .build()
         );
     }
@@ -80,12 +80,12 @@ public class RewardController {
                                                           Principal principal) {
         Long userId = resolveUserId(principal);
         return rewardService.findUserReward(userId, missionSetId)
-                .map(rw -> ResponseEntity.ok(
+                .map(userReward -> ResponseEntity.ok(
                         UserRewardResponseDto.builder()
                                 .ok(true)
-                                .status(rw.getStatus().name())
-                                .optionId(rw.getOption().getId())
-                                .optionName(rw.getOption().getName())
+                                .status(userReward.getStatus().name())
+                                .optionId(userReward.getOption().getId())
+                                .optionName(userReward.getOption().getName())
                                 .build()
                 ))
                 .orElse(ResponseEntity.ok(UserRewardResponseDto.builder().ok(false).build()));
