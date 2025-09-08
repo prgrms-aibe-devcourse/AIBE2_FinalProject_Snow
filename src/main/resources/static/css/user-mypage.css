@@ -1,0 +1,62 @@
+.mypage-card {
+    width: min(92vw, 420px);
+    max-width: 420px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 0 auto; /* 가운데 정렬 */
+    box-shadow: 0 1px 3px rgba(0,0,0,.25);
+    position: relative;
+}
+
+.mypage-title {
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+    font-weight: bold;
+}
+
+.mypage-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+}
+
+.info-text {
+    display: flex;
+    flex-direction: column; /* 라벨 위, 값 아래 */
+    gap: 4px;
+}
+
+.info-label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #333;
+}
+
+.info-value {
+    font-size: 0.95rem;
+    color: #555;
+}
+
+.edit-btn {
+    background: #d6d9ff;
+    color: #333;
+    border: none;
+    border-radius: 8px;
+    padding: 4px 12px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    height: fit-content; /* 텍스트 높이에 맞게 */
+    transition: background 0.2s;
+}
+
+.edit-btn:hover {
+    background: #b7bcff;
+}

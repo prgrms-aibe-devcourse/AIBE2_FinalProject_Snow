@@ -7,7 +7,7 @@ import com.snow.popin.domain.spacereservation.dto.SpaceReservationResponseDto;
 import com.snow.popin.domain.spacereservation.entity.SpaceReservation;
 import com.snow.popin.domain.spacereservation.repository.SpaceReservationRepository;
 import com.snow.popin.domain.user.entity.User;
-import com.snow.popin.domain.user.UserRepository;
+import com.snow.popin.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

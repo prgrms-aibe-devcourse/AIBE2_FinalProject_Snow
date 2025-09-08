@@ -6,7 +6,7 @@ import com.snow.popin.domain.mission.entity.UserMission;
 import com.snow.popin.domain.mission.entity.UserMissionStatus;
 import com.snow.popin.domain.mission.repository.MissionRepository;
 import com.snow.popin.domain.mission.repository.UserMissionRepository;
-import com.snow.popin.domain.user.UserRepository;
+import com.snow.popin.domain.user.repository.UserRepository;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.global.exception.MissionException;
 import com.snow.popin.global.exception.UserException;

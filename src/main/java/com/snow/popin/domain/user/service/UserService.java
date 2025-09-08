@@ -1,6 +1,8 @@
-package com.snow.popin.domain.user;
+package com.snow.popin.domain.user.service;
 
+import com.snow.popin.domain.user.dto.UserResponseDto;
 import com.snow.popin.domain.user.entity.User;
+import com.snow.popin.domain.user.repository.UserRepository;
 import com.snow.popin.global.constant.ErrorCode;
 import com.snow.popin.global.exception.GeneralException;
 import lombok.*;
@@ -48,6 +50,12 @@ public class UserService {
         String encodedPassword = passwordEncoder.encode(newPassword);
         user.changePassword(encodedPassword);
 
+    }
+
+    //마이페이지
+    public UserResponseDto getUserProfile(String email) {
+        User user = findByEmail(email);
+        return new UserResponseDto(user);
     }
 
 
