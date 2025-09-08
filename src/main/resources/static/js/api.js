@@ -159,6 +159,7 @@ class SimpleApiService {
         }
     }
 
+
     // 로그인
     async login(username, password) {
         const result = await this.post('/auth/login', { username, password });
@@ -177,7 +178,6 @@ class SimpleApiService {
         }
     }
 
-    // 현재 사용자 정보
     async getCurrentUser() {
         return await this.get('/users/me');
     }

@@ -1,15 +1,15 @@
 package com.snow.popin.domain.auth.controller;
 
 import com.snow.popin.domain.auth.AuthService;
-import com.snow.popin.domain.auth.dto.LoginRequest;
-import com.snow.popin.domain.auth.dto.LoginResponse;
-import com.snow.popin.domain.auth.dto.SignupRequest;
+import com.snow.popin.domain.auth.dto.*;
 import com.snow.popin.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,17 +51,30 @@ public class AuthApiController {
         }
 
     }
-/*
+
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(
-            @CookieValue(value = "REFRESH_TOKEN", required = false) String refreshToken,
-            HttpServletResponse res
-    ){
-        // 서버 저장소에서 리프레시 토큰 폐기
-        if (refreshToken != null && !refreshToken.isBlank()){
-            authService.revokeRe
+    public ResponseEntity<LogoutResponse> logout(
+            @RequestBody(required = false) LogoutRequest req,
+            HttpServletRequest httpReq,
+            HttpServletResponse httpRes
+    ) {
+        log.info("로그아웃 요청 처리");
+
+        if (req == null){
+            req = new LogoutRequest();
         }
-    }*/
+
+        try{
+            LogoutResponse res = authService.logout(req, httpReq, httpRes);
+            log.info("로그아웃 처리 완료");
+            return ResponseEntity.ok(res);
+        } catch (Exception e){
+            log.error("로그아웃 API 처리 오류 : {}", e.getMessage(), e);
+            // 실패해도 성공으로 응답 (클라이언트에서 토큰 정리)
+            return ResponseEntity.ok(LogoutResponse.success("로그아웃이 완료되었습니다"));
+        }
+    }
+
 
 
     @GetMapping("/check-email")

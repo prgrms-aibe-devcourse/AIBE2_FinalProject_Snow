@@ -1,5 +1,7 @@
 package com.snow.popin.domain.auth.controller;
 
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.snow.popin.domain.auth.AuthService;
 import com.snow.popin.domain.auth.constant.AuthProvider;
 import com.snow.popin.domain.auth.dto.LoginRequest;
@@ -7,7 +9,6 @@ import com.snow.popin.domain.user.UserRepository;
 import com.snow.popin.domain.user.constant.Role;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.global.constant.ErrorCode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,9 @@ import java.util.Map;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 
 @DisplayName("로그인 통합 테스트")
 @SpringBootTest

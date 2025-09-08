@@ -1,5 +1,6 @@
 package com.snow.popin.global.error;
 
+
 import com.snow.popin.global.constant.ErrorCode;
 import lombok.*;
 

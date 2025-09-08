@@ -20,8 +20,8 @@ public class JwtUtil {
     private final long expirationMs = 6 * 60 * 60 * 1000; // 6시간
 
     public JwtUtil(@Value("${jwt.secret}") String secret) {
-        if (secret == null ) {
-                throw new IllegalArgumentException("JWT secret must be at least 32 characters long for HS256");
+        if (secret == null || secret.length() < 32) {
+            throw new IllegalArgumentException("JWT secret must be at least 32 characters long for HS256");
         }
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
     }
@@ -112,30 +112,33 @@ public class JwtUtil {
         }
     }
 
-    /*
-    public boolean isTokenExpired(String token){
-        Date expiration  = extractClaims(token).getExpiration();
-        boolean expired  = expiration  .before(new Date());
-        log.debug("토큰 만료 여부 : {}", expired );
-        return expired;
-    }*/
-
-    // 테스트 익셉션
     public boolean isTokenExpired(String token) {
         try {
             Date expiration = extractClaims(token).getExpiration();
-            return expiration.before(new Date());
+            boolean expired = expiration.before(new Date());
+            log.debug("토큰 만료 확인 : {}", expired);
+            return expired;
         } catch (ExpiredJwtException e) {
-            // 만료된 경우에도 Claims는 e.getClaims() 안에 들어 있음
+            log.debug("토큰이 만료됨 : {}", e.getMessage());
             return true;
+        } catch (Exception e) {
+            log.error("토큰 만료 확인 중 오류 : {}", e.getMessage());
+            return true; // 오류 시 만료된 것으로 처리
         }
     }
 
     public boolean validateToken(String token){
-        try{
+        try {
+            if (token == null || token.trim().isEmpty()) {
+                log.debug("토큰이 null이거나 비어있음");
+                return false;
+            }
+
             boolean expired = isTokenExpired(token);
-            return !expired;
-        } catch (Exception e){
+            boolean valid = !expired;
+            log.debug("토큰 검증 결과 : {}", valid);
+            return valid;
+        } catch (Exception e) {
             log.error("토큰 검증 실패 : {}", e.getMessage());
             return false;
         }

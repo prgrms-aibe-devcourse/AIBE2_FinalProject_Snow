@@ -1,10 +1,18 @@
 package com.snow.popin.domain.auth.controller;
 
-import com.snow.popin.domain.auth.AuthService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
 
+import com.snow.popin.domain.auth.AuthService;
+import com.snow.popin.domain.auth.dto.LogoutRequest;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@Slf4j
 @Controller
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -18,8 +26,20 @@ public class AuthViewController {
     }
 
     @GetMapping("/logout")
-    public String logout() {
+
+    public String logout(HttpServletRequest req, HttpServletResponse res) {
+
+        try{
+            // 서버 측 로그아웃
+            LogoutRequest logoutReq = new LogoutRequest();
+            authService.logout(logoutReq, req, res);
+            log.info("View 로그아웃 처리 완료");
+        } catch (Exception e){
+            log.warn("View 로그아웃 처리 중 오류 (계속 진행) : {}", e.getMessage());
+        }
+
         return "redirect:/auth/login?logout=true";
+
     }
 
     @GetMapping("/signup")

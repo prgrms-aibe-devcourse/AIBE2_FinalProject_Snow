@@ -1,5 +1,7 @@
 package com.snow.popin.domain.auth.controller;
 
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.snow.popin.domain.auth.AuthService;
 import com.snow.popin.domain.auth.dto.LoginRequest;
 import com.snow.popin.domain.auth.dto.LoginResponse;
@@ -8,7 +10,6 @@ import com.snow.popin.global.constant.ErrorCode;
 import com.snow.popin.global.exception.GeneralException;
 import com.snow.popin.global.jwt.JwtFilter;
 import com.snow.popin.global.jwt.JwtUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,10 +22,10 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
@@ -32,7 +33,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.hamcrest.Matchers.containsString;
+
 
 @DisplayName("API 컨트롤러 - 인증")
 @WebMvcTest(
