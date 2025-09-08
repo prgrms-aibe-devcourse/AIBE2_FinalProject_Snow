@@ -5,6 +5,7 @@ import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.domain.user.repository.UserRepository;
 import com.snow.popin.global.constant.ErrorCode;
 import com.snow.popin.global.exception.GeneralException;
+import com.snow.popin.global.util.UserUtil;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserUtil userUtil;
     private final PasswordEncoder passwordEncoder;
 
     public User findById(Long id){
@@ -51,14 +53,6 @@ public class UserService {
         user.changePassword(encodedPassword);
 
     }
-
-    //마이페이지
-    public UserResponseDto getUserProfile(String email) {
-        User user = findByEmail(email);
-        return new UserResponseDto(user);
-    }
-
-
 
 
 }

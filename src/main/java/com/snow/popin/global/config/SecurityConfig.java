@@ -45,10 +45,13 @@ public class SecurityConfig {
 
                 .authorizeRequests(authz -> authz
                         // 정적 리소스
-                        .antMatchers("/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico").permitAll()
+                        .antMatchers("/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico", "/templates/**").permitAll()
 
                         // 공개 페이지
                         .antMatchers("/", "/index.html", "/main", "/error").permitAll()
+                        .antMatchers("/users/**").permitAll()
+                        .antMatchers("/api/users/me").authenticated()
+
 
                         // 인증 관련 페이지
                         .antMatchers("/auth/**").permitAll()
