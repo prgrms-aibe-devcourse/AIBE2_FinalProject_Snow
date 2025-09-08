@@ -28,11 +28,16 @@ public class AuthViewController {
 
     public String logout(HttpServletRequest req, HttpServletResponse res) {
 
-        LogoutRequest logoutReq = new LogoutRequest();
-        authService.logout(logoutReq, req, res);
-        log.info("View 로그아웃 처리 완료");
+        try{
+            // 서버 측 로그아웃 처리
+            LogoutRequest logoutReq = new LogoutRequest();
+            authService.logout(logoutReq, req, res);
+            log.info("서버 측 로그아웃 처리 완료");
+        } catch (Exception e){
+            log.warn("서버 측 로그아웃 처리 중 오류 (계속 진행) : {}", e.getMessage());
+        }
 
-        return "redirect:/auth/login?logout=true";
+        return "forward:/auth/logout.html";
 
     }
 
