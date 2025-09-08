@@ -10,27 +10,27 @@
     const card = document.createElement('div');
     card.className = 'modal-card';
     card.innerHTML = `
-      <div class="modal-title">${mission.title || ('mission ' + mission.id)}</div>
-      <div class="modal-desc">${mission.description || ''}</div>
-      <label style="display:block;font-weight:600;margin-bottom:6px;">정답 입력</label>
-      <input id="modal-answer" type="text" placeholder="정답 또는 코드"
-             style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;">
-      <div class="modal-actions">
-        <button class="btn" id="modal-cancel">취소</button>
-        <button class="btn primary" id="modal-submit">제출</button>
-      </div>
-    `;
+    <button class="modal-close" id="modal-close">&times;</button>
+    <div class="modal-title">${mission.title || ('mission ' + mission.id)}</div>
+    <div class="modal-desc">${mission.description || ''}</div>
+    <label class="modal-label">정답 입력</label>
+    <input id="modal-answer" type="text" placeholder="정답 또는 코드" class="modal-input">
+    <div class="modal-actions">
+      <button class="btn primary" id="modal-submit">제출</button>
+    </div>
+  `;
     backdrop.appendChild(card);
     document.body.appendChild(backdrop);
 
     function close(){ document.body.removeChild(backdrop); }
-    card.querySelector('#modal-cancel').onclick = close;
+    card.querySelector('#modal-close').onclick = close;
     card.querySelector('#modal-submit').onclick = async function(){
       const answer = card.querySelector('#modal-answer').value;
       await onSubmit(answer).catch(err => alert(err?.message || '제출 실패'));
       close();
     };
   }
+
 
   // 스태프 PIN 모달
   function openStaffPinModal(missionSetId) {
@@ -40,20 +40,20 @@
     const card = document.createElement('div');
     card.className = 'modal-card';
     card.innerHTML = `
-      <div class="modal-title">리워드 수령 확인</div>
-      <label>스태프 PIN 입력</label>
-      <input id="staff-pin" type="password" placeholder="PIN 코드"
-             style="width:100%;padding:10px;margin-top:6px;border:1px solid #ddd;border-radius:8px;">
-      <div class="modal-actions">
-        <button class="btn" id="cancel">취소</button>
-        <button class="btn primary" id="confirm">확인</button>
-      </div>
-    `;
+    <button class="modal-close" id="modal-close">&times;</button>
+    <div class="modal-title">리워드 수령 확인</div>
+    <label class="modal-label">스태프 PIN 입력</label>
+    <input id="staff-pin" type="password" placeholder="PIN 코드" class="modal-input">
+    <div class="modal-actions">
+      <button class="btn primary" id="confirm">확인</button>
+    </div>
+  `;
     backdrop.appendChild(card);
     document.body.appendChild(backdrop);
 
     function close(){ document.body.removeChild(backdrop); }
-    card.querySelector('#cancel').onclick = close;
+    card.querySelector('#modal-close').onclick = close;
+
     card.querySelector('#confirm').onclick = async () => {
       const pin = card.querySelector('#staff-pin').value;
       try {
@@ -75,6 +75,7 @@
       }
     };
   }
+
 
   // 미션 보드
   async function renderMissionBoard({ mount, setView, onOpenMission }) {

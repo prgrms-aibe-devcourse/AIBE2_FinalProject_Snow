@@ -73,7 +73,8 @@ public class DataInitializer implements CommandLineRunner {
 
     private void createDummyMissions() {
         if (missionSetRepository.count() > 0) {
-            log.info("미션셋 더미 데이터가 이미 존재하여 생성하지 않습니다.");
+            MissionSet existing = missionSetRepository.findAll().get(0); // 첫 번째 미션셋
+            log.info("미션셋 더미 데이터가 이미 존재합니다. 기존 MissionSet ID: {}", existing.getId());
             return;
         }
 

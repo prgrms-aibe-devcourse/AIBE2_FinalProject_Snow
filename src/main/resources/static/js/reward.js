@@ -36,12 +36,11 @@
     `;
         backdrop.innerHTML = `
   <div class="modal-card" style="background:#fff; padding:20px; border-radius:30px; text-align:center; position:relative;">
-    <button id="close-btn" 
-            style="position:absolute; top:10px; right:10px; border:none; background:transparent; font-size:20px; cursor:pointer;">✕</button>
+    <button class="modal-close" id="close-btn">&times;</button>
 
-    <div class="roulette-container" style="position:relative; width:400px; height:400px; margin:30px auto;">
+    <div class="roulette-container" style="position:relative; width:300px; height:300px; margin:30px auto;">
       <canvas id="rouletteCanvas" width="300" height="300"></canvas>
-      <div style="position:absolute;top:-25px;left:50%;transform:translateX(-50%);font-size:40px;color:#79f;">▼</div>
+      <div style="position:absolute;top:-40px;left:50%;transform:translateX(-50%);font-size:40px;color:#79f;">▼</div>
     </div>
     <div style="display:flex; gap:8px; justify-content:center; margin-top:16px;">
       <button id="spin-btn" class="btn primary flex-btn">돌리기</button>
@@ -148,30 +147,13 @@
             ctx.textAlign = "center";
             ctx.fillStyle = "#fff";
             ctx.font = "bold 20px sans-serif";
+            ctx.shadowColor = "rgba(147,147,147,0.6)"; // 그림자 색
+            ctx.shadowBlur = 4;                  // 번짐 정도
+            ctx.shadowOffsetX = 1;                // 가로 오프셋
+            ctx.shadowOffsetY = 1;                // 세로 오프셋
             ctx.fillText(opt.name, r * 0.7, 5); // r*0.7 위치 (안쪽에 글씨)
             ctx.restore();
         });
-
-        // 1) 바깥쪽 전용 그림자 (투명 stroke)
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(cx, cy, r + 10, 0, 2 * Math.PI); // r보다 크게
-        ctx.lineWidth = 20;
-        ctx.strokeStyle = "transparent";
-
-        ctx.shadowColor = "rgba(0,0,0,0.3)";
-        ctx.shadowBlur = 15;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 4;
-
-        ctx.stroke();
-        ctx.restore();
-
-        // 2) 실제 외곽선
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, 2 * Math.PI);
-        ctx.lineWidth = 20;
-        ctx.strokeStyle = "#dfdfdf"; // 회색
         ctx.stroke();
     }
 
