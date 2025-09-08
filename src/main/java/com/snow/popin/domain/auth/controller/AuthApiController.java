@@ -20,21 +20,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthApiController {
 
-    private final AuthService authService; // LogoutService 의존성 제거됨
+    private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<Void> signup(@Valid @RequestBody SignupRequest req){
-        authService.signup(req);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<SignupResponse> signup(@Valid @RequestBody SignupRequest req){
+        return ResponseEntity.ok(authService.signup(req));
     }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest req){
-        log.info("로그인 시도: {}", req.getEmail());
-
-        LoginResponse response = authService.login(req);
-        log.info("로그인 성공: {}", req.getEmail());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(authService.login(req));
     }
 
     @PostMapping("/logout")
@@ -54,12 +49,23 @@ public class AuthApiController {
         return ResponseEntity.ok(response);
     }
 
+    // ================ 중복 확인 API ================
     @GetMapping("/check-email")
     public ResponseEntity<Map<String, Boolean>> checkEmailDuplicate(@RequestParam String email){
         boolean exists = authService.emailExists(email);
         Map<String, Boolean> response = new HashMap<>();
         response.put("available", !exists );
         response.put("exists", exists );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/check-nickname")
+    public ResponseEntity<Map<String, Boolean>> checkNicknameDuplicate(@RequestParam String nickname) {
+        boolean exists = authService.nicknameExists(nickname);
+        Map<String, Boolean> response = new HashMap<>();
+        response.put("available", !exists);
+        response.put("exists", exists);
 
         return ResponseEntity.ok(response);
     }
