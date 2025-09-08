@@ -39,10 +39,7 @@ public class AuthService implements UserDetailsService {
     private final JwtTokenResolver jwtTokenResolver;
 
     // ================ 로그인 관련 ================
-
-    /**
-     * 사용자 로그인 처리
-     */
+    // 사용자 로그인 처리
     public LoginResponse login(LoginRequest req) {
         log.info("로그인 시도: {}", req.getEmail());
 
@@ -57,7 +54,7 @@ public class AuthService implements UserDetailsService {
             LoginResponse response = createLoginResponse(user, accessToken);
 
             // 4. 성공 로깅
-            logSuccessfulLogin(user);
+            log.info("로그인 성공: {}", user.getEmail());
 
             return response;
 
@@ -70,9 +67,8 @@ public class AuthService implements UserDetailsService {
         }
     }
 
-    /**
-     * 사용자 자격 증명 검증
-     */
+
+    // 사용자 자격 증명 검증
     private User validateUserCredentials(LoginRequest req) {
         User user = userRepository.findByEmail(req.getEmail())
                 .orElseThrow(() -> {
@@ -85,16 +81,10 @@ public class AuthService implements UserDetailsService {
             throw new GeneralException(ErrorCode.LOGIN_FAILED);
         }
 
-        // TODO: 향후 확장 가능한 검증들
-        // validateAccountStatus(user); // 계정 상태 확인 (활성/비활성/잠금)
-        // validateLoginAttempts(req.getEmail()); // 브루트포스 방지
-
         return user;
     }
 
-    /**
-     * JWT 액세스 토큰 생성
-     */
+    // JWT 액세스 토큰 생성
     private String generateAccessToken(User user) {
         try {
             return jwtUtil.createToken(
@@ -109,9 +99,7 @@ public class AuthService implements UserDetailsService {
         }
     }
 
-    /**
-     * 로그인 응답 객체 생성
-     */
+    // 로그인 응답 객체 생성
     private LoginResponse createLoginResponse(User user, String accessToken) {
         return LoginResponse.of(
                 accessToken,
@@ -122,35 +110,13 @@ public class AuthService implements UserDetailsService {
         );
     }
 
-    /**
-     * 성공적인 로그인 후처리
-     */
-    private void logSuccessfulLogin(User user) {
-        log.info("로그인 성공: {}", user.getEmail());
-
-        // TODO: 향후 확장 가능한 후처리들
-        // updateLastLoginTime(user.getId());
-        // recordLoginAudit(user, request);
-        // resetFailedLoginAttempts(user.getEmail());
-    }
-
-    /**
-     * 실패한 로그인 후처리
-     */
+    // 실패한 로그인 후처리
     private void logFailedLogin(String email, Exception e) {
         log.warn("로그인 실패: {} - {}", email, e.getMessage());
-
-        // TODO: 향후 확장 가능한 후처리들
-        // incrementFailedLoginAttempts(email);
-        // lockAccountIfNecessary(email);
-        // recordFailedLoginAudit(email, request);
     }
 
     // ================ 로그아웃 관련 ================
-
-    /**
-     * 사용자 로그아웃 처리
-     */
+    // 사용자 로그아웃 처리
     public LogoutResponse logout(LogoutRequest req, HttpServletRequest httpReq, HttpServletResponse httpRes) {
         String userEmail = "unknown";
 
@@ -177,18 +143,13 @@ public class AuthService implements UserDetailsService {
         }
     }
 
-    /**
-     * 실제 로그아웃 처리 로직
-     */
+    // 실제 로그아웃 처리 로직
     private void processLogout(String token, HttpServletRequest req, HttpServletResponse res) {
         try {
             // 토큰 검증 및 로깅
             if (StringUtils.hasText(token) && jwtUtil.validateToken(token)) {
                 String userEmail = jwtUtil.getEmail(token);
                 log.info("사용자 로그아웃 처리: {}", userEmail);
-
-                // TODO: 향후 토큰 블랙리스트 추가 시 여기에 구현
-                // blacklistService.addToBlacklist(token);
             } else {
                 log.debug("유효하지 않은 토큰으로 로그아웃 시도");
             }
@@ -204,18 +165,14 @@ public class AuthService implements UserDetailsService {
         }
     }
 
-    /**
-     * 인증 관련 쿠키들 정리
-     */
+    // 인증 관련 쿠키들 정리
     private void clearAuthCookies(HttpServletResponse res) {
         clearCookie(res, "jwtToken", "/");
         clearCookie(res, "JSESSIONID", "/");
         clearCookie(res, "remember-me", "/");
     }
 
-    /**
-     * 개별 쿠키 정리
-     */
+    // 개별 쿠키 정리
     private void clearCookie(HttpServletResponse res, String name, String path) {
         Cookie cookie = new Cookie(name, "");
         cookie.setMaxAge(0);
@@ -226,18 +183,14 @@ public class AuthService implements UserDetailsService {
         log.debug("쿠키 삭제: {}", name);
     }
 
-    /**
-     * 캐시 제어 헤더 추가
-     */
+    // 캐시 제어 헤더 추가
     private void addCacheControlHeaders(HttpServletResponse res) {
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.setHeader("Pragma", "no-cache");
         res.setHeader("Expires", "0");
     }
 
-    /**
-     * 요청에서 토큰 추출
-     */
+    // 요청에서 토큰 추출
     private String extractToken(LogoutRequest req, HttpServletRequest httpReq) {
         // 1. 요청 바디에서 토큰 확인
         if (StringUtils.hasText(req.getAccessToken())) {
@@ -249,10 +202,7 @@ public class AuthService implements UserDetailsService {
     }
 
     // ================ Spring Security 연동 ================
-
-    /**
-     * Spring Security UserDetailsService 구현
-     */
+    // Spring Security UserDetailsService 구현
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
@@ -261,9 +211,7 @@ public class AuthService implements UserDetailsService {
         return createUserDetails(user);
     }
 
-    /**
-     * Spring Security UserDetails 객체 생성
-     */
+    // Spring Security UserDetails 객체 생성
     private UserDetails createUserDetails(User user) {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
 
@@ -284,9 +232,7 @@ public class AuthService implements UserDetailsService {
 
     // ================ 회원가입 및 기타 ================
 
-    /**
-     * 회원가입 처리
-     */
+    // 회원가입 처리
     @Transactional
     public void signup(SignupRequest req) {
         if (emailExists(req.getEmail())) {
@@ -309,9 +255,7 @@ public class AuthService implements UserDetailsService {
         log.info("회원가입 완료: {}", req.getEmail());
     }
 
-    /**
-     * 이메일 중복 확인
-     */
+    // 이메일 중복 확인
     public boolean emailExists(String email) {
         return userRepository.existsByEmail(email);
     }

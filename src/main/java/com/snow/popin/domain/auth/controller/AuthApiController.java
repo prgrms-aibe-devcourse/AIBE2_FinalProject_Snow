@@ -32,14 +32,9 @@ public class AuthApiController {
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest req){
         log.info("로그인 시도: {}", req.getEmail());
 
-        try {
-            LoginResponse response = authService.login(req);
-            log.info("로그인 성공: {}", req.getEmail());
-            return ResponseEntity.ok(response);
-        } catch (GeneralException e) {
-            log.warn("로그인 실패: {} - {}", req.getEmail(), e.getMessage());
-            throw e;
-        }
+        LoginResponse response = authService.login(req);
+        log.info("로그인 성공: {}", req.getEmail());
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/logout")
@@ -54,16 +49,9 @@ public class AuthApiController {
             req = new LogoutRequest();
         }
 
-        try{
-            // AuthService에서 직접 로그아웃 처리 (LogoutService 없이)
-            LogoutResponse res = authService.logout(req, httpReq, httpRes);
-            log.info("로그아웃 처리 완료");
-            return ResponseEntity.ok(res);
-        } catch (Exception e){
-            log.error("로그아웃 API 처리 오류: {}", e.getMessage(), e);
-            // 실패해도 성공으로 응답 (클라이언트에서 토큰 정리)
-            return ResponseEntity.ok(LogoutResponse.success("로그아웃이 완료되었습니다"));
-        }
+        LogoutResponse response = authService.logout(req, httpReq, httpRes);
+        log.info("로그아웃 처리 완료");
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/check-email")
