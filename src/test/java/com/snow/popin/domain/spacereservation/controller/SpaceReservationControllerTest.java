@@ -50,14 +50,12 @@ class SimpleSpaceReservationControllerTest {
     @BeforeEach
     void setUp() {
         hostUser = User.builder()
-                .id(1L)
                 .email("host@test.com")
                 .name("HOST 사용자")
                 .role(Role.HOST)
                 .build();
 
         providerUser = User.builder()
-                .id(2L)
                 .email("provider@test.com")
                 .name("공간 제공자")
                 .role(Role.USER)
