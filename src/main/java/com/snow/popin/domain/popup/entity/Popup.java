@@ -146,7 +146,6 @@ public class Popup extends BaseEntity {
         return endDate != null && now.isAfter(endDate);
     }
 
-    // 마감까지 남은 일수 계산
     public Long getDaysUntilEnd() {
         if (endDate == null) {
             return null;

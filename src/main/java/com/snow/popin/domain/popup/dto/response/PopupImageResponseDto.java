@@ -2,8 +2,10 @@ package com.snow.popin.domain.popup.dto.response;
 
 import com.snow.popin.domain.popup.entity.PopupImage;
 import lombok.Builder;
+import lombok.Getter;
 
 @Builder
+@Getter
 public class PopupImageResponseDto {
     private Long id;
     private String imageUrl;

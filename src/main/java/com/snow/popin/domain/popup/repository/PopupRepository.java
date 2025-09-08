@@ -33,6 +33,7 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
             @Param("region") String region,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
+            @Param("sortBy") String sortBy,
             Pageable pageable);
 
     // 마감임박 팝업 (진행중이고 종료일 7일 이내)

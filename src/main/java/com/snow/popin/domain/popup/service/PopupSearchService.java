@@ -27,36 +27,38 @@ public class PopupSearchService {
 
     private final PopupSearchRepository popupSearchRepository;
 
-    //  팝업 검색 (제목, 태그 기준)
     public PopupListResponseDto searchPopups(PopupSearchRequestDto request) {
         log.info("팝업 검색 시작 - 검색어: {}, 페이지: {}, 크기: {}",
                 request.getQuery(), request.getPage(), request.getSize());
 
         String query = preprocessQuery(request.getQuery());
-        Pageable pageable = createPageable(request.getPage(), request.getSize());
+        Pageable pageable = createSearchPageable(request.getPage(), request.getSize());
+
         Page<Popup> popupPage = popupSearchRepository.searchByTitleAndTags(query, pageable);
 
-        List<PopupSummaryResponseDto> popupDtos = popupPage.getContent().stream()
-                .map(PopupSummaryResponseDto::from) // DTO의 정적 팩토리 메서드 사용
+        List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
+                .stream()
+                .map(PopupSummaryResponseDto::from)
                 .collect(Collectors.toList());
 
         log.info("팝업 검색 완료 - 검색어: {}, 결과 수: {}", query, popupPage.getTotalElements());
 
-        return PopupListResponseDto.of(popupPage, popupDtos); // DTO의 정적 팩토리 메서드 사용
+        return PopupListResponseDto.of(popupPage, popupDtos);
     }
 
     private String preprocessQuery(String query) {
         if (query == null) {
             return null;
         }
-        return query.trim().replaceAll("\\s+", " ").toLowerCase();
+
+        return query.trim()
+                .replaceAll("\\s+", " ")
+                .toLowerCase();
     }
 
-    private Pageable createPageable(int page, int size) {
-        int p = Math.max(0, page);
-        int s = Math.min(Math.max(1, size), 100);
-        // 검색 결과는 기본적으로 최신순으로 정렬
-        return PageRequest.of(p, s, Sort.by(Sort.Direction.DESC, "createdAt"));
+    private Pageable createSearchPageable(int page, int size) {
+        int validPage = Math.max(0, page);
+        int validSize = Math.min(Math.max(1, size), 100);
+        return PageRequest.of(validPage, validSize, Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 }
-
