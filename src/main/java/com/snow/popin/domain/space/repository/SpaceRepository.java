@@ -20,5 +20,7 @@ public interface SpaceRepository extends JpaRepository<Space, Long> {
     // 공간 모두 조회
     List<Space> findByIsPublicTrueOrderByCreatedAtDesc();
 
+    List<Space> findByOwner(User owner);
+
     //검색용 또는 통계 추가 할 것
 }
