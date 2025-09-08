@@ -97,7 +97,7 @@ public class PopupService {
 
     // venue별 팝업 조회
     public PopupListResponseDto getPopupsByVenue(Long venueId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = createPageable(page, size, "createdAt", "DESC");
         Page<Popup> popupPage = popupRepository.findByVenueId(venueId, pageable);
 
         List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
@@ -110,7 +110,7 @@ public class PopupService {
 
     // 지역별 팝업 조회
     public PopupListResponseDto getPopupsByRegion(String region, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = createPageable(page, size, "createdAt", "DESC");
         Page<Popup> popupPage = popupRepository.findByRegion(region, pageable);
 
         List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()

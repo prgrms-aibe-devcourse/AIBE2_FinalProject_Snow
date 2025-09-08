@@ -6,7 +6,6 @@ import com.snow.popin.domain.popup.entity.Tag;
 import com.snow.popin.domain.popup.repository.PopupRepository;
 import com.snow.popin.domain.popup.repository.TagRepository;
 import com.snow.popin.domain.popup.testdata.PopupTestDataBuilder;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
