@@ -27,7 +27,7 @@ public class PopupService {
         log.info("팝업 리스트 조회 시작 - 상태: {}, 지역: {}, 날짜필터: {}, 정렬: {}",
                 request.getStatus(), request.getRegion(), request.getDateFilter(), request.getSortBy());
 
-        Pageable pageable = createPageable(request.getPage(), request.getSize());
+        Pageable pageable = createPageableWithSort(request.getPage(), request.getSize(), request.getSortBy());
         Page<Popup> popupPage = findPopupsWithFilters(request, pageable);
 
         List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
@@ -73,7 +73,6 @@ public class PopupService {
                 request.hasRegionFilter() ? request.getRegion() : null,
                 request.getStartDate(),
                 request.getEndDate(),
-                request.getSortBy(),
                 pageable
         );
     }
@@ -82,5 +81,29 @@ public class PopupService {
         int validPage = Math.max(0, page);
         int validSize = Math.min(Math.max(1, size), 100);
         return PageRequest.of(validPage, validSize);
+    }
+
+    private Pageable createPageableWithSort(int page, int size, String sortBy) {
+        int validPage = Math.max(0, page);
+        int validSize = Math.min(Math.max(1, size), 100);
+
+        Sort sort = createSort(sortBy);
+        return PageRequest.of(validPage, validSize, sort);
+    }
+
+    private Sort createSort(String sortBy) {
+        if (sortBy == null) {
+            return Sort.by(Sort.Direction.DESC, "createdAt");
+        }
+
+        switch (sortBy) {
+            case "deadline":
+                return Sort.by(Sort.Direction.ASC, "endDate");
+            case "date":
+                return Sort.by(Sort.Direction.ASC, "startDate");
+            case "latest":
+            default:
+                return Sort.by(Sort.Direction.DESC, "createdAt");
+        }
     }
 }

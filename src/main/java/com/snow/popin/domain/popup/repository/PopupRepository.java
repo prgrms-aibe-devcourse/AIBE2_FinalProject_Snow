@@ -23,7 +23,7 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
             "AND (:region IS NULL OR :region = '전체' OR v.region = :region) " +
             "AND (:startDate IS NULL OR p.endDate IS NULL OR p.endDate >= :startDate) " +
             "AND (:endDate IS NULL OR p.startDate IS NULL OR p.startDate <= :endDate)",
-            countQuery = "SELECT count(p) FROM Popup p LEFT JOIN p.venue v " + // Count 쿼리 최적화
+            countQuery = "SELECT count(p) FROM Popup p LEFT JOIN p.venue v " +
                     "WHERE (:status IS NULL OR p.status = :status) " +
                     "AND (:region IS NULL OR :region = '전체' OR v.region = :region) " +
                     "AND (:startDate IS NULL OR p.endDate IS NULL OR p.endDate >= :startDate) " +
@@ -33,7 +33,6 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
             @Param("region") String region,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
-            @Param("sortBy") String sortBy,
             Pageable pageable);
 
     // 마감임박 팝업 (진행중이고 종료일 7일 이내)
@@ -49,7 +48,6 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
                     "AND p.endDate >= CURRENT_DATE " +
                     "AND p.endDate <= :deadline")
     Page<Popup> findDeadlineSoonPopups(@Param("deadline") LocalDate deadline, Pageable pageable);
-
 
     // 팝업 상세 조회
     @EntityGraph(attributePaths = {"images", "hours", "venue", "tags"})
