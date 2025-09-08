@@ -1,9 +1,9 @@
 package com.snow.popin.global.jwt;
 
-
 import com.snow.popin.global.constant.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,6 +18,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
 import static com.snow.popin.global.error.ErrorResponseUtil.sendErrorResponse;
 
 @Slf4j
@@ -26,9 +27,13 @@ import static com.snow.popin.global.error.ErrorResponseUtil.sendErrorResponse;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-    private final UserDetailsService userDetailsService;
     private final JwtTokenResolver jwtTokenResolver;
+    private final ApplicationContext applicationContext;
 
+    // UserDetailsService를 지연 로딩으로 가져오기
+    private UserDetailsService getUserDetailsService() {
+        return applicationContext.getBean(UserDetailsService.class);
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest req,
@@ -54,7 +59,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     if (SecurityContextHolder.getContext().getAuthentication() == null){
                         try{
 
-                            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                            UserDetails userDetails = getUserDetailsService().loadUserByUsername(email);
                             log.debug("사용자 정보 로드 완료 : {}", userDetails.getUsername());
 
                             UsernamePasswordAuthenticationToken authenticationToken =

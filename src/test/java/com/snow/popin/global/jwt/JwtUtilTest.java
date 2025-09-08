@@ -47,21 +47,6 @@ class JwtUtilTest {
         assertThat(sut.getName(token)).isEqualTo(testName);
         assertThat(sut.getRole(token)).isEqualTo(testRole);
     }
-    @DisplayName("userId를 포함한 토큰을 생성하면 JWT 토큰이 반환된다")
-    @Test
-    void givenValidInfoWithUserId_whenCreateToken_thenReturnsJwtToken() {
-        // When
-        String token = sut.createToken(testUserId, testEmail, testName, testRole);
-
-        // Then
-        assertThat(token).isNotNull();
-        assertThat(token).isNotEmpty();
-        assertThat(token.split("\\.")).hasSize(3);
-
-        // userId는 현재 구현에서 토큰에 저장되지 않으므로 null 확인
-        assertThat(sut.getUserId(token)).isNull();
-    }
-
 
     @DisplayName("새로 생성된 토큰은 만료되지 않은 상태이다")
     @Test
@@ -253,16 +238,29 @@ class JwtUtilTest {
         assertThat(sut.validateToken(token)).isFalse();
     }
 
-    @DisplayName("userId가 포함된 토큰에서 userId를 추출할 수 있다 - 현재는 구현되지 않음")
+    @DisplayName("userId가 포함된 토큰에서 userId를 추출할 수 있다")
     @Test
-    void givenTokenWithUserId_whenGetUserId_thenReturnsNull() {
-        // Given - userId가 실제로는 토큰에 저장되지 않음 (createToken 메소드 확인)
+    void givenTokenWithUserId_whenGetUserId_thenReturnsUserId() {
+        // Given - userId가 실제로 토큰에 저장됨
         String token = sut.createToken(testUserId, testEmail, testName, testRole);
 
         // When
         Long extractedUserId = sut.getUserId(token);
 
-        // Then - 현재 구현에서는 userId가 토큰에 저장되지 않아 null 반환
+        // Then - 실제 구현에서는 userId가 토큰에 저장되어 정상 반환
+        assertThat(extractedUserId).isEqualTo(testUserId);
+    }
+
+    @DisplayName("userId가 없는 토큰에서 userId를 추출하면 null을 반환한다")
+    @Test
+    void givenTokenWithoutUserId_whenGetUserId_thenReturnsNull() {
+        // Given - userId 파라미터가 없는 메서드로 토큰 생성
+        String token = sut.createToken(testEmail, testName, testRole);
+
+        // When
+        Long extractedUserId = sut.getUserId(token);
+
+        // Then - userId가 없는 토큰에서는 null 반환
         assertThat(extractedUserId).isNull();
     }
 

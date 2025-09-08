@@ -1,6 +1,5 @@
 package com.snow.popin.global.config;
 
-import com.snow.popin.domain.auth.service.AuthService;
 import com.snow.popin.global.constant.ErrorCode;
 import com.snow.popin.global.jwt.JwtFilter;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,6 @@ import static com.snow.popin.global.error.ErrorResponseUtil.sendErrorResponse;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final AuthService authService;
     private final JwtFilter jwtFilter;
 
     @Bean
@@ -71,8 +69,6 @@ public class SecurityConfig {
 
                         .anyRequest().authenticated()
                 )
-
-                .userDetailsService(authService)
 
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
 

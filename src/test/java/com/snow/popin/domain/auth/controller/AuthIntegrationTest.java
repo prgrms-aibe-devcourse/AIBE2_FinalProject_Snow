@@ -1,8 +1,10 @@
 package com.snow.popin.domain.auth.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 import com.snow.popin.domain.auth.constant.AuthProvider;
 import com.snow.popin.domain.auth.dto.LoginRequest;
+import com.snow.popin.domain.auth.dto.LogoutRequest;
 import com.snow.popin.domain.auth.service.AuthService;
 import com.snow.popin.domain.user.UserRepository;
 import com.snow.popin.domain.user.constant.Role;
@@ -19,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
@@ -30,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@DisplayName("로그인 통합 테스트")
+@DisplayName("인증 통합 테스트 (로그인/로그아웃/회원가입)")
 @SpringBootTest
 @AutoConfigureMockMvc
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -39,37 +42,30 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "jwt.secret=rwNscFdjVS7RxDUVt8hkPRImnFUay1kmMy34XvurwjY="
 })
 @Transactional
-class LoginIntegrationTest {
+class AuthIntegrationTest {
 
     @Autowired
-    private MockMvc mvc; // MockMvc는 컨테이너가 주입하게 두면 됩니다.
-
+    private MockMvc mvc;
 
     @Autowired
     private ObjectMapper objectMapper;
 
-
     @Autowired
     private UserRepository userRepository;
-
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-
     @Autowired
     private AuthService authService;
-
 
     private User testUser;
     private final String TEST_EMAIL = "integration@example.com";
     private final String TEST_PASSWORD = "testPassword123";
 
-
     @BeforeEach
     void setUp() {
-// WebApplicationContext나 MockMvcBuilders가 필요 없습니다.
-// 실제 MySQL을 바라보는 데이터소스에 사용자 픽스처를 적재합니다.
+        // 실제 MySQL을 바라보는 데이터소스에 사용자 픽스처를 적재합니다.
         testUser = User.builder()
                 .email(TEST_EMAIL)
                 .password(passwordEncoder.encode(TEST_PASSWORD))
@@ -80,9 +76,10 @@ class LoginIntegrationTest {
                 .role(Role.USER)
                 .build();
 
-
         userRepository.save(testUser);
     }
+
+    // ================ 로그인 관련 통합 테스트 ================
 
     @DisplayName("[통합] 로그인 성공 - 실제 데이터베이스와 함께 로그인 플로우 테스트")
     @Test
@@ -108,7 +105,7 @@ class LoginIntegrationTest {
 
     @DisplayName("[통합] 로그인 실패 - 존재하지 않는 사용자")
     @Test
-    void givenNonExistentUser_whenLogin_thenReturnsNotFoundError() throws Exception {
+    void givenNonExistentUser_whenLogin_thenReturnsLoginFailedError() throws Exception {
         // Given
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setEmail("nonexistent@example.com");
@@ -127,7 +124,7 @@ class LoginIntegrationTest {
 
     @DisplayName("[통합] 로그인 실패 - 잘못된 비밀번호")
     @Test
-    void givenWrongPassword_whenLogin_thenReturnsBadRequestError() throws Exception {
+    void givenWrongPassword_whenLogin_thenReturnsLoginFailedError() throws Exception {
         // Given
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setEmail(TEST_EMAIL);
@@ -143,6 +140,64 @@ class LoginIntegrationTest {
                 .andExpect(jsonPath("$.message").exists())
                 .andDo(print());
     }
+
+    // ================ 로그아웃 관련 통합 테스트 ================
+
+    @DisplayName("[통합] 로그아웃 성공 - 실제 토큰으로 로그아웃 플로우 테스트")
+    @Test
+    void givenValidToken_whenLogout_thenReturnsSuccess() throws Exception {
+        // 1. 먼저 로그인해서 실제 토큰 받기
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail(TEST_EMAIL);
+        loginRequest.setPassword(TEST_PASSWORD);
+
+        MvcResult loginResult = mvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String response = loginResult.getResponse().getContentAsString();
+        String accessToken = JsonPath.read(response, "$.accessToken");
+
+        // 2. 받은 토큰으로 로그아웃
+        LogoutRequest logoutRequest = new LogoutRequest(accessToken, null);
+
+        mvc.perform(post("/api/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(logoutRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").exists())
+                .andDo(print());
+    }
+
+    @DisplayName("[통합] 로그아웃 성공 - 빈 요청으로도 성공 처리")
+    @Test
+    void givenEmptyLogoutRequest_whenLogout_thenReturnsSuccess() throws Exception {
+        // Given
+        LogoutRequest emptyRequest = new LogoutRequest();
+
+        // When & Then
+        mvc.perform(post("/api/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(emptyRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andDo(print());
+    }
+
+    @DisplayName("[통합] 로그아웃 성공 - 요청 본문 없이도 성공 처리")
+    @Test
+    void givenNoRequestBody_whenLogout_thenReturnsSuccess() throws Exception {
+        // When & Then
+        mvc.perform(post("/api/auth/logout"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andDo(print());
+    }
+
+    // ================ 회원가입 관련 통합 테스트 ================
 
     @DisplayName("[통합] 회원가입 후 즉시 로그인 테스트")
     @Test
@@ -180,6 +235,29 @@ class LoginIntegrationTest {
                 .andDo(print());
     }
 
+    @DisplayName("[통합] 중복 이메일로 회원가입 시도")
+    @Test
+    void givenDuplicateEmail_whenSignup_thenReturnsDuplicateError() throws Exception {
+        // Given - 이미 존재하는 이메일로 회원가입 시도
+        Map<String, String> signupData = new HashMap<>();
+        signupData.put("email", TEST_EMAIL); // 이미 존재하는 이메일
+        signupData.put("password", "anotherPassword");
+        signupData.put("name", "중복시도유저");
+        signupData.put("nickname", "중복");
+        signupData.put("phone", "010-3333-4444");
+
+        // When & Then
+        mvc.perform(post("/api/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(signupData)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.DUPLICATE_EMAIL.getCode()))
+                .andDo(print());
+    }
+
+    // ================ 이메일 중복 확인 통합 테스트 ================
+
     @DisplayName("[통합] 이메일 중복 확인 - 기존 사용자")
     @Test
     void givenExistingEmail_whenCheckEmailDuplicate_thenReturnsExists() throws Exception {
@@ -207,26 +285,7 @@ class LoginIntegrationTest {
                 .andDo(print());
     }
 
-    @DisplayName("[통합] 중복 이메일로 회원가입 시도")
-    @Test
-    void givenDuplicateEmail_whenSignup_thenReturnsDuplicateError() throws Exception {
-        // Given - 이미 존재하는 이메일로 회원가입 시도
-        Map<String, String> signupData = new HashMap<>();
-        signupData.put("email", TEST_EMAIL); // 이미 존재하는 이메일
-        signupData.put("password", "anotherPassword");
-        signupData.put("name", "중복시도유저");
-        signupData.put("nickname", "중복");
-        signupData.put("phone", "010-3333-4444");
-
-        // When & Then
-        mvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(signupData)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.errorCode").value(ErrorCode.DUPLICATE_EMAIL.getCode()))
-                .andDo(print());
-    }
+    // ================ 에러 케이스 통합 테스트 ================
 
     @DisplayName("[통합] 잘못된 JSON 형식으로 로그인 요청")
     @Test
@@ -267,6 +326,8 @@ class LoginIntegrationTest {
                 .andExpect(status().isUnsupportedMediaType())
                 .andDo(print());
     }
+
+    // ================ 동시성 테스트 ================
 
     @DisplayName("[통합] 여러 사용자의 동시 로그인 시나리오")
     @Test
@@ -327,5 +388,37 @@ class LoginIntegrationTest {
                         .content(objectMapper.writeValueAsString(request3)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("user3@example.com"));
+    }
+
+    // ================ 로그인-로그아웃 플로우 테스트 ================
+
+    @DisplayName("[통합] 완전한 로그인-로그아웃 플로우 테스트")
+    @Test
+    void givenUser_whenLoginThenLogout_thenBothSucceed() throws Exception {
+        // 1. 로그인
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail(TEST_EMAIL);
+        loginRequest.setPassword(TEST_PASSWORD);
+
+        MvcResult loginResult = mvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").exists())
+                .andReturn();
+
+        // 2. 토큰 추출
+        String response = loginResult.getResponse().getContentAsString();
+        String accessToken = JsonPath.read(response, "$.accessToken");
+
+        // 3. 로그아웃
+        LogoutRequest logoutRequest = new LogoutRequest(accessToken, null);
+
+        mvc.perform(post("/api/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(logoutRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andDo(print());
     }
 }

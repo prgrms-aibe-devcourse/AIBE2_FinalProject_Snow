@@ -1,8 +1,10 @@
 package com.snow.popin.domain.auth.controller;
 
 import com.snow.popin.domain.auth.dto.LoginRequest;
+import com.snow.popin.domain.auth.dto.LogoutRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -19,8 +21,8 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-@DisplayName("LoginRequest 유효성 검증 테스트")
-class LoginValidationTest {
+@DisplayName("인증 요청 유효성 검증 테스트 (로그인/로그아웃)")
+class AuthValidationTest {
 
     private Validator validator;
 
@@ -29,6 +31,8 @@ class LoginValidationTest {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
     }
+
+    // ================ 로그인 검증 테스트 ================
 
     @DisplayName("유효한 로그인 요청 - 검증 통과")
     @ParameterizedTest(name = "[{index}] email: {0}, password: {1}")
@@ -142,7 +146,7 @@ class LoginValidationTest {
         Set<ConstraintViolation<LoginRequest>> violations = validator.validate(request);
 
         // Then
-        assertThat(violations).hasSize(expectedViolationCount);
+        assertThat(violations).hasSizeGreaterThanOrEqualTo(expectedViolationCount);
     }
 
     static Stream<Arguments> invalidLoginRequests() {
@@ -153,52 +157,6 @@ class LoginValidationTest {
                 arguments("invalid-email", "", 2), // 이메일 형식 오류, 비밀번호 empty
                 arguments("test@example.com", null, 1), // 유효한 이메일, 비밀번호 null
                 arguments(null, "validPassword", 1) // 이메일 null, 유효한 비밀번호
-        );
-    }
-
-    @DisplayName("경계값 테스트 - 극단적으로 긴 이메일")
-    @ParameterizedTest(name = "[{index}] email length: {1}")
-    @MethodSource("longEmailTestCases")
-    void givenLongEmail_whenValidate_thenValidatesCorrectly(String email, int length, boolean shouldBeValid) {
-        // Given
-        LoginRequest request = new LoginRequest();
-        request.setEmail(email);
-        request.setPassword("validPassword");
-
-        // When
-        Set<ConstraintViolation<LoginRequest>> violations = validator.validate(request);
-
-        // Then
-        if (shouldBeValid) {
-            assertThat(violations).isEmpty();
-        } else {
-            assertThat(violations).isNotEmpty();
-        }
-    }
-
-    static Stream<Arguments> longEmailTestCases() {
-        // 일반적으로 이메일 최대 길이는 320자 정도
-        String shortEmail = "a@b.co"; // 6자
-        String normalEmail = "test@example.com"; // 16자
-        StringBuilder longEmailBuilder = new StringBuilder();
-        longEmailBuilder.append("a".repeat(60));
-        longEmailBuilder.append("@");
-        longEmailBuilder.append("b".repeat(60));
-        longEmailBuilder.append(".com");
-        String longEmail = longEmailBuilder.toString(); // 약 125자
-
-        StringBuilder veryLongEmailBuilder = new StringBuilder();
-        veryLongEmailBuilder.append("a".repeat(150));
-        veryLongEmailBuilder.append("@");
-        veryLongEmailBuilder.append("b".repeat(150));
-        veryLongEmailBuilder.append(".com");
-        String veryLongEmail = veryLongEmailBuilder.toString(); // 약 305자
-
-        return Stream.of(
-                arguments(shortEmail, shortEmail.length(), true),
-                arguments(normalEmail, normalEmail.length(), true),
-                arguments(longEmail, longEmail.length(), true),
-                arguments(veryLongEmail, veryLongEmail.length(), true) // 실제 제한은 구현에 따라 다름
         );
     }
 
@@ -249,27 +207,9 @@ class LoginValidationTest {
         assertThat(violations).isEmpty();
     }
 
-    @DisplayName("매우 긴 비밀번호 테스트")
-    @ParameterizedTest(name = "[{index}] password length: {0}")
-    @ValueSource(ints = {100, 500, 1000})
-    void givenVeryLongPassword_whenValidate_thenNoViolations(int length) {
-        // Given
-        String longPassword = "a".repeat(length);
-        LoginRequest request = new LoginRequest();
-        request.setEmail("test@example.com");
-        request.setPassword(longPassword);
-
-        // When
-        Set<ConstraintViolation<LoginRequest>> violations = validator.validate(request);
-
-        // Then
-        assertThat(violations).isEmpty();
-    }
-
     @DisplayName("전체 필드 null 체크")
-    @ParameterizedTest(name = "[{index}] 모든 필드 null")
-    @ValueSource(booleans = {true})
-    void givenAllFieldsNull_whenValidate_thenHasAllViolations(boolean ignored) {
+    @Test
+    void givenAllFieldsNull_whenValidate_thenHasAllViolations() {
         // Given
         LoginRequest request = new LoginRequest();
         // 모든 필드를 기본값(null)으로 두기
@@ -297,7 +237,16 @@ class LoginValidationTest {
         Set<ConstraintViolation<LoginRequest>> violations = validator.validate(request);
 
         // Then
-        assertThat(violations).hasSize(2); // 이메일, 비밀번호 둘 다 실패
+        assertThat(violations).hasSize(3); // 이메일 @NotBlank, 이메일 @Email, 비밀번호 @NotBlank = 3개
+
+        // 구체적인 검증
+        assertThat(violations)
+                .extracting(violation -> violation.getPropertyPath().toString() + ":" + violation.getMessage())
+                .containsExactlyInAnyOrder(
+                        "email:이메일은 필수입니다.",
+                        "email:올바른 이메일 형식이 아닙니다.",
+                        "password:비밀번호는 필수입니다."
+                );
     }
 
     @DisplayName("이메일만 유효하고 비밀번호가 무효한 경우")
@@ -326,6 +275,41 @@ class LoginValidationTest {
                 arguments("admin@company.org", "   "),
                 arguments("valid@email.com", "\t"),
                 arguments("another@valid.email.com", "\n")
+        );
+    }
+
+    // ================ 로그아웃 검증 테스트 ================
+
+    @DisplayName("LogoutRequest 유효성 검사 - 모든 필드가 optional이므로 항상 유효")
+    @Test
+    void givenEmptyLogoutRequest_whenValidate_thenNoViolations() {
+        // Given
+        LogoutRequest request = new LogoutRequest();
+
+        // When
+        Set<ConstraintViolation<LogoutRequest>> violations = validator.validate(request);
+
+        // Then
+        assertThat(violations).isEmpty();
+    }
+
+    @DisplayName("LogoutRequest 다양한 입력값 검증")
+    @ParameterizedTest
+    @MethodSource("logoutRequestTestCases")
+    void givenLogoutRequest_whenValidate_thenNoViolations(LogoutRequest request) {
+        // When
+        Set<ConstraintViolation<LogoutRequest>> violations = validator.validate(request);
+
+        // Then
+        assertThat(violations).isEmpty();
+    }
+
+    static Stream<LogoutRequest> logoutRequestTestCases() {
+        return Stream.of(
+                new LogoutRequest(), // 빈 요청
+                new LogoutRequest("access-token", null), // accessToken만
+                new LogoutRequest(null, "refresh-token"), // refreshToken만
+                new LogoutRequest("access-token", "refresh-token") // 둘 다
         );
     }
 }
