@@ -1,5 +1,6 @@
 package com.snow.popin.domain.popup.testdata;
 
+import com.snow.popin.domain.map.entity.Venue;
 import com.snow.popin.domain.popup.entity.*;
 
 import java.lang.reflect.Field;

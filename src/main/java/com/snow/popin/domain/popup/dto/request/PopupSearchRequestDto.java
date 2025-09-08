@@ -1,15 +1,15 @@
 package com.snow.popin.domain.popup.dto.request;
 
 import lombok.Data;
+import lombok.Getter;
 
 import javax.validation.constraints.Min;
 import java.util.List;
 
-@Data
+@Getter
 public class PopupSearchRequestDto {
-    private String title;
-    private List<String> tags;
-    private String region;
+    // 검색어 (제목, 태그에서 검색)
+    private String query;
 
     // 페이징
     @Min(0)
@@ -18,7 +18,25 @@ public class PopupSearchRequestDto {
     @Min(1)
     private int size = 20;
 
-    // 정렬
-    private String sortBy = "createdAt";
-    private String sortDirection = "DESC";
+    public void setQuery(String query) {
+        this.query = query;
+    }
+
+    public void setPage(int page) {
+        this.page = page;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    // 검색어 유효성 확인
+    public boolean hasQuery() {
+        return query != null && !query.trim().isEmpty();
+    }
+
+    // 검색어 길이 확인
+    public boolean isValidQueryLength() {
+        return hasQuery() && query.trim().length() >= 2;
+    }
 }

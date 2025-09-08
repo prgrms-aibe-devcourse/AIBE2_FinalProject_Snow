@@ -1,5 +1,6 @@
 package com.snow.popin.domain.popup.entity;
 
+import com.snow.popin.domain.map.entity.Venue;
 import com.snow.popin.global.common.BaseEntity;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
@@ -7,12 +8,14 @@ import org.hibernate.annotations.BatchSize;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
 @Table(name = "popups")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Popup extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -141,5 +144,14 @@ public class Popup extends BaseEntity {
     public boolean isEnded() {
         LocalDate now = LocalDate.now();
         return endDate != null && now.isAfter(endDate);
+    }
+
+    // 마감까지 남은 일수 계산
+    public Long getDaysUntilEnd() {
+        if (endDate == null) {
+            return null;
+        }
+        LocalDate now = LocalDate.now();
+        return ChronoUnit.DAYS.between(now, endDate);
     }
 }

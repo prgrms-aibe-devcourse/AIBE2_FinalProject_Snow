@@ -1,5 +1,6 @@
 package com.snow.popin.domain.popup.dto.response;
 
+import com.snow.popin.domain.popup.entity.PopupHours;
 import lombok.Builder;
 import java.time.LocalTime;
 
@@ -23,5 +24,15 @@ public class PopupHoursResponseDto {
         return String.format("%s - %s",
                 openTime != null ? openTime.toString() : "미정",
                 closeTime != null ? closeTime.toString() : "미정");
+    }
+
+    public static PopupHoursResponseDto from(PopupHours hours) {
+        return PopupHoursResponseDto.builder()
+                .id(hours.getId())
+                .dayOfWeek(hours.getDayOfWeek())
+                .openTime(hours.getOpenTime())
+                .closeTime(hours.getCloseTime())
+                .note(hours.getNote())
+                .build();
     }
 }

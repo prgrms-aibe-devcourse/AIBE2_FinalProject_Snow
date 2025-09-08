@@ -10,54 +10,58 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface PopupRepository extends JpaRepository<Popup, Long> {
 
-    // 전체 팝업 조회 (상태별)
-    Page<Popup> findByStatusOrderByCreatedAtDesc(PopupStatus status, Pageable pageable);
+    // 통합 필터링 쿼리
+    @Query(value = "SELECT p FROM Popup p LEFT JOIN FETCH p.venue v " +
+            "WHERE (:status IS NULL OR p.status = :status) " +
+            "AND (:region IS NULL OR :region = '전체' OR v.region = :region) " +
+            "AND (:startDate IS NULL OR p.endDate IS NULL OR p.endDate >= :startDate) " +
+            "AND (:endDate IS NULL OR p.startDate IS NULL OR p.startDate <= :endDate)",
+            countQuery = "SELECT count(p) FROM Popup p LEFT JOIN p.venue v " + // Count 쿼리 최적화
+                    "WHERE (:status IS NULL OR p.status = :status) " +
+                    "AND (:region IS NULL OR :region = '전체' OR v.region = :region) " +
+                    "AND (:startDate IS NULL OR p.endDate IS NULL OR p.endDate >= :startDate) " +
+                    "AND (:endDate IS NULL OR p.startDate IS NULL OR p.startDate <= :endDate)")
+    Page<Popup> findWithFilters(
+            @Param("status") PopupStatus status,
+            @Param("region") String region,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            Pageable pageable);
 
-    // 모든 상태의 팝업 조회
-    Page<Popup> findAllByOrderByCreatedAtDesc(Pageable pageable);
+    // 마감임박 팝업 (진행중이고 종료일 7일 이내)
+    @Query(value = "SELECT p FROM Popup p LEFT JOIN FETCH p.venue v " +
+            "WHERE p.status = 'ONGOING' " +
+            "AND p.endDate IS NOT NULL " +
+            "AND p.endDate >= CURRENT_DATE " +
+            "AND p.endDate <= :deadline " +
+            "ORDER BY p.endDate ASC",
+            countQuery = "SELECT count(p) FROM Popup p " +
+                    "WHERE p.status = 'ONGOING' " +
+                    "AND p.endDate IS NOT NULL " +
+                    "AND p.endDate >= CURRENT_DATE " +
+                    "AND p.endDate <= :deadline")
+    Page<Popup> findDeadlineSoonPopups(@Param("deadline") LocalDate deadline, Pageable pageable);
 
-    // 팝업 상세 조회 (이미지, 시간 정보 포함)
-    @EntityGraph(attributePaths = {"images", "hours"})
+
+    // 팝업 상세 조회
+    @EntityGraph(attributePaths = {"images", "hours", "venue", "tags"})
     @Query("SELECT p FROM Popup p WHERE p.id = :id")
     Optional<Popup> findByIdWithDetails(@Param("id") Long id);
 
-    // 팝업 검색 (제목, 지역으로만)
-    @Query("SELECT DISTINCT p FROM Popup p LEFT JOIN p.venue v " +
-            "WHERE (:title IS NULL OR TRIM(:title) = '' OR LOWER(p.title) LIKE LOWER(CONCAT('%', :title, '%'))) " +
-            "AND (:region IS NULL OR TRIM(:region) = '' OR LOWER(v.region) = LOWER(:region))")
-    Page<Popup> searchPopups(
-            @Param("title") String title,
-            @Param("region") String region,
-            Pageable pageable);
-
-    // 태그로 팝업 검색 (제목, 지역 조건 포함)
-    @Query("SELECT DISTINCT p FROM Popup p " +
-            "LEFT JOIN p.venue v " +
-            "JOIN p.tags t " +
-            "WHERE t.name IN :tagNames " +
-            "AND (:title IS NULL OR TRIM(:title) = '' OR LOWER(p.title) LIKE LOWER(CONCAT('%', :title, '%'))) " +
-            "AND (:region IS NULL OR TRIM(:region) = '' OR LOWER(v.region) = LOWER(:region))")
-    Page<Popup> searchPopupsByTags(
-            @Param("tagNames") List<String> tagNames,
-            @Param("title") String title,
-            @Param("region") String region,
-            Pageable pageable);
-
-    // venue별 팝업 조회
-    @Query("SELECT p FROM Popup p WHERE p.venue.id = :venueId ORDER BY p.createdAt DESC")
-    Page<Popup> findByVenueId(@Param("venueId") Long venueId, Pageable pageable);
-
-    // 특정 지역의 팝업 조회
-    @Query("SELECT p FROM Popup p LEFT JOIN p.venue v WHERE v.region = :region ORDER BY p.createdAt DESC")
-    Page<Popup> findByRegion(@Param("region") String region, Pageable pageable);
-
-    // 주차 가능한 venue의 팝업 조회
-    @Query("SELECT p FROM Popup p LEFT JOIN p.venue v WHERE v.parkingAvailable = true ORDER BY p.createdAt DESC")
-    Page<Popup> findByParkingAvailable(Pageable pageable);
+    // 추천/피처드 팝업 조회
+    @Query(value = "SELECT p FROM Popup p LEFT JOIN FETCH p.venue v " +
+            "WHERE p.isFeatured = true " +
+            "AND (p.status = 'ONGOING' OR p.status = 'PLANNED') " +
+            "ORDER BY p.createdAt DESC",
+            countQuery = "SELECT count(p) FROM Popup p " +
+                    "WHERE p.isFeatured = true " +
+                    "AND (p.status = 'ONGOING' OR p.status = 'PLANNED')")
+    Page<Popup> findFeaturedPopups(Pageable pageable);
 }

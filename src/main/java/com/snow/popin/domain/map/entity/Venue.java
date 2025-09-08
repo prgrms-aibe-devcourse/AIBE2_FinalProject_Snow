@@ -1,4 +1,4 @@
-package com.snow.popin.domain.popup.entity;
+package com.snow.popin.domain.map.entity;
 
 import com.snow.popin.global.common.BaseEntity;
 import lombok.Getter;
