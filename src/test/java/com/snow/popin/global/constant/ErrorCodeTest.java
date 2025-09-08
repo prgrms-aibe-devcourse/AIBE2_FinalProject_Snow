@@ -26,7 +26,7 @@ class ErrorCodeTest {
         String actual = sut.getDetailedMessage(e);
 
         // Then
-        assertThat(actual).isEqualTo(sut.getMessage() + " - " + e.getMessage());
+        assertThat(actual).isEqualTo(sut.getMessage() + " " + e.getMessage());
     }
 
     static Stream<Arguments> givenException_whenGetDetailedMessage_thenReturnsFormatted() {

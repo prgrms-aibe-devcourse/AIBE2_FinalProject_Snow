@@ -47,7 +47,6 @@ class AuthServiceTest {
     @BeforeEach
     void setUp() {
         mockUser = User.builder()
-                .id(1L)
                 .email("test@example.com")
                 .password("encodedPw")
                 .name("테스트유저")
