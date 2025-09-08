@@ -54,9 +54,9 @@ public class SecurityConfig {
                         // 인증 관련 페이지
                         .antMatchers("/auth/**").permitAll()
 
-                        .antMatchers(HttpMethod.GET, "/api/mission-sets/**").permitAll()   // 미션 정보 공개
-                        .antMatchers("/api/user-missions/**").permitAll()           // 정답 제출은 로그인 필요
-
+                        // === 미션 관련 API (조회만 공개) ===
+                        .antMatchers(HttpMethod.GET, "/api/mission-sets/**").permitAll()
+                        .antMatchers(HttpMethod.GET, "/api/missions/**").permitAll()
 
                         // 공개 API
                         .antMatchers("/api/auth/login").permitAll()
