@@ -1,7 +1,6 @@
 package com.snow.popin.domain.mission.controller;
 
 import com.snow.popin.domain.mission.entity.Mission;
-import com.snow.popin.domain.mission.repository.MissionRepository;
 import com.snow.popin.domain.mission.dto.MissionDto;
 import com.snow.popin.domain.mission.service.MissionService;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +14,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/missions")
-public class MissionController {
+public class MissionApiController {
 
     private final MissionService missionService;
 
