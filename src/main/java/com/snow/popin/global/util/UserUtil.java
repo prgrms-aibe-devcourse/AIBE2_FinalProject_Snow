@@ -1,7 +1,7 @@
 package com.snow.popin.global.util;
 
-import com.snow.popin.domain.user.UserRepository;
 import com.snow.popin.domain.user.entity.User;
+import com.snow.popin.domain.user.repository.UserRepository;
 import com.snow.popin.global.constant.ErrorCode;
 import com.snow.popin.global.exception.GeneralException;
 import com.snow.popin.global.jwt.JwtUtil;
