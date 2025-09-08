@@ -3,6 +3,7 @@ package com.snow.popin.domain.mission.controller;
 import com.snow.popin.domain.mission.entity.Mission;
 import com.snow.popin.domain.mission.repository.MissionRepository;
 import com.snow.popin.domain.mission.dto.MissionDto;
+import com.snow.popin.domain.mission.service.MissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,22 +17,22 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/missions")
 public class MissionController {
 
-    private final MissionRepository missionRepository;
+    private final MissionService missionService;
 
     @GetMapping("/{id}")
     public MissionDto get(@PathVariable UUID id) {
-        Mission mission = missionRepository.findById(id)
+        Mission mission = missionService.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("mission not found"));
         return MissionDto.from(mission);
     }
 
     @GetMapping
     public List<MissionDto> list(@RequestParam(required = false) UUID missionSetId) {
-        List<Mission> list = (missionSetId == null)
-                ? missionRepository.findAll()
-                : missionRepository.findByMissionSet_Id(missionSetId);
-        return list.stream().map(MissionDto::from).collect(Collectors.toList());
+        List<Mission> missions = (missionSetId == null)
+                ? missionService.findAll()
+                : missionService.findByMissionSetId(missionSetId);
+        return missions.stream()
+                .map(MissionDto::from)
+                .collect(Collectors.toList());
     }
-
-
 }
