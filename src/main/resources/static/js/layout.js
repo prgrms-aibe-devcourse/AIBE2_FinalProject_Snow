@@ -8,8 +8,7 @@ async function loadComponents() {
         document.getElementById('header-container').innerHTML = headerHTML;
 
         // 푸터 로드 - 경로 변경
-        const footerHTML = await TemplateLoader.load('components/footer');
-        document.getElementById('footer-container').innerHTML = footerHTML;
+        document.getElementById('footer-container').innerHTML = createFooterByRole();
 
         // 컴포넌트 로드 완료 후 이벤트 설정
         setupComponentEvents();
@@ -79,38 +78,8 @@ function createFallbackLayout() {
         </header>
     `;
 
-    // 기본 푸터 생성
-    document.getElementById('footer-container').innerHTML = `
-        <footer class="footer">
-            <a href="#" class="footer-item active" data-page="home">
-                <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9,22 9,12 15,12 15,22"></polyline>
-                </svg>
-                <span class="footer-text">홈</span>
-            </a>
-            <a href="#" class="footer-item" data-page="search">
-                <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <path d="m21 21-4.35-4.35"></path>
-                </svg>
-                <span class="footer-text">검색</span>
-            </a>
-            <a href="#" class="footer-item" data-page="bookmark">
-                <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"></path>
-                </svg>
-                <span class="footer-text">북마크</span>
-            </a>
-            <a href="#" class="footer-item" data-page="map">
-                <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                    <circle cx="12" cy="10" r="3"></circle>
-                </svg>
-                <span class="footer-text">지도</span>
-            </a>
-        </footer>
-    `;
+    // 동적 푸터 생성
+    document.getElementById('footer-container').innerHTML = createFooterByRole();
 
     // 폴백 이벤트 설정
     setupComponentEvents();
@@ -152,4 +121,63 @@ function showAlert(message, type = 'info') {
             }
         }, 3000);
     }
+}
+// 역할에 따른 푸터 생성 함수
+function createFooterByRole() {
+    const userRole = getUserRole();
+
+    let navItems = `
+        <a href="#" class="footer-item active" data-page="home">
+            <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9,22 9,12 15,12 15,22"></polyline>
+            </svg>
+            <span class="footer-text">홈</span>
+        </a>
+        <a href="#" class="footer-item" data-page="search">
+            <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <span class="footer-text">검색</span>
+        </a>
+        <a href="#" class="footer-item" data-page="bookmark">
+            <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"></path>
+            </svg>
+            <span class="footer-text">북마크</span>
+        </a>`;
+
+    // PROVIDER나 HOST일 경우 공간대여 메뉴 추가
+    if (userRole === 'PROVIDER' || userRole === 'HOST') {
+        navItems += `
+        <a href="#" class="footer-item" data-page="spaceList">
+            <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <span class="footer-text">공간대여</span>
+        </a>`;
+    }
+
+    navItems += `
+        <a href="#" class="footer-item" data-page="map">
+            <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <span class="footer-text">지도</span>
+        </a>`;
+
+    return `
+        <footer class="footer">
+            ${navItems}
+        </footer>
+    `;
+}
+
+// 사용자 역할 가져오기 함수 (테스트용으로 쓰고 나중엔 실제로 가져오게)
+function getUserRole() {
+
+    return 'USER'; // ROLE을 입력
 }
