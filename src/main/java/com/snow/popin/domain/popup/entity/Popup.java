@@ -5,12 +5,14 @@ import lombok.*;
 import org.hibernate.annotations.BatchSize;
 
 import javax.persistence.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
 @Table(name = "popups")
-@Getter @Setter
+@Getter
 public class Popup extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,24 +21,25 @@ public class Popup extends BaseEntity {
     @Column(name = "brand_id")
     private Long brandId;
 
-    @Column(name = "venue_id")
-    private Long venueId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "venue_id")
+    private Venue venue;
 
     private String title;
     private String summary;
     private String description;
-    private String period;
+
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
 
     @Enumerated(EnumType.STRING)
     private PopupStatus status;
 
     @Column(name = "entry_fee")
     private Integer entryFee = 0;
-
-    private String region;
-    private String address;
-    private Double latitude;
-    private Double longitude;
 
     @Column(name = "reservation_available")
     private Boolean reservationAvailable = false;
@@ -79,5 +82,64 @@ public class Popup extends BaseEntity {
 
     public String getFeeDisplayText() {
         return isFreeEntry() ? "무료" : String.format("%,d원", entryFee);
+    }
+
+    public String getVenueName() {
+        return venue != null ? venue.getName() : null;
+    }
+
+    public String getVenueAddress() {
+        return venue != null ? venue.getFullAddress() : null;
+    }
+
+    public String getRegion() {
+        return venue != null ? venue.getRegion() : null;
+    }
+
+    public Double getLatitude() {
+        return venue != null ? venue.getLatitude() : null;
+    }
+
+    public Double getLongitude() {
+        return venue != null ? venue.getLongitude() : null;
+    }
+
+    public Boolean getParkingAvailable() {
+        return venue != null ? venue.getParkingAvailable() : false;
+    }
+
+    public String getPeriodText() {
+        if (startDate == null && endDate == null) {
+            return "기간 미정";
+        }
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+
+        if (startDate != null && endDate != null) {
+            if (startDate.equals(endDate)) {
+                return startDate.format(formatter);
+            }
+            return startDate.format(formatter) + " - " + endDate.format(formatter);
+        } else if (startDate != null) {
+            return startDate.format(formatter) + " - ";
+        } else {
+            return " - " + endDate.format(formatter);
+        }
+    }
+
+    public boolean isOngoing() {
+        LocalDate now = LocalDate.now();
+        return (startDate == null || !now.isBefore(startDate)) &&
+                (endDate == null || !now.isAfter(endDate));
+    }
+
+    public boolean isUpcoming() {
+        LocalDate now = LocalDate.now();
+        return startDate != null && now.isBefore(startDate);
+    }
+
+    public boolean isEnded() {
+        LocalDate now = LocalDate.now();
+        return endDate != null && now.isAfter(endDate);
     }
 }

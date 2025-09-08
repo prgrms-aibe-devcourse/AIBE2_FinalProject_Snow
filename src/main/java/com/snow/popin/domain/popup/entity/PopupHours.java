@@ -2,7 +2,6 @@ package com.snow.popin.domain.popup.entity;
 
 import com.snow.popin.global.common.BaseEntity;
 import lombok.Getter;
-import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalTime;
@@ -10,7 +9,6 @@ import java.time.LocalTime;
 @Entity
 @Table(name = "popup_hours")
 @Getter
-@Setter
 public class PopupHours extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
