@@ -1,6 +1,6 @@
 package com.snow.popin.global.error;
 
-import com.example.popin.global.constant.ErrorCode;
+import com.snow.popin.global.constant.ErrorCode;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;

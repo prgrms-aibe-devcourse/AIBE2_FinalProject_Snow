@@ -1,8 +1,9 @@
 package com.snow.popin.global.config;
 
-import com.snow.popin.domain.auth.AuthService;
+import com.snow.popin.domain.auth.service.AuthService;
 import com.snow.popin.global.constant.ErrorCode;
 import com.snow.popin.global.jwt.JwtFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,7 +24,11 @@ import static com.snow.popin.global.error.ErrorResponseUtil.sendErrorResponse;
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final AuthService authService;
+    private final JwtFilter jwtFilter;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception{
@@ -31,7 +36,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, AuthService authService, JwtFilter jwtFilter) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf().disable()
 
@@ -41,11 +46,10 @@ public class SecurityConfig {
                 .and()
 
                 .authorizeRequests(authz -> authz
-
+                        // 정적 리소스
                         .antMatchers("/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico").permitAll()
 
                         // 공개 페이지
-                        // TODO : 팝업 리스트, 검색 등 경로 설정되면 추가하기
                         .antMatchers("/", "/index.html", "/main", "/error").permitAll()
 
                         // 인증 관련 페이지
@@ -55,9 +59,9 @@ public class SecurityConfig {
                         .antMatchers("/api/auth/login").permitAll()
                         .antMatchers("/api/auth/signup").permitAll()
                         .antMatchers("/api/auth/check-email").permitAll()
-                        .antMatchers("/api/auth/logout").permitAll() // 로그아웃은 누구나 접근 가능
+                        .antMatchers("/api/auth/logout").permitAll()
 
-                        // TODO : HOST, PROVIDER 경로 설정되면 바꾸기
+                        // 역할별 접근 제어
                         .antMatchers("/admin/**").hasRole("ADMIN")
                         .antMatchers("/host/**").hasRole("HOST")
                         .antMatchers("/provider/**").hasRole("PROVIDER")
@@ -72,31 +76,28 @@ public class SecurityConfig {
 
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
 
-                // 예외 처리 추가
+                // 예외 처리
                 .exceptionHandling(exceptions -> exceptions
-                .authenticationEntryPoint((req, res, authException) -> {
-                    // 인증되지 않은 사용자
-                    if (isApiRequest(req)) {
-                        sendErrorResponse(res, ErrorCode.UNAUTHORIZED);
-                    } else {
-                        res.sendRedirect("/auth/login");
-                    }
-                })
-                .accessDeniedHandler((req, res, accessDeniedException) -> {
-                    // 권한 없는 사용자
-                    if (isApiRequest(req)) {
-                        sendErrorResponse(res, ErrorCode.ACCESS_DENIED);
-                    } else {
-                        res.sendRedirect("/error?code=403");
-                    }
-                })
-        )
+                        .authenticationEntryPoint((req, res, authException) -> {
+                            if (isApiRequest(req)) {
+                                sendErrorResponse(res, ErrorCode.UNAUTHORIZED);
+                            } else {
+                                res.sendRedirect("/auth/login");
+                            }
+                        })
+                        .accessDeniedHandler((req, res, accessDeniedException) -> {
+                            if (isApiRequest(req)) {
+                                sendErrorResponse(res, ErrorCode.ACCESS_DENIED);
+                            } else {
+                                res.sendRedirect("/error?code=403");
+                            }
+                        })
+                )
 
                 .headers(headers -> headers
-                        .frameOptions().deny() // 클릭재킹 방지
-                        .contentTypeOptions().and() // MIME 스니핑 방지
+                        .frameOptions().deny()
+                        .contentTypeOptions().and()
                 );
-
 
         return http.build();
     }
@@ -106,11 +107,8 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // API 요청인지 확인
     private boolean isApiRequest(HttpServletRequest req) {
-
-        String reqWith = req.getHeader("X-Request-With");
+        String reqWith = req.getHeader("X-Requested-With");
         return "XMLHttpRequest".equals(reqWith) || req.getRequestURI().startsWith("/api/");
-
     }
 }

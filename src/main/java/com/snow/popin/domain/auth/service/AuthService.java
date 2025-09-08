@@ -1,15 +1,14 @@
 package com.snow.popin.domain.auth.service;
 
 import com.snow.popin.domain.auth.constant.AuthProvider;
-import com.example.popin.domain.auth.dto.*;
-import com.example.popin.domain.user.constant.Role;
-import com.example.popin.domain.user.entity.User;
-import com.example.popin.domain.user.UserRepository;
-import com.example.popin.global.constant.ErrorCode;
-import com.example.popin.global.exception.GeneralException;
+import com.snow.popin.domain.auth.dto.*;
+import com.snow.popin.domain.user.constant.Role;
+import com.snow.popin.domain.user.entity.User;
+import com.snow.popin.domain.user.UserRepository;
+import com.snow.popin.global.constant.ErrorCode;
+import com.snow.popin.global.exception.GeneralException;
 import com.snow.popin.global.jwt.JwtTokenResolver;
 import com.snow.popin.global.jwt.JwtUtil;
-import com.snow.popin.domain.auth.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
@@ -22,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
@@ -38,10 +38,258 @@ public class AuthService implements UserDetailsService {
     private final JwtUtil jwtUtil;
     private final JwtTokenResolver jwtTokenResolver;
 
-    @Transactional
-    public void signup(SignupRequest req){
+    // ================ 로그인 관련 ================
 
-        if (emailExists(req.getEmail())){
+    /**
+     * 사용자 로그인 처리
+     */
+    public LoginResponse login(LoginRequest req) {
+        log.info("로그인 시도: {}", req.getEmail());
+
+        try {
+            // 1. 사용자 자격 증명 검증
+            User user = validateUserCredentials(req);
+
+            // 2. JWT 토큰 생성
+            String accessToken = generateAccessToken(user);
+
+            // 3. 로그인 응답 생성
+            LoginResponse response = createLoginResponse(user, accessToken);
+
+            // 4. 성공 로깅
+            logSuccessfulLogin(user);
+
+            return response;
+
+        } catch (GeneralException e) {
+            logFailedLogin(req.getEmail(), e);
+            throw e;
+        } catch (Exception e) {
+            log.error("로그인 처리 중 예상치 못한 오류: {}", e.getMessage(), e);
+            throw new GeneralException(ErrorCode.INTERNAL_ERROR, "로그인 처리 중 오류가 발생했습니다.");
+        }
+    }
+
+    /**
+     * 사용자 자격 증명 검증
+     */
+    private User validateUserCredentials(LoginRequest req) {
+        User user = userRepository.findByEmail(req.getEmail())
+                .orElseThrow(() -> {
+                    log.warn("존재하지 않는 이메일로 로그인 시도: {}", req.getEmail());
+                    return new GeneralException(ErrorCode.LOGIN_FAILED);
+                });
+
+        if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
+            log.warn("잘못된 비밀번호로 로그인 시도: {}", req.getEmail());
+            throw new GeneralException(ErrorCode.LOGIN_FAILED);
+        }
+
+        // TODO: 향후 확장 가능한 검증들
+        // validateAccountStatus(user); // 계정 상태 확인 (활성/비활성/잠금)
+        // validateLoginAttempts(req.getEmail()); // 브루트포스 방지
+
+        return user;
+    }
+
+    /**
+     * JWT 액세스 토큰 생성
+     */
+    private String generateAccessToken(User user) {
+        try {
+            return jwtUtil.createToken(
+                    user.getId(),
+                    user.getEmail(),
+                    user.getName(),
+                    user.getRole().name()
+            );
+        } catch (Exception e) {
+            log.error("JWT 토큰 생성 실패 - 사용자: {}, 오류: {}", user.getEmail(), e.getMessage(), e);
+            throw new GeneralException(ErrorCode.INTERNAL_ERROR, "인증 토큰 생성에 실패했습니다.");
+        }
+    }
+
+    /**
+     * 로그인 응답 객체 생성
+     */
+    private LoginResponse createLoginResponse(User user, String accessToken) {
+        return LoginResponse.of(
+                accessToken,
+                user.getId(),
+                user.getEmail(),
+                user.getName(),
+                user.getRole().name()
+        );
+    }
+
+    /**
+     * 성공적인 로그인 후처리
+     */
+    private void logSuccessfulLogin(User user) {
+        log.info("로그인 성공: {}", user.getEmail());
+
+        // TODO: 향후 확장 가능한 후처리들
+        // updateLastLoginTime(user.getId());
+        // recordLoginAudit(user, request);
+        // resetFailedLoginAttempts(user.getEmail());
+    }
+
+    /**
+     * 실패한 로그인 후처리
+     */
+    private void logFailedLogin(String email, Exception e) {
+        log.warn("로그인 실패: {} - {}", email, e.getMessage());
+
+        // TODO: 향후 확장 가능한 후처리들
+        // incrementFailedLoginAttempts(email);
+        // lockAccountIfNecessary(email);
+        // recordFailedLoginAudit(email, request);
+    }
+
+    // ================ 로그아웃 관련 ================
+
+    /**
+     * 사용자 로그아웃 처리
+     */
+    public LogoutResponse logout(LogoutRequest req, HttpServletRequest httpReq, HttpServletResponse httpRes) {
+        String userEmail = "unknown";
+
+        try {
+            String token = extractToken(req, httpReq);
+
+            // 토큰에서 사용자 정보 추출 (로깅용)
+            if (StringUtils.hasText(token) && jwtUtil.validateToken(token)) {
+                userEmail = jwtUtil.getEmail(token);
+            }
+
+            log.info("로그아웃 요청 처리: {}", userEmail);
+
+            // 로그아웃 처리
+            processLogout(token, httpReq, httpRes);
+
+            log.info("로그아웃 완료: {}", userEmail);
+            return LogoutResponse.success("로그아웃이 완료되었습니다.");
+
+        } catch (Exception e) {
+            log.error("로그아웃 처리 중 오류 - 사용자: {}, 오류: {}", userEmail, e.getMessage(), e);
+            // 로그아웃은 항상 성공으로 처리 (클라이언트에서 토큰 정리)
+            return LogoutResponse.success("로그아웃이 완료되었습니다.");
+        }
+    }
+
+    /**
+     * 실제 로그아웃 처리 로직
+     */
+    private void processLogout(String token, HttpServletRequest req, HttpServletResponse res) {
+        try {
+            // 토큰 검증 및 로깅
+            if (StringUtils.hasText(token) && jwtUtil.validateToken(token)) {
+                String userEmail = jwtUtil.getEmail(token);
+                log.info("사용자 로그아웃 처리: {}", userEmail);
+
+                // TODO: 향후 토큰 블랙리스트 추가 시 여기에 구현
+                // blacklistService.addToBlacklist(token);
+            } else {
+                log.debug("유효하지 않은 토큰으로 로그아웃 시도");
+            }
+
+            // 쿠키 정리
+            clearAuthCookies(res);
+
+            // 캐시 정리 헤더 추가
+            addCacheControlHeaders(res);
+
+        } catch (Exception e) {
+            log.warn("로그아웃 처리 중 오류 발생 (계속 진행): {}", e.getMessage());
+        }
+    }
+
+    /**
+     * 인증 관련 쿠키들 정리
+     */
+    private void clearAuthCookies(HttpServletResponse res) {
+        clearCookie(res, "jwtToken", "/");
+        clearCookie(res, "JSESSIONID", "/");
+        clearCookie(res, "remember-me", "/");
+    }
+
+    /**
+     * 개별 쿠키 정리
+     */
+    private void clearCookie(HttpServletResponse res, String name, String path) {
+        Cookie cookie = new Cookie(name, "");
+        cookie.setMaxAge(0);
+        cookie.setPath(path);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false); // 개발환경: false, 프로덕션: true
+        res.addCookie(cookie);
+        log.debug("쿠키 삭제: {}", name);
+    }
+
+    /**
+     * 캐시 제어 헤더 추가
+     */
+    private void addCacheControlHeaders(HttpServletResponse res) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
+    }
+
+    /**
+     * 요청에서 토큰 추출
+     */
+    private String extractToken(LogoutRequest req, HttpServletRequest httpReq) {
+        // 1. 요청 바디에서 토큰 확인
+        if (StringUtils.hasText(req.getAccessToken())) {
+            return req.getAccessToken();
+        }
+
+        // 2. 헤더/쿠키에서 토큰 확인
+        return jwtTokenResolver.resolve(httpReq);
+    }
+
+    // ================ Spring Security 연동 ================
+
+    /**
+     * Spring Security UserDetailsService 구현
+     */
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
+
+        return createUserDetails(user);
+    }
+
+    /**
+     * Spring Security UserDetails 객체 생성
+     */
+    private UserDetails createUserDetails(User user) {
+        Collection<GrantedAuthority> authorities = new ArrayList<>();
+
+        if (user.getRole() != null) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+        }
+
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(user.getEmail())
+                .password(user.getPassword())
+                .authorities(authorities)
+                .accountExpired(false)
+                .accountLocked(false)
+                .credentialsExpired(false)
+                .disabled(false)
+                .build();
+    }
+
+    // ================ 회원가입 및 기타 ================
+
+    /**
+     * 회원가입 처리
+     */
+    @Transactional
+    public void signup(SignupRequest req) {
+        if (emailExists(req.getEmail())) {
             throw new GeneralException(ErrorCode.DUPLICATE_EMAIL);
         }
 
@@ -58,129 +306,13 @@ public class AuthService implements UserDetailsService {
                 .build();
 
         userRepository.save(user);
+        log.info("회원가입 완료: {}", req.getEmail());
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() ->{
-                    return new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email);
-                });
-
-        return createUserDetails(user);
-    }
-
-    private UserDetails createUserDetails(User user) {
-
-        Collection<GrantedAuthority> authorities = new ArrayList<>();
-
-        if (user.getRole() != null){
-            authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
-        }
-
-        // User가 겹쳐서 full package name
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getEmail())
-                .password(user.getPassword())
-                .authorities(authorities)
-                .accountExpired(false)
-                .accountLocked(false)
-                .credentialsExpired(false)
-                .disabled(false)
-                .build();
-
-    }
-
-    public LoginResponse login(LoginRequest req){
-
-        log.info("로그인 시도 : {}", req.getEmail());
-
-        try {
-
-            // 1. 사용자 자격 증명 검증
-            User user = validateUserCredentials(req);
-
-            // 2. JWT 토큰 생성
-            String accessToken = generateAccessToken(user);
-
-            // 3. 로그인 응답 생성
-            LoginResponse res = createLoginResponse(user, accessToken);
-
-            // 4. 성공 로깅
-            log.info("로그인 성공: {}", user.getEmail());
-
-            return res;
-
-        } catch (Exception e){
-            log.error("로그인 처리 중 예상치 못한 오류 : {}", e.getMessage(), e);
-            throw new GeneralException(ErrorCode.INTERNAL_ERROR, "로그인 처리 중 오류가 발생했습니다.");
-        }
-    }
-
-    // 사용자 자격 증명 검증
-    private User validateUserCredentials(LoginRequest req) {
-
-        User user = userRepository.findByEmail(req.getEmail())
-                .orElseThrow(() -> {
-                    log.warn("존재하지 않는 이메일로 로그인 시도 : {}", req.getEmail());
-                    return new GeneralException(ErrorCode.LOGIN_FAILED);
-                });
-
-        if (!passwordEncoder.matches(req.getPassword(), user.getPassword())){
-            log.warn("잘못된 비밀번호로 로그인 시도 : {}", req.getEmail());
-            throw new GeneralException(ErrorCode.LOGIN_FAILED);
-        }
-
-        return user;
-
-    }
-
-    // JWT 액세스 토큰 생성
-    private String generateAccessToken(User user) {
-        try {
-            return jwtUtil.createToken(
-                    user.getId(),
-                    user.getEmail(),
-                    user.getName(),
-                    user.getRole().name()
-            );
-        } catch (Exception e){
-            log.error("JWT 토큰 생성 실패 - 사용자 : {}, 오류 : {}", user.getEmail(), e.getMessage(), e);
-            throw new GeneralException(ErrorCode.INTERNAL_ERROR, "인증 토큰 생성에 실패했습니다.");
-        }
-    }
-
-    // 로그인 응답 객체 생성
-    private LoginResponse createLoginResponse(User user, String accessToken) {
-        return LoginResponse.of(
-                accessToken,
-                user.getId(),
-                user.getEmail(),
-                user.getName(),
-                user.getRole().name()
-        );
-    }
-
-    public LogoutResponse logout(LogoutRequest req, HttpServletRequest httpReq, HttpServletResponse httpRes){
-        try{
-            String token = req.getAccessToken();
-
-            if (!StringUtils.hasText(token)){
-                token = jwtTokenResolver.resolve(httpReq);
-            }
-
-            logoutService.processLogout(token, httpReq, httpRes);
-
-            return LogoutResponse.success("로그아웃이 완료되었습니다.");
-        } catch (Exception e){
-            log.error("로그아웃 처리 중 오류 발생 : {}", e.getMessage(), e);
-            return LogoutResponse.success("로그아웃이 완료되었습니다."); // 로그아웃은 항상 성공으로 처리
-        }
-    }
-
+    /**
+     * 이메일 중복 확인
+     */
     public boolean emailExists(String email) {
         return userRepository.existsByEmail(email);
     }
-
 }

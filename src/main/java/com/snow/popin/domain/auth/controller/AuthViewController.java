@@ -1,7 +1,7 @@
 package com.snow.popin.domain.auth.controller;
 
-import com.snow.popin.domain.auth.AuthService;
 import com.snow.popin.domain.auth.dto.LogoutRequest;
+import com.snow.popin.domain.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;

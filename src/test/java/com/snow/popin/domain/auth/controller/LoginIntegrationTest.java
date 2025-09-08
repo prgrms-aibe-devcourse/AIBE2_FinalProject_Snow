@@ -1,7 +1,6 @@
 package com.snow.popin.domain.auth.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.snow.popin.domain.auth.AuthService;
 import com.snow.popin.domain.auth.constant.AuthProvider;
 import com.snow.popin.domain.auth.dto.LoginRequest;
 import com.snow.popin.domain.user.UserRepository;

@@ -1,6 +1,5 @@
 package com.snow.popin.global.jwt;
 
-import com.snow.popin.domain.auth.AuthService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
