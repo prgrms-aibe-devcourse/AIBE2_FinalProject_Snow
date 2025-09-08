@@ -1,4 +1,4 @@
-package com.snow.popin.domain.mpg_provider.mpg_provider.service;
+package com.snow.popin.domain.mypage.provider.service;
 
 import com.snow.popin.domain.space.entity.Space;
 import com.snow.popin.domain.space.repository.SpaceRepository;

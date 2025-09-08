@@ -1,6 +1,6 @@
-package com.snow.popin.domain.mpg_provider.mpg_provider.repository;
+package com.snow.popin.domain.mypage.provider.repository;
 
-import com.snow.popin.domain.mpg_provider.mpg_provider.entity.ProviderProfile;
+import com.snow.popin.domain.mypage.provider.entity.ProviderProfile;
 import com.snow.popin.domain.space.entity.Space;
 import com.snow.popin.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;

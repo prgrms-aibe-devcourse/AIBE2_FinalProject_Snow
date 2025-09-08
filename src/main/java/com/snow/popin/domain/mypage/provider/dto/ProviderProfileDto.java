@@ -1,6 +1,6 @@
-package com.snow.popin.domain.mpg_provider.mpg_provider.dto;
+package com.snow.popin.domain.mypage.provider.dto;
 
-import com.snow.popin.domain.mpg_provider.mpg_provider.entity.ProviderProfile;
+import com.snow.popin.domain.mypage.provider.entity.ProviderProfile;
 import lombok.Getter;
 
 @Getter

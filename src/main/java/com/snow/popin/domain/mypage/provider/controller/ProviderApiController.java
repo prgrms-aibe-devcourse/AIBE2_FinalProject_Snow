@@ -1,16 +1,13 @@
-package com.snow.popin.domain.mpg_provider.mpg_provider.controller;
+package com.snow.popin.domain.mypage.provider.controller;
 
 import com.snow.popin.domain.space.entity.Space;
-import com.snow.popin.domain.mpg_provider.mpg_provider.service.ProviderService;
-import com.snow.popin.domain.spacereservation.dto.SpaceReservationListResponseDto;
-import com.snow.popin.domain.spacereservation.dto.SpaceReservationResponseDto;
+import com.snow.popin.domain.mypage.provider.service.ProviderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor

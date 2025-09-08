@@ -1,4 +1,4 @@
-package com.snow.popin.domain.mpg_provider.mpg_provider.entity;
+package com.snow.popin.domain.mypage.provider.entity;
 
 import com.snow.popin.global.common.BaseEntity;
 import lombok.Getter;
