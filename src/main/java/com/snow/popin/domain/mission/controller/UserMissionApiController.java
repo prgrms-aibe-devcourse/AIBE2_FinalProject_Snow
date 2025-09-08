@@ -5,6 +5,7 @@ import com.snow.popin.domain.mission.service.UserMissionService;
 import com.snow.popin.domain.user.service.UserService;
 import com.snow.popin.domain.mission.dto.SubmitAnswerRequestDto;
 import com.snow.popin.domain.mission.dto.SubmitAnswerResponseDto;
+import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -12,7 +13,6 @@ import org.springframework.validation.annotation.Validated;
 import javax.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,6 +23,7 @@ import java.util.UUID;
 public class UserMissionApiController {
 
     private final UserMissionService userMissionService;
+    private final UserUtil userUtil;
     private final UserService userService;
 
 
@@ -34,31 +35,24 @@ public class UserMissionApiController {
     }
 
 
+
     @PostMapping("/{missionId}/submit-answer")
     public ResponseEntity<SubmitAnswerResponseDto> submitAnswer(
             @PathVariable UUID missionId,
-            Principal principal,
             @RequestBody @Valid SubmitAnswerRequestDto req
     ) {
-        Long userId = null;
+        // 현재 로그인한 사용자 ID 가져오기
+        Long userId = userUtil.getCurrentUserId();
 
-        //TODO: 사용자 받아오기 config로 대체 예정
-
-        if (principal != null) {
-            String name = principal.getName();
-            userId = userService.getUserIdByUsername(name);
-        }
-
-        // 인증 필요
-        if (principal == null || userId == null) {
+        // 인증 안 된 경우
+        if (userId == null) {
             return ResponseEntity
-                .status(org.springframework.http.HttpStatus.UNAUTHORIZED)
-                .build();
+                    .status(org.springframework.http.HttpStatus.UNAUTHORIZED)
+                    .build();
         }
 
         SubmitAnswerResponseDto res = userMissionService.submitAnswer(missionId, userId, req.getAnswer());
         return ResponseEntity.ok(res);
     }
-
 
 }
