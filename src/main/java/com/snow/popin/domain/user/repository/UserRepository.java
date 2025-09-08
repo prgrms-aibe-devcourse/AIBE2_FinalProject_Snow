@@ -1,4 +1,4 @@
-package com.snow.popin.domain.user;
+package com.snow.popin.domain.user.repository;
 
 import com.snow.popin.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;

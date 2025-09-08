@@ -7,7 +7,7 @@ import com.snow.popin.domain.mission.repository.MissionRepository;
 import com.snow.popin.domain.mission.repository.MissionSetRepository;
 import com.snow.popin.domain.reward.entity.RewardOption;
 import com.snow.popin.domain.reward.repository.RewardOptionRepository;
-import com.snow.popin.domain.user.UserRepository;
+import com.snow.popin.domain.user.repository.UserRepository;
 import com.snow.popin.domain.user.constant.Role;
 import com.snow.popin.domain.user.entity.User;
 

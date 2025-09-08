@@ -6,7 +6,7 @@ import com.snow.popin.domain.auth.constant.AuthProvider;
 import com.snow.popin.domain.auth.dto.LoginRequest;
 import com.snow.popin.domain.auth.dto.LogoutRequest;
 import com.snow.popin.domain.auth.service.AuthService;
-import com.snow.popin.domain.user.UserRepository;
+import com.snow.popin.domain.user.repository.UserRepository;
 import com.snow.popin.domain.user.constant.Role;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.global.constant.ErrorCode;

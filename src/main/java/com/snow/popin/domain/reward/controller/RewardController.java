@@ -8,7 +8,7 @@ import com.snow.popin.domain.reward.dto.response.RedeemResponseDto;
 import com.snow.popin.domain.reward.dto.response.UserRewardResponseDto;
 import com.snow.popin.domain.reward.entity.UserReward;
 import com.snow.popin.domain.reward.service.RewardService;
-import com.snow.popin.domain.user.UserService;
+import com.snow.popin.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;

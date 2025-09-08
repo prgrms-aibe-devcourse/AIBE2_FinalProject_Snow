@@ -1,13 +1,12 @@
 package com.snow.popin.domain.space.controller;
 
-import com.snow.popin.domain.space.dto.*;
 import com.snow.popin.domain.space.dto.SpaceCreateRequestDto;
 import com.snow.popin.domain.space.dto.SpaceListResponseDto;
 import com.snow.popin.domain.space.dto.SpaceResponseDto;
 import com.snow.popin.domain.space.dto.SpaceUpdateRequestDto;
 import com.snow.popin.domain.space.service.SpaceService;
 import com.snow.popin.domain.user.entity.User;
-import com.snow.popin.domain.user.UserRepository;
+import com.snow.popin.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

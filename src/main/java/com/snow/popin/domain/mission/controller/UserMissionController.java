@@ -2,7 +2,7 @@ package com.snow.popin.domain.mission.controller;
 
 import com.snow.popin.domain.mission.entity.UserMission;
 import com.snow.popin.domain.mission.service.UserMissionService;
-import com.snow.popin.domain.user.UserService;
+import com.snow.popin.domain.user.service.UserService;
 import com.snow.popin.domain.mission.dto.SubmitAnswerRequestDto;
 import com.snow.popin.domain.mission.dto.SubmitAnswerResponseDto;
 import lombok.RequiredArgsConstructor;

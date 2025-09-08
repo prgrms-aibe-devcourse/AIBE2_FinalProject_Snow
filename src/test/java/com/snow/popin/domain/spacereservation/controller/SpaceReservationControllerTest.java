@@ -6,7 +6,7 @@ import com.snow.popin.domain.spacereservation.entity.ReservationStatus;
 import com.snow.popin.domain.spacereservation.service.SpaceReservationService;
 import com.snow.popin.domain.user.constant.Role;
 import com.snow.popin.domain.user.entity.User;
-import com.snow.popin.domain.user.UserRepository;
+import com.snow.popin.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

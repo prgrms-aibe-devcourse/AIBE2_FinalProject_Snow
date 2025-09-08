@@ -1,15 +1,20 @@
-package com.snow.popin.domain.user;
+package com.snow.popin.domain.user.controller;
 
+import com.snow.popin.domain.user.dto.UserResponseDto;
+import com.snow.popin.domain.user.service.UserService;
 import com.snow.popin.domain.user.dto.UserFormDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.security.Principal;
+
 @Controller
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -34,6 +39,16 @@ public class UserController {
         return "user/userLoginForm";
     }
 
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDto> getMyProfile(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).build(); // 로그인 안 한 경우
+        }
+
+        UserResponseDto userDto = userService.getUserProfile(principal.getName());
+        return ResponseEntity.ok(userDto);
+    }
 
 
 }
