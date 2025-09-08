@@ -49,7 +49,7 @@ public class MissionSetService {
                         .collect(Collectors.toList());
 
         long successCnt = 0L;
-        Map<UUID, UserMissionStatus> statusByMission = new HashMap<>();
+        Map<UUID, UserMissionStatus> statusByMission = new HashMap<>(10000);
 
         if (userId != null) {
             List<UserMission> userMissions = userMissionRepository
