@@ -171,13 +171,10 @@ class SimpleApiService {
     }
 
     // === 미션 관련 API ===
-
-    // 미션 단건 조회
     async getMission(missionId) {
         return await this.get(`/missions/${encodeURIComponent(missionId)}`);
     }
 
-    // (옵션) 미션 목록 조회 ?missionSetId=
     async listMissions(params = {}) {
         let url = '/missions';
         if (params.missionSetId != null) {
@@ -193,6 +190,15 @@ class SimpleApiService {
 
     async submitMissionAnswer(missionId, answer) {
         return this.post(`/user-missions/${encodeURIComponent(missionId)}/submit-answer`, { answer });
+    }
+
+    // === 리워드 관련 API ===
+    async getMyReward(missionSetId) {
+        return this.get(`/rewards/my/${encodeURIComponent(missionSetId)}`);
+    }
+
+    async redeemReward(missionSetId, staffPin) {
+        return this.post(`/rewards/redeem`, { missionSetId, staffPin });
     }
 }
 
@@ -322,3 +328,5 @@ apiService.rejectReservation = async function(reservationId) {
 apiService.getReservationStats = async function() {
     return await this.get('/space-reservations/stats');
 };
+
+

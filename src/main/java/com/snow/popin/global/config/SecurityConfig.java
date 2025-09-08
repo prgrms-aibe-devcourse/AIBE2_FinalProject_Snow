@@ -5,6 +5,7 @@ import com.snow.popin.global.jwt.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -45,13 +46,17 @@ public class SecurityConfig {
 
                 .authorizeRequests(authz -> authz
                         // 정적 리소스
-                        .antMatchers("/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico").permitAll()
+                        .antMatchers("/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico", "/templates/**").permitAll()
 
                         // 공개 페이지
-                        .antMatchers("/", "/index.html", "/main", "/error").permitAll()
+                        .antMatchers("/", "/index.html", "/main", "/error", "/missions/**").permitAll()
 
                         // 인증 관련 페이지
                         .antMatchers("/auth/**").permitAll()
+
+                        .antMatchers(HttpMethod.GET, "/api/mission-sets/**").permitAll()   // 미션 정보 공개
+                        .antMatchers("/api/user-missions/**").permitAll()           // 정답 제출은 로그인 필요
+
 
                         // 공개 API
                         .antMatchers("/api/auth/login").permitAll()

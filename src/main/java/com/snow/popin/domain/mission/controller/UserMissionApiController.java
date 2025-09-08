@@ -20,20 +20,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @RequestMapping("/api/user-missions")
 @Validated
-public class UserMissionController {
+public class UserMissionApiController {
 
     private final UserMissionService userMissionService;
     private final UserService userService;
-
-    @PostMapping("/{missionId}")
-    public ResponseEntity<UserMission> create(
-            @PathVariable UUID missionId,
-            Principal principal
-    ) {
-        Long userId = userService.getUserIdByUsername(principal.getName());
-        UserMission userMission = userMissionService.create(userId, missionId);
-        return ResponseEntity.ok(userMission);
-    }
 
 
     @GetMapping("/{id}")

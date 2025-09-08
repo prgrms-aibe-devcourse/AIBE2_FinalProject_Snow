@@ -1,6 +1,11 @@
 (function () {
   function $(sel){ return document.querySelector(sel); }
-  function qs(key){ return new URLSearchParams(location.search).get(key); }
+
+  // URL 경로에서 missionSetId 추출 (/missions/{id})
+  function getMissionSetIdFromPath() {
+    const parts = window.location.pathname.split('/');
+    return parts[parts.length - 1] || null;
+  }
 
   // 미션 정답 입력 모달
   function openMissionModal({ mission, onSubmit }) {
@@ -57,18 +62,13 @@
     card.querySelector('#confirm').onclick = async () => {
       const pin = card.querySelector('#staff-pin').value;
       try {
-        const resp = await fetch('/api/rewards/redeem', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ missionSetId, staffPin: pin })
-        });
-        const res = await resp.json();
-        if (resp.ok && res.ok) {
+        const res = await apiService.redeemReward(missionSetId, pin);
+        if (res && res.ok) {
           alert('수령 완료 🎉');
           close();
           location.reload();
         } else {
-          alert(res.error || 'PIN 인증 실패');
+          alert(res?.error || 'PIN 인증 실패');
         }
       } catch (e) {
         alert('네트워크 오류: ' + e.message);
@@ -83,7 +83,7 @@
 
     let myReward = null;
     try {
-      myReward = await apiService.get(`/rewards/my/${setView.missionSetId}`);
+      myReward = await apiService.getMyReward(setView.missionSetId);
     } catch (_) { /* ignore */ }
 
     let btnHtml = '';
@@ -139,8 +139,8 @@
 
   // 엔트리
   window.Pages = window.Pages || {};
-  Pages.missionBoard = async function ({ missionSetId } = {}) {
-    missionSetId = (missionSetId || qs('missionSetId') || '').toString();
+  Pages.missionBoard = async function () {
+    const missionSetId = getMissionSetIdFromPath();
 
     const mount = $('#main-content');
     if (!missionSetId) {
