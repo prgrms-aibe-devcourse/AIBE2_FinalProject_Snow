@@ -38,6 +38,67 @@ public class AuthService implements UserDetailsService {
     private final JwtUtil jwtUtil;
     private final JwtTokenResolver jwtTokenResolver;
 
+    // ================ 회원가입 관련 ================
+    // 회원가입 처리
+    @Transactional
+    public SignupResponse signup(SignupRequest req) {
+
+        log.info("회원가입 시도: {}", req.getEmail());
+
+        try {
+            // 1. 비밀번호 확인 검증
+            if (!req.isPasswordMatching()){
+                throw new GeneralException(ErrorCode.BAD_REQUEST,"비밀번호가 일치하지 않습니다.");
+            }
+
+            // 2. 중복 검증
+            validateDuplicates(req);
+
+            // 3. 사용자 생성 및 저장
+            User uesr = createUser(req);
+            User savedUser = userRepository.save(uesr);
+
+            // 4. 관심사 처리 (나중에 카테고리 엔티티 완성되면 추가)
+            // processUserInterests(savedUser.getId(), req.getInterestCategoryIds());
+
+            log.info("회원가입 성공: {}", req.getEmail());
+            return SignupResponse.success(savedUser.getEmail(), savedUser.getName(), savedUser.getNickname());
+        } catch (GeneralException e){
+            log.warn("회원가입 실패: {} - {}", req.getEmail(), e.getMessage());
+            throw e;
+        }  catch (Exception e) {
+            log.error("회원가입 처리 중 예상치 못한 오류: {}", e.getMessage(), e);
+            throw new GeneralException(ErrorCode.INTERNAL_ERROR, "회원가입 처리 중 오류가 발생했습니다.");
+        }
+
+    }
+
+    // 중복 검증
+    private void validateDuplicates(SignupRequest req){
+        if (userRepository.existsByEmail(req.getEmail())){
+            throw new GeneralException(ErrorCode.DUPLICATE_EMAIL);
+        }
+
+        if (userRepository.existsByNickname(req.getNickname())){
+            throw new GeneralException(ErrorCode.BAD_REQUEST, "이미 사용 중인 닉네임입니다.");
+        }
+    }
+
+    // 사용자 엔티티 생성
+    private User createUser(SignupRequest req){
+        String encodedPassword = passwordEncoder.encode(req.getPassword());
+
+        return User.builder()
+                .email(req.getEmail())
+                .password(encodedPassword)
+                .name(req.getName())
+                .nickname(req.getNickname())
+                .phone(req.getPhone())
+                .authProvider(AuthProvider.LOCAL)
+                .role(Role.USER)
+                .build();
+    }
+
     // ================ 로그인 관련 ================
     // 사용자 로그인 처리
     public LoginResponse login(LoginRequest req) {
@@ -230,33 +291,14 @@ public class AuthService implements UserDetailsService {
                 .build();
     }
 
-    // ================ 회원가입 및 기타 ================
-
-    // 회원가입 처리
-    @Transactional
-    public void signup(SignupRequest req) {
-        if (emailExists(req.getEmail())) {
-            throw new GeneralException(ErrorCode.DUPLICATE_EMAIL);
-        }
-
-        String encodedPassword = passwordEncoder.encode(req.getPassword());
-
-        User user = User.builder()
-                .email(req.getEmail())
-                .password(encodedPassword)
-                .name(req.getName())
-                .nickname(req.getNickname())
-                .phone(req.getPhone())
-                .authProvider(AuthProvider.LOCAL)
-                .role(Role.USER)
-                .build();
-
-        userRepository.save(user);
-        log.info("회원가입 완료: {}", req.getEmail());
-    }
-
+    // ================ 기타 ================
     // 이메일 중복 확인
     public boolean emailExists(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    // 닉네임 중복 확인
+    public boolean nicknameExists(String nickname) {
+        return userRepository.existsByNickname(nickname);
     }
 }
