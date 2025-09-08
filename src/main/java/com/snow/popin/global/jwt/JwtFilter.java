@@ -1,5 +1,6 @@
 package com.snow.popin.global.jwt;
 
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,8 +17,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-
-import static com.example.popin.global.error.ErrorResponseUtil.sendErrorResponse;
 
 @Slf4j
 @Component

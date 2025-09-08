@@ -1,6 +1,5 @@
 package com.snow.popin.domain.auth;
 
-
 import com.snow.popin.domain.auth.constant.AuthProvider;
 import com.snow.popin.domain.auth.dto.LoginRequest;
 import com.snow.popin.domain.auth.dto.LoginResponse;
@@ -26,7 +25,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-
 
 @DisplayName("AuthService 로그인 단위 테스트")
 @ExtendWith(MockitoExtension.class)

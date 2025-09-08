@@ -1,6 +1,5 @@
 package com.snow.popin.domain.auth.controller;
 
-
 import com.snow.popin.domain.auth.AuthService;
 import com.snow.popin.domain.auth.dto.LogoutRequest;
 import lombok.RequiredArgsConstructor;

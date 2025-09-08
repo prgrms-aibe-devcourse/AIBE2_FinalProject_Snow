@@ -1,6 +1,5 @@
 package com.snow.popin.domain.auth.controller;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.snow.popin.domain.auth.AuthService;
 import com.snow.popin.domain.auth.dto.LoginRequest;
@@ -33,7 +32,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 
 @DisplayName("API 컨트롤러 - 인증")
 @WebMvcTest(

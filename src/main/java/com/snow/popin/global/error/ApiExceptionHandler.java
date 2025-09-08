@@ -1,10 +1,9 @@
 package com.snow.popin.global.error;
 
-
-
 import com.snow.popin.global.constant.ErrorCode;
 import com.snow.popin.global.exception.GeneralException;
 import com.snow.popin.global.exception.PopupNotFoundException;
+
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

@@ -1,5 +1,6 @@
 package com.snow.popin.domain.auth.controller;
 
+
 import com.snow.popin.domain.auth.AuthService;
 import com.snow.popin.domain.auth.dto.*;
 import com.snow.popin.global.exception.GeneralException;
@@ -74,8 +75,6 @@ public class AuthApiController {
             return ResponseEntity.ok(LogoutResponse.success("로그아웃이 완료되었습니다"));
         }
     }
-
-
 
     @GetMapping("/check-email")
     public ResponseEntity<Map<String, Boolean>> checkEmailDuplicate(@RequestParam String email){

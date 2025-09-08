@@ -1,6 +1,5 @@
 package com.snow.popin.global.config;
 
-
 import com.snow.popin.domain.auth.AuthService;
 import com.snow.popin.global.constant.ErrorCode;
 import com.snow.popin.global.jwt.JwtFilter;

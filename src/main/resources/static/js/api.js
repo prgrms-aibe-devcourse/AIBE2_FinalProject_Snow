@@ -106,6 +106,7 @@ class SimpleApiService {
             throw error;
         }
     }
+
     // PUT 요청
     async put(endpoint, data) {
         try {
@@ -159,25 +160,7 @@ class SimpleApiService {
         }
     }
 
-
-    // 로그인
-    async login(username, password) {
-        const result = await this.post('/auth/login', { username, password });
-        if (result.token) {
-            this.storeToken(result.token);
-        }
-        return result;
-    }
-
-    // 로그아웃
-    async logout() {
-        try {
-            await this.post('/auth/logout');
-        } finally {
-            this.removeToken();
-        }
-    }
-
+    // 현재 사용자 정보
     async getCurrentUser() {
         return await this.get('/users/me');
     }
@@ -186,7 +169,6 @@ class SimpleApiService {
     async getMainData() {
         return await this.get('/main');
     }
-
 
     // === 미션 관련 API ===
 
@@ -209,13 +191,9 @@ class SimpleApiService {
         return this.get(url);
     }
 
-
     async submitMissionAnswer(missionId, answer) {
         return this.post(`/user-missions/${encodeURIComponent(missionId)}/submit-answer`, { answer });
     }
-
-
-
 }
 
 // 전역 API 서비스 인스턴스
@@ -267,9 +245,6 @@ apiService.createSpace = async function(formData) {
         throw error;
     }
 };
-
-
-
 
 // 공간 수정
 apiService.updateSpace = async function(spaceId, formData) {
@@ -342,6 +317,7 @@ apiService.acceptReservation = async function(reservationId) {
 apiService.rejectReservation = async function(reservationId) {
     return await this.put(`/space-reservations/${encodeURIComponent(reservationId)}/reject`, {});
 };
+
 // 예약 현황 통계
 apiService.getReservationStats = async function() {
     return await this.get('/space-reservations/stats');

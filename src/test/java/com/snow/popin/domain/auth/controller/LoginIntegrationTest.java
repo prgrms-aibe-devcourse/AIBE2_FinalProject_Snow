@@ -1,6 +1,5 @@
 package com.snow.popin.domain.auth.controller;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.snow.popin.domain.auth.AuthService;
 import com.snow.popin.domain.auth.constant.AuthProvider;
@@ -30,7 +29,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 
 @DisplayName("로그인 통합 테스트")
 @SpringBootTest
