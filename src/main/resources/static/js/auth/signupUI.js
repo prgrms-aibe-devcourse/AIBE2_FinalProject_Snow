@@ -76,7 +76,7 @@ class SignupUI {
         // 관심사 선택 이벤트
         this.setupInterestSelection();
 
-        // 핸드폰 번호 자동 포매팅
+        // 핸드폰 번호 자동 포맷팅
         this.setupPhoneFormatting();
 
         // Enter 키 처리
@@ -131,6 +131,10 @@ class SignupUI {
             this.validatePasswordConfirmField();
         });
 
+        this.elements.passwordConfirmInput.addEventListener('blur', () => {
+            this.validatePasswordConfirmField();
+        });
+
         // 핸드폰 번호 검증
         this.elements.phoneInput.addEventListener('blur', () => {
             this.validatePhoneField();
@@ -175,7 +179,7 @@ class SignupUI {
     }
 
     /**
-     * 핸드폰 번호 자동 포매팅 설정
+     * 핸드폰 번호 자동 포맷팅 설정
      */
     setupPhoneFormatting() {
         this.elements.phoneInput.addEventListener('input', (e) => {
@@ -256,6 +260,7 @@ class SignupUI {
         this.clearFieldError('nickname');
         return true;
     }
+
     /**
      * 이메일 필드 검증
      * @param {boolean} checkDuplicate 중복 확인 여부
@@ -338,6 +343,10 @@ class SignupUI {
         const password = this.elements.passwordInput.value;
         const passwordConfirm = this.elements.passwordConfirmInput.value;
 
+        // 먼저 기존 메시지를 모두 제거
+        this.clearFieldError('passwordConfirm');
+        this.clearFieldSuccess('passwordConfirm');
+
         const result = SignupValidator.validatePasswordConfirm(password, passwordConfirm);
 
         if (!result.isValid) {
@@ -377,16 +386,20 @@ class SignupUI {
         const error = this.elements[`${field}Error`];
 
         if (input && error) {
+            // 먼저 기존 상태를 모두 초기화
+            this.clearFieldError(field);
+            this.clearFieldSuccess(field);
+
+            // 에러 상태 설정
             input.classList.add('error');
             input.classList.remove('success');
             error.textContent = message;
-            error.classList.add('show'); // 이 한 줄만 추가하면 됨!
+            error.classList.add('show');
         }
     }
 
-
     /**
-     * 필드 성공 표시 (수정된 버전)
+     * 필드 성공 표시
      * @param {string} field 필드명
      * @param {string} message 성공 메시지
      */
@@ -395,23 +408,17 @@ class SignupUI {
         const success = this.elements[`${field}Success`];
 
         if (input && success) {
+            // 먼저 기존 상태를 모두 초기화
+            this.clearFieldError(field);
+            this.clearFieldSuccess(field);
+
+            // 성공 상태 설정
             input.classList.add('success');
             input.classList.remove('error');
             success.textContent = message;
-            success.classList.add('show'); // 이 줄 추가!
-        }
-
-        // 중복확인 버튼 성공 상태 표시
-        if (field === 'email' && this.elements.emailCheckBtn) {
-            this.elements.emailCheckBtn.classList.add('success');
-            this.elements.emailCheckBtn.textContent = '확인완료';
-        }
-        if (field === 'nickname' && this.elements.nicknameCheckBtn) {
-            this.elements.nicknameCheckBtn.classList.add('success');
-            this.elements.nicknameCheckBtn.textContent = '확인완료';
+            success.classList.add('show');
         }
     }
-
 
     /**
      * 필드 에러 제거
@@ -424,12 +431,12 @@ class SignupUI {
         if (input && error) {
             input.classList.remove('error');
             error.textContent = '';
-            error.classList.remove('show'); // 이 한 줄도 추가
+            error.classList.remove('show');
         }
     }
 
     /**
-     * 필드 성공 제거 (수정된 버전)
+     * 필드 성공 제거
      * @param {string} field 필드명
      */
     clearFieldSuccess(field) {
@@ -439,17 +446,7 @@ class SignupUI {
         if (input && success) {
             input.classList.remove('success');
             success.textContent = '';
-            success.classList.remove('show'); // 이 줄 추가!
-        }
-
-        // 중복확인 버튼 상태 초기화
-        if (field === 'email' && this.elements.emailCheckBtn) {
-            this.elements.emailCheckBtn.classList.remove('success');
-            this.elements.emailCheckBtn.textContent = '중복확인';
-        }
-        if (field === 'nickname' && this.elements.nicknameCheckBtn) {
-            this.elements.nicknameCheckBtn.classList.remove('success');
-            this.elements.nicknameCheckBtn.textContent = '중복확인';
+            success.classList.remove('show');
         }
     }
 
