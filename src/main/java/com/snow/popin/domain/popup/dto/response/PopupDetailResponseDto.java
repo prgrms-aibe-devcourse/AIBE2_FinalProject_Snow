@@ -2,10 +2,12 @@ package com.snow.popin.domain.popup.dto.response;
 
 import com.snow.popin.domain.popup.entity.PopupStatus;
 import lombok.Builder;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Getter
 @Builder
 public class PopupDetailResponseDto {
     private Long id;
