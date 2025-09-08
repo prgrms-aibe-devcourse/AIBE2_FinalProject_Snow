@@ -36,7 +36,9 @@ class SimpleApiService {
     removeToken() {
         try {
             localStorage.removeItem('authToken');
+            localStorage.removeItem('accessToken');
             sessionStorage.removeItem('authToken');
+            sessionStorage.removeItem('accessToken');
         } catch (error) {
             console.warn('토큰 제거 실패');
         }

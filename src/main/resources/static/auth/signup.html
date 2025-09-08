@@ -1,361 +1,188 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>회원가입</title>
-
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
-        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
-        .error { color: red; font-size: 14px; margin-top: 5px; }
-        .success { color: green; }
-
-        /* 관심사 선택 스타일 */
-        .interest-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        .interest-item {
-            position: relative;
-        }
-        .interest-item input[type="checkbox"] {
-            position: absolute;
-            opacity: 0;
-            width: auto;
-        }
-        .interest-item label {
-            display: inline-block;
-            padding: 6px 12px;
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: normal;
-            margin: 0;
-        }
-        .interest-item input[type="checkbox"]:checked + label {
-            background-color: #007bff;
-            border-color: #007bff;
-            color: white;
-        }
-    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>회원가입 - POPIN</title>
+    <link rel="stylesheet" href="/css/layout.css" />
+    <link rel="stylesheet" href="/css/signup.css">
 </head>
 <body>
-<h2>회원가입</h2>
-<form action="/users/new" method="post">
-    <div class="form-group">
-        <label>이메일 *</label>
-        <input type="email" id="email" name="email" placeholder="이메일을 입력하세요"/>
-        <div id="email-error" class="error-message" style="display: none; color: red; font-size: 14px; margin-top: 5px;"></div>
-    </div>
-    <div class="form-group">
-        <label>비밀번호 *</label>
-        <input type="password" name="password" placeholder="8-16자 비밀번호"/>
-    </div>
-    <div class="form-group">
-        <label>이름 *</label>
-        <input type="text" name="name" placeholder="이름을 입력하세요"/>
-    </div>
-    <div class="form-group">
-        <label>닉네임</label>
-        <input type="text" name="nickname" placeholder="닉네임을 입력하세요"/>
-    </div>
-    <div class="form-group">
-        <label>전화번호</label>
-        <input type="text" name="phone" placeholder="전화번호를 입력하세요"/>
-
-        <label style="margin-top: 15px;">관심사 골라보기</label>
-        <div class="interest-tags">
-            <div class="interest-item">
-                <input type="checkbox" id="fashion" name="interests" value="패션">
-                <label for="fashion">패션</label>
+<div class="signup-container">
+    <div class="signup-card">
+        <div class="signup-header">
+            <button class="back-btn" onclick="history.back()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m15 18-6-6 6-6"></path>
+                </svg>
+            </button>
+            <div class="logo">
+                <div class="logo-bubble">
+                    <span class="logo-text">POPIN</span>
+                </div>
             </div>
-            <div class="interest-item">
-                <input type="checkbox" id="pets" name="interests" value="반려동물">
-                <label for="pets">반려동물</label>
-            </div>
-            <div class="interest-item">
-                <input type="checkbox" id="game" name="interests" value="게임">
-                <label for="game">게임</label>
-            </div>
-            <div class="interest-item">
-                <input type="checkbox" id="culture" name="interests" value="문화/컨텐츠">
-                <label for="culture">문화/컨텐츠</label>
-            </div>
-            <div class="interest-item">
-                <input type="checkbox" id="history" name="interests" value="역사">
-                <label for="history">역사</label>
-            </div>
-            <div class="interest-item">
-                <input type="checkbox" id="sports" name="interests" value="레저/스포츠">
-                <label for="sports">레저/스포츠</label>
+            <div class="header-right">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="m13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
             </div>
         </div>
+
+        <div id="alert-container" class="alert"></div>
+
+        <form id="signupForm" novalidate>
+            <!-- 이름 -->
+            <div class="form-group">
+                <label class="form-label" for="name">이름</label>
+                <input type="text" id="name" name="name" class="form-input" placeholder="성함을 입력해 주세요" required />
+                <div class="field-error" id="name-error"></div>
+            </div>
+
+            <!-- 닉네임 -->
+            <div class="form-group">
+                <label class="form-label" for="nickname">닉네임</label>
+                <div class="input-with-btn">
+                    <input type="text" id="nickname" name="nickname" class="form-input" placeholder="닉네임을 입력해 주세요" required />
+                    <button type="button" class="check-btn" id="nicknameCheckBtn">중복확인</button>
+                </div>
+                <div class="field-error" id="nickname-error"></div>
+                <div class="field-success" id="nickname-success"></div>
+            </div>
+
+            <!-- 이메일 -->
+            <div class="form-group">
+                <label class="form-label" for="email">이메일</label>
+                <div class="input-with-btn">
+                    <input type="email" id="email" name="email" class="form-input" placeholder="이메일을 입력해 주세요" required />
+                    <button type="button" class="check-btn" id="emailCheckBtn">중복확인</button>
+                </div>
+                <div class="field-error" id="email-error"></div>
+                <div class="field-success" id="email-success"></div>
+            </div>
+
+            <!-- 비밀번호 -->
+            <div class="form-group">
+                <label class="form-label" for="password">비밀번호</label>
+                <input type="password" id="password" name="password" class="form-input" placeholder="비밀번호를 입력해 주세요" required />
+                <div class="field-error" id="password-error"></div>
+                <div class="password-requirements">
+                    <div class="requirement" id="req-length">8자 이상</div>
+                    <div class="requirement" id="req-letter">영문 포함</div>
+                    <div class="requirement" id="req-number">숫자 포함</div>
+                    <div class="requirement" id="req-special">특수문자 포함</div>
+                </div>
+            </div>
+
+            <!-- 비밀번호 확인 -->
+            <div class="form-group">
+                <label class="form-label" for="passwordConfirm">비밀번호 확인</label>
+                <input type="password" id="passwordConfirm" name="passwordConfirm" class="form-input" placeholder="비밀번호를 다시 입력해 주세요" required />
+                <div class="field-error" id="passwordConfirm-error"></div>
+                <div class="field-success" id="passwordConfirm-success"></div>
+            </div>
+
+            <!-- 핸드폰 번호 -->
+            <div class="form-group">
+                <label class="form-label" for="phone">핸드폰 번호</label>
+                <input type="tel" id="phone" name="phone" class="form-input" placeholder="010-0000-0000" required />
+                <div class="field-error" id="phone-error"></div>
+                <div class="field-help">하이픈(-)을 포함하여 입력해 주세요</div>
+            </div>
+
+            <!-- 관심사 골라보기 -->
+            <div class="form-group">
+                <label class="form-label">관심사 골라보기</label>
+                <div class="interest-section">
+                    <div class="interest-categories">
+                        <button type="button" class="category-btn active" data-category="fashion">패션</button>
+                        <button type="button" class="category-btn" data-category="beauty">뷰티</button>
+                        <button type="button" class="category-btn" data-category="art">예술</button>
+                        <button type="button" class="category-btn" data-category="sports">운동/건강</button>
+                        <button type="button" class="category-btn" data-category="culture">문화/엔터</button>
+                    </div>
+
+                    <div class="interest-tags">
+                        <!-- 패션 태그들 -->
+                        <div class="tag-group" data-category="fashion">
+                            <button type="button" class="tag-btn" data-tag="의류">의류</button>
+                            <button type="button" class="tag-btn" data-tag="신발">신발</button>
+                            <button type="button" class="tag-btn" data-tag="가방">가방</button>
+                            <button type="button" class="tag-btn" data-tag="액세서리">액세서리</button>
+                            <button type="button" class="tag-btn" data-tag="빈티지">빈티지</button>
+                        </div>
+
+                        <!-- 뷰티 태그들 -->
+                        <div class="tag-group" data-category="beauty" style="display: none;">
+                            <button type="button" class="tag-btn" data-tag="화장품">화장품</button>
+                            <button type="button" class="tag-btn" data-tag="스킨케어">스킨케어</button>
+                            <button type="button" class="tag-btn" data-tag="헤어">헤어</button>
+                            <button type="button" class="tag-btn" data-tag="네일">네일</button>
+                            <button type="button" class="tag-btn" data-tag="향수">향수</button>
+                        </div>
+
+                        <!-- 예술 태그들 -->
+                        <div class="tag-group" data-category="art" style="display: none;">
+                            <button type="button" class="tag-btn" data-tag="전시">전시</button>
+                            <button type="button" class="tag-btn" data-tag="공연">공연</button>
+                            <button type="button" class="tag-btn" data-tag="미술">미술</button>
+                            <button type="button" class="tag-btn" data-tag="사진">사진</button>
+                            <button type="button" class="tag-btn" data-tag="조각">조각</button>
+                        </div>
+
+                        <!-- 운동/건강 태그들 -->
+                        <div class="tag-group" data-category="sports" style="display: none;">
+                            <button type="button" class="tag-btn" data-tag="피트니스">피트니스</button>
+                            <button type="button" class="tag-btn" data-tag="요가">요가</button>
+                            <button type="button" class="tag-btn" data-tag="러닝">러닝</button>
+                            <button type="button" class="tag-btn" data-tag="헬스">헬스</button>
+                            <button type="button" class="tag-btn" data-tag="웰니스">웰니스</button>
+                        </div>
+
+                        <!-- 문화/엔터 태그들 -->
+                        <div class="tag-group" data-category="culture" style="display: none;">
+                            <button type="button" class="tag-btn" data-tag="음악">음악</button>
+                            <button type="button" class="tag-btn" data-tag="영화">영화</button>
+                            <button type="button" class="tag-btn" data-tag="도서">도서</button>
+                            <button type="button" class="tag-btn" data-tag="게임">게임</button>
+                            <button type="button" class="tag-btn" data-tag="카페">카페</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="selected-interests">
+                    <span class="selected-label">선택된 관심사:</span>
+                    <div class="selected-tags" id="selectedTags">
+                        <!-- 선택된 태그들이 여기에 표시됩니다 -->
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="signup-btn" id="signupBtn">
+                <span class="loading"></span>
+                <span class="btn-text">가입하기</span>
+            </button>
+        </form>
+
+        <div class="login-link">이미 계정이 있으신가요? <a href="/auth/login">로그인하기</a></div>
     </div>
-    <button type="submit">가입하기</button>
-</form>
-<p style="margin-top: 20px;">
-    이미 계정이 있으신가요? <a href="/users/login">로그인하기</a>
-</p>
+</div>
+
+<!-- JavaScript 파일들 로드 -->
+<script src="/js/api.js"></script>
+<script src="/js/auth/signupApi.js"></script>
+<script src="/js/auth/signupValidator.js"></script>
+<script src="/js/auth/signupUI.js"></script>
+<script src="/js/auth/signupController.js"></script>
+
 <script>
-    // 회원가입 폼 처리 스크립트
+    // 페이지 로드 완료 후 회원가입 컨트롤러 초기화
     document.addEventListener('DOMContentLoaded', function() {
-        const signupForm = document.querySelector('form');
-
-        if (signupForm) {
-            signupForm.addEventListener('submit', handleSignup);
-        }
+        new SignupController();
     });
-
-    async function handleSignup(event) {
-        event.preventDefault(); // 기본 폼 제출 방지
-
-        const form = event.target;
-        const formData = new FormData(form);
-
-        // 기본 사용자 정보 수집
-        const userData = {
-            email: formData.get('email'),
-            password: formData.get('password'),
-            name: formData.get('name'),
-            nickname: formData.get('nickname') || null,
-            phone: formData.get('phone') || null
-        };
-
-        // 관심사 정보 수집 (체크된 항목들을 category_id로 변환)
-        const selectedInterests = formData.getAll('interests');
-        const interests = mapInterestsToCategoryIds(selectedInterests);
-
-        // 유효성 검사
-        if (!validateUserData(userData)) {
-            return;
-        }
-
-        try {
-            // 회원가입 API 호출
-            const response = await fetch('/api/auth/signup', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    user: userData,
-                    interests: interests
-                })
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                alert('회원가입이 완료되었습니다!');
-                // 로그인 페이지로 리다이렉트
-                window.location.href = '/users/login';
-            } else {
-                alert(result.message || '회원가입 중 오류가 발생했습니다.');
-            }
-        } catch (error) {
-            console.error('회원가입 오류:', error);
-            alert('네트워크 오류가 발생했습니다. 다시 시도해주세요.');
-        }
-    }
-
-    function validateUserData(userData) {
-        // 필수 필드 검사
-        if (!userData.email) {
-            alert('이메일을 입력해주세요.');
-            return false;
-        }
-
-        if (!userData.password) {
-            alert('비밀번호를 입력해주세요.');
-            return false;
-        }
-
-        if (!userData.name) {
-            alert('이름을 입력해주세요.');
-            return false;
-        }
-
-        // 이메일 형식 검사
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(userData.email)) {
-            alert('올바른 이메일 형식을 입력해주세요.');
-            return false;
-        }
-
-        // 비밀번호 길이 검사
-        if (userData.password.length < 8 || userData.password.length > 16) {
-            alert('비밀번호는 8-16자로 입력해주세요.');
-            return false;
-        }
-
-        return true;
-    }
-
-    // 관심사 문자열을 category_id로 매핑하는 함수
-    function mapInterestsToCategoryIds(interests) {
-        const categoryMap = {
-            '패션': 1,
-            '반려동물': 2,
-            '게임': 3,
-            '문화/컨텐츠': 4,
-            '역사': 5,
-            '레저/스포츠': 6
-        };
-
-        return interests.map(interest => categoryMap[interest]).filter(id => id !== undefined);
-    }
-
-    // 실시간 이메일 검증 함수
-    function validateEmailRealtime(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    }
-
-    // 이메일 필드에 실시간 검증 이벤트
-    document.addEventListener('DOMContentLoaded', function() {
-        const emailInput = document.getElementById('email'); // 실제 이메일 input id로 변경
-        const emailError = document.getElementById('email-error'); // 에러 메시지 표시할 요소
-
-        if (emailInput) {
-            emailInput.addEventListener('blur', function() {
-                const email = this.value.trim();
-
-                if (email && !validateEmailRealtime(email)) {
-                    emailError.textContent = '올바른 이메일 형식을 입력해주세요.';
-                    emailError.style.display = 'block';
-                    this.classList.add('error');
-                } else {
-                    emailError.textContent = '';
-                    emailError.style.display = 'none';
-                    this.classList.remove('error');
-                }
-            });
-        }
-    });
-
-    async function checkEmailDuplicate(email) {
-        try {
-            const response = await fetch(`/api/users/check-email?email=${encodeURIComponent(email)}`);
-            const data = await response.json();
-            return data.exists;
-        } catch (error) {
-            console.error('이메일 중복 확인 오류:', error);
-            return false;
-        }
-    }
-
-    // 이메일 필드에서 포커스를 벗어날 때 중복 확인
-    document.getElementById('email').addEventListener('blur', async function() {
-        const email = this.value;
-        const errorElement = document.getElementById('email-error');
-
-        // 1. 형식 검증
-        if (!validateEmail(email)) {
-            errorElement.textContent = '올바른 이메일 형식을 입력해주세요.';
-            return;
-        }
-
-        // 2. 중복 확인
-        const isDuplicate = await checkEmailDuplicate(email);
-        if (isDuplicate) {
-            errorElement.textContent = '이미 사용 중인 이메일입니다.';
-            this.classList.add('error');
-        } else {
-            errorElement.textContent = '';
-            this.classList.remove('error');
-        }
-    });
-
-    async function checkEmailDuplicate(email) {
-        try {
-            const response = await fetch(`/api/auth/check-email?email=${encodeURIComponent(email)}`); // URL 수정
-            const data = await response.json();
-            return data.exists;
-        } catch (error) {
-            console.error('이메일 중복 확인 오류:', error);
-            return false;
-        }
-    }
-
-    function validateEmailRealtime(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    }
-
-    // 이메일 필드에서 포커스를 벗어날 때 중복 확인 (기존 유지)
-    document.getElementById('email').addEventListener('blur', async function() {
-        const email = this.value.trim();
-        const errorElement = document.getElementById('email-error');
-
-        if (!email) {
-            errorElement.textContent = '';
-            this.classList.remove('error');
-            return;
-        }
-
-        // 1. 형식 검증
-        if (!validateEmailRealtime(email)) {
-            errorElement.textContent = '올바른 이메일 형식을 입력해주세요.';
-            this.classList.add('error');
-            return;
-        }
-
-        // 2. 중복 확인
-        const isDuplicate = await checkEmailDuplicate(email);
-        if (isDuplicate) {
-            errorElement.textContent = '이미 사용 중인 이메일입니다.';
-            this.classList.add('error');
-        } else {
-            errorElement.textContent = '';
-            this.classList.remove('error');
-        }
-    });
-
-    // Debounce 추가 (타이핑 중 실시간 검증)
-    let debounceTimer;
-
-    function debounce(func, delay) {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(func, delay);
-    }
-
-    document.getElementById('email').addEventListener('input', function() {
-        const email = this.value.trim();
-        const errorElement = document.getElementById('email-error');
-
-        if (!email) {
-            errorElement.textContent = '';
-            this.classList.remove('error');
-            return;
-        }
-
-        debounce(async function() {
-            // 1. 형식 검증
-            if (!validateEmailRealtime(email)) {
-                errorElement.textContent = '올바른 이메일 형식을 입력해주세요.';
-                document.getElementById('email').classList.add('error');
-                return;
-            }
-
-            // 2. 중복 확인
-            const isDuplicate = await checkEmailDuplicate(email);
-            if (isDuplicate) {
-                errorElement.textContent = '이미 사용 중인 이메일입니다.';
-                document.getElementById('email').classList.add('error');
-            } else {
-                errorElement.textContent = '';
-                document.getElementById('email').classList.remove('error');
-            }
-        }, 500);
-    });
-
 </script>
 </body>
 </html>
