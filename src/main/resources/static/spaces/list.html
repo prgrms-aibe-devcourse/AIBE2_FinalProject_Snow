@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>팝업 공간 대여</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: #f8f9fa;
+        }
+
+        /* 헤더 */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background-color: white;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .logo {
+            background-color: #6366f1;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .header-icons span {
+            font-size: 18px;
+            color: #666;
+            cursor: pointer;
+        }
+
+        /* 메인 컨텐츠 */
+        .container {
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .register-btn {
+            background: #6366f1;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .register-btn:hover {
+            background: #5856eb;
+        }
+
+        /* 공간 카드 */
+        .space-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .space-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .space-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .space-icon {
+            width: 40px;
+            height: 40px;
+            background: #f1f3f5;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .space-details {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .space-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .space-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            color: #666;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .action-btn:hover {
+            background: #f8f9fa;
+        }
+
+        .action-btn.edit {
+            border-color: #6366f1;
+            color: #6366f1;
+        }
+
+        .action-btn.delete {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        /* 빈 상태 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* 하단 네비게이션 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 500px;
+            background-color: white;
+            border-top: 1px solid #e9ecef;
+            padding: 10px 0;
+        }
+
+        .nav-items {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .nav-item {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: #6366f1;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        /* 로딩 상태 */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: "...";
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: ""; }
+            40% { content: "."; }
+            60% { content: ".."; }
+            80%, 100% { content: "..."; }
+        }
+        .thumb {
+            width: 120px;
+            height: 120px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-left: 12px;
+        }
+
+        .actions-inline { margin-top:10px; display:flex; gap:12px; }
+        .actions-inline .link {
+            background:none; border:none; padding:0; color:#2563eb; cursor:pointer; font-weight:600;
+        }
+        .actions-inline .link:hover { text-decoration:underline; }
+
+    </style>
+</head>
+<body>
+<!-- 헤더 -->
+<div class="header">
+    <button class="back-btn" onclick="history.back()">‹</button>
+    <div class="logo">POPIN</div>
+    <div class="header-icons">
+        <span>🔔</span>
+        <span>👤</span>
+    </div>
+</div>
+
+<!-- 메인 컨텐츠 -->
+<div class="container">
+    <div class="page-header">
+        <h1 class="page-title">팝업 공간 대여</h1>
+        <a href="register.html" class="register-btn">등록하기</a>
+    </div>
+
+    <!-- 로딩 상태 -->
+    <div id="loading" class="loading">공간 목록을 불러오는 중</div>
+
+    <!-- 공간 목록 -->
+    <div id="spaceList"></div>
+
+    <!-- 빈 상태 -->
+    <div id="emptyState" class="empty-state" style="display: none;">
+        <div class="empty-icon">🏢</div>
+        <p>등록된 공간이 없습니다.</p>
+        <br>
+        <a href="register.html" class="register-btn">첫 번째 공간 등록하기</a>
+    </div>
+</div>
+
+<!-- 하단 네비게이션 -->
+<div class="bottom-nav">
+    <div class="nav-items">
+        <div class="nav-item">
+            <div class="nav-icon">🏠</div>
+            <div>홈</div>
+        </div>
+        <div class="nav-item">
+            <div class="nav-icon">🔍</div>
+            <div>검색</div>
+        </div>
+        <div class="nav-item">
+            <div class="nav-icon">🔖</div>
+            <div>북마크</div>
+        </div>
+        <div class="nav-item active">
+            <div class="nav-icon">🏢</div>
+            <div>공간 대여</div>
+        </div>
+        <div class="nav-item">
+            <div class="nav-icon">📊</div>
+            <div>지도</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 페이지 로드 시 공간 목록 불러오기
+    document.addEventListener('DOMContentLoaded', function() {
+        loadSpaces();
+    });
+
+    // 공간 목록 불러오기
+    async function loadSpaces() {
+        try {
+            const response = await fetch('/api/spaces');
+            const spaces = await response.json();
+
+            document.getElementById('loading').style.display = 'none';
+
+            if (spaces.length === 0) {
+                document.getElementById('emptyState').style.display = 'block';
+            } else {
+                displaySpaces(spaces);
+            }
+        } catch (error) {
+            console.error('Error loading spaces:', error);
+            document.getElementById('loading').innerHTML = '목록을 불러오는데 실패했습니다.';
+        }
+    }
+
+    // 공간 목록 표시
+    function displaySpaces(spaces) {
+        const spaceListContainer = document.getElementById('spaceList');
+        spaceListContainer.innerHTML = '';
+
+        spaces.forEach(space => {
+            const spaceCard = createSpaceCard(space);
+            spaceListContainer.appendChild(spaceCard);
+        });
+    }
+
+    // 공간 카드 생성
+    function createSpaceCard(space) {
+        const card = document.createElement('div');
+        card.className = 'space-card';
+
+        card.innerHTML = `
+                <div class="space-header">
+                    <div>
+                        <h4 class="card-title">${space.title ?? '(제목 없음)'}</h4><br>
+                        <div class="space-details">
+                            <div>등록자 : ${space.ownerName ?? '-'}</div>
+                            <div>임대료 : 하루 ${formatCurrency(space.rentalFee)} 만 원</div>
+                            <div>주소 : ${space.address ?? '-'}</div>
+                            <div>면적 : ${space.areaSize ?? '-'} m&sup2;</div><br>
+                            <div class="actions-inline">
+                                <a class="link" href="/spaces/detail.html?id=${space.id}">상세정보</a>
+                                <button class="link" type="button" onclick="inquire(${space.id})">문의하기</button>
+                                <button class="link" type="button" onclick="reportSpace(${space.id})">신고</button>
+                            </div>
+                        </div>
+                    </div>
+                    ${space.coverImageUrl ? `<img class="thumb" src="${space.coverImageUrl}" alt="thumbnail">` : ''}
+                </div>
+                <div class="space-meta">
+                    <span>등록일: ${formatDate(space.createdAt)}</span>
+                    <div class="space-actions">
+                        ${space.mine ? `
+                            <button class="action-btn edit" onclick="editSpace(${space.id})">수정</button>
+                            <button class="action-btn delete" onclick="deleteSpace(${space.id})">삭제</button>
+                        ` : ``}
+                    </div>
+                </div>
+            `;
+
+        return card;
+    }
+
+    // 공간 수정
+    function editSpace(spaceId) {
+        window.location.href = `edit.html?id=${spaceId}`;
+    }
+
+    // 공간 삭제
+    async function deleteSpace(spaceId) {
+        if (confirm('정말로 이 공간을 삭제하시겠습니까?')) {
+            try {
+                const response = await fetch(`/api/spaces/${spaceId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('공간이 삭제되었습니다.');
+                    loadSpaces(); // 목록 새로고침
+                } else {
+                    alert('삭제에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('Error deleting space:', error);
+                alert('삭제 중 오류가 발생했습니다.');
+            }
+        }
+    }
+
+    // 날짜 포맷팅
+    function formatDate(dateString) {
+        if (!dateString) return '날짜 정보 없음';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ko-KR');
+    }
+
+    // 통화 포맷팅
+    function formatCurrency(amount) {
+        if (!amount) return '0';
+        return amount.toLocaleString('ko-KR');
+    }
+    //문의 (추후 반영)
+    async function inquire(id){
+        try{
+            const res = await fetch(`/api/spaces/${id}/inquiries`, {method:'POST'});
+            if(res.ok) alert('문의 요청이 접수되었습니다.');
+            else alert('문의 요청 실패');
+        }catch(e){ console.error(e); alert('문의 중 오류'); }
+    }
+    //신고 (추후 반영)
+    async function reportSpace(id){
+        try{
+            const res = await fetch(`/api/spaces/${id}/reports`, {method:'POST'});
+            if(res.ok) alert('신고가 접수되었습니다.');
+            else alert('신고 실패');
+        }catch(e){ console.error(e); alert('신고 중 오류'); }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+/* 공간 목록 페이지 */
+.space-list-container{
+    padding:20px;
+    background:#fff;
+    margin-top:10px;
+    padding-bottom:100px;
+}
+
+/* 헤더 */
+.page-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:14px;
+}
+.page-title{
+    font-size:20px;
+    font-weight:700;
+    color:#111827;
+    margin:0;
+}
+.register-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:10px 14px;
+    border:0;
+    border-radius:10px;
+    background:#6366f1;
+    color:#fff;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    text-decoration:none;
+}
+.register-btn:hover{ background:#5856eb; }
+
+/* 상태 */
+.loading{ padding:20px; color:#6b7280; }
+.empty-state{
+    text-align:center;
+    color:#6b7280;
+    padding:40px 12px;
+}
+.empty-state .empty-icon{ font-size:44px; margin-bottom:8px; }
+
+/* 목록 그리드 */
+#spaceList{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:12px;
+}
+@media (min-width:640px){ #spaceList{ grid-template-columns:1fr !important; } }
+@media (min-width:960px){ #spaceList{ grid-template-columns:1fr !important; } }
+
+/* 카드 */
+.space-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    padding:14px;
+    box-shadow:0 1px 2px rgba(0,0,0,.03);
+}
+.space-header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+}
+.space-title{
+    font-size:16px;
+    font-weight:700;
+    color:#111827;
+    margin:0 0 6px;
+}
+.space-details{
+    color:#374151;
+    font-size:14px;
+    display:grid;
+    row-gap:4px;
+}
+.space-header .thumb{
+    width:96px; height:96px;
+    border-radius:10px;
+    object-fit:cover;
+    background:#f3f4f6;
+    flex:0 0 auto;
+}
+
+/* 인라인 링크 버튼 */
+.actions-inline{
+    display:flex;
+    gap:8px;
+    margin-top:6px;
+}
+.actions-inline .link{
+    padding:6px 10px;
+    border:1px solid #e5e7eb;
+    background:#fff;
+    color:#111827;
+    border-radius:8px;
+    font-size:13px;
+    cursor:pointer;
+}
+.actions-inline .link:hover{ background:#f9fafb; }
+
+/* 하단 메타/액션 */
+.space-meta{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:10px;
+    color:#6b7280;
+    font-size:12px;
+}
+.space-actions{
+    display:flex;
+    gap:8px;
+}
+.action-btn{
+    padding:8px 10px;
+    border:0;
+    border-radius:8px;
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+}
+.action-btn.edit{ background:#6366f1; color:#fff; }
+.action-btn.delete{ background:#ef4444; color:#fff; }
+
+.error-state{ padding:20px; color:#e11d48; }
+
+/* 반응형 */
+@media (min-width:640px){
+    #spaceList{ grid-template-columns:repeat(2,1fr); }
+}
+@media (min-width:960px){
+    #spaceList{ grid-template-columns:repeat(3,1fr); }
+}

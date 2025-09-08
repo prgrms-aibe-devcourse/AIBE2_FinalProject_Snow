@@ -1,4 +1,4 @@
-name: Create Jira issue
+name: Create Jira Sub-task
 on:
   issues:
     types:
@@ -8,7 +8,7 @@ permissions:
   issues: write
 jobs:
   create-issue:
-    name: Create Jira issue
+    name: Create Jira Sub-task
     runs-on: ubuntu-latest
     steps:
       - name: Login
@@ -30,6 +30,18 @@ jobs:
       - name: Log Issue Parser
         run: |
           echo 'Parent Key: ${{ steps.issue-parser.outputs.issueparser_parentKey }}'
+      - name: Check if parent key exists
+        id: check-parent
+        run: |
+          PARENT_KEY="${{ steps.issue-parser.outputs.issueparser_parentKey }}"
+          if [ -z "$PARENT_KEY" ] || [ "$PARENT_KEY" = "" ]; then
+            echo "❌ Parent key is required for Sub-task creation"
+            echo "HAS_PARENT=false" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "✅ Parent key found: $PARENT_KEY"
+            echo "HAS_PARENT=true" >> $GITHUB_OUTPUT
+          fi
       - name: Map GitHub user to Jira assignee
         id: map-user
         shell: bash
@@ -78,13 +90,13 @@ jobs:
             ### Issue Details
             ${{ github.event.issue.body }}
           mode: md2jira
-      - name: Create Issue (with assignee)
+      - name: Create Sub-task (with assignee)
         id: create-with-assignee
         if: env.HAS_ASSIGNEE == 'true'
         uses: atlassian/gajira-create@v3
         with:
-          project: SCRUM
-          issuetype: Task
+          project: POP
+          issuetype: 하위 작업
           summary: '${{ github.event.issue.title }}'
           description: '${{ steps.md2jira.outputs.output-text }}'
           fields: |
@@ -96,13 +108,13 @@ jobs:
                 "id": "${{ env.JIRA_ASSIGNEE_ID }}"
               }
             }
-      - name: Create Issue (without assignee)
+      - name: Create Sub-task (without assignee)
         id: create-without-assignee
         if: env.HAS_ASSIGNEE == 'false'
         uses: atlassian/gajira-create@v3
         with:
-          project: SCRUM
-          issuetype: Task
+          project: POP
+          issuetype: 하위 작업
           summary: '${{ github.event.issue.title }}'
           description: '${{ steps.md2jira.outputs.output-text }}'
           fields: |
@@ -155,6 +167,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.issue.number }}
           body: |
-            🎫 **Jira Issue Created:** [${{ steps.create.outputs.issue }}](${{ secrets.JIRA_BASE_URL }}/browse/${{ steps.create.outputs.issue }})
+            🎫 **Jira Sub-task Created:** [${{ steps.create.outputs.issue }}](${{ secrets.JIRA_BASE_URL }}/browse/${{ steps.create.outputs.issue }})
+            👆 **Parent Issue:** ${{ steps.issue-parser.outputs.issueparser_parentKey }}
             🌿 **Branch Created:** `feature/${{ steps.create.outputs.issue }}`
             👤 **Created by:** @${{ github.event.issue.user.login }}

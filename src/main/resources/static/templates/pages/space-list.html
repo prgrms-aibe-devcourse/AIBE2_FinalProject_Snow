@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>팝업 공간 대여 - 목록</title>
+
+    <!-- 공통 레이아웃 -->
+    <link rel="stylesheet" href="/css/layout.css" />
+    <!-- 페이지 전용 CSS -->
+    <link rel="stylesheet" href="/css/space-list.css" />
+</head>
+<body>
+<div class="mobile-container">
+    <!-- 헤더/푸터는 layout.js로 로드 -->
+    <div id="header-container"></div>
+
+    <main class="main-content" id="main-content">
+        <!-- 기존 목록 마크업 (그대로 유지) -->
+        <div class="space-list-container">
+            <div class="page-header">
+                <h1 class="page-title">팝업 공간 대여</h1>
+                <a class="register-btn" href="/templates/pages/space-register.html">등록하기</a>
+            </div>
+
+            <!-- 로딩 -->
+            <div id="loading" class="loading">공간 목록을 불러오는 중</div>
+
+            <!-- 목록 -->
+            <div id="spaceList"></div>
+
+            <!-- 빈 상태 -->
+            <div id="emptyState" class="empty-state" style="display:none;">
+                <div class="empty-icon">🏢</div>
+                <p>등록된 공간이 없습니다.</p><br />
+                <a class="register-btn" href="/templates/pages/space-register.html">등록하기</a>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-container"></div>
+</div>
+
+<!-- 공통 JS -->
+<script src="/js/templateLoader.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/layout.js"></script>
+
+<!-- 페이지 JS -->
+<script src="/js/space-list.js"></script>
+
+<!-- MPA용 라우팅 호환(기존 Pages 호출을 일반 이동으로 바꿈) -->
+<script>
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadComponents();      // header/footer 로드
+        initializeLayout();
+
+        // 상단/빈상태 “등록하기” 버튼 → 독립 페이지로 이동
+        document.querySelectorAll('.register-btn').forEach(btn => {
+            btn.addEventListener('click', () => Pages.spaceRegister());
+        });
+
+        // 페이지 초기화
+        if (window.SpaceListPage?.init) {
+            // 기존 space-list.js가 내부에서 Pages.spaceDetail(id) 등을 호출해도 위의 MPA용 Pages가 처리함
+            SpaceListPage.init();
+        } else {
+            document.getElementById('loading').textContent = '목록 스크립트를 찾을 수 없습니다.';
+        }
+    });
+</script>
+</body>
+</html>
