@@ -106,6 +106,58 @@ class SimpleApiService {
             throw error;
         }
     }
+    // PUT 요청
+    async put(endpoint, data) {
+        try {
+            const response = await fetch(`${this.baseURL}${endpoint}`, {
+                method: 'PUT',
+                headers: this.getHeaders(),
+                body: JSON.stringify(data),
+                credentials: 'include'
+            });
+
+            if (response.status === 401) {
+                this.removeToken();
+                throw new Error('인증이 필요합니다.');
+            }
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // 응답이 비어있을 수 있음
+            const text = await response.text();
+            return text ? JSON.parse(text) : true;
+        } catch (error) {
+            console.error('API PUT Error:', error);
+            throw error;
+        }
+    }
+
+    // DELETE 요청
+    async delete(endpoint) {
+        try {
+            const response = await fetch(`${this.baseURL}${endpoint}`, {
+                method: 'DELETE',
+                headers: this.getHeaders(),
+                credentials: 'include'
+            });
+
+            if (response.status === 401) {
+                this.removeToken();
+                throw new Error('인증이 필요합니다.');
+            }
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            // 보통 빈 응답이지만, 서버가 JSON을 주면 파싱
+            const ct = response.headers.get('content-type') || '';
+            return ct.includes('application/json') ? await response.json() : true;
+        } catch (err) {
+            console.error('API DELETE Error:', err);
+            throw err;
+        }
+    }
 
     // 로그인
     async login(username, password) {
@@ -162,30 +214,7 @@ class SimpleApiService {
         return this.post(`/user-missions/${encodeURIComponent(missionId)}/submit-answer`, { answer });
     }
 
-    // DELETE 요청
-    async delete(endpoint) {
-        try {
-            const response = await fetch(`${this.baseURL}${endpoint}`, {
-                method: 'DELETE',
-                headers: this.getHeaders(),
-                credentials: 'include'
-            });
 
-            if (response.status === 401) {
-                this.removeToken();
-                throw new Error('인증이 필요합니다.');
-            }
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            // 보통 빈 응답이지만, 서버가 JSON을 주면 파싱
-            const ct = response.headers.get('content-type') || '';
-            return ct.includes('application/json') ? await response.json() : true;
-        } catch (err) {
-            console.error('API DELETE Error:', err);
-            throw err;
-        }
-    }
 
 }
 
@@ -277,8 +306,6 @@ apiService.updateSpace = async function(spaceId, formData) {
     }
 };
 
-
-
 // 공간 삭제
 apiService.deleteSpace = async function(spaceId) {
     return await this.delete(`/spaces/${encodeURIComponent(spaceId)}`);
@@ -292,4 +319,30 @@ apiService.inquireSpace = async function(spaceId) {
 // 신고하기
 apiService.reportSpace = async function(spaceId) {
     return await this.post(`/spaces/${encodeURIComponent(spaceId)}/reports`, {});
+};
+
+// === 공간 예약 관련 (Provider 전용) ===
+
+// 내 공간에 신청된 예약 목록 조회
+apiService.getMyReservations = async function() {
+    return await this.get('/space-reservations/my-spaces');
+};
+
+// 예약 상세 조회
+apiService.getReservationDetail = async function(reservationId) {
+    return await this.get(`/space-reservations/${encodeURIComponent(reservationId)}`);
+};
+
+// 예약 승인
+apiService.acceptReservation = async function(reservationId) {
+    return await this.put(`/space-reservations/${encodeURIComponent(reservationId)}/accept`, {});
+};
+
+// 예약 거절
+apiService.rejectReservation = async function(reservationId) {
+    return await this.put(`/space-reservations/${encodeURIComponent(reservationId)}/reject`, {});
+};
+// 예약 현황 통계
+apiService.getReservationStats = async function() {
+    return await this.get('/space-reservations/stats');
 };
