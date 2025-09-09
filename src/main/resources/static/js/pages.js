@@ -27,6 +27,11 @@ const Pages = {
         await manager.initialize();
     },
 
+    async popupSearch() {
+        const manager = new PopupSearchManager();
+        await manager.initialize();
+    },
+
     // == 마이페이지 - 공간제공자 (현재 비어있음) ===
 
 
