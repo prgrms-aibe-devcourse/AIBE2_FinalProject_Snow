@@ -2,6 +2,7 @@ package com.snow.popin.domain.popup.dto.request;
 
 import com.snow.popin.domain.popup.entity.PopupStatus;
 import lombok.Getter;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.Min;
 import java.time.LocalDate;
@@ -12,8 +13,12 @@ public class PopupListRequestDto {
     private PopupStatus status;
     private String region;
     private String dateFilter;
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate startDate;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
+
     private String sortBy = "latest";
 
     @Min(0)

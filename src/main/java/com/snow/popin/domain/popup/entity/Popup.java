@@ -153,4 +153,41 @@ public class Popup extends BaseEntity {
         LocalDate now = LocalDate.now();
         return ChronoUnit.DAYS.between(now, endDate);
     }
+
+    // 테스트용 메서드
+    public static Popup createForTest(String title, PopupStatus status, Venue venue) {
+        Popup popup = new Popup();
+        popup.title = title;
+        popup.summary = "테스트 요약";
+        popup.status = status;
+        popup.venue = venue;
+        popup.startDate = LocalDate.now();
+        popup.endDate = LocalDate.now().plusDays(7);
+        popup.isFeatured = false;
+        popup.entryFee = 0;
+        popup.reservationAvailable = false;
+        popup.waitlistAvailable = false;
+        return popup;
+    }
+
+    public static Popup createForTestWithDates(String title, LocalDate startDate, LocalDate endDate, Venue venue) {
+        Popup popup = createForTest(title, PopupStatus.ONGOING, venue);
+        popup.startDate = startDate;
+        popup.endDate = endDate;
+        return popup;
+    }
+
+    public static Popup createFeaturedForTest(String title, PopupStatus status, Venue venue) {
+        Popup popup = createForTest(title, status, venue);
+        popup.isFeatured = true;
+        return popup;
+    }
+
+    public void setStatusForTest(PopupStatus status) {
+        this.status = status;
+    }
+
+    public void setFeaturedForTest(boolean featured) {
+        this.isFeatured = featured;
+    }
 }
