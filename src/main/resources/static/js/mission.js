@@ -3,9 +3,12 @@
 
   // URL 경로에서 missionSetId 추출 (/missions/{id})
   function getMissionSetIdFromPath() {
-    const parts = window.location.pathname.split('/');
-    return parts[parts.length - 1] || null;
+    const parts = window.location.pathname.split('/').filter(Boolean);
+    const idx = parts.lastIndexOf('missions');
+    if (idx === -1 || idx === parts.length - 1) return null;
+    return parts[idx + 1];
   }
+
 
   // 미션 정답 입력 모달
   function openMissionModal({ mission, onSubmit }) {
@@ -96,7 +99,7 @@
     }
 
     mount.innerHTML = `
-      <section class="mission-board">
+      <section class="card">
         <div class="mission-head">
           <div class="title">STAMP MISSION</div>
           <div class="subtitle"><strong>${remaining}</strong>개의 미션을 더 완료하시고 리워드를 받아가세요!</div>
