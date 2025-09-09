@@ -1,5 +1,3 @@
-/* 마이페이지 - HOST 전용 스타일 */
-
 /* 전체 컨테이너 */
 .mpg-host {
     max-width: 900px;
@@ -233,6 +231,7 @@
         width: 100%;
     }
 }
+
 /* 페이지 헤더 (타이틀 + 버튼) */
 .page-header {
     display: flex;
@@ -246,6 +245,7 @@
     font-size: 13px;
     border-radius: 6px;
 }
+
 /* 카드 버튼 영역 */
 .card .btn-row {
     margin-top: 10px;
@@ -285,21 +285,52 @@
 .card .btn-row .delete-btn:hover {
     background-color: #ffe0e0;
 }
-.user-info .card {
+
+/* 내 정보 카드 스타일 */
+.user-profile {
     padding: 16px;
-    border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border-radius: 12px;
     background: #fff;
-    font-size: 14px;
-    line-height: 1.6;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+
+    display: block;
 }
 
-.user-info .card div {
-    margin-bottom: 6px;
+.user-profile .profile-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
 }
 
-.user-info .card strong {
-    display: inline-block;
-    width: 70px;
+.user-profile .profile-row:last-child {
+    border-bottom: none;
+}
+
+.user-profile .label {
+    flex: 0 0 80px;
+    font-weight: 500;
     color: #333;
+}
+
+.user-profile .value {
+    flex: 1;
+    color: #555;
+}
+
+.user-profile .edit-btn {
+    flex: 0 0 auto;
+    padding: 4px 10px;
+    font-size: 13px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #f9f9f9;
+    color: #333;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.user-profile .edit-btn:hover {
+    background: #eee;
 }

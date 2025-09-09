@@ -24,13 +24,35 @@
             <!-- 사용자 정보 카드 -->
             <section class="block user-info">
                 <h3 class="block-title">내 정보</h3>
-                <div id="user-info-card" class="card">
-                    <div><strong>계정명:</strong> <span id="user-email"></span></div>
-                    <div><strong>이름:</strong> <span id="user-name"></span></div>
-                    <div><strong>닉네임:</strong> <span id="user-nickname"></span></div>
-                    <div><strong>연락처:</strong> <span id="user-phone"></span></div>
+                <div id="user-info-card" class="card user-profile">
+                    <div class="profile-row">
+                        <span class="label">계정명</span>
+                        <span id="user-email" class="value"></span>
+                        <button class="edit-btn">수정</button>
+                    </div>
+                    <div class="profile-row">
+                        <span class="label">이름</span>
+                        <span id="user-name" class="value"></span>
+                        <button class="edit-btn">수정</button>
+                    </div>
+                    <div class="profile-row">
+                        <span class="label">닉네임</span>
+                        <span id="user-nickname" class="value"></span>
+                        <button class="edit-btn">수정</button>
+                    </div>
+                    <div class="profile-row">
+                        <span class="label">연락처</span>
+                        <span id="user-phone" class="value"></span>
+                        <button class="edit-btn">수정</button>
+                    </div>
+                    <div class="profile-row">
+                        <span class="label">브랜드명</span>
+                        <span id="user-brand" class="value"></span>
+                        <button class="edit-btn">수정</button>
+                    </div>
                 </div>
             </section>
+
 
 
             <!-- 내가 등록한 팝업 -->
