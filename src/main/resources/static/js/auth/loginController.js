@@ -53,10 +53,6 @@ class LoginController {
     async checkExistingToken() {
         const token = this.loginApi.getStoredToken();
 
-        if (!window.location.pathname.startsWith('/auth/login')) {
-            return; // 로그인 페이지가 아닐 때는 실행 안 함
-        }
-
         if (token && !this.loginApi.isTokenExpired()) {
             const shouldRedirect = confirm('이미 로그인되어 있습니다. 메인 페이지로 이동하시겠습니까?');
             if (shouldRedirect) {
