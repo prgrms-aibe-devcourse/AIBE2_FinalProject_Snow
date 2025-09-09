@@ -64,6 +64,15 @@ class PopupListManager {
         mainContent.addEventListener('scroll', () => {
             this.handleScroll(mainContent);
         });
+
+        // 카드 클릭 위임
+        this.grid.addEventListener('click', (e) => {
+            const card = e.target.closest('.popup-card');
+            if (card && card.dataset.id) {
+                // global nav function assumed to exist
+                goToPopupDetail(card.dataset.id);
+            }
+        });
     }
 
     // 필터 클릭 처리

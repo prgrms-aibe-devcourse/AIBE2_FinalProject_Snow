@@ -60,9 +60,14 @@ const Pages = {
 // 팝업 상세 페이지로 이동
 function goToPopupDetail(popupId) {
     console.log('팝업 상세 이동:', popupId);
-    // TODO: 팝업 상세 페이지 구현 후 활성화
-    // location.href = `/templates/pages/popup-detail.html?id=${popupId}`;
-    alert(`팝업 ID ${popupId} 상세 페이지는 준비 중입니다.`);
+    if (popupId == null || (typeof popupId !== 'number' && !/^\d+$/.test(String(popupId)))) {
+        console.warn('잘못된 팝업 ID:', popupId);
+        return;
+    }
+    const id = encodeURIComponent(String(popupId));
+    // TODO: 상세 페이지 구현 시 활성화
+    // location.href = `/templates/pages/popup-detail.html?id=${id}`;
+    alert(`팝업 ID ${id} 상세 페이지는 준비 중입니다.`);
 }
 
 window.Pages = Pages;

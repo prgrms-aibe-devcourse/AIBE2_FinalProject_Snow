@@ -31,8 +31,13 @@ public class PopupSearchService {
         log.info("팝업 검색 시작 - 검색어: {}, 페이지: {}, 크기: {}",
                 request.getQuery(), request.getPage(), request.getSize());
 
-        String query = preprocessQuery(request.getQuery());
         Pageable pageable = createSearchPageable(request.getPage(), request.getSize());
+        String query = preprocessQuery(request.getQuery());
+
+        if (query == null || query.length() < 2) {
+           log.info("검색어 최소 길이 미충족 - 검색어: {}", request.getQuery());
+            return PopupListResponseDto.of(new org.springframework.data.domain.PageImpl<>(List.of(), pageable, 0), List.of());
+        }
 
         Page<Popup> popupPage = popupSearchRepository.searchByTitleAndTags(query, pageable);
 

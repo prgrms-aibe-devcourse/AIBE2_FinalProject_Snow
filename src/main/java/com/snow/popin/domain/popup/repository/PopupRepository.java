@@ -37,13 +37,13 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
 
     // 마감임박 팝업 (진행중이고 종료일 7일 이내)
     @Query(value = "SELECT p FROM Popup p LEFT JOIN FETCH p.venue v " +
-            "WHERE p.status = 'ONGOING' " +
+            "WHERE p.status = com.snow.popin.domain.popup.entity.PopupStatus.ONGOING " +
             "AND p.endDate IS NOT NULL " +
             "AND p.endDate >= CURRENT_DATE " +
             "AND p.endDate <= :deadline " +
             "ORDER BY p.endDate ASC",
             countQuery = "SELECT count(p) FROM Popup p " +
-                    "WHERE p.status = 'ONGOING' " +
+                    "WHERE p.status = com.snow.popin.domain.popup.entity.PopupStatus.ONGOING " +
                     "AND p.endDate IS NOT NULL " +
                     "AND p.endDate >= CURRENT_DATE " +
                     "AND p.endDate <= :deadline")
@@ -57,10 +57,10 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
     // 추천/피처드 팝업 조회
     @Query(value = "SELECT p FROM Popup p LEFT JOIN FETCH p.venue v " +
             "WHERE p.isFeatured = true " +
-            "AND (p.status = 'ONGOING' OR p.status = 'PLANNED') " +
+            "AND p.status IN (com.snow.popin.domain.popup.entity.PopupStatus.ONGOING, com.snow.popin.domain.popup.entity.PopupStatus.PLANNED) " +
             "ORDER BY p.createdAt DESC",
             countQuery = "SELECT count(p) FROM Popup p " +
                     "WHERE p.isFeatured = true " +
-                    "AND (p.status = 'ONGOING' OR p.status = 'PLANNED')")
+                    "AND p.status IN (com.snow.popin.domain.popup.entity.PopupStatus.ONGOING, com.snow.popin.domain.popup.entity.PopupStatus.PLANNED)")
     Page<Popup> findFeaturedPopups(Pageable pageable);
 }
