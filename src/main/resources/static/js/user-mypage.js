@@ -135,7 +135,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     } catch (err) {
         console.error(err);
-        document.getElementById('main-content').innerHTML = `
+        const mc = document.getElementById('main-content') || document.querySelector('.main-content');
+        if (mc) mc.innerHTML = `
             <p style="color:red; text-align:center;">로그인 후 이용 가능합니다.</p>
         `;
     }
