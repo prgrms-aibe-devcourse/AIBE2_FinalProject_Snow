@@ -1,7 +1,9 @@
 package com.snow.popin.domain.popup.entity;
 
 import com.snow.popin.global.common.BaseEntity;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalTime;
@@ -9,6 +11,7 @@ import java.time.LocalTime;
 @Entity
 @Table(name = "popup_hours")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PopupHours extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,4 +31,13 @@ public class PopupHours extends BaseEntity {
     private LocalTime closeTime;
 
     private String note;
+
+    public void updateTimes(LocalTime openTime, LocalTime closeTime) {
+        this.openTime = openTime;
+        this.closeTime = closeTime;
+    }
+
+    public void updateNote(String note) {
+        this.note = note;
+    }
 }

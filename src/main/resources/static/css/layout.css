@@ -34,7 +34,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid #f0f0f0;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -121,7 +120,6 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
     padding: 0;
-    background: #f8f9fa;
     height: calc(100vh - 206px); /* 헤더(110px) + 푸터(96px) 제외 */
     box-sizing: border-box;
     position: relative;

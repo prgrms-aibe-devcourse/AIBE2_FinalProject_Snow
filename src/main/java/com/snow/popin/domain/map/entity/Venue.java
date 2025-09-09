@@ -1,4 +1,4 @@
-package com.snow.popin.domain.popup.entity;
+package com.snow.popin.domain.map.entity;
 
 import com.snow.popin.global.common.BaseEntity;
 import lombok.Getter;
@@ -53,5 +53,24 @@ public class Venue extends BaseEntity {
         }
 
         return fullAddress.toString();
+    }
+
+    // 테스트용 메서드
+    public static Venue createForTest(String region) {
+        Venue venue = new Venue();
+        venue.name = "테스트 장소";
+        venue.region = region;
+        venue.roadAddress = "테스트 도로명 주소";
+        venue.jibunAddress = "테스트 지번 주소";
+        venue.latitude = 37.5665;
+        venue.longitude = 126.9780;
+        venue.parkingAvailable = false;
+        return venue;
+    }
+
+    public static Venue createForTestWithParking(String region, boolean parkingAvailable) {
+        Venue venue = createForTest(region);
+        venue.parkingAvailable = parkingAvailable;
+        return venue;
     }
 }

@@ -238,14 +238,14 @@ function createFooterByRole() {
     const userRole = getUserRole();
 
     let navItems = `
-        <a href="#" class="footer-item active" data-page="home">
+        <a href="#" class="footer-item active" data-page="popupList">
             <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                 <polyline points="9,22 9,12 15,12 15,22"></polyline>
             </svg>
             <span class="footer-text">홈</span>
         </a>
-        <a href="#" class="footer-item" data-page="search">
+        <a href="#" class="footer-item" data-page="popupSearch">
             <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <circle cx="11" cy="11" r="8"></circle>
                 <path d="m21 21-4.35-4.35"></path>
