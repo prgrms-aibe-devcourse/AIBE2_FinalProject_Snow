@@ -1,5 +1,7 @@
 package com.snow.popin.domain.user.controller;
 
+import com.snow.popin.domain.user.dto.UserResponseDto;
+import com.snow.popin.domain.user.dto.UserUpdateRequestDto;
 import com.snow.popin.domain.user.service.UserService;
 import com.snow.popin.domain.user.dto.UserFormDto;
 import com.snow.popin.global.util.UserUtil;
@@ -9,7 +11,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import javax.validation.Valid;
 
 @Controller
 @RequestMapping("/api/users")
@@ -37,9 +43,16 @@ public class UserApiController {
         return "user/userLoginForm";
     }
 
+    // 내 정보 조회
     @GetMapping("/me")
-    public ResponseEntity<?> getMyInfo() {
-        return ResponseEntity.ok(userUtil.getCurrentUserInfo());
+    public ResponseEntity<UserResponseDto> getMyInfo() {
+        return ResponseEntity.ok(userService.getCurrentUserInfo());
+    }
+
+    // 내 정보 수정
+    @PutMapping("/me")
+    public ResponseEntity<UserResponseDto> updateMyInfo(@RequestBody @Valid UserUpdateRequestDto dto) {
+        return ResponseEntity.ok(userService.updateCurrentUser(dto));
     }
 
     @GetMapping("/name")
@@ -47,8 +60,4 @@ public class UserApiController {
         return ResponseEntity.ok(userUtil.getCurrentUserName());
     }
 
-    @GetMapping("/mypage")
-    public String myPage() {
-        return "forward:user/user-mypage";
-    }
 }

@@ -1,6 +1,7 @@
 package com.snow.popin.domain.user.service;
 
 import com.snow.popin.domain.user.dto.UserResponseDto;
+import com.snow.popin.domain.user.dto.UserUpdateRequestDto;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.domain.user.repository.UserRepository;
 import com.snow.popin.global.constant.ErrorCode;
@@ -36,13 +37,18 @@ public class UserService {
     }
 
 
-    @Transactional
-    public void updateProfile(Long userId, String name, String nickname, String phone){
-
-        User user = findById(userId);
-        user.updateProfile(name, nickname, phone);
-
+    public UserResponseDto getCurrentUserInfo() {
+        User user = userUtil.getCurrentUser();
+        return new UserResponseDto(user);
     }
+
+    @Transactional
+    public UserResponseDto updateCurrentUser(UserUpdateRequestDto dto) {
+        User user = userUtil.getCurrentUser();
+        user.updateProfile(dto.getName(), dto.getNickname(), dto.getPhone());
+        return new UserResponseDto(user);
+    }
+
 
 
     @Transactional
