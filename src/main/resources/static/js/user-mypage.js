@@ -6,12 +6,15 @@ document.addEventListener('DOMContentLoaded', async function () {
         // 로그인된 사용자 정보 가져오기
         const user = await apiService.getCurrentUser();
 
-        // DOM에 값 바인딩
-        document.getElementById('user-name').textContent = user.name || '-';
-        document.getElementById('user-nickname').textContent = user.nickname || '-';
-        document.getElementById('user-email').textContent = user.email || '-';
-        document.getElementById('user-phone').textContent = user.phone || '-';
-
+        // DOM에 값 바인딩 (안전)
+        const setText = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = val ?? '-';
+        };
+        setText('user-name', user.name);
+        setText('user-nickname', user.nickname);
+        setText('user-email', user.email);
+        setText('user-phone', user.phone);
         // 수정 버튼 이벤트 연결
         document.querySelectorAll('.edit-btn').forEach((btn, idx) => {
             btn.addEventListener('click', () => {
