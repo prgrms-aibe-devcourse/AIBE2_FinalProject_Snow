@@ -8,37 +8,25 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         // DOM에 값 바인딩 (안전)
         const setText = (id, val) => {
-          const el = document.getElementById(id);
-          if (el) el.textContent = val ?? '-';
+            const el = document.getElementById(id);
+            if (el) el.textContent = val ?? '-';
         };
         setText('user-name', user.name);
         setText('user-nickname', user.nickname);
         setText('user-email', user.email);
         setText('user-phone', user.phone);
-        // 수정 버튼 이벤트 연결
+
+
+        // 사용자 정보 수정 버튼 이벤트
         document.querySelectorAll('.edit-btn').forEach((btn, idx) => {
             btn.addEventListener('click', () => {
                 let field, label, spanEl;
 
                 switch (idx) {
-                    case 0:
-                        field = 'name';
-                        label = '이름';
-                        spanEl = document.getElementById('user-name');
-                        break;
-                    case 1:
-                        field = 'nickname';
-                        label = '닉네임';
-                        spanEl = document.getElementById('user-nickname');
-                        break;
-                    case 2:
-                        alert('아이디(이메일)는 수정할 수 없습니다.');
-                        return;
-                    case 3:
-                        field = 'phone';
-                        label = '연락처';
-                        spanEl = document.getElementById('user-phone');
-                        break;
+                    case 0: field = 'name'; label = '이름'; spanEl = document.getElementById('user-name'); break;
+                    case 1: field = 'nickname'; label = '닉네임'; spanEl = document.getElementById('user-nickname'); break;
+                    case 2: alert('아이디(이메일)는 수정할 수 없습니다.'); return;
+                    case 3: field = 'phone'; label = '연락처'; spanEl = document.getElementById('user-phone'); break;
                 }
 
                 if (!spanEl) return;
@@ -74,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 saveBtn.addEventListener('click', async () => {
                     const newValue = input.value.trim();
                     if (!newValue || newValue === currentValue) {
-                        cancelBtn.click(); // 변경 없으면 취소 처리
+                        cancelBtn.click();
                         return;
                     }
 
@@ -85,12 +73,10 @@ document.addEventListener('DOMContentLoaded', async function () {
                             phone: field === 'phone' ? newValue : user.phone
                         });
 
-                        // user 객체 갱신
                         user.name = updatedUser.name;
                         user.nickname = updatedUser.nickname;
                         user.phone = updatedUser.phone;
 
-                        // 화면 갱신
                         spanEl.textContent = updatedUser[field] || '-';
                         input.replaceWith(spanEl);
                         saveBtn.replaceWith(btn);
@@ -105,9 +91,8 @@ document.addEventListener('DOMContentLoaded', async function () {
             });
         });
 
-        // =============================
-        // 관심 카테고리 예시 데이터 UI
-        // =============================
+
+        // 관심 카테고리 (예시 데이터)
         const categories = [
             { id: 1, name: "패션", active: true },
             { id: 2, name: "반려동물", active: true },
@@ -126,7 +111,6 @@ document.addEventListener('DOMContentLoaded', async function () {
                 btn.className = 'category-btn';
                 if (cat.active) btn.classList.add('active');
 
-                // 클릭 시 토글 (백엔드 연동되면 API 호출 자리)
                 btn.addEventListener('click', () => {
                     btn.classList.toggle('active');
                     cat.active = !cat.active;
@@ -136,6 +120,82 @@ document.addEventListener('DOMContentLoaded', async function () {
             });
         }
 
+
+        // 내 미션셋 (API 연동)
+        const missionContainer = document.createElement('div');
+        missionContainer.className = 'card';
+        missionContainer.innerHTML = `<h2 class="mypage-title">진행 중인 미션</h2><div id="mission-list"></div>`;
+        document.querySelector('.content-section').appendChild(missionContainer);
+
+        const completedContainer = document.createElement('div');
+        completedContainer.className = 'card';
+        completedContainer.innerHTML = `<h2 class="mypage-title">완료된 미션</h2><div id="completed-mission-list"></div>`;
+        document.querySelector('.content-section').appendChild(completedContainer);
+
+        try {
+            const missions = await apiService.get('/user-missions/my-missions');
+            const activeListEl = document.getElementById('mission-list');
+            const completedListEl = document.getElementById('completed-mission-list');
+
+            // 진행중 & 완료 나누기
+            const active = missions.filter(m => !m.cleared);
+            const completed = missions.filter(m => m.cleared);
+
+            if (active.length === 0) {
+                activeListEl.innerHTML = `<p style="color:#777;">진행 중인 미션이 없습니다.</p>`;
+            } else {
+                active.forEach(m => {
+                    const item = document.createElement('div');
+                    item.className = 'popup-card';
+                    item.innerHTML = `
+                <div class="popup-image-wrapper">
+                    ${m.mainImageUrl && m.mainImageUrl.trim() !== ""
+                        ? `<img src="${m.mainImageUrl}" class="popup-image" alt="${m.popupTitle}">`
+                        : `<div class="popup-image placeholder">이미지를 찾을 수 없습니다.</div>`}
+                </div>
+                <div class="popup-info">
+                    <div class="popup-title">${m.popupTitle}</div>
+                    <div class="popup-summary">${m.description || '상세설명'}</div>
+                    <div class="popup-action">
+                        <a class="popup-link" href="/missions/${m.missionSetId}">이어하기 &gt;</a>
+                    </div>
+                </div>
+            `;
+                    activeListEl.appendChild(item);
+                });
+            }
+
+            if (completed.length === 0) {
+                completedListEl.innerHTML = `<p style="color:#777;">완료된 미션이 없습니다.</p>`;
+            } else {
+                completed.forEach(m => {
+                    const item = document.createElement('div');
+                    item.className = 'popup-card';
+                    item.innerHTML = `
+                <div class="popup-image-wrapper">
+                    ${m.mainImageUrl && m.mainImageUrl.trim() !== ""
+                        ? `<img src="${m.mainImageUrl}" class="popup-image" alt="${m.popupTitle}">`
+                        : `<div class="popup-image placeholder">이미지를 찾을 수 없습니다.</div>`}
+                </div>
+                <div class="popup-info">
+                    <div class="popup-title">${m.popupTitle}</div>
+                    <div class="popup-summary">${m.description || '상세설명'}</div>
+                    <div class="popup-action">
+                        <a class="popup-link" href="/missions/${m.missionSetId}">다시보기 &gt;</a>
+                    </div>
+                </div>
+            `;
+                    completedListEl.appendChild(item);
+                });
+            }
+        } catch (e) {
+            console.error('미션 목록 불러오기 실패:', e);
+        }
+
+
+
+
+
     } catch (err) {
         console.error(err);
         const mc = document.getElementById('main-content') || document.querySelector('.main-content');
@@ -143,4 +203,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             <p style="color:red; text-align:center;">로그인 후 이용 가능합니다.</p>
         `;
     }
+
+
+
 });

@@ -1,5 +1,6 @@
 package com.snow.popin.domain.mission.entity;
 
+import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.global.common.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -26,8 +27,13 @@ public class MissionSet extends BaseEntity {
     @Type(type = "org.hibernate.type.UUIDBinaryType")
     private UUID id;
 
+    // popupId 컬럼 + Popup 연관관계 둘 다 유지
     @Column(name = "popup_id", nullable = false)
     private Long popupId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "popup_id", insertable = false, updatable = false)
+    private Popup popup;
 
     @Column(name = "required_count")
     private Integer requiredCount;
@@ -49,7 +55,7 @@ public class MissionSet extends BaseEntity {
     public MissionSet(Long popupId, Integer requiredCount, String status, String rewardPin) {
         this.popupId = popupId;
         this.requiredCount = requiredCount;
-        this.status = status;
+        this.status = status != null ? status : "ACTIVE";
         this.rewardPin = rewardPin;
     }
 
@@ -62,6 +68,11 @@ public class MissionSet extends BaseEntity {
     public void complete() {
         this.status = "COMPLETED";
         this.completedAt = LocalDateTime.now();
+    }
+
+    public boolean isCleared(long successCount) {
+        int required = this.requiredCount != null ? this.requiredCount : 0;
+        return successCount >= required;
     }
 
     public boolean isCompleted() {

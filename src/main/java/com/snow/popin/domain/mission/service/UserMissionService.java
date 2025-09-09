@@ -2,19 +2,21 @@ package com.snow.popin.domain.mission.service;
 
 import com.snow.popin.domain.mission.dto.SubmitAnswerResponseDto;
 import com.snow.popin.domain.mission.entity.Mission;
+import com.snow.popin.domain.mission.entity.MissionSet;
 import com.snow.popin.domain.mission.entity.UserMission;
 import com.snow.popin.domain.mission.entity.UserMissionStatus;
 import com.snow.popin.domain.mission.repository.MissionRepository;
 import com.snow.popin.domain.mission.repository.UserMissionRepository;
-import com.snow.popin.domain.user.repository.UserRepository;
+import com.snow.popin.domain.popup.dto.response.ActiveMissionPopupResponseDto;
 import com.snow.popin.domain.user.entity.User;
+import com.snow.popin.domain.user.repository.UserRepository;
 import com.snow.popin.global.exception.MissionException;
 import com.snow.popin.global.exception.UserException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserMissionService {
@@ -42,7 +44,7 @@ public class UserMissionService {
         return userMissionRepository.save(new UserMission(user, mission));
     }
 
-    //유저 미션 단건 조회
+    // 유저 미션 단건 조회
     public Optional<UserMission> findById(Long id) {
         return userMissionRepository.findById(id);
     }
@@ -61,7 +63,7 @@ public class UserMissionService {
 
         boolean pass;
         if (userMission.getStatus() == UserMissionStatus.COMPLETED) {
-            pass = true; // 이미 완료된 경우 pass
+            pass = true; // 이미 완료된 경우
         } else {
             pass = isCorrect(mission.getAnswer(), answer);
             if (pass) {
@@ -77,8 +79,8 @@ public class UserMissionService {
                 .countByUser_IdAndMission_MissionSet_IdAndStatus(
                         userId, mission.getMissionSet().getId(), UserMissionStatus.COMPLETED);
 
-        boolean cleared = successCnt >=
-                Optional.ofNullable(mission.getMissionSet().getRequiredCount()).orElse(0);
+        boolean cleared = mission.getMissionSet().isCleared(successCnt);
+
 
         return SubmitAnswerResponseDto.builder()
                 .pass(pass)
@@ -98,4 +100,41 @@ public class UserMissionService {
     private String normalize(String s) {
         return s == null ? "" : s.trim().replaceAll("\\s+", " ").toLowerCase();
     }
+
+    // 진행 중/완료 상태인 미션셋 조회
+    @Transactional(readOnly = true)
+    public List<ActiveMissionPopupResponseDto> getMyMissionPopups(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserException.UserNotFound(userId));
+
+        List<UserMission> userMissions = userMissionRepository.findByUser_Id(user.getId());
+
+        // 미션셋 단위로 그룹핑
+        Map<MissionSet, List<UserMission>> grouped = userMissions.stream()
+                .collect(Collectors.groupingBy(m -> m.getMission().getMissionSet()));
+
+        List<ActiveMissionPopupResponseDto> result = new ArrayList<>();
+
+        for (Map.Entry<MissionSet, List<UserMission>> entry : grouped.entrySet()) {
+            MissionSet set = entry.getKey();
+            List<UserMission> missions = entry.getValue();
+
+            // 완료된 미션 개수
+            int successCount = (int) missions.stream()
+                    .filter(UserMission::isCompleted)
+                    .count();
+
+            // cleared 여부 계산
+            boolean cleared = successCount >=
+                    (set.getRequiredCount() != null ? set.getRequiredCount() : 0);
+
+            // DTO 변환
+            result.add(ActiveMissionPopupResponseDto.from(set, cleared));
+        }
+
+        return result;
+    }
+
+
+
 }

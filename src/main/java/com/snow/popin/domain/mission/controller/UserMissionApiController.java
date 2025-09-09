@@ -2,6 +2,7 @@ package com.snow.popin.domain.mission.controller;
 
 import com.snow.popin.domain.mission.entity.UserMission;
 import com.snow.popin.domain.mission.service.UserMissionService;
+import com.snow.popin.domain.popup.dto.response.ActiveMissionPopupResponseDto;
 import com.snow.popin.domain.user.service.UserService;
 import com.snow.popin.domain.mission.dto.SubmitAnswerRequestDto;
 import com.snow.popin.domain.mission.dto.SubmitAnswerResponseDto;
@@ -13,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -55,4 +57,11 @@ public class UserMissionApiController {
         return ResponseEntity.ok(res);
     }
 
+
+    @GetMapping("/my-missions")
+    public ResponseEntity<List<ActiveMissionPopupResponseDto>> getMyMissions() {
+        Long userId = userUtil.getCurrentUserId();
+        List<ActiveMissionPopupResponseDto> result = userMissionService.getMyMissionPopups(userId);
+        return ResponseEntity.ok(result);
+    }
 }
