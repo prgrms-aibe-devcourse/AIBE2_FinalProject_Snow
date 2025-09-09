@@ -50,7 +50,8 @@ public class PopupController {
             @RequestParam(required = false) List<Long> categoryIds,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        PopupListResponseDto response = popupService.getRecommendedPopups(token, categoryIds, page, size);
+        String cleanToken = (token != null && token.startsWith("Bearer ")) ? token.substring(7) : token;
+        PopupListResponseDto response = popupService.getRecommendedPopups(cleanToken, categoryIds, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -60,7 +61,9 @@ public class PopupController {
             @RequestParam List<Long> categoryIds,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        PopupListResponseDto response = popupService.getRecommendedPopupsBySelectedCategories(categoryIds, page, size);
+        PopupListResponseDto response = (categoryIds == null || categoryIds.isEmpty())
+                ? popupService.getRecommendedPopups(null, null, page, size)
+                : popupService.getRecommendedPopupsBySelectedCategories(categoryIds, page, size);
         return ResponseEntity.ok(response);
     }
 }

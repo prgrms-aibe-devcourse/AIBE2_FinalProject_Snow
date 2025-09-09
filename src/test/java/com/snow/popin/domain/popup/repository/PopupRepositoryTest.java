@@ -174,7 +174,7 @@ class PopupRepositoryTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // when
-        Page<Popup> result = popupRepository.findFeaturedPopups(pageable);
+        Page<Popup> result = popupRepository.findPopularPopups(pageable);
 
         // then
         assertThat(result.getContent()).hasSize(1);

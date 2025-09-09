@@ -103,6 +103,11 @@ public class PopupService {
         log.info("선택된 카테고리 기반 추천 팝업 조회 - categoryIds: {}", categoryIds);
 
         Pageable pageable = createPageable(page, size);
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            Page<Popup> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+            return PopupListResponseDto.of(emptyPage, List.of());
+        }
+
         Page<Popup> popupPage = popupRepository.findRecommendedPopupsByCategories(categoryIds, pageable);
 
         List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()

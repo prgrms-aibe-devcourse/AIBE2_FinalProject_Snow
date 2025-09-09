@@ -22,7 +22,7 @@ public class CategoryService {
 
     // 전체 카테고리 목록 조회
     public List<CategoryResponseDto> getAllCategories() {
-        List<Category> categories = categoryRepository.findAllActiveOrderByDisplayOrder();
+        List<Category> categories = categoryRepository.findAllOrderById();
         return categories.stream()
                 .map(CategoryResponseDto::from)
                 .collect(Collectors.toList());
