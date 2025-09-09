@@ -3,10 +3,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     initializeLayout();
 
     try {
-        // 로그인된 사용자 정보 가져오기
+        // =============================
+        // 사용자 정보 불러오기
+        // =============================
         const user = await apiService.getCurrentUser();
 
-        // DOM에 값 바인딩 (안전)
         const setText = (id, val) => {
             const el = document.getElementById(id);
             if (el) el.textContent = val ?? '-';
@@ -16,19 +17,18 @@ document.addEventListener('DOMContentLoaded', async function () {
         setText('user-email', user.email);
         setText('user-phone', user.phone);
 
-
+        // =============================
         // 사용자 정보 수정 버튼 이벤트
+        // =============================
         document.querySelectorAll('.edit-btn').forEach((btn, idx) => {
             btn.addEventListener('click', () => {
                 let field, label, spanEl;
-
                 switch (idx) {
                     case 0: field = 'name'; label = '이름'; spanEl = document.getElementById('user-name'); break;
                     case 1: field = 'nickname'; label = '닉네임'; spanEl = document.getElementById('user-nickname'); break;
                     case 2: alert('아이디(이메일)는 수정할 수 없습니다.'); return;
                     case 3: field = 'phone'; label = '연락처'; spanEl = document.getElementById('user-phone'); break;
                 }
-
                 if (!spanEl) return;
 
                 const currentValue = spanEl.textContent;
@@ -37,7 +37,6 @@ document.addEventListener('DOMContentLoaded', async function () {
                 input.value = currentValue;
                 input.className = 'inline-edit';
 
-                // 버튼 교체
                 const saveBtn = document.createElement('button');
                 saveBtn.textContent = '저장';
                 saveBtn.className = 'save-btn';
@@ -46,19 +45,16 @@ document.addEventListener('DOMContentLoaded', async function () {
                 cancelBtn.textContent = '취소';
                 cancelBtn.className = 'cancel-btn';
 
-                // 기존 span 교체
                 spanEl.replaceWith(input);
                 btn.replaceWith(saveBtn);
                 saveBtn.after(cancelBtn);
 
-                // 취소 이벤트
                 cancelBtn.addEventListener('click', () => {
                     input.replaceWith(spanEl);
                     saveBtn.replaceWith(btn);
                     cancelBtn.remove();
                 });
 
-                // 저장 이벤트
                 saveBtn.addEventListener('click', async () => {
                     const newValue = input.value.trim();
                     if (!newValue || newValue === currentValue) {
@@ -91,53 +87,65 @@ document.addEventListener('DOMContentLoaded', async function () {
             });
         });
 
-
-        // 관심 카테고리 (예시 데이터)
-        const categories = [
-            { id: 1, name: "패션", active: true },
-            { id: 2, name: "반려동물", active: true },
-            { id: 3, name: "게임", active: false },
-            { id: 4, name: "캐릭터/IP", active: true },
-            { id: 5, name: "문화/콘텐츠", active: true },
-            { id: 6, name: "연예", active: false },
-            { id: 7, name: "여행/레저/스포츠", active: true },
-        ];
-
+        // =============================
+        // 관심 카테고리 (API 연동)
+        // =============================
         const container = document.getElementById('category-container');
         if (container) {
-            categories.forEach(cat => {
-                const btn = document.createElement('button');
-                btn.textContent = cat.name;
-                btn.className = 'category-btn';
-                if (cat.active) btn.classList.add('active');
+            try {
+                // 전체 카테고리 가져오기
+                const allCategories = await apiService.get('/categories');
+                // 사용자 관심 카테고리 가져오기
+                const myCategories = await apiService.get('/categories/me');
+                const myIds = new Set(myCategories.map(c => c.id));
 
-                btn.addEventListener('click', () => {
-                    btn.classList.toggle('active');
-                    cat.active = !cat.active;
+                allCategories.forEach(cat => {
+                    const btn = document.createElement('button');
+                    btn.textContent = cat.name;
+                    btn.className = 'category-btn';
+                    if (myIds.has(cat.id)) btn.classList.add('active');
+
+                    btn.addEventListener('click', async () => {
+                        btn.classList.toggle('active');
+                        try {
+                            // 서버 업데이트
+                            const selected = Array.from(container.querySelectorAll('.category-btn.active'))
+                                .map(b => b.textContent);
+                            await apiService.put('/categories/me', selected);
+                        } catch (err) {
+                            console.error(err);
+                            alert('카테고리 업데이트 실패');
+                        }
+                    });
+
+                    container.appendChild(btn);
                 });
-
-                container.appendChild(btn);
-            });
+            } catch (e) {
+                console.error('카테고리 로드 실패:', e);
+                container.innerHTML = `<p style="color:#777;">카테고리를 불러올 수 없습니다.</p>`;
+            }
         }
 
-
+        // =============================
         // 내 미션셋 (API 연동)
+        // =============================
+        const section = document.querySelector('.content-section');
+
         const missionContainer = document.createElement('div');
         missionContainer.className = 'card';
         missionContainer.innerHTML = `<h2 class="mypage-title">진행 중인 미션</h2><div id="mission-list"></div>`;
-        document.querySelector('.content-section').appendChild(missionContainer);
+        section.appendChild(missionContainer);
 
         const completedContainer = document.createElement('div');
         completedContainer.className = 'card';
         completedContainer.innerHTML = `<h2 class="mypage-title">완료된 미션</h2><div id="completed-mission-list"></div>`;
-        document.querySelector('.content-section').appendChild(completedContainer);
+        section.appendChild(completedContainer);
 
         try {
             const missions = await apiService.get('/user-missions/my-missions');
             const activeListEl = document.getElementById('mission-list');
             const completedListEl = document.getElementById('completed-mission-list');
 
-            // 진행중 & 완료 나누기
             const active = missions.filter(m => !m.cleared);
             const completed = missions.filter(m => m.cleared);
 
@@ -145,23 +153,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 activeListEl.innerHTML = `<p style="color:#777;">진행 중인 미션이 없습니다.</p>`;
             } else {
                 active.forEach(m => {
-                    const item = document.createElement('div');
-                    item.className = 'popup-card';
-                    item.innerHTML = `
-                <div class="popup-image-wrapper">
-                    ${m.mainImageUrl && m.mainImageUrl.trim() !== ""
-                        ? `<img src="${m.mainImageUrl}" class="popup-image" alt="${m.popupTitle}">`
-                        : `<div class="popup-image placeholder">이미지를 찾을 수 없습니다.</div>`}
-                </div>
-                <div class="popup-info">
-                    <div class="popup-title">${m.popupTitle}</div>
-                    <div class="popup-summary">${m.description || '상세설명'}</div>
-                    <div class="popup-action">
-                        <a class="popup-link" href="/missions/${m.missionSetId}">이어하기 &gt;</a>
-                    </div>
-                </div>
-            `;
-                    activeListEl.appendChild(item);
+                    activeListEl.appendChild(renderPopupCard(m, "이어하기", "popup-link"));
                 });
             }
 
@@ -169,32 +161,12 @@ document.addEventListener('DOMContentLoaded', async function () {
                 completedListEl.innerHTML = `<p style="color:#777;">완료된 미션이 없습니다.</p>`;
             } else {
                 completed.forEach(m => {
-                    const item = document.createElement('div');
-                    item.className = 'popup-card';
-                    item.innerHTML = `
-                <div class="popup-image-wrapper">
-                    ${m.mainImageUrl && m.mainImageUrl.trim() !== ""
-                        ? `<img src="${m.mainImageUrl}" class="popup-image" alt="${m.popupTitle}">`
-                        : `<div class="popup-image placeholder">이미지를 찾을 수 없습니다.</div>`}
-                </div>
-                <div class="popup-info">
-                    <div class="popup-title">${m.popupTitle}</div>
-                    <div class="popup-summary">${m.description || '상세설명'}</div>
-                    <div class="popup-action">
-                        <a class="popup-link" href="/missions/${m.missionSetId}">다시보기 &gt;</a>
-                    </div>
-                </div>
-            `;
-                    completedListEl.appendChild(item);
+                    completedListEl.appendChild(renderPopupCard(m, "다시보기", "popup-link"));
                 });
             }
         } catch (e) {
             console.error('미션 목록 불러오기 실패:', e);
         }
-
-
-
-
 
     } catch (err) {
         console.error(err);
@@ -203,7 +175,27 @@ document.addEventListener('DOMContentLoaded', async function () {
             <p style="color:red; text-align:center;">로그인 후 이용 가능합니다.</p>
         `;
     }
-
-
-
 });
+
+// =============================
+// 팝업 카드 렌더링 유틸 함수
+// =============================
+function renderPopupCard(m, actionText, linkClass) {
+    const item = document.createElement('div');
+    item.className = 'popup-card';
+    item.innerHTML = `
+        <div class="popup-image-wrapper">
+            ${m.mainImageUrl && m.mainImageUrl.trim() !== ""
+        ? `<img src="${m.mainImageUrl}" class="popup-image" alt="${m.popupTitle}">`
+        : `<div class="popup-image placeholder">이미지를 찾을 수 없습니다.</div>`}
+        </div>
+        <div class="popup-info">
+            <div class="popup-title">${m.popupTitle}</div>
+            <div class="popup-summary">${m.description || '상세설명'}</div>
+            <div class="popup-action">
+                <a class="${linkClass}" href="/missions/${m.missionSetId}">${actionText} &gt;</a>
+            </div>
+        </div>
+    `;
+    return item;
+}
