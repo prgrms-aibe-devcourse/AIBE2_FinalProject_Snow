@@ -5,6 +5,9 @@ import com.snow.popin.domain.mission.entity.Mission;
 import com.snow.popin.domain.mission.entity.MissionSet;
 import com.snow.popin.domain.mission.repository.MissionRepository;
 import com.snow.popin.domain.mission.repository.MissionSetRepository;
+import com.snow.popin.domain.popup.entity.Popup;
+import com.snow.popin.domain.popup.entity.PopupStatus;
+import com.snow.popin.domain.popup.repository.PopupRepository;
 import com.snow.popin.domain.reward.entity.RewardOption;
 import com.snow.popin.domain.reward.repository.RewardOptionRepository;
 import com.snow.popin.domain.user.repository.UserRepository;
@@ -32,6 +35,7 @@ public class DataInitializer implements CommandLineRunner {
     private final MissionRepository missionRepository;
     private final RewardOptionRepository rewardOptionRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PopupRepository popupRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -78,11 +82,17 @@ public class DataInitializer implements CommandLineRunner {
             return;
         }
 
-        log.info("미션셋 및 미션 더미 데이터를 생성합니다.");
+        log.info("팝업 + 미션셋 및 미션 더미 데이터를 생성합니다.");
 
-        // 미션셋 (UUID는 JPA가 자동 생성)
+
+        // 팝업 생성 (엔티티 수정 없이 생성 메서드 활용)
+        Popup popup = Popup.createForTest("테스트 팝업", PopupStatus.ONGOING, null);
+        // mainImageUrl은 세터가 없으니 리플렉션 없이 기본값으로 두거나 생성자쪽에서 넣도록 createForTest를 확장
+        popupRepository.saveAndFlush(popup);
+
+        // 미션셋 생성 (Popup ID 연결)
         MissionSet missionSet = MissionSet.builder()
-                .popupId(1001L)
+                .popupId(popup.getId()) // Popup의 FK 연결
                 .requiredCount(3)
                 .status("ACTIVE")
                 .rewardPin("1234")
@@ -102,14 +112,16 @@ public class DataInitializer implements CommandLineRunner {
 
         // 리워드 옵션 4개
         List<RewardOption> options = Arrays.asList(
-                RewardOption.builder().missionSetId(missionSet.getId()).name("꽝").total(200).build(),
+                RewardOption.builder().missionSetId(missionSet.getId()).name("엽서").total(200).build(),
                 RewardOption.builder().missionSetId(missionSet.getId()).name("텀블러").total(100).build(),
                 RewardOption.builder().missionSetId(missionSet.getId()).name("에코백").total(50).build(),
                 RewardOption.builder().missionSetId(missionSet.getId()).name("스티커팩").total(200).build()
         );
         rewardOptionRepository.saveAll(options);
 
+        log.info("생성된 Popup ID: {}", popup.getId());
         log.info("생성된 MissionSet ID: {}", missionSet.getId());
         log.info("미션/리워드 더미 데이터 생성 완료");
     }
+
 }
