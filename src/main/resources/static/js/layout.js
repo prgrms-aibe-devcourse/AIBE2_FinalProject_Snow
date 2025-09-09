@@ -103,9 +103,12 @@ function showNotifications() {
 // 프로필 선택 시 이동
 async function goToProfile() {
     try {
-        const role = getUserRole(); // 지금은 'PROVIDER' 문자열 반환
+        const role = await getUserRole();
 
-        if (role === 'PROVIDER') {
+        if (role === 'USER') {
+            window.location.href = '/users/mypage';
+        }
+        else if (role === 'PROVIDER') {
             location.assign('/templates/pages/mpg-provider.html');
         } else if (role === 'HOST') {
             location.assign('/templates/pages/mpg-host.html');
@@ -285,9 +288,17 @@ function createFooterByRole() {
 }
 
 // 사용자 역할 가져오기 함수 (테스트용으로 쓰고 나중엔 실제로 가져오게)
-function getUserRole() {
-    return 'PROVIDER'; // ROLE을 입력
+// 현재 사용자 ROLE 반환
+async function getUserRole() {
+    try {
+        const user = await apiService.getCurrentUser();
+        return user?.role || 'GUEST';  // 로그인 안됐으면 GUEST
+    } catch (e) {
+        console.warn('사용자 정보를 가져올 수 없음:', e);
+        return 'GUEST'; // 기본값
+    }
 }
+
 
 // === 초기화 ===
 document.addEventListener('DOMContentLoaded', () => {

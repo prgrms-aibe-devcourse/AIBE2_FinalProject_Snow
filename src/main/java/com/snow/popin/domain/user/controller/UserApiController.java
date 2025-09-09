@@ -1,24 +1,29 @@
 package com.snow.popin.domain.user.controller;
 
 import com.snow.popin.domain.user.dto.UserResponseDto;
+import com.snow.popin.domain.user.dto.UserUpdateRequestDto;
 import com.snow.popin.domain.user.service.UserService;
 import com.snow.popin.domain.user.dto.UserFormDto;
+import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.security.Principal;
+import javax.validation.Valid;
 
 @Controller
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-public class UserController {
+public class UserApiController {
 
     private final UserService userService;
+    private final UserUtil userUtil;
     private final PasswordEncoder passwordEncoder;
 
     @GetMapping("/new")
@@ -26,7 +31,6 @@ public class UserController {
         model.addAttribute("userFormDto", new UserFormDto());
         return "user/userForm";
     }
-
 
     @GetMapping("/login")
     public String loginUser() {
@@ -39,16 +43,21 @@ public class UserController {
         return "user/userLoginForm";
     }
 
-
+    // 내 정보 조회
     @GetMapping("/me")
-    public ResponseEntity<UserResponseDto> getMyProfile(Principal principal) {
-        if (principal == null) {
-            return ResponseEntity.status(401).build(); // 로그인 안 한 경우
-        }
-
-        UserResponseDto userDto = userService.getUserProfile(principal.getName());
-        return ResponseEntity.ok(userDto);
+    public ResponseEntity<UserResponseDto> getMyInfo() {
+        return ResponseEntity.ok(userService.getCurrentUserInfo());
     }
 
+    // 내 정보 수정
+    @PutMapping("/me")
+    public ResponseEntity<UserResponseDto> updateMyInfo(@RequestBody @Valid UserUpdateRequestDto dto) {
+        return ResponseEntity.ok(userService.updateCurrentUser(dto));
+    }
+
+    @GetMapping("/name")
+    public ResponseEntity<String> getMyName() {
+        return ResponseEntity.ok(userUtil.getCurrentUserName());
+    }
 
 }

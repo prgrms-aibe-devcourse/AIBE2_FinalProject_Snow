@@ -11,6 +11,7 @@ import com.snow.popin.domain.reward.service.RewardService;
 import com.snow.popin.domain.user.service.UserService;
 import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -64,6 +65,9 @@ public class RewardController {
     @PostMapping("/redeem")
     public ResponseEntity<RedeemResponseDto> redeem(@RequestBody @Valid RedeemRequestDto req) {
         Long userId = userUtil.getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         UserReward userReward = rewardService.redeem(req.getMissionSetId(), userId, req.getStaffPin());
 
         return ResponseEntity.ok(

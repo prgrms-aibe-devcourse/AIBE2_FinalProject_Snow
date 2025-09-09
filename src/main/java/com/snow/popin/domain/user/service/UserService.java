@@ -1,10 +1,12 @@
 package com.snow.popin.domain.user.service;
 
 import com.snow.popin.domain.user.dto.UserResponseDto;
+import com.snow.popin.domain.user.dto.UserUpdateRequestDto;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.domain.user.repository.UserRepository;
 import com.snow.popin.global.constant.ErrorCode;
 import com.snow.popin.global.exception.GeneralException;
+import com.snow.popin.global.util.UserUtil;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserUtil userUtil;
     private final PasswordEncoder passwordEncoder;
 
     public User findById(Long id){
@@ -34,13 +37,18 @@ public class UserService {
     }
 
 
-    @Transactional
-    public void updateProfile(Long userId, String name, String nickname, String phone){
-
-        User user = findById(userId);
-        user.updateProfile(name, nickname, phone);
-
+    public UserResponseDto getCurrentUserInfo() {
+        User user = userUtil.getCurrentUser();
+        return new UserResponseDto(user);
     }
+
+    @Transactional
+    public UserResponseDto updateCurrentUser(UserUpdateRequestDto dto) {
+        User user = userUtil.getCurrentUser();
+        user.updateProfile(dto.getName(), dto.getNickname(), dto.getPhone());
+        return new UserResponseDto(user);
+    }
+
 
 
     @Transactional
@@ -51,14 +59,6 @@ public class UserService {
         user.changePassword(encodedPassword);
 
     }
-
-    //마이페이지
-    public UserResponseDto getUserProfile(String email) {
-        User user = findByEmail(email);
-        return new UserResponseDto(user);
-    }
-
-
 
 
 }
