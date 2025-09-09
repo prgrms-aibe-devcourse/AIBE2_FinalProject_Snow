@@ -102,6 +102,37 @@ document.addEventListener('DOMContentLoaded', async function () {
             });
         });
 
+        // =============================
+        // 관심 카테고리 예시 데이터 UI
+        // =============================
+        const categories = [
+            { id: 1, name: "패션", active: true },
+            { id: 2, name: "반려동물", active: true },
+            { id: 3, name: "게임", active: false },
+            { id: 4, name: "캐릭터/IP", active: true },
+            { id: 5, name: "문화/콘텐츠", active: true },
+            { id: 6, name: "연예", active: false },
+            { id: 7, name: "여행/레저/스포츠", active: true },
+        ];
+
+        const container = document.getElementById('category-container');
+        if (container) {
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.textContent = cat.name;
+                btn.className = 'category-btn';
+                if (cat.active) btn.classList.add('active');
+
+                // 클릭 시 토글 (백엔드 연동되면 API 호출 자리)
+                btn.addEventListener('click', () => {
+                    btn.classList.toggle('active');
+                    cat.active = !cat.active;
+                });
+
+                container.appendChild(btn);
+            });
+        }
+
     } catch (err) {
         console.error(err);
         document.getElementById('main-content').innerHTML = `
