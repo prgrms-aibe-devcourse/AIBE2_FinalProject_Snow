@@ -21,6 +21,17 @@ const Pages = {
         }
     },
 
+    // 팝업 리스트
+    async popupList() {
+        const manager = new PopupListManager();
+        await manager.initialize();
+    },
+
+    async popupSearch() {
+        const manager = new PopupSearchManager();
+        await manager.initialize();
+    },
+
     // == 마이페이지 - 공간제공자 (현재 비어있음) ===
 
 
@@ -46,5 +57,18 @@ const Pages = {
     },
 };
 
+// 팝업 상세 페이지로 이동
+function goToPopupDetail(popupId) {
+    console.log('팝업 상세 이동:', popupId);
+    if (popupId == null || (typeof popupId !== 'number' && !/^\d+$/.test(String(popupId)))) {
+        console.warn('잘못된 팝업 ID:', popupId);
+        return;
+    }
+    const id = encodeURIComponent(String(popupId));
+    // TODO: 상세 페이지 구현 시 활성화
+    // location.href = `/templates/pages/popup-detail.html?id=${id}`;
+    alert(`팝업 ID ${id} 상세 페이지는 준비 중입니다.`);
+}
 
 window.Pages = Pages;
+window.goToPopupDetail = goToPopupDetail;

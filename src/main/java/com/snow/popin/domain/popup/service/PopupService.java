@@ -1,14 +1,8 @@
 package com.snow.popin.domain.popup.service;
 
 import com.snow.popin.domain.popup.dto.request.PopupListRequestDto;
-import com.snow.popin.domain.popup.dto.request.PopupSearchRequestDto;
-import com.snow.popin.domain.popup.dto.response.*;
-import com.snow.popin.domain.popup.entity.*;
 import com.snow.popin.domain.popup.dto.response.*;
 import com.snow.popin.domain.popup.entity.Popup;
-import com.snow.popin.domain.popup.entity.PopupHours;
-import com.snow.popin.domain.popup.entity.PopupImage;
-import com.snow.popin.domain.popup.entity.PopupStatus;
 import com.snow.popin.domain.popup.repository.PopupRepository;
 import com.snow.popin.global.exception.PopupNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,201 +24,86 @@ public class PopupService {
     private final PopupRepository popupRepository;
 
     public PopupListResponseDto getPopupList(PopupListRequestDto request) {
-        Pageable pageable = createPageable(request.getPage(), request.getSize(),
-                request.getSortBy(), request.getSortDirection());
-        Page<Popup> popupPage = getPopups(request.getStatus(), pageable);
+        log.info("팝업 리스트 조회 시작 - 상태: {}, 지역: {}, 날짜필터: {}, 정렬: {}",
+                request.getStatus(), request.getRegion(), request.getDateFilter(), request.getSortBy());
+
+        Pageable pageable = createPageableWithSort(request.getPage(), request.getSize(), request.getSortBy());
+        Page<Popup> popupPage = findPopupsWithFilters(request, pageable);
 
         List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
                 .stream()
-                .map(this::convertToSummaryResponseDto)
+                .map(PopupSummaryResponseDto::from)
                 .collect(Collectors.toList());
 
-        return buildPopupListResponse(popupPage, popupDtos);
-    }
+        log.info("팝업 리스트 조회 완료 - 총 {}개, 페이지 {}개",
+                popupPage.getTotalElements(), popupDtos.size());
 
-    public PopupListResponseDto searchPopups(PopupSearchRequestDto request) {
-        Pageable pageable = createPageable(request.getPage(), request.getSize(),
-                request.getSortBy(), request.getSortDirection());
-
-        // 입력값 정제 및 정규화
-        String title = (request.getTitle() != null && !request.getTitle().trim().isEmpty())
-                ? request.getTitle().trim() : null;
-        String region = (request.getRegion() != null && !request.getRegion().trim().isEmpty())
-                ? request.getRegion().trim() : null;
-        List<String> tags = CollectionUtils.isEmpty(request.getTags()) ? null
-                : request.getTags().stream()
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .distinct()
-                .collect(Collectors.toList());
-
-        Page<Popup> popupPage;
-
-        // 태그가 있는 경우와 없는 경우로 분리
-        if (!CollectionUtils.isEmpty(tags)) {
-            popupPage = popupRepository.searchPopupsByTags(tags, title, region, pageable);
-        } else {
-            popupPage = popupRepository.searchPopups(title, region, pageable);
-        }
-
-        List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
-                .stream()
-                .map(this::convertToSummaryResponseDto)
-                .collect(Collectors.toList());
-
-        log.info("팝업 검색 완료 - 제목: {}, 지역: {}, 태그: {}, 결과 수: {}",
-                title, region, tags, popupPage.getTotalElements());
-
-        return buildPopupListResponse(popupPage, popupDtos);
+        return PopupListResponseDto.of(popupPage, popupDtos);
     }
 
     public PopupDetailResponseDto getPopupDetail(Long popupId) {
         Popup popup = popupRepository.findByIdWithDetails(popupId)
                 .orElseThrow(() -> new PopupNotFoundException(popupId));
 
-        log.info("팝업 상세 조회 완료 - ID: {}, 제목: {}, 이미지 수: {}, 운영시간 수: {}",
-                popup.getId(), popup.getTitle(), popup.getImages().size(), popup.getHours().size());
-        return convertToDetailResponseDto(popup);
+        log.info("팝업 상세 조회 완료 - ID: {}, 제목: {}", popup.getId(), popup.getTitle());
+
+        return PopupDetailResponseDto.from(popup);
     }
 
-    private Page<Popup> getPopups(PopupStatus status, Pageable pageable) {
-        if (status != null) {
-            return popupRepository.findByStatusOrderByCreatedAtDesc(status, pageable);
-        } else {
-            return popupRepository.findAllByOrderByCreatedAtDesc(pageable);
+    public PopupListResponseDto getFeaturedPopups(int page, int size) {
+        Pageable pageable = createPageable(page, size);
+        Page<Popup> popupPage = popupRepository.findFeaturedPopups(pageable);
+
+        List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
+                .stream()
+                .map(PopupSummaryResponseDto::from)
+                .collect(Collectors.toList());
+
+        return PopupListResponseDto.of(popupPage, popupDtos);
+    }
+
+    private Page<Popup> findPopupsWithFilters(PopupListRequestDto request, Pageable pageable) {
+        if (request.isDeadlineSoon()) {
+            LocalDate deadline = LocalDate.now().plusDays(7);
+            return popupRepository.findDeadlineSoonPopups(deadline, pageable);
         }
+
+        return popupRepository.findWithFilters(
+                request.getStatus(),
+                request.hasRegionFilter() ? request.getRegion() : null,
+                request.getStartDate(),
+                request.getEndDate(),
+                pageable
+        );
     }
 
-    // venue별 팝업 조회
-    public PopupListResponseDto getPopupsByVenue(Long venueId, int page, int size) {
-        Pageable pageable = createPageable(page, size, "createdAt", "DESC");
-        Page<Popup> popupPage = popupRepository.findByVenueId(venueId, pageable);
-
-        List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
-                .stream()
-                .map(this::convertToSummaryResponseDto)
-                .collect(Collectors.toList());
-
-        return buildPopupListResponse(popupPage, popupDtos);
+    private Pageable createPageable(int page, int size) {
+        int validPage = Math.max(0, page);
+        int validSize = Math.min(Math.max(1, size), 100);
+        return PageRequest.of(validPage, validSize);
     }
 
-    // 지역별 팝업 조회
-    public PopupListResponseDto getPopupsByRegion(String region, int page, int size) {
-        Pageable pageable = createPageable(page, size, "createdAt", "DESC");
-        Page<Popup> popupPage = popupRepository.findByRegion(region, pageable);
+    private Pageable createPageableWithSort(int page, int size, String sortBy) {
+        int validPage = Math.max(0, page);
+        int validSize = Math.min(Math.max(1, size), 100);
 
-        List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
-                .stream()
-                .map(this::convertToSummaryResponseDto)
-                .collect(Collectors.toList());
-
-        return buildPopupListResponse(popupPage, popupDtos);
+        Sort sort = createSort(sortBy);
+        return PageRequest.of(validPage, validSize, sort);
     }
 
-    private PopupListResponseDto buildPopupListResponse(Page<Popup> popupPage, List<PopupSummaryResponseDto> popupDtos) {
-        return PopupListResponseDto.builder()
-                .popups(popupDtos)
-                .totalPages(popupPage.getTotalPages())
-                .totalElements(popupPage.getTotalElements())
-                .currentPage(popupPage.getNumber())
-                .size(popupPage.getSize())
-                .hasNext(popupPage.hasNext())
-                .hasPrevious(popupPage.hasPrevious())
-                .build();
-    }
+    private Sort createSort(String sortBy) {
+        if (sortBy == null) {
+            return Sort.by(Sort.Direction.DESC, "createdAt");
+        }
 
-    private PopupSummaryResponseDto convertToSummaryResponseDto(Popup popup) {
-        List<PopupImageResponseDto> imageDtos = popup.getImages().stream()
-                .map(this::convertToImageResponseDto)
-                .collect(Collectors.toList());
-
-        return PopupSummaryResponseDto.builder()
-                .id(popup.getId())
-                .title(popup.getTitle())
-                .summary(popup.getSummary())
-                .period(popup.getPeriodText())
-                .status(popup.getStatus())
-                .mainImageUrl(popup.getMainImageUrl())
-                .isFeatured(popup.getIsFeatured())
-                .reservationAvailable(popup.getReservationAvailable())
-                .waitlistAvailable(popup.getWaitlistAvailable())
-                .entryFee(popup.getEntryFee())
-                .isFreeEntry(popup.isFreeEntry())
-                .feeDisplayText(popup.getFeeDisplayText())
-                .createdAt(popup.getCreatedAt())
-                .updatedAt(popup.getUpdatedAt())
-                .images(imageDtos)
-                .venueName(popup.getVenueName())
-                .venueAddress(popup.getVenueAddress())
-                .region(popup.getRegion())
-                .parkingAvailable(popup.getParkingAvailable())
-                .build();
-    }
-
-    private PopupDetailResponseDto convertToDetailResponseDto(Popup popup) {
-        List<PopupImageResponseDto> imageDtos = popup.getImages().stream()
-                .map(this::convertToImageResponseDto)
-                .collect(Collectors.toList());
-
-        List<PopupHoursResponseDto> hoursDtos = popup.getHours().stream()
-                .map(this::convertToHoursResponseDto)
-                .collect(Collectors.toList());
-
-        return PopupDetailResponseDto.builder()
-                .id(popup.getId())
-                .brandId(popup.getBrandId())
-                .venueId(popup.getVenue() != null ? popup.getVenue().getId() : null)
-                .title(popup.getTitle())
-                .summary(popup.getSummary())
-                .description(popup.getDescription())
-                .period(popup.getPeriodText())
-                .status(popup.getStatus())
-                .mainImageUrl(popup.getMainImageUrl())
-                .isFeatured(popup.getIsFeatured())
-                .reservationAvailable(popup.getReservationAvailable())
-                .reservationLink(popup.getReservationLink())
-                .waitlistAvailable(popup.getWaitlistAvailable())
-                .entryFee(popup.getEntryFee())
-                .isFreeEntry(popup.isFreeEntry())
-                .feeDisplayText(popup.getFeeDisplayText())
-                .notice(popup.getNotice())
-                .createdAt(popup.getCreatedAt())
-                .updatedAt(popup.getUpdatedAt())
-                .images(imageDtos)
-                .hours(hoursDtos)
-                .venueName(popup.getVenueName())
-                .venueAddress(popup.getVenueAddress())
-                .region(popup.getRegion())
-                .latitude(popup.getLatitude())
-                .longitude(popup.getLongitude())
-                .parkingAvailable(popup.getParkingAvailable())
-                .build();
-    }
-
-    private PopupImageResponseDto convertToImageResponseDto(PopupImage image) {
-        return PopupImageResponseDto.builder()
-                .id(image.getId())
-                .imageUrl(image.getImageUrl())
-                .caption(image.getCaption())
-                .sortOrder(image.getSortOrder())
-                .build();
-    }
-
-    private PopupHoursResponseDto convertToHoursResponseDto(PopupHours hours) {
-        return PopupHoursResponseDto.builder()
-                .id(hours.getId())
-                .dayOfWeek(hours.getDayOfWeek())
-                .openTime(hours.getOpenTime())
-                .closeTime(hours.getCloseTime())
-                .note(hours.getNote())
-                .build();
-    }
-
-    private Pageable createPageable(int page, int size, String sortBy, String sortDirection) {
-        String prop = (sortBy == null || sortBy.isBlank()) ? "createdAt" : sortBy;
-        Sort.Direction dir = ("ASC".equalsIgnoreCase(sortDirection)) ? Sort.Direction.ASC : Sort.Direction.DESC;
-        int p = Math.max(0, page);
-        int s = Math.min(Math.max(1, size), 100);
-        return PageRequest.of(p, s, Sort.by(dir, prop));
+        switch (sortBy) {
+            case "deadline":
+                return Sort.by(Sort.Direction.ASC, "endDate");
+            case "date":
+                return Sort.by(Sort.Direction.ASC, "startDate");
+            case "latest":
+            default:
+                return Sort.by(Sort.Direction.DESC, "createdAt");
+        }
     }
 }

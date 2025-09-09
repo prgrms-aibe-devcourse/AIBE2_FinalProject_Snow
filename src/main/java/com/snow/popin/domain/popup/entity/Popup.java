@@ -1,5 +1,6 @@
 package com.snow.popin.domain.popup.entity;
 
+import com.snow.popin.domain.map.entity.Venue;
 import com.snow.popin.global.common.BaseEntity;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
@@ -7,12 +8,14 @@ import org.hibernate.annotations.BatchSize;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
 @Table(name = "popups")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Popup extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -141,5 +144,50 @@ public class Popup extends BaseEntity {
     public boolean isEnded() {
         LocalDate now = LocalDate.now();
         return endDate != null && now.isAfter(endDate);
+    }
+
+    public Long getDaysUntilEnd() {
+        if (endDate == null) {
+            return null;
+        }
+        LocalDate now = LocalDate.now();
+        return ChronoUnit.DAYS.between(now, endDate);
+    }
+
+    // 테스트용 메서드
+    public static Popup createForTest(String title, PopupStatus status, Venue venue) {
+        Popup popup = new Popup();
+        popup.title = title;
+        popup.summary = "테스트 요약";
+        popup.status = status;
+        popup.venue = venue;
+        popup.startDate = LocalDate.now();
+        popup.endDate = LocalDate.now().plusDays(7);
+        popup.isFeatured = false;
+        popup.entryFee = 0;
+        popup.reservationAvailable = false;
+        popup.waitlistAvailable = false;
+        return popup;
+    }
+
+    public static Popup createForTestWithDates(String title, LocalDate startDate, LocalDate endDate, Venue venue) {
+        Popup popup = createForTest(title, PopupStatus.ONGOING, venue);
+        popup.startDate = startDate;
+        popup.endDate = endDate;
+        return popup;
+    }
+
+    public static Popup createFeaturedForTest(String title, PopupStatus status, Venue venue) {
+        Popup popup = createForTest(title, status, venue);
+        popup.isFeatured = true;
+        return popup;
+    }
+
+    public void setStatusForTest(PopupStatus status) {
+        this.status = status;
+    }
+
+    public void setFeaturedForTest(boolean featured) {
+        this.isFeatured = featured;
     }
 }

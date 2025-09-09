@@ -331,4 +331,134 @@ apiService.getReservationStats = async function() {
     return await this.get('/space-reservations/stats');
 };
 
+// === 팝업 관련 API ===
 
+// TODO: 실제 배포 시 삭제 - 개발 모드 체크 함수
+const isDevelopment = () => {
+    return window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.port !== '';
+};
+
+// 팝업 목록 조회
+apiService.getPopups = async function(params = {}) {
+    // TODO: 실제 배포 시 삭제 - 개발 환경 분기 처리
+    if (isDevelopment()) {
+        return await this.getDummyPopups(params);
+    }
+
+    // 실제 API 호출
+    const sp = new URLSearchParams(params);
+    const query = sp.toString() ? `?${sp.toString()}` : '';
+    return await this.get(`/popups${query}`);
+};
+
+// TODO: 실제 배포 시 전체 함수 삭제 - Dummy Data 로드 함수
+apiService.getDummyPopups = async function(params = {}) {
+    try {
+        const response = await fetch('/popup-dummy-data.json');
+        if (!response.ok) {
+            throw new Error('Dummy data 로드 실패');
+        }
+
+        const data = await response.json();
+
+        // 클라이언트에서 간단한 필터링/정렬 시뮬레이션
+        let filteredPopups = [...data.popups];
+
+        // 정렬 처리
+        const sortBy = params.sortBy || 'latest';
+        switch(sortBy) {
+            case 'featured':
+                filteredPopups = filteredPopups.filter(p => p.featured);
+                break;
+            case 'deadline':
+                filteredPopups.sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
+                break;
+            case 'latest':
+            default:
+                filteredPopups.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                break;
+        }
+
+        // 페이지네이션 시뮬레이션
+        const page = parseInt(params.page || 0);
+        const size = parseInt(params.size || 10);
+        const startIndex = page * size;
+        const endIndex = startIndex + size;
+        const pagedPopups = filteredPopups.slice(startIndex, endIndex);
+
+        // API 응답 형식에 맞게 반환
+        return {
+            popups: pagedPopups,
+            totalElements: filteredPopups.length,
+            totalPages: Math.ceil(filteredPopups.length / size),
+            size: size,
+            number: page,
+            first: page === 0,
+            last: endIndex >= filteredPopups.length
+        };
+
+    } catch (error) {
+        console.error('Dummy data 로드 오류:', error);
+        // 오류 시 빈 응답 반환
+        return {
+            popups: [],
+            totalElements: 0,
+            totalPages: 0,
+            size: parseInt(params.size || 10),
+            number: parseInt(params.page || 0),
+            first: true,
+            last: true
+        };
+    }
+};
+
+// 팝업 상세 조회
+apiService.getPopup = async function(popupId) {
+    // TODO: 실제 배포 시 삭제 - 개발 환경 분기 처리
+    if (isDevelopment()) {
+        return await this.getDummyPopup(popupId);
+    }
+    return await this.get(`/popups/${encodeURIComponent(popupId)}`);
+};
+
+// TODO: 실제 배포 시 전체 함수 삭제 - Dummy 팝업 상세 조회
+apiService.getDummyPopup = async function(popupId) {
+    try {
+        const response = await fetch('/data/popup-dummy-data.json');
+        const data = await response.json();
+        const popup = data.popups.find(p => p.id == popupId);
+
+        if (!popup) {
+            throw new Error('팝업을 찾을 수 없습니다.');
+        }
+
+        return popup;
+    } catch (error) {
+        console.error('Dummy 팝업 상세 로드 오류:', error);
+        throw error;
+    }
+};
+
+// 추천 팝업 조회
+apiService.getFeaturedPopups = async function(page = 0, size = 20) {
+    // TODO: 실제 배포 시 삭제 - 개발 환경 분기 처리
+    if (isDevelopment()) {
+        return await this.getDummyPopups({ page, size, sortBy: 'featured' });
+    }
+    return await this.get(`/popups/featured?page=${page}&size=${size}`);
+};
+
+// 팝업 검색
+apiService.searchPopups = async function(params = {}) {
+    // TODO: 실제 배포 시 삭제 - 개발 환경 분기 처리
+    if (isDevelopment()) {
+        // TODO: Dummy 검색 구현
+        return await this.getDummyPopups(params);
+    }
+
+    const sp = new URLSearchParams(params);
+    const query = sp.toString() ? `?${sp.toString()}` : '';
+    return await this.get(`/search/popups${query}`);
+};

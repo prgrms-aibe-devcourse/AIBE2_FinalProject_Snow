@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.Validator;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/popups")
@@ -18,7 +19,6 @@ import javax.validation.Validator;
 public class PopupController {
 
     private final PopupService popupService;
-    private final Validator validator;
 
     // 팝업스토어 리스트 조회
     @GetMapping
@@ -27,17 +27,19 @@ public class PopupController {
         return ResponseEntity.ok(response);
     }
 
-    // 팝업스토어 검색
-    @GetMapping("/search")
-    public ResponseEntity<PopupListResponseDto> searchPopups(@Valid PopupSearchRequestDto request) {
-        PopupListResponseDto response = popupService.searchPopups(request);
-        return ResponseEntity.ok(response);
-    }
-
     // 팝업스토어 상세 조회
     @GetMapping("/{popupId}")
     public ResponseEntity<PopupDetailResponseDto> getPopupDetail(@PathVariable Long popupId) {
         PopupDetailResponseDto response = popupService.getPopupDetail(popupId);
+        return ResponseEntity.ok(response);
+    }
+
+    // 추천 팝업 조회
+    @GetMapping("/featured")
+    public ResponseEntity<PopupListResponseDto> getFeaturedPopups(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        PopupListResponseDto response = popupService.getFeaturedPopups(page, size);
         return ResponseEntity.ok(response);
     }
 }

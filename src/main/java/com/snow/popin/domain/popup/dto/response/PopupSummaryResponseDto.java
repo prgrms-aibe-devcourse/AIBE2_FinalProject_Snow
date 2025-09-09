@@ -1,11 +1,13 @@
 package com.snow.popin.domain.popup.dto.response;
 
+import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.entity.PopupStatus;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Builder
@@ -32,4 +34,30 @@ public class PopupSummaryResponseDto {
     private String venueAddress;
     private String region;
     private Boolean parkingAvailable;
+
+    public static PopupSummaryResponseDto from(Popup popup) {
+        return PopupSummaryResponseDto.builder()
+                .id(popup.getId())
+                .title(popup.getTitle())
+                .summary(popup.getSummary())
+                .period(popup.getPeriodText())
+                .status(popup.getStatus())
+                .mainImageUrl(popup.getMainImageUrl())
+                .isFeatured(popup.getIsFeatured())
+                .reservationAvailable(popup.getReservationAvailable())
+                .waitlistAvailable(popup.getWaitlistAvailable())
+                .entryFee(popup.getEntryFee())
+                .isFreeEntry(popup.isFreeEntry())
+                .feeDisplayText(popup.getFeeDisplayText())
+                .createdAt(popup.getCreatedAt())
+                .updatedAt(popup.getUpdatedAt())
+                .images(popup.getImages().stream()
+                        .map(PopupImageResponseDto::from)
+                        .collect(Collectors.toList()))
+                .venueName(popup.getVenueName())
+                .venueAddress(popup.getVenueAddress())
+                .region(popup.getRegion())
+                .parkingAvailable(popup.getParkingAvailable())
+                .build();
+    }
 }
