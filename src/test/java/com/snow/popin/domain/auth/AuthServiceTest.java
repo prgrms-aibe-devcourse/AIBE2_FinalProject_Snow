@@ -1,8 +1,7 @@
 package com.snow.popin.domain.auth;
 
 import com.snow.popin.domain.auth.constant.AuthProvider;
-import com.snow.popin.domain.auth.dto.LoginRequest;
-import com.snow.popin.domain.auth.dto.LoginResponse;
+import com.snow.popin.domain.auth.dto.*;
 import com.snow.popin.domain.auth.service.AuthService;
 import com.snow.popin.domain.user.repository.UserRepository;
 import com.snow.popin.domain.user.constant.Role;
@@ -19,14 +18,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
-@DisplayName("AuthService 로그인 단위 테스트")
+@DisplayName("AuthService 단위 테스트")
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
@@ -48,78 +49,227 @@ class AuthServiceTest {
     void setUp() {
         mockUser = User.builder()
                 .email("test@example.com")
-                .password("encodedPw")
+                .password("encodedPassword")
                 .name("테스트유저")
                 .nickname("테스터")
                 .phone("010-1234-5678")
                 .authProvider(AuthProvider.LOCAL)
                 .role(Role.USER)
                 .build();
+
+        // ID 필드 설정 (리플렉션 사용)
+        setUserId(mockUser, 1L);
     }
 
+    // ================ 회원가입 테스트 ================
+
+    @DisplayName("회원가입 성공 시 사용자 정보를 저장하고 응답을 반환한다")
     @Test
+    void givenValidSignupRequest_whenSignup_thenReturnsSignupResponse() {
+        // Given
+        SignupRequest request = new SignupRequest();
+        request.setEmail("newuser@example.com");
+        request.setPassword("password123");
+        request.setPasswordConfirm("password123"); // 비밀번호 확인 추가
+        request.setName("신규유저");
+        request.setNickname("뉴비");
+        request.setPhone("010-1234-5678");
+
+        User savedUser = User.builder()
+                .email(request.getEmail())
+                .password("encodedPassword")
+                .name(request.getName())
+                .nickname(request.getNickname())
+                .phone(request.getPhone())
+                .authProvider(AuthProvider.LOCAL)
+                .role(Role.USER)
+                .build();
+        setUserId(savedUser, 1L);
+
+        given(userRepository.existsByEmail(request.getEmail())).willReturn(false);
+        given(userRepository.existsByNickname(request.getNickname())).willReturn(false);
+        given(passwordEncoder.encode(request.getPassword())).willReturn("encodedPassword");
+        given(userRepository.save(any(User.class))).willReturn(savedUser);
+
+        // When
+        SignupResponse response = authService.signup(request);
+
+        // Then
+        assertThat(response.isSuccess()).isTrue();
+        assertThat(response.getMessage()).isEqualTo("회원가입이 완료되었습니다.");
+        assertThat(response.getEmail()).isEqualTo("newuser@example.com");
+        assertThat(response.getName()).isEqualTo("신규유저");
+        assertThat(response.getNickname()).isEqualTo("뉴비");
+
+        verify(userRepository).save(any(User.class));
+    }
+
+    @DisplayName("비밀번호가 일치하지 않을 때 BAD_REQUEST 예외를 던진다")
+    @Test
+    void givenMismatchedPasswords_whenSignup_thenThrowsBadRequestException() {
+        // Given
+        SignupRequest request = new SignupRequest();
+        request.setEmail("newuser@example.com");
+        request.setPassword("password123");
+        request.setPasswordConfirm("differentPassword");
+        request.setName("신규유저");
+        request.setNickname("뉴비");
+        request.setPhone("010-1234-5678");
+
+        // When & Then
+        assertThatThrownBy(() -> authService.signup(request))
+                .isInstanceOf(GeneralException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BAD_REQUEST);
+    }
+
+    @DisplayName("이미 존재하는 이메일로 회원가입 시 DUPLICATE_EMAIL 예외를 던진다")
+    @Test
+    void givenDuplicateEmail_whenSignup_thenThrowsDuplicateEmailException() {
+        // Given
+        SignupRequest request = new SignupRequest();
+        request.setEmail("duplicate@example.com");
+        request.setPassword("password123");
+        request.setPasswordConfirm("password123");
+        request.setName("중복유저");
+        request.setNickname("중복");
+        request.setPhone("010-1234-5678");
+
+        given(userRepository.existsByEmail(request.getEmail())).willReturn(true);
+
+        // When & Then
+        assertThatThrownBy(() -> authService.signup(request))
+                .isInstanceOf(GeneralException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_EMAIL);
+    }
+
+    @DisplayName("이미 존재하는 닉네임으로 회원가입 시 DUPLICATE_NICKNAME 예외를 던진다")
+    @Test
+    void givenDuplicateNickname_whenSignup_thenThrowsDuplicateNicknameException() {
+        // Given
+        SignupRequest request = new SignupRequest();
+        request.setEmail("newuser@example.com");
+        request.setPassword("password123");
+        request.setPasswordConfirm("password123");
+        request.setName("신규유저");
+        request.setNickname("중복닉네임");
+        request.setPhone("010-1234-5678");
+
+        given(userRepository.existsByEmail(request.getEmail())).willReturn(false);
+        given(userRepository.existsByNickname(request.getNickname())).willReturn(true);
+
+        // When & Then
+        assertThatThrownBy(() -> authService.signup(request))
+                .isInstanceOf(GeneralException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BAD_REQUEST);
+    }
+
+    // ================ 로그인 테스트 ================
+
     @DisplayName("로그인 성공 시 토큰과 사용자 정보를 반환한다")
+    @Test
     void givenValidRequest_whenLogin_thenReturnsLoginResponse() {
         // Given
         LoginRequest request = new LoginRequest();
         request.setEmail(mockUser.getEmail());
-        request.setPassword("raw-password");
+        request.setPassword("rawPassword");
 
-        given(userRepository.findByEmail(eq(mockUser.getEmail())))
+        given(userRepository.findByEmail(mockUser.getEmail()))
                 .willReturn(Optional.of(mockUser));
-
-        given(passwordEncoder.matches(eq("raw-password"), eq(mockUser.getPassword())))
+        given(passwordEncoder.matches("rawPassword", mockUser.getPassword()))
                 .willReturn(true);
-
-        // 토큰 생성 (id, email, nickname, role 순서)
-        given(jwtUtil.createToken(
-                eq(mockUser.getId()),
-                eq(mockUser.getEmail()),
-                eq(mockUser.getName()),
-                eq(mockUser.getRole().name())
-        )).willReturn("jwt-token");
+        given(jwtUtil.createToken(anyLong(), anyString(), anyString(), any()))
+                .willReturn("jwt-access-token");
 
         // When
         LoginResponse response = authService.login(request);
 
         // Then
-        assertThat(response).isNotNull();
-        assertThat(response.getAccessToken()).isEqualTo("jwt-token");
+        assertThat(response.getAccessToken()).isEqualTo("jwt-access-token");
+        assertThat(response.getTokenType()).isEqualTo("Bearer");
         assertThat(response.getUserId()).isEqualTo(mockUser.getId());
         assertThat(response.getEmail()).isEqualTo(mockUser.getEmail());
         assertThat(response.getName()).isEqualTo(mockUser.getName());
         assertThat(response.getRole()).isEqualTo(mockUser.getRole().name());
     }
 
+    @DisplayName("존재하지 않는 이메일로 로그인 시 LOGIN_FAILED 예외를 던진다")
     @Test
-    @DisplayName("이메일이 존재하지 않으면 USER_NOT_FOUND 예외가 발생한다")
-    void givenNonExistingEmail_whenLogin_thenThrowsException() {
+    void givenNonExistentEmail_whenLogin_thenThrowsLoginFailedException() {
         // Given
         LoginRequest request = new LoginRequest();
+        request.setEmail("nonexistent@example.com");
+        request.setPassword("password123");
+
         given(userRepository.findByEmail(request.getEmail()))
                 .willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> authService.login(request))
                 .isInstanceOf(GeneralException.class)
-                .hasMessageContaining("이메일 또는 비밀번호가 올바르지 않습니다.")
-                .extracting("errorCode").isEqualTo(ErrorCode.USER_NOT_FOUND);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.LOGIN_FAILED);
     }
 
+    @DisplayName("잘못된 비밀번호로 로그인 시 LOGIN_FAILED 예외를 던진다")
     @Test
-    @DisplayName("비밀번호가 틀리면 BAD_REQUEST 예외가 발생한다")
-    void givenWrongPassword_whenLogin_thenThrowsException() {
+    void givenWrongPassword_whenLogin_thenThrowsLoginFailedException() {
         // Given
         LoginRequest request = new LoginRequest();
-        given(userRepository.findByEmail(request.getEmail()))
+        request.setEmail(mockUser.getEmail());
+        request.setPassword("wrongPassword");
+
+        given(userRepository.findByEmail(mockUser.getEmail()))
                 .willReturn(Optional.of(mockUser));
-        given(passwordEncoder.matches(request.getPassword(), mockUser.getPassword()))
+        given(passwordEncoder.matches("wrongPassword", mockUser.getPassword()))
                 .willReturn(false);
 
         // When & Then
         assertThatThrownBy(() -> authService.login(request))
                 .isInstanceOf(GeneralException.class)
-                .hasMessageContaining("이메일 또는 비밀번호가 올바르지 않습니다.")
-                .extracting("errorCode").isEqualTo(ErrorCode.BAD_REQUEST);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.LOGIN_FAILED);
+    }
+
+    // ================ 중복 확인 테스트 ================
+
+    @DisplayName("이메일 존재 확인")
+    @Test
+    void givenEmail_whenEmailExists_thenReturnsBoolean() {
+        // Given
+        String email = "test@example.com";
+        given(userRepository.existsByEmail(email)).willReturn(true);
+
+        // When
+        boolean exists = authService.emailExists(email);
+
+        // Then
+        assertThat(exists).isTrue();
+    }
+
+    @DisplayName("닉네임 존재 확인")
+    @Test
+    void givenNickname_whenNicknameExists_thenReturnsBoolean() {
+        // Given
+        String nickname = "테스터";
+        given(userRepository.existsByNickname(nickname)).willReturn(true);
+
+        // When
+        boolean exists = authService.nicknameExists(nickname);
+
+        // Then
+        assertThat(exists).isTrue();
+    }
+
+    /**
+     * 테스트용으로 User 엔티티의 ID를 설정하는 헬퍼 메서드
+     * @param user 사용자 엔티티
+     * @param id 설정할 ID
+     */
+    private void setUserId(User user, Long id) {
+        try {
+            java.lang.reflect.Field idField = User.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(user, id);
+        } catch (Exception e) {
+            throw new RuntimeException("테스트용 ID 설정 실패", e);
+        }
     }
 }

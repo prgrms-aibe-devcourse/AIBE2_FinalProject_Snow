@@ -24,8 +24,12 @@ public class AuthViewController {
         return "forward:/auth/login.html";
     }
 
-    @GetMapping("/logout")
+    @GetMapping("/signup")
+    public String signupPage() {
+        return "forward:/auth/signup.html";
+    }
 
+    @GetMapping("/logout")
     public String logout(HttpServletRequest req, HttpServletResponse res) {
 
         try{
@@ -40,10 +44,4 @@ public class AuthViewController {
         return "forward:/auth/logout.html";
 
     }
-
-    @GetMapping("/signup")
-    public String signupPage() {
-        return "forward:/auth/signup.html";
-    }
-
 }

@@ -62,6 +62,7 @@ public class SecurityConfig {
                         .antMatchers("/api/auth/login").permitAll()
                         .antMatchers("/api/auth/signup").permitAll()
                         .antMatchers("/api/auth/check-email").permitAll()
+                        .antMatchers("/api/auth/check-nickname").permitAll()
                         .antMatchers("/api/auth/logout").permitAll()
 
                         // 역할별 접근 제어
