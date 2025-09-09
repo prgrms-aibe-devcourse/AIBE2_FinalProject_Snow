@@ -6,6 +6,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.Min;
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 public class PopupListRequestDto {
@@ -20,6 +21,8 @@ public class PopupListRequestDto {
     private LocalDate endDate;
 
     private String sortBy = "latest";
+
+    private List<Long> categoryIds;
 
     @Min(0)
     private int page = 0;
@@ -70,6 +73,10 @@ public class PopupListRequestDto {
 
     public boolean hasDateFilter() {
         return startDate != null || endDate != null;
+    }
+
+    public boolean hasCategoryFilter() {
+        return categoryIds != null && !categoryIds.isEmpty();
     }
 
     private void setDateRangeByFilter(String dateFilter) {

@@ -34,12 +34,33 @@ public class PopupController {
         return ResponseEntity.ok(response);
     }
 
-    // 추천 팝업 조회
-    @GetMapping("/featured")
-    public ResponseEntity<PopupListResponseDto> getFeaturedPopups(
+    // 인기 팝업 조회 (isFeatured = true)
+    @GetMapping("/popular")
+    public ResponseEntity<PopupListResponseDto> getPopularPopups(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        PopupListResponseDto response = popupService.getFeaturedPopups(page, size);
+        PopupListResponseDto response = popupService.getPopularPopups(page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    // 추천 팝업 조회 (사용자 관심 카테고리 기반)
+    @GetMapping("/recommended")
+    public ResponseEntity<PopupListResponseDto> getRecommendedPopups(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestParam(required = false) List<Long> categoryIds,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        PopupListResponseDto response = popupService.getRecommendedPopups(token, categoryIds, page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    // 추천 팝업 조회 (선택된 카테고리 기반)
+    @GetMapping("/recommended/by-categories")
+    public ResponseEntity<PopupListResponseDto> getRecommendedPopupsByCategories(
+            @RequestParam List<Long> categoryIds,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        PopupListResponseDto response = popupService.getRecommendedPopupsBySelectedCategories(categoryIds, page, size);
         return ResponseEntity.ok(response);
     }
 }

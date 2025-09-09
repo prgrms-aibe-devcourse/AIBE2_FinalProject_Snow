@@ -1,6 +1,6 @@
 package com.snow.popin.domain.popup.entity;
 
-import com.snow.popin.domain.category.Category;
+import com.snow.popin.domain.category.entity.Category;
 import com.snow.popin.domain.map.entity.Venue;
 import com.snow.popin.global.common.BaseEntity;
 import lombok.*;

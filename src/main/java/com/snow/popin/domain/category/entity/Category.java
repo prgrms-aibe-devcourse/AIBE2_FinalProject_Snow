@@ -1,4 +1,4 @@
-package com.snow.popin.domain.category;
+package com.snow.popin.domain.category.entity;
 
 import com.snow.popin.global.common.BaseEntity;
 import lombok.AccessLevel;

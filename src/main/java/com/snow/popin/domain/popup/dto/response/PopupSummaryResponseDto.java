@@ -35,6 +35,11 @@ public class PopupSummaryResponseDto {
     private String region;
     private Boolean parkingAvailable;
 
+    // 카테고리 정보
+    private Long categoryId;
+    private String categoryName;
+    private String categorySlug;
+
     public static PopupSummaryResponseDto from(Popup popup) {
         return PopupSummaryResponseDto.builder()
                 .id(popup.getId())
@@ -58,6 +63,9 @@ public class PopupSummaryResponseDto {
                 .venueAddress(popup.getVenueAddress())
                 .region(popup.getRegion())
                 .parkingAvailable(popup.getParkingAvailable())
+                .categoryId(popup.getCategory() != null ? popup.getCategory().getId() : null)
+                .categoryName(popup.getCategoryName())
+                .categorySlug(popup.getCategorySlug())
                 .build();
     }
 }

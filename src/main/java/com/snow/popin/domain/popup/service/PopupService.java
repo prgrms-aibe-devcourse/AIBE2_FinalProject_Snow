@@ -50,16 +50,75 @@ public class PopupService {
         return PopupDetailResponseDto.from(popup);
     }
 
-    public PopupListResponseDto getFeaturedPopups(int page, int size) {
+    // 인기 팝업 조회 (isFeatured = true)
+    public PopupListResponseDto getPopularPopups(int page, int size) {
+        log.info("인기 팝업 조회 시작 - page: {}, size: {}", page, size);
+
         Pageable pageable = createPageable(page, size);
-        Page<Popup> popupPage = popupRepository.findFeaturedPopups(pageable);
+        Page<Popup> popupPage = popupRepository.findPopularPopups(pageable);
 
         List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
                 .stream()
                 .map(PopupSummaryResponseDto::from)
                 .collect(Collectors.toList());
 
+        log.info("인기 팝업 조회 완료 - 총 {}개", popupPage.getTotalElements());
         return PopupListResponseDto.of(popupPage, popupDtos);
+    }
+
+    // 사용자 관심 카테고리 기반 추천 팝업 조회
+    public PopupListResponseDto getRecommendedPopups(String token, List<Long> overrideCategoryIds, int page, int size) {
+        log.info("추천 팝업 조회 시작 - token 존재: {}, 카테고리 override: {}", token != null, overrideCategoryIds);
+
+        Pageable pageable = createPageable(page, size);
+        Page<Popup> popupPage;
+
+        if (overrideCategoryIds != null && !overrideCategoryIds.isEmpty()) {
+            // 명시적으로 카테고리가 지정된 경우
+            popupPage = popupRepository.findRecommendedPopupsByCategories(overrideCategoryIds, pageable);
+        } else if (token != null && !token.isEmpty()) {
+            // 로그인한 사용자의 관심 카테고리 기반
+            List<Long> userInterestCategoryIds = getUserInterestCategoryIds(token);
+            if (userInterestCategoryIds.isEmpty()) {
+                popupPage = popupRepository.findDefaultRecommendedPopups(pageable);
+            } else {
+                popupPage = popupRepository.findRecommendedPopupsByCategories(userInterestCategoryIds, pageable);
+            }
+        } else {
+            // 비로그인 사용자 기본 추천
+            popupPage = popupRepository.findDefaultRecommendedPopups(pageable);
+        }
+
+        List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
+                .stream()
+                .map(PopupSummaryResponseDto::from)
+                .collect(Collectors.toList());
+
+        log.info("추천 팝업 조회 완료 - 총 {}개", popupPage.getTotalElements());
+        return PopupListResponseDto.of(popupPage, popupDtos);
+    }
+
+    // 선택된 카테고리 기반 추천 팝업 조회
+    public PopupListResponseDto getRecommendedPopupsBySelectedCategories(List<Long> categoryIds, int page, int size) {
+        log.info("선택된 카테고리 기반 추천 팝업 조회 - categoryIds: {}", categoryIds);
+
+        Pageable pageable = createPageable(page, size);
+        Page<Popup> popupPage = popupRepository.findRecommendedPopupsByCategories(categoryIds, pageable);
+
+        List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
+                .stream()
+                .map(PopupSummaryResponseDto::from)
+                .collect(Collectors.toList());
+
+        log.info("선택된 카테고리 추천 팝업 조회 완료 - 총 {}개", popupPage.getTotalElements());
+        return PopupListResponseDto.of(popupPage, popupDtos);
+    }
+
+
+    // TODO: 실제 구현 필요
+    private List<Long> getUserInterestCategoryIds(String token) {
+        // JWT 토큰에서 사용자 관심 카테고리 조회 로직
+        return List.of(1L, 2L, 3L); // 임시값
     }
 
     private Page<Popup> findPopupsWithFilters(PopupListRequestDto request, Pageable pageable) {

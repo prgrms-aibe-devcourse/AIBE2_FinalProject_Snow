@@ -50,17 +50,35 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
     Page<Popup> findDeadlineSoonPopups(@Param("deadline") LocalDate deadline, Pageable pageable);
 
     // 팝업 상세 조회
-    @EntityGraph(attributePaths = {"images", "hours", "venue", "tags"})
+    @EntityGraph(attributePaths = {"images", "hours", "venue", "tags", "category"})
     @Query("SELECT p FROM Popup p WHERE p.id = :id")
     Optional<Popup> findByIdWithDetails(@Param("id") Long id);
 
-    // 추천/피처드 팝업 조회
-    @Query(value = "SELECT p FROM Popup p LEFT JOIN FETCH p.venue v " +
+    // 인기 팝업 조회 (isFeatured = true)
+    @Query(value = "SELECT p FROM Popup p LEFT JOIN FETCH p.venue v LEFT JOIN FETCH p.category c " +
             "WHERE p.isFeatured = true " +
             "AND p.status IN (com.snow.popin.domain.popup.entity.PopupStatus.ONGOING, com.snow.popin.domain.popup.entity.PopupStatus.PLANNED) " +
             "ORDER BY p.createdAt DESC",
             countQuery = "SELECT count(p) FROM Popup p " +
                     "WHERE p.isFeatured = true " +
                     "AND p.status IN (com.snow.popin.domain.popup.entity.PopupStatus.ONGOING, com.snow.popin.domain.popup.entity.PopupStatus.PLANNED)")
-    Page<Popup> findFeaturedPopups(Pageable pageable);
+    Page<Popup> findPopularPopups(Pageable pageable);
+
+    // 사용자 관심 카테고리 기반 추천 팝업 조회
+    @Query(value = "SELECT p FROM Popup p LEFT JOIN FETCH p.venue v LEFT JOIN FETCH p.category c " +
+            "WHERE c.id IN :categoryIds " +
+            "AND p.status IN (com.snow.popin.domain.popup.entity.PopupStatus.ONGOING, com.snow.popin.domain.popup.entity.PopupStatus.PLANNED) " +
+            "ORDER BY p.createdAt DESC",
+            countQuery = "SELECT count(p) FROM Popup p " +
+                    "WHERE p.category.id IN :categoryIds " +
+                    "AND p.status IN (com.snow.popin.domain.popup.entity.PopupStatus.ONGOING, com.snow.popin.domain.popup.entity.PopupStatus.PLANNED)")
+    Page<Popup> findRecommendedPopupsByCategories(@Param("categoryIds") List<Long> categoryIds, Pageable pageable);
+
+    // 사용자가 로그인하지 않은 경우 기본 추천 팝업 (최신순)
+    @Query(value = "SELECT p FROM Popup p LEFT JOIN FETCH p.venue v LEFT JOIN FETCH p.category c " +
+            "WHERE p.status IN (com.snow.popin.domain.popup.entity.PopupStatus.ONGOING, com.snow.popin.domain.popup.entity.PopupStatus.PLANNED) " +
+            "ORDER BY p.createdAt DESC",
+            countQuery = "SELECT count(p) FROM Popup p " +
+                    "WHERE p.status IN (com.snow.popin.domain.popup.entity.PopupStatus.ONGOING, com.snow.popin.domain.popup.entity.PopupStatus.PLANNED)")
+    Page<Popup> findDefaultRecommendedPopups(Pageable pageable);
 }

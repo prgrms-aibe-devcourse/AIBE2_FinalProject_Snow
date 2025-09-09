@@ -1,5 +1,6 @@
-package com.snow.popin.domain.category;
+package com.snow.popin.domain.category.repository;
 
+import com.snow.popin.domain.category.entity.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
