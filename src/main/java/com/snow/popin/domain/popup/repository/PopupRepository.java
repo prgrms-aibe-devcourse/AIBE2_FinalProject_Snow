@@ -82,6 +82,75 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
                     "WHERE p.status IN (com.snow.popin.domain.popup.entity.PopupStatus.ONGOING, com.snow.popin.domain.popup.entity.PopupStatus.PLANNED)")
     Page<Popup> findDefaultRecommendedPopups(Pageable pageable);
 
+    // 지도에 표시할 팝업 목록 조회 (좌표가 있고 진행중/예정인 팝업만)
+    @Query("SELECT p FROM Popup p " +
+            "LEFT JOIN FETCH p.venue v " +
+            "LEFT JOIN FETCH p.category c " +
+            "WHERE p.status IN ('ONGOING', 'PLANNED') " +
+            "AND v.latitude IS NOT NULL " +
+            "AND v.longitude IS NOT NULL " +
+            "AND (:region IS NULL OR :region = '전체' OR v.region = :region) " +
+            "AND (:categoryIds IS NULL OR SIZE(:categoryIds) = 0 OR c.id IN :categoryIds) " +
+            "ORDER BY p.createdAt DESC")
+    List<Popup> findPopupsForMap(@Param("region") String region,
+                                 @Param("categoryIds") List<Long> categoryIds);
+
+    // 특정 좌표 범위 내의 팝업 조회 (바운딩 박스)
+    @Query("SELECT p FROM Popup p " +
+            "LEFT JOIN FETCH p.venue v " +
+            "LEFT JOIN FETCH p.category c " +
+            "WHERE p.status IN ('ONGOING', 'PLANNED') " +
+            "AND v.latitude IS NOT NULL " +
+            "AND v.longitude IS NOT NULL " +
+            "AND v.latitude BETWEEN :southWestLat AND :northEastLat " +
+            "AND v.longitude BETWEEN :southWestLng AND :northEastLng " +
+            "ORDER BY p.createdAt DESC")
+    List<Popup> findPopupsInBounds(@Param("southWestLat") double southWestLat,
+                                   @Param("southWestLng") double southWestLng,
+                                   @Param("northEastLat") double northEastLat,
+                                   @Param("northEastLng") double northEastLng);
+
+    // 특정 지점 주변 팝업 조회 (반경 기반)
+    @Query(value = "SELECT p.*, " +
+            "(6371 * acos(cos(radians(:lat)) * cos(radians(v.latitude)) * " +
+            "cos(radians(v.longitude) - radians(:lng)) + " +
+            "sin(radians(:lat)) * sin(radians(v.latitude)))) AS distance " +
+            "FROM popups p " +
+            "INNER JOIN venues v ON p.venue_id = v.id " +
+            "LEFT JOIN categories c ON p.category_id = c.id " +
+            "WHERE p.status IN ('ONGOING', 'PLANNED') " +
+            "AND v.latitude IS NOT NULL " +
+            "AND v.longitude IS NOT NULL " +
+            "HAVING distance <= :radiusKm " +
+            "ORDER BY distance ASC",
+            nativeQuery = true)
+    List<Popup> findPopupsWithinRadius(@Param("lat") double latitude,
+                                       @Param("lng") double longitude,
+                                       @Param("radiusKm") double radiusKm);
+
+    // 카테고리별 지도 팝업 통계 조회
+    @Query("SELECT c.name, COUNT(p) FROM Popup p " +
+            "LEFT JOIN p.category c " +
+            "LEFT JOIN p.venue v " +
+            "WHERE p.status IN ('ONGOING', 'PLANNED') " +
+            "AND v.latitude IS NOT NULL " +
+            "AND v.longitude IS NOT NULL " +
+            "AND (:region IS NULL OR :region = '전체' OR v.region = :region) " +
+            "GROUP BY c.id, c.name " +
+            "ORDER BY COUNT(p) DESC")
+    List<Object[]> findMapPopupStatsByCategory(@Param("region") String region);
+
+    // 지역별 지도 팝업 통계 조회
+    @Query("SELECT v.region, COUNT(p) FROM Popup p " +
+            "LEFT JOIN p.venue v " +
+            "WHERE p.status IN ('ONGOING', 'PLANNED') " +
+            "AND v.latitude IS NOT NULL " +
+            "AND v.longitude IS NOT NULL " +
+            "AND v.region IS NOT NULL " +
+            "GROUP BY v.region " +
+            "ORDER BY COUNT(p) DESC")
+    List<Object[]> findMapPopupStatsByRegion();
+
     // 브랜드 ID를 기준으로 등록된 모든 팝업 조회
     List<Popup> findByBrandId(Long brandId);
 }
