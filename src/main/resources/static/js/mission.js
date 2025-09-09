@@ -9,7 +9,6 @@
     return parts[idx + 1];
   }
 
-
   // 미션 정답 입력 모달
   function openMissionModal({ mission, onSubmit }) {
     const backdrop = document.createElement('div');
