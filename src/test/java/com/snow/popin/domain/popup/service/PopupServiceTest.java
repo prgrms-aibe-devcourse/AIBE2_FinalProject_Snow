@@ -188,17 +188,17 @@ class PopupServiceTest {
         );
         Page<Popup> pageResult = new PageImpl<>(featuredPopups);
 
-        when(popupRepository.findFeaturedPopups(any(Pageable.class)))
+        when(popupRepository.findPopularPopups(any(Pageable.class)))
                 .thenReturn(pageResult);
 
         // when
-        PopupListResponseDto result = popupService.getFeaturedPopups(page, size);
+        PopupListResponseDto result = popupService.getPopularPopups(page, size);
 
         // then
         assertThat(result.getPopups()).hasSize(2);
         assertThat(result.getTotalElements()).isEqualTo(2);
 
-        verify(popupRepository).findFeaturedPopups(any(Pageable.class));
+        verify(popupRepository).findPopularPopups(any(Pageable.class));
     }
 
     @Test

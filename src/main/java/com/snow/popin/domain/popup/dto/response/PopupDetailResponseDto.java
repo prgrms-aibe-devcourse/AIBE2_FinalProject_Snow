@@ -38,6 +38,10 @@ public class PopupDetailResponseDto {
     private final String region;
     private final Boolean parkingAvailable;
 
+    private final Long categoryId;
+    private final String categoryName;
+    private final String categorySlug;
+
     private List<PopupImageResponseDto> images;
     private List<PopupHoursResponseDto> hours;
 
@@ -64,6 +68,9 @@ public class PopupDetailResponseDto {
                 .venueAddress(popup.getVenueAddress())
                 .region(popup.getRegion())
                 .parkingAvailable(popup.getParkingAvailable())
+                .categoryId(popup.getCategory() != null ? popup.getCategory().getId() : null)
+                .categoryName(popup.getCategoryName())
+                .categorySlug(popup.getCategorySlug())
                 .images(popup.getImages().stream()
                         .map(PopupImageResponseDto::from)
                         .collect(Collectors.toList()))

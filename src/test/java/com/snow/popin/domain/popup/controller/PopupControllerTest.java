@@ -234,7 +234,7 @@ class PopupControllerTest {
                 .hasPrevious(false)
                 .build();
 
-        when(popupService.getFeaturedPopups(anyInt(), anyInt())).thenReturn(response);
+        when(popupService.getPopularPopups(anyInt(), anyInt())).thenReturn(response);
 
         // when & then
         mockMvc.perform(get("/api/popups/featured"))
@@ -258,7 +258,7 @@ class PopupControllerTest {
                 .hasPrevious(true)
                 .build();
 
-        when(popupService.getFeaturedPopups(1, 5)).thenReturn(response);
+        when(popupService.getPopularPopups(1, 5)).thenReturn(response);
 
         // when & then
         mockMvc.perform(get("/api/popups/featured")
