@@ -1,5 +1,6 @@
 package com.snow.popin.domain.popup.entity;
 
+import com.snow.popin.domain.category.Category;
 import com.snow.popin.domain.map.entity.Venue;
 import com.snow.popin.global.common.BaseEntity;
 import lombok.*;
@@ -79,6 +80,10 @@ public class Popup extends BaseEntity {
     )
     private Set<Tag> tags = new LinkedHashSet<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
+
     public boolean isFreeEntry() {
         return entryFee == null || entryFee == 0;
     }
@@ -128,6 +133,14 @@ public class Popup extends BaseEntity {
         } else {
             return " - " + endDate.format(formatter);
         }
+    }
+
+    public String getCategoryName() {
+        return category != null ? category.getName() : null;
+    }
+
+    public String getCategorySlug() {
+        return category != null ? category.getSlug() : null;
     }
 
     public boolean isOngoing() {
