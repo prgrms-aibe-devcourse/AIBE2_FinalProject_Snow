@@ -1,0 +1,305 @@
+/* 마이페이지 - HOST 전용 스타일 */
+
+/* 전체 컨테이너 */
+.mpg-host {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Pretendard', sans-serif;
+}
+
+/* 페이지 타이틀 */
+.mpg-host .section-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 20px 0;
+    color: #111;
+}
+
+/* 섹션 블록 */
+.mpg-host .block {
+    margin-bottom: 28px;
+}
+
+.mpg-host .block-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    color: #333;
+}
+
+/* 등록 팝업 / 예약 카드 리스트 */
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.card-list .empty {
+    padding: 20px;
+    text-align: center;
+    border: 1px dashed #ccc;
+    border-radius: 12px;
+    color: #999;
+    font-size: 14px;
+    background: #fafafa;
+}
+
+/* 카드 공통 */
+.card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+/* 등록 팝업 카드 (공간제공자 style 맞춤) */
+.space-card .info {
+    flex: 1;
+}
+
+.space-card .title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #222;
+}
+
+.space-card .desc {
+    font-size: 13px;
+    color: #666;
+}
+
+.space-card .btn-row {
+    display: flex;
+    gap: 8px;
+}
+
+.space-card .btn.icon {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 8px;
+    background: #f4f4f4;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+/* 예약 통계 박스 */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 24px 0;
+}
+
+.stat-box {
+    background: #f8d7da; /* 기본 배경 */
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.stat-box .count {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #000;
+}
+
+.stat-box .label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #444;
+}
+
+/* 예약 카드 */
+.reservation-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.reservation-card .status-badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 6px;
+}
+
+/* 상태별 뱃지 색상 */
+.status-badge.pending { background: #ffe8b3; color: #b57f00; }
+.status-badge.accepted { background: #d6f5d6; color: #228B22; }
+.status-badge.rejected { background: #ffd6d6; color: #b22222; }
+.status-badge.cancelled { background: #e0e0e0; color: #555; }
+
+.reservation-card .brand {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.reservation-card .popup-title {
+    font-size: 14px;
+    color: #333;
+}
+
+.reservation-card .dates {
+    font-size: 13px;
+    color: #777;
+}
+
+.reservation-card .space-info {
+    font-size: 13px;
+    color: #555;
+}
+
+/* 예약 카드 버튼 */
+.reservation-card .btn-row {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+}
+
+.reservation-card button {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s ease;
+}
+
+.reservation-card .btn-outline {
+    border: 1px solid #29459A;
+    background: #fff;
+    color: #29459A;
+}
+.reservation-card .btn-outline:hover {
+    background: #f0f2fa;
+}
+
+.reservation-card .btn-success {
+    background: #27ae60;
+    color: #fff;
+}
+.reservation-card .btn-danger {
+    background: #e74c3c;
+    color: #fff;
+}
+
+/* 팝업 등록 버튼 */
+.section {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.btn-primary {
+    background-color: #29459A;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background-color: #1f3477;
+}
+
+/* 반응형 */
+@media (max-width: 480px) {
+    .mpg-host {
+        padding: 15px;
+    }
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .btn-primary {
+        width: 100%;
+    }
+}
+/* 페이지 헤더 (타이틀 + 버튼) */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.btn-primary.small {
+    padding: 8px 14px;
+    font-size: 13px;
+    border-radius: 6px;
+}
+/* 카드 버튼 영역 */
+.card .btn-row {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end; /* 오른쪽 정렬 */
+}
+
+/* 공통 버튼 스타일 */
+.card .btn-row button {
+    min-width: 60px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s ease;
+}
+
+/* 수정 버튼  */
+.card .btn-row .edit-btn {
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+}
+.card .btn-row .edit-btn:hover {
+    background-color: #e9e9e9;
+}
+
+/* 삭제 버튼  */
+.card .btn-row .delete-btn {
+    background-color: #fff0f0;
+    color: #c0392b;
+    border: 1px solid #f5c6cb;
+}
+.card .btn-row .delete-btn:hover {
+    background-color: #ffe0e0;
+}
+.user-info .card {
+    padding: 16px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    background: #fff;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.user-info .card div {
+    margin-bottom: 6px;
+}
+
+.user-info .card strong {
+    display: inline-block;
+    width: 70px;
+    color: #333;
+}
