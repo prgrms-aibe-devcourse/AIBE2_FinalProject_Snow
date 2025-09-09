@@ -21,6 +21,12 @@ const Pages = {
         }
     },
 
+    // 팝업 리스트
+    async popupList() {
+        const manager = new PopupListManager();
+        await manager.initialize();
+    },
+
     // == 마이페이지 - 공간제공자 (현재 비어있음) ===
 
 
@@ -46,5 +52,13 @@ const Pages = {
     },
 };
 
+// 팝업 상세 페이지로 이동
+function goToPopupDetail(popupId) {
+    console.log('팝업 상세 이동:', popupId);
+    // TODO: 팝업 상세 페이지 구현 후 활성화
+    // location.href = `/templates/pages/popup-detail.html?id=${popupId}`;
+    alert(`팝업 ID ${popupId} 상세 페이지는 준비 중입니다.`);
+}
 
 window.Pages = Pages;
+window.goToPopupDetail = goToPopupDetail;

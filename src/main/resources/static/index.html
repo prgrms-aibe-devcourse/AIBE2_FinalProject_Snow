@@ -7,6 +7,7 @@
 
     <!-- 공통 레이아웃 CSS -->
     <link rel="stylesheet" href="/css/layout.css">
+    <link rel="stylesheet" href="/css/popup-list.css">
 
     <!-- 페이지별 CSS 추가 가능 -->
     <div id="additional-css"></div>
@@ -38,6 +39,7 @@
 <script src="/js/api.js"></script>
 <script src="/js/layout.js"></script>
 <script src="/js/pages.js"></script>
+<script src="/js/popup-list.js"></script>
 
 <!-- 페이지별 스크립트 추가 가능 -->
 <div id="additional-scripts"></div>
@@ -49,7 +51,7 @@
         await loadComponents();
         initializeLayout();
         // 홈 페이지 기본 로드
-        Pages.home();
+        Pages.popupList();
     });
 </script>
 </body>
