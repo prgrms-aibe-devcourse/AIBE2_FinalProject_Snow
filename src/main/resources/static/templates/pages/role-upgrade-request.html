@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>계정 전환 요청 - POPIN</title>
+    <link rel="stylesheet" href="/css/layout.css" />
+    <link rel="stylesheet" href="/css/role-upgrade.css">
+</head>
+<body>
+<div class="upgrade-container">
+    <div class="upgrade-card">
+        <!-- 헤더 마운트 -->
+        <div id="app-header-mount"></div>
+
+        <!-- 탭 버튼 -->
+        <div class="tab-container">
+            <button class="tab-btn active" data-tab="guest">기업</button>
+            <button class="tab-btn" data-tab="host">공간 제공자</button>
+        </div>
+
+        <!-- 알림 메시지 -->
+        <div id="alert-container" class="alert"></div>
+
+        <!-- 폼 -->
+        <div class="form-container">
+            <form id="upgradeForm" novalidate>
+                <!-- 공간 표시명/회사명 -->
+                <div class="form-group" id="company-group">
+                    <label class="form-label" for="company">
+                        <span class="label-text" id="company-label">회사명</span>
+                    </label>
+                    <input
+                            type="text"
+                            id="company"
+                            name="company"
+                            class="form-input"
+                            placeholder="회사명을 입력해 주세요"
+                            autocomplete="organization"
+                    >
+                    <div class="field-error" id="company-error"></div>
+                </div>
+
+                <!-- 사업자등록번호 -->
+                <div class="form-group" id="business-group">
+                    <label class="form-label" for="businessNumber">사업자등록번호</label>
+                    <input
+                            type="text"
+                            id="businessNumber"
+                            name="businessNumber"
+                            class="form-input"
+                            placeholder="사업자 등록번호를 입력해 주세요"
+                            maxlength="12"
+                    >
+                    <div class="field-error" id="businessNumber-error"></div>
+                </div>
+
+                <!-- 권한 선택 (공간 제공자만) -->
+                <div class="form-group hidden" id="role-group">
+                    <label class="form-label" for="permission">권한</label>
+                    <select id="permission" name="permission" class="form-input">
+                        <option value="">권한을 선택해 주세요</option>
+                        <option value="viewer">viewer</option>
+                        <option value="editor">editor</option>
+                        <option value="admin">admin</option>
+                    </select>
+                    <div class="field-error" id="permission-error"></div>
+                </div>
+
+                <!-- 추가 작성 사항 -->
+                <div class="form-group" id="additional-group">
+                    <label class="form-label" for="additional">추가 작성 사항</label>
+                    <textarea
+                            id="additional"
+                            name="additional"
+                            class="form-input"
+                            placeholder="기타 사항을 입력해주세요"
+                            rows="4"
+                    ></textarea>
+                    <div class="field-error" id="additional-error"></div>
+                </div>
+
+                <!-- 사업자등록증 첨부 -->
+                <div class="form-group" id="file-group">
+                    <label class="form-label">사업자등록증 첨부</label>
+                    <div class="file-upload">
+                        <input
+                                type="file"
+                                id="businessFile"
+                                name="businessFile"
+                                class="file-input"
+                                accept="image/*,.pdf"
+                        >
+                        <label for="businessFile" class="file-label">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                                <polyline points="14,2 14,8 20,8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10,9 9,9 8,9"></polyline>
+                            </svg>
+                            파일 선택
+                        </label>
+                    </div>
+                    <div class="file-name" id="file-name"></div>
+                    <div class="field-error" id="file-error"></div>
+                </div>
+
+                <!-- 제출 버튼 -->
+                <button type="submit" class="upgrade-btn" id="upgradeBtn">
+                    <span class="loading"></span>
+                    <span class="btn-text">요청하기</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 푸터 마운트 -->
+<div id="app-footer-mount"></div>
+
+<!-- ▼ 헤더/푸터 주입 스크립트 -->
+<script>
+    async function injectPartial(selector, url) {
+        const mount = document.querySelector(selector);
+        if (!mount) return;
+        try {
+            const res = await fetch(url, { cache: 'no-cache' });
+            if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+            mount.innerHTML = await res.text();
+        } catch (err) {
+            console.warn('Include failed:', url, err);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // 같은 폴더라면 './header.html' / './footer.html'
+        injectPartial('#app-header-mount', '../components/header.html');
+        injectPartial('#app-footer-mount', '../components/footer.html');
+
+        // 기존 컨트롤러 초기화 (원래 있던 코드 유지)
+        new RoleUpgradeController();
+    });
+</script>
+
+<!-- JavaScript 파일들 로드 -->
+<script src="/js/api.js"></script>
+<script src="/js/role-upgrade/roleUpgradeApi.js"></script>
+<script src="/js/role-upgrade/roleUpgradeValidator.js"></script>
+<script src="/js/role-upgrade/roleUpgradeUI.js"></script>
+<script src="/js/role-upgrade/roleUpgradeController.js"></script>
+
+<script>
+    // 페이지 로드 완료 후 승격 요청 컨트롤러 초기화
+    document.addEventListener('DOMContentLoaded', function() {
+        new RoleUpgradeController();
+    });
+</script>
+</body>
+</html>

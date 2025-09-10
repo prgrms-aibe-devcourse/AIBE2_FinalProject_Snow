@@ -6,8 +6,13 @@
     <title>로그인 - POPIN</title>
     <link rel="stylesheet" href="/css/layout.css" />
     <link rel="stylesheet" href="/css/login.css">
+    <style>
+        /* header, footer 자리 맞추기 */
+        body { padding-bottom: 64px; }
+    </style>
 </head>
 <body>
+<div id="app-header-mount"></div>
 <div class="login-container">
     <div class="login-card">
         <div class="login-header">
@@ -41,12 +46,32 @@
     </div>
 </div>
 
+<div id="app-footer-mount"></div>
+
 <!-- JavaScript 파일들 로드 -->
 <script src="/js/api.js"></script>
 <script src="/js/auth/loginApi.js"></script>
 <script src="/js/auth/loginValidator.js"></script>
 <script src="/js/auth/loginUI.js"></script>
 <script src="/js/auth/loginController.js"></script>
+
+<script>
+    async function injectPartial(selector, url) {
+        const mount = document.querySelector(selector);
+        if (!mount) return;
+        try {
+            const res = await fetch(url, { cache: 'no-cache' });
+            if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+            mount.innerHTML = await res.text();
+        } catch (err) {
+            console.warn('Include failed:', url, err);
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        injectPartial('#app-header-mount', '../templates/components/header.html');
+        injectPartial('#app-footer-mount', '../templates/components/footer.html');
+    });
+</script>
 
 <script>
     // 페이지 로드 완료 후 로그인 컨트롤러 초기화
