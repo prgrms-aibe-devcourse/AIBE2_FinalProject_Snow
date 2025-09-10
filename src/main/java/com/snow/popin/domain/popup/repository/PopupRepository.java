@@ -81,4 +81,7 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
             countQuery = "SELECT count(p) FROM Popup p " +
                     "WHERE p.status IN (com.snow.popin.domain.popup.entity.PopupStatus.ONGOING, com.snow.popin.domain.popup.entity.PopupStatus.PLANNED)")
     Page<Popup> findDefaultRecommendedPopups(Pageable pageable);
+
+    // 브랜드 ID를 기준으로 등록된 모든 팝업 조회
+    List<Popup> findByBrandId(Long brandId);
 }
