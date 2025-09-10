@@ -1,11 +1,15 @@
 package com.snow.popin.domain.user.entity;
 
 import com.snow.popin.domain.auth.constant.AuthProvider;
+import com.snow.popin.domain.category.entity.Category;
+import com.snow.popin.domain.category.entity.UserInterest;
 import com.snow.popin.domain.user.constant.Role;
 import com.snow.popin.global.common.BaseEntity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "user")
@@ -37,6 +41,10 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserInterest> interests = new ArrayList<>();
+
+
     @Builder
     public User(String email, String password, String name, String nickname,
                 String phone, AuthProvider authProvider, Role role) {
@@ -54,6 +62,13 @@ public class User extends BaseEntity {
         this.name = name;
         this.nickname = nickname;
         this.phone = phone;
+    }
+
+    public void updateInterests(List<Category> newCategories) {
+        this.interests.clear();
+        for (Category category : newCategories) {
+            this.interests.add(new UserInterest(this, category));
+        }
     }
 
     public void changePassword(String newPassword) {
