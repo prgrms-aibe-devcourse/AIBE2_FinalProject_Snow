@@ -10,29 +10,8 @@
 <body>
 <div class="upgrade-container">
     <div class="upgrade-card">
-        <!-- 헤더 -->
-        <div class="upgrade-header">
-            <button class="back-btn" onclick="history.back()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="m15 18-6-6 6-6"></path>
-                </svg>
-            </button>
-            <div class="logo">
-                <div class="logo-bubble">
-                    <span class="logo-text">POPIN</span>
-                </div>
-            </div>
-            <div class="header-right">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                    <path d="m13.73 21a2 2 0 0 1-3.46 0"></path>
-                </svg>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-            </div>
-        </div>
+        <!-- 헤더 마운트 -->
+        <div id="app-header-mount"></div>
 
         <!-- 탭 버튼 -->
         <div class="tab-container">
@@ -136,6 +115,33 @@
         </div>
     </div>
 </div>
+
+<!-- 푸터 마운트 -->
+<div id="app-footer-mount"></div>
+
+<!-- ▼ 헤더/푸터 주입 스크립트 -->
+<script>
+    async function injectPartial(selector, url) {
+        const mount = document.querySelector(selector);
+        if (!mount) return;
+        try {
+            const res = await fetch(url, { cache: 'no-cache' });
+            if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+            mount.innerHTML = await res.text();
+        } catch (err) {
+            console.warn('Include failed:', url, err);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // 같은 폴더라면 './header.html' / './footer.html'
+        injectPartial('#app-header-mount', '../components/header.html');
+        injectPartial('#app-footer-mount', '../components/footer.html');
+
+        // 기존 컨트롤러 초기화 (원래 있던 코드 유지)
+        new RoleUpgradeController();
+    });
+</script>
 
 <!-- JavaScript 파일들 로드 -->
 <script src="/js/api.js"></script>
