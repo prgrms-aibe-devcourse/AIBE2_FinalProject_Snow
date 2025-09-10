@@ -49,10 +49,12 @@ public class SecurityConfig {
                         .antMatchers("/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico", "/templates/**", "/*.json").permitAll()
 
                         // 공개 페이지
-                        .antMatchers("/", "/index.html", "/main", "/error", "/missions/**").permitAll()
+                        .antMatchers("/", "/index.html", "/main", "/error").permitAll()
 
                         // 인증 관련 페이지
                         .antMatchers("/auth/**").permitAll()
+
+                        .antMatchers("/missions/**", "/users/**").authenticated()
 
                         // === 미션 관련 API (조회만 공개) ===
                         .antMatchers(HttpMethod.GET, "/api/mission-sets/**").permitAll()
