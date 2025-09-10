@@ -10,8 +10,14 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "bookmarks",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "popup_id"}))
+@Table(
+        name = "bookmarks",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "popup_id"}),
+        indexes = {
+                @Index(name = "idx_bookmarks_user_created", columnList = "user_id, created_at"),
+                @Index(name = "idx_bookmarks_popup", columnList = "popup_id")
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class BookMark extends BaseEntity {
@@ -46,6 +52,12 @@ public class BookMark extends BaseEntity {
     public static BookMark of(User user, Popup popup) {
         BookMark bookmark = new BookMark(user.getId(), popup.getId());
         bookmark.user = user;
+        bookmark.popup = popup;
+        return bookmark;
+    }
+
+    public static BookMark ofWithPopup(Long userId, Popup popup) {
+        BookMark bookmark = new BookMark(userId, popup.getId());
         bookmark.popup = popup;
         return bookmark;
     }

@@ -9,6 +9,7 @@ import com.snow.popin.domain.popup.repository.PopupRepository;
 import com.snow.popin.global.exception.PopupNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -37,18 +37,21 @@ public class BookMarkService {
         Popup popup = popupRepository.findById(popupId)
                 .orElseThrow(() -> new PopupNotFoundException(popupId));
 
-        // 이미 북마크가 존재하는지 확인
-        if (bookMarkRepository.existsByUserIdAndPopupId(userId, popupId)) {
-            log.warn("이미 북마크가 존재합니다 - userId: {}, popupId: {}", userId, popupId);
-            throw new IllegalArgumentException("이미 북마크한 팝업입니다.");
+        // 중복 체크를 제거하고 DB 제약조건에 의존 (동시성 이슈 방지)
+        try {
+            BookMark bookmark = BookMark.ofWithPopup(userId, popup);
+            BookMark savedBookmark = bookMarkRepository.save(bookmark);
+
+            log.info("북마크 추가 완료 - userId: {}, popupId: {}", userId, popupId);
+            return BookMarkResponseDto.from(savedBookmark);
+
+        } catch (DataIntegrityViolationException e) {
+            log.warn("동시성 충돌로 중복 북마크 발생 - userId: {}, popupId: {}", userId, popupId);
+            throw new IllegalArgumentException("이미 북마크한 팝업입니다.", e);
+        } catch (Exception e) {
+            log.error("북마크 추가 중 예상치 못한 오류 발생 - userId: {}, popupId: {}", userId, popupId, e);
+            throw e;
         }
-
-        // 북마크 생성 및 저장
-        BookMark bookmark = BookMark.of(userId, popupId);
-        BookMark savedBookmark = bookMarkRepository.save(bookmark);
-
-        log.info("북마크 추가 완료 - userId: {}, popupId: {}", userId, popupId);
-        return BookMarkResponseDto.from(savedBookmark);
     }
 
     //  북마크 삭제
@@ -70,11 +73,16 @@ public class BookMarkService {
     public BookMarkResponseDto toggleBookmark(Long userId, Long popupId) {
         log.info("북마크 토글 시작 - userId: {}, popupId: {}", userId, popupId);
 
-        if (bookMarkRepository.existsByUserIdAndPopupId(userId, popupId)) {
-            removeBookmark(userId, popupId);
-            return null; // 삭제된 경우
-        } else {
-            return addBookmark(userId, popupId);
+        try {
+            if (bookMarkRepository.existsByUserIdAndPopupId(userId, popupId)) {
+                removeBookmark(userId, popupId);
+                return null;
+            } else {
+                return addBookmark(userId, popupId);
+            }
+        } catch (DataIntegrityViolationException e) {
+            log.warn("토글 중 동시성 충돌 발생 - userId: {}, popupId: {}", userId, popupId);
+            return null;
         }
     }
 
