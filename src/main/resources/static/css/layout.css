@@ -52,6 +52,11 @@ body {
     gap: 20px;
 }
 
+.header-left svg {
+    width: 30px;
+    height: 30px;
+}
+
 .logo {
     flex: 1;
     display: flex;

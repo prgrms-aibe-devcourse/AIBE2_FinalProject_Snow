@@ -79,7 +79,6 @@
   }
 
 
-  // 미션 보드
   async function renderMissionBoard({ mount, setView, onOpenMission }) {
     const remaining = Math.max(0, (setView.requiredCount || 0) - (setView.successCount || 0));
 
@@ -97,26 +96,29 @@
       btnHtml = `<button class="mission-complete-btn ${remaining > 0 ? 'disabled' : 'enabled'}" id="complete-btn">미션 완료</button>`;
     }
 
+    // 항상 content-section 안에 card를 추가
     mount.innerHTML = `
-      <section class="card">
+    <div class="content-section">
+      <div class="card">
         <div class="mission-head">
           <div class="title">STAMP MISSION</div>
           <div class="subtitle"><strong>${remaining}</strong>개의 미션을 더 완료하시고 리워드를 받아가세요!</div>
         </div>
         <div class="mission-grid" id="mission-grid"></div>
         ${btnHtml}
-      </section>
-    `;
+      </div>
+    </div>
+  `;
 
-    const grid = $('#mission-grid');
+    const grid = document.getElementById('mission-grid');
     (setView.missions || []).slice(0, 6).forEach(m => {
       const done = String(m.userStatus || '') === 'COMPLETED';
       const item = document.createElement('div');
       item.className = 'mission-item';
       item.innerHTML = `
-        <div class="mission-stamp ${done ? 'done' : ''}"></div>
-        <div class="mission-name ${done ? 'done' : ''}">${m.title || ('mission' + m.id)}</div>
-      `;
+      <div class="mission-stamp ${done ? 'done' : ''}"></div>
+      <div class="mission-name ${done ? 'done' : ''}">${m.title || ('mission' + m.id)}</div>
+    `;
       item.onclick = () => onOpenMission(m);
       grid.appendChild(item);
     });
@@ -138,6 +140,7 @@
       redeemBtn.onclick = () => openStaffPinModal(setView.missionSetId);
     }
   }
+
 
   // 엔트리
   window.Pages = window.Pages || {};
