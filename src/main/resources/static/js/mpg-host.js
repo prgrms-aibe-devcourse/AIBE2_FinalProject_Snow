@@ -1,12 +1,26 @@
 // /js/mpg-host.js
+
+// 상태 한글 변환 함수
+function translateStatus(status) {
+    switch (status) {
+        case 'PLANNED': return '계획 중';
+        case 'ONGOING': return '진행 중';
+        case 'FINISHED': return '종료됨';
+        case 'CANCELLED': return '취소됨';
+        case 'PENDING': return '대기 중';
+        case 'ACCEPTED': return '승인됨';
+        case 'REJECTED': return '거절됨';
+        default: return status || '';
+    }
+}
+
 const HostPage = {
     async init() {
         try {
-            // 순서: 프로필 → 내 팝업 → 예약 내역
             const [hostInfo, myPopups, myReservations] = await Promise.all([
-                apiService.get('/hosts/me'),                     // 프로필 정보
-                apiService.get('/hosts/popups'),                 // 내가 등록한 팝업
-                apiService.get('/space-reservations/my-requests')// 예약 내역
+                apiService.get('/hosts/me'),
+                apiService.get('/hosts/popups'),
+                apiService.get('/space-reservations/my-requests')
             ]);
 
             this.renderHostInfo(hostInfo);
@@ -18,7 +32,6 @@ const HostPage = {
         }
     },
 
-    // 프로필 렌더링
     renderHostInfo(info) {
         document.getElementById('user-email').textContent = info.email || '-';
         document.getElementById('user-name').textContent = info.name || '-';
@@ -27,92 +40,101 @@ const HostPage = {
         document.getElementById('user-brand').textContent = info.brandName || '-';
     },
 
-    // 내가 등록한 팝업 카드 렌더링
+    // 팝업 카드
     renderPopups(popups) {
         const listEl = document.getElementById('my-popup-list');
-        const emptyEl = listEl.querySelector('[data-empty]');
+        listEl.innerHTML = ''; // 초기화
 
         if (popups && popups.length > 0) {
-            if (emptyEl) emptyEl.remove();
-
             popups.forEach(p => {
+                const status = p.status || 'PLANNED';
                 const card = document.createElement('div');
-                card.className = 'card popup-card';
+                card.className = 'popup-card';
                 card.innerHTML = `
-                    <div class="card-body">
-                        <div><strong>제목:</strong> ${p.title}</div>
-                        <div><strong>브랜드명:</strong> ${p.brandName || '브랜드 없음'}</div>
-                        <div><strong>요약:</strong> ${p.summary || '-'}</div>
-                        <div><strong>기간:</strong> ${p.startDate || ''} ~ ${p.endDate || ''}</div>
-                        <div><strong>상태:</strong> ${p.status || 'PLANNED'}</div>
-                        <div class="btn-row">
-                            <button class="btn-outline edit-btn">수정</button>
-                            <button class="btn-danger delete-btn">삭제</button>
-                        </div>
-                    </div>
-                `;
+          <img src="/img/placeholder.png" class="thumb" alt="썸네일">
+          <div class="info">
+            <div class="title">${p.title}</div>
+            <div class="meta">
+              <span class="status-badge ${status.toLowerCase()}">${translateStatus(status)}</span>
+              <button class="btn-edit">수정</button>
+              <button class="btn-delete">삭제</button>
+            </div>
+          </div>
+          <div class="menu">
+            <span>상세 정보</span>
+            <span>예약 관리</span>
+            <span>통계</span>
+          </div>
+        `;
 
-                // 수정 버튼 이벤트
-                card.querySelector('.edit-btn').addEventListener('click', () => {
+                card.querySelector('.btn-edit').addEventListener('click', () => {
                     window.location.href = `/templates/pages/popup-edit.html?id=${p.id}`;
                 });
-
-                // 삭제 버튼 이벤트
-                card.querySelector('.delete-btn').addEventListener('click', async () => {
+                card.querySelector('.btn-delete').addEventListener('click', async () => {
                     if (!confirm('정말 삭제하시겠습니까?')) return;
-                    try {
-                        await apiService.delete(`/hosts/popups/${p.id}`);
-                        alert('팝업이 삭제되었습니다.');
-                        location.reload();
-                    } catch (err) {
-                        console.error('팝업 삭제 실패:', err);
-                        alert('삭제 실패');
-                    }
+                    await apiService.delete(`/hosts/popups/${p.id}`);
+                    alert('팝업이 삭제되었습니다.');
+                    this.renderPopups(await apiService.get('/hosts/popups')); // 재렌더링
                 });
 
                 listEl.appendChild(card);
             });
+        } else {
+            listEl.innerHTML = '<div class="empty">등록한 팝업이 없습니다.</div>';
         }
     },
 
-    // 예약 내역 카드 렌더링
+    // 예약 카드
     renderReservations(reservations) {
         const listEl = document.getElementById('my-reservation-list');
-        const emptyEl = listEl.querySelector('[data-empty]');
+        listEl.innerHTML = '';
 
         if (reservations && reservations.length > 0) {
-            if (emptyEl) emptyEl.remove();
-
             reservations.forEach(r => {
+                const status = r.status || '';
                 const card = document.createElement('div');
-                card.className = 'card reservation-card';
+                card.className = 'rent-card';
                 card.innerHTML = `
-                    <div class="card-body">
-                        <div><strong>팝업명:</strong> ${r.popupTitle || '예약 팝업'}</div>
-                        <div><strong>브랜드:</strong> ${r.brand || '브랜드 없음'}</div>
-                        <div><strong>기간:</strong> ${r.startDate || ''} ~ ${r.endDate || ''}</div>
-                        <div><strong>상태:</strong> ${r.status || ''}</div>
-                        <div class="btn-row">
-                            <button class="btn-outline cancel-btn">예약 취소</button>
-                        </div>
-                    </div>
-                `;
+          <div class="left">
+            <img src="${r.spaceImageUrl || '/img/placeholder.png'}" class="thumb" alt="공간 이미지" />
+            <div>
+              <div class="address"><strong>${r.spaceTitle || '공간명 없음'}</strong></div>
+              <div class="desc">${r.spaceAddress || ''}</div>
+              <div class="dates">${r.startDate || ''} ~ ${r.endDate || ''}</div>
+              <span class="status-badge ${status.toLowerCase()}">${translateStatus(status)}</span>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="call">📞</button>
+            <button class="cancel">❌</button>
+          </div>
+        `;
 
-                // 예약 취소 버튼 이벤트
-                const cancelBtn = card.querySelector('.cancel-btn');
-                cancelBtn.addEventListener('click', () => this.cancelReservation(r.id));
+                card.querySelector('.cancel').addEventListener('click', () => this.cancelReservation(r.id));
+
+                const callBtn = card.querySelector('.call');
+                if (r.hostPhone) {
+                    callBtn.addEventListener('click', () => {
+                        window.location.href = `tel:${r.hostPhone}`;
+                    });
+                } else {
+                    callBtn.disabled = true;
+                    callBtn.style.opacity = 0.5;
+                }
+
                 listEl.appendChild(card);
             });
+        } else {
+            listEl.innerHTML = '<div class="empty">예약 내역이 없습니다.</div>';
         }
     },
 
-    // 예약 취소 API
     async cancelReservation(reservationId) {
         if (!confirm('정말 예약을 취소하시겠습니까?')) return;
         try {
             await apiService.put(`/space-reservations/${reservationId}/cancel`, {});
             alert('예약이 취소되었습니다.');
-            location.reload();
+            this.renderReservations(await apiService.get('/space-reservations/my-requests'));
         } catch (err) {
             console.error('예약 취소 실패:', err);
             alert('예약 취소에 실패했습니다.');
@@ -120,7 +142,7 @@ const HostPage = {
     }
 };
 
-// 팝업 등록하기 버튼 이벤트
+// 팝업 등록 버튼
 document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('btn-popup-register');
     if (btn) {
@@ -130,6 +152,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// 페이지 로드 시 실행
 window.HostPage = HostPage;
 document.addEventListener('DOMContentLoaded', () => HostPage.init());
