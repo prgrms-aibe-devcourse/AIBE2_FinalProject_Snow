@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     initializeLayout();
 
     try {
-
         // =============================
         // 내 미션셋 (API 연동)
         // =============================
@@ -59,17 +58,20 @@ document.addEventListener('DOMContentLoaded', async function () {
 // 팝업 카드 렌더링 유틸 함수
 // =============================
 function renderPopupCard(m, actionText, linkClass) {
+    const popup = m.popup; // ✅ 팝업 객체 분리
+
     const item = document.createElement('div');
     item.className = 'popup-card';
     item.innerHTML = `
         <div class="popup-image-wrapper">
-            ${m.mainImageUrl && m.mainImageUrl.trim() !== ""
-        ? `<img src="${m.mainImageUrl}" class="popup-image" alt="${m.popupTitle}">`
+            ${popup.mainImageUrl && popup.mainImageUrl.trim() !== ""
+        ? `<img src="${popup.mainImageUrl}" class="popup-image" alt="${popup.popupTitle}">`
         : `<div class="popup-image placeholder">이미지를 찾을 수 없습니다.</div>`}
         </div>
         <div class="popup-info">
-            <div class="popup-title">${m.popupTitle}</div>
-            <div class="popup-summary">${m.description || '상세설명'}</div>
+            <div class="popup-title">${popup.popupTitle}</div>
+            <div class="popup-summary">${popup.description || '상세설명'}</div>
+            <div class="popup-period">${popup.periodText || ''}</div>
             <div class="popup-action">
                 <a class="${linkClass}" href="/missions/${m.missionSetId}">${actionText} &gt;</a>
             </div>

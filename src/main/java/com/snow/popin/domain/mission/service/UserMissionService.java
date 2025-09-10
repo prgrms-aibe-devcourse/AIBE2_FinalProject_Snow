@@ -1,5 +1,6 @@
 package com.snow.popin.domain.mission.service;
 
+import com.snow.popin.domain.mission.dto.ActiveMissionSetResponseDto;
 import com.snow.popin.domain.mission.dto.SubmitAnswerResponseDto;
 import com.snow.popin.domain.mission.entity.Mission;
 import com.snow.popin.domain.mission.entity.MissionSet;
@@ -103,7 +104,7 @@ public class UserMissionService {
 
     // 진행 중/완료 상태인 미션셋 조회
     @Transactional(readOnly = true)
-    public List<ActiveMissionPopupResponseDto> getMyMissionPopups(Long userId) {
+    public List<ActiveMissionSetResponseDto> getMyMissionPopups(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException.UserNotFound(userId));
 
@@ -113,7 +114,7 @@ public class UserMissionService {
         Map<MissionSet, List<UserMission>> grouped = userMissions.stream()
                 .collect(Collectors.groupingBy(m -> m.getMission().getMissionSet()));
 
-        List<ActiveMissionPopupResponseDto> result = new ArrayList<>();
+        List<ActiveMissionSetResponseDto> result = new ArrayList<>();
 
         for (Map.Entry<MissionSet, List<UserMission>> entry : grouped.entrySet()) {
             MissionSet set = entry.getKey();
@@ -129,7 +130,7 @@ public class UserMissionService {
                     (set.getRequiredCount() != null ? set.getRequiredCount() : 0);
 
             // DTO 변환
-            result.add(ActiveMissionPopupResponseDto.from(set, cleared));
+            result.add(ActiveMissionSetResponseDto.from(set, cleared));
         }
 
         return result;

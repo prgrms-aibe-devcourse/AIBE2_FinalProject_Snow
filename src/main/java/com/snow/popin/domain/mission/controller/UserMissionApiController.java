@@ -1,5 +1,6 @@
 package com.snow.popin.domain.mission.controller;
 
+import com.snow.popin.domain.mission.dto.ActiveMissionSetResponseDto;
 import com.snow.popin.domain.mission.entity.UserMission;
 import com.snow.popin.domain.mission.service.UserMissionService;
 import com.snow.popin.domain.popup.dto.response.ActiveMissionPopupResponseDto;
@@ -59,9 +60,9 @@ public class UserMissionApiController {
 
 
     @GetMapping("/my-missions")
-    public ResponseEntity<List<ActiveMissionPopupResponseDto>> getMyMissions() {
+    public ResponseEntity<List<ActiveMissionSetResponseDto>> getMyMissions() {
         Long userId = userUtil.getCurrentUserId();
-        List<ActiveMissionPopupResponseDto> result = userMissionService.getMyMissionPopups(userId);
+        List<ActiveMissionSetResponseDto> result = userMissionService.getMyMissionPopups(userId);
         return ResponseEntity.ok(result);
     }
 }
