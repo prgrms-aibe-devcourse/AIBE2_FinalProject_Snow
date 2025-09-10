@@ -6,7 +6,6 @@ import com.snow.popin.domain.mypage.host.dto.PopupRegisterResponseDto;
 import com.snow.popin.domain.mypage.host.entity.Host;
 import com.snow.popin.domain.mypage.host.repository.HostRepository;
 import com.snow.popin.domain.popup.entity.Popup;
-import com.snow.popin.domain.popup.entity.PopupStatus;
 import com.snow.popin.domain.popup.repository.PopupRepository;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.global.constant.ErrorCode;
@@ -27,35 +26,21 @@ public class HostService {
     private final HostRepository hostRepository;
     private final PopupRepository popupRepository;
 
-    //팝업 등록
+    // 팝업 등록
     @Transactional
     public Long createPopup(User user, PopupRegisterRequestDto dto) {
-        //  유저가 Host인지 검증
+        // 유저가 Host인지 검증
         Host host = hostRepository.findByUser(user)
                 .orElseThrow(() -> new GeneralException(ErrorCode.UNAUTHORIZED));
 
-        //  Popup 엔티티 생성
-        Popup popup = new Popup();
-        popup.setBrandId(host.getBrand().getId());
-        popup.setTitle(dto.getTitle());
-        popup.setSummary(dto.getSummary());
-        popup.setDescription(dto.getDescription());
-        popup.setStartDate(dto.getStartDate());
-        popup.setEndDate(dto.getEndDate());
-        popup.setEntryFee(dto.getEntryFee());
-        popup.setReservationAvailable(dto.getReservationAvailable());
-        popup.setReservationLink(dto.getReservationLink());
-        popup.setWaitlistAvailable(dto.getWaitlistAvailable());
-        popup.setNotice(dto.getNotice());
-        popup.setMainImageUrl(dto.getMainImageUrl());
-        popup.setIsFeatured(dto.getIsFeatured());
-        popup.setStatus(PopupStatus.PLANNED);
+        //  팝업 생성
+        Popup popup = Popup.create(host.getBrand().getId(), dto);
 
         popupRepository.save(popup);
         return popup.getId();
     }
 
-    //팝업 조회
+    // 내가 등록한 팝업 목록 조회
     @Transactional(readOnly = true)
     public List<PopupRegisterResponseDto> getMyPopups(User user) {
         Host host = hostRepository.findByUser(user)
@@ -67,7 +52,7 @@ public class HostService {
                 .collect(Collectors.toList());
     }
 
-    //팝업 수정
+    // 팝업 수정
     @Transactional
     public void updatePopup(User user, Long id, PopupRegisterRequestDto dto) {
         Host host = hostRepository.findByUser(user)
@@ -80,20 +65,10 @@ public class HostService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "권한이 없습니다.");
         }
 
-        popup.setTitle(dto.getTitle());
-        popup.setSummary(dto.getSummary());
-        popup.setDescription(dto.getDescription());
-        popup.setStartDate(dto.getStartDate());
-        popup.setEndDate(dto.getEndDate());
-        popup.setEntryFee(dto.getEntryFee());
-        popup.setReservationAvailable(dto.getReservationAvailable());
-        popup.setReservationLink(dto.getReservationLink());
-        popup.setWaitlistAvailable(dto.getWaitlistAvailable());
-        popup.setNotice(dto.getNotice());
-        popup.setMainImageUrl(dto.getMainImageUrl());
-        popup.setIsFeatured(dto.getIsFeatured());
+        popup.update(dto);
     }
 
+    // 팝업 삭제
     @Transactional
     public void deletePopup(User user, Long id) {
         Host host = hostRepository.findByUser(user)
@@ -109,6 +84,7 @@ public class HostService {
         popupRepository.delete(popup);
     }
 
+    // 내 프로필 조회
     @Transactional(readOnly = true)
     public HostProfileResponseDto getMyHostProfile(User user) {
         Host host = hostRepository.findByUser(user)
