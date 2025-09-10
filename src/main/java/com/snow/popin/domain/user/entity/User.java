@@ -59,4 +59,9 @@ public class User extends BaseEntity {
     public void changePassword(String newPassword) {
         this.password = newPassword;
     }
+
+    // Role 업데이트
+    public void updateRole(Role newRole){
+        this.role = newRole;
+    }
 }
