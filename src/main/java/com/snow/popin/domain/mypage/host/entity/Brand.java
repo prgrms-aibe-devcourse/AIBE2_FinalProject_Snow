@@ -1,15 +1,16 @@
 package com.snow.popin.domain.mypage.host.entity;
 
 import com.snow.popin.global.common.BaseEntity;
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
 @Entity
 @Getter
-@Setter
 @Table(name = "brands")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Brand extends BaseEntity {
 
     @Id
@@ -29,7 +30,7 @@ public class Brand extends BaseEntity {
     private String logoUrl;
 
     @Column(columnDefinition = "TEXT")
-    private String snsLinks; // JSON 형태로 저장
+    private String snsLinks;
 
     @Column(length = 20)
     @Enumerated(EnumType.STRING)
