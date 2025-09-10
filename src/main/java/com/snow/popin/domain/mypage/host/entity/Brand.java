@@ -2,6 +2,7 @@ package com.snow.popin.domain.mypage.host.entity;
 
 import com.snow.popin.global.common.BaseEntity;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -41,5 +42,23 @@ public class Brand extends BaseEntity {
 
     public enum BusinessType {
         INDIVIDUAL, CORPORATE
+    }
+
+    //  생성자
+    @Builder
+    public Brand(String name,
+                 String description,
+                 String officialSite,
+                 String logoUrl,
+                 String snsLinks,
+                 BusinessType businessType,
+                 Long categoryId) {
+        this.name = name;
+        this.description = description;
+        this.officialSite = officialSite;
+        this.logoUrl = logoUrl;
+        this.snsLinks = snsLinks;
+        this.businessType = businessType != null ? businessType : BusinessType.INDIVIDUAL;
+        this.categoryId = categoryId;
     }
 }
