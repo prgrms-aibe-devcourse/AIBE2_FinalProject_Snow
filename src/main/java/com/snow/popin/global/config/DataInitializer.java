@@ -5,9 +5,17 @@ import com.snow.popin.domain.mission.entity.Mission;
 import com.snow.popin.domain.mission.entity.MissionSet;
 import com.snow.popin.domain.mission.repository.MissionRepository;
 import com.snow.popin.domain.mission.repository.MissionSetRepository;
+import com.snow.popin.domain.mypage.host.dto.PopupRegisterRequestDto;
+import com.snow.popin.domain.mypage.host.entity.Brand;
+import com.snow.popin.domain.mypage.host.entity.Host;
+import com.snow.popin.domain.mypage.host.entity.HostRole;
+import com.snow.popin.domain.mypage.host.repository.BrandRepository;
+import com.snow.popin.domain.mypage.host.repository.HostRepository;
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.entity.PopupStatus;
 import com.snow.popin.domain.popup.repository.PopupRepository;
+import com.snow.popin.domain.popupReservation.entity.Reservation;
+import com.snow.popin.domain.popupReservation.repository.ReservationRepository;
 import com.snow.popin.domain.reward.entity.RewardOption;
 import com.snow.popin.domain.reward.repository.RewardOptionRepository;
 import com.snow.popin.domain.user.repository.UserRepository;
@@ -21,6 +29,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -36,11 +46,15 @@ public class DataInitializer implements CommandLineRunner {
     private final RewardOptionRepository rewardOptionRepository;
     private final PasswordEncoder passwordEncoder;
     private final PopupRepository popupRepository;
+    private final BrandRepository brandRepository;
+    private final HostRepository hostRepository; // HOST == BRADND_MEMBERS 테이블
+    private final ReservationRepository reservationRepository;
 
     @Override
     public void run(String... args) throws Exception {
         createDummyUsers();
         createDummyMissions();
+        createFakeHostAndReservations();
     }
 
     private void createDummyUsers() {
@@ -122,6 +136,96 @@ public class DataInitializer implements CommandLineRunner {
         log.info("생성된 Popup ID: {}", popup.getId());
         log.info("생성된 MissionSet ID: {}", missionSet.getId());
         log.info("미션/리워드 더미 데이터 생성 완료");
+    }
+
+    // 더미 브랜드, 호스트,팝업, 예약
+    // 팝업 DTO 생성 유틸
+    private PopupRegisterRequestDto buildPopupDto(String title) {
+        PopupRegisterRequestDto dto = new PopupRegisterRequestDto();
+        dto.setTitle(title);
+        dto.setSummary("테스트 요약");
+        dto.setDescription("테스트 설명");
+        dto.setStartDate(LocalDate.now());
+        dto.setEndDate(LocalDate.now().plusDays(7));
+        dto.setEntryFee(0);
+        dto.setReservationAvailable(true);
+        dto.setWaitlistAvailable(false);
+        dto.setNotice("공지 없음");
+        dto.setMainImageUrl("https://dummyimage.com/600x400");
+        dto.setIsFeatured(false);
+        return dto;
+    }
+
+    private void createFakeHostAndReservations() {
+        // host1 유저 생성
+        User host1 = userRepository.findByEmail("host1@test.com")
+                .orElseGet(() -> userRepository.save(User.builder()
+                        .email("host1@test.com")
+                        .password(passwordEncoder.encode("1234"))
+                        .name("호스트1")
+                        .nickname("host1")
+                        .phone("010-1111-1111")
+                        .authProvider(AuthProvider.LOCAL)
+                        .role(Role.HOST)
+                        .build()));
+
+        // reservation1 유저 생성
+        User reservation1 = userRepository.findByEmail("reservation1@test.com")
+                .orElseGet(() -> userRepository.save(User.builder()
+                        .email("reservation1@test.com")
+                        .password(passwordEncoder.encode("1234"))
+                        .name("예약자1")
+                        .nickname("reservation1")
+                        .phone("010-2222-2222")
+                        .authProvider(AuthProvider.LOCAL)
+                        .role(Role.USER)
+                        .build()));
+
+        // 브랜드 생성
+        Brand brand = brandRepository.findAll().stream()
+                .filter(b -> b.getName().equals("가짜브랜드"))
+                .findFirst()
+                .orElseGet(() -> brandRepository.save(
+                        Brand.builder()
+                                .name("가짜브랜드")
+                                .description("host1 전용 가짜 브랜드")
+                                .businessType(Brand.BusinessType.INDIVIDUAL)
+                                .build()
+                ));
+
+        // 호스트 등록
+        if (!hostRepository.existsByBrandAndUser(brand, host1)) {
+            hostRepository.save(Host.builder()
+                    .brand(brand)
+                    .user(host1)
+                    .roleInBrand(HostRole.OWNER)
+                    .build());
+        }
+
+        // 팝업 3개 생성
+        Popup popup1 = Popup.create(brand.getId(), buildPopupDto("가짜 팝업1"));
+        Popup popup2 = Popup.create(brand.getId(), buildPopupDto("가짜 팝업2"));
+        Popup popup3 = Popup.create(brand.getId(), buildPopupDto("가짜 팝업3"));
+        popupRepository.saveAll(Arrays.asList(popup1,  popup2, popup3));
+
+        // 예약 생성: 상태 다르게 지정
+        Reservation r1 = Reservation.create(
+                popup1, reservation1, "예약자1", "010-3333-3333", LocalDateTime.now().plusDays(1)
+        ); // RESERVED 그대로
+
+        Reservation r2 = Reservation.create(
+                popup2, reservation1, "예약자1", "010-3333-3333", LocalDateTime.now().minusDays(1)
+        );
+        r2.markAsVisited(); // 방문 완료
+
+        Reservation r3 = Reservation.create(
+                popup3, reservation1, "예약자1", "010-3333-3333", LocalDateTime.now().plusDays(2)
+        );
+        r3.cancel(); // 취소됨
+
+        reservationRepository.saveAll(Arrays.asList(r1, r2, r3));
+
+        log.info("더미 데이터 생성 완료: host1@test.com → 브랜드/팝업3개, reservation1@test.com → 예약(RESERVED, VISITED, CANCELLED)");
     }
 
 }
