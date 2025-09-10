@@ -40,6 +40,4 @@ public class MissionSetViewDto {
                 .cleared(cleared)
                 .build();
     }
-
-
 }

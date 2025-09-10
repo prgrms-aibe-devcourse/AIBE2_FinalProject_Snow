@@ -1,7 +1,8 @@
 package com.snow.popin.domain.bookmark.dto;
 
 import com.snow.popin.domain.bookmark.entity.BookMark;
-import com.snow.popin.domain.popup.dto.response.PopupSummaryResponseDto;
+import com.snow.popin.domain.popup.dto.response.PopupBasicResponseDto;
+
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,7 +15,7 @@ public class BookMarkResponseDto {
     private final Long userId;
     private final Long popupId;
     private final LocalDateTime createdAt;
-    private final PopupSummaryResponseDto popup;
+    private final PopupBasicResponseDto popup;
 
     public static BookMarkResponseDto from(BookMark bookmark) {
         return BookMarkResponseDto.builder()
@@ -23,7 +24,8 @@ public class BookMarkResponseDto {
                 .popupId(bookmark.getPopupId())
                 .createdAt(bookmark.getCreatedAt())
                 .popup(bookmark.getPopup() != null ?
-                        PopupSummaryResponseDto.from(bookmark.getPopup()) : null)
+                        PopupBasicResponseDto.from(bookmark.getPopup()) : null)
                 .build();
     }
+
 }

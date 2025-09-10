@@ -18,4 +18,9 @@ public class UserPageController {
     public String myMissions() {
         return "forward:/templates/pages/user-missions.html"; // static/users/user-missions.html
     }
+
+    @GetMapping("/user-bookmarks")
+    public String myBookmarks() {
+        return "forward:/templates/pages/user-bookmarks.html";
+    }
 }
