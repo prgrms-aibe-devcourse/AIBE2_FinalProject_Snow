@@ -1,0 +1,136 @@
+/* 컨테이너 */
+.mpg-host {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Pretendard', sans-serif;
+}
+
+.block { margin-bottom: 28px; }
+.block-title { font-size: 16px; font-weight: 600; margin-bottom: 14px; color: #333; }
+
+/* 공통 카드 */
+.card-list { display: flex; flex-direction: column; gap: 14px; }
+.card-list .empty {
+    padding: 20px; text-align: center;
+    border: 1px dashed #ccc; border-radius: 12px;
+    color: #999; font-size: 14px; background: #fafafa;
+}
+.card-box, .popup-card, .rent-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); /* 그림자 */
+    border: 1px solid #eee; /* 테두리 */
+}
+
+/* 페이지 헤더 */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.btn-primary.small {
+    padding: 6px 12px;
+    font-size: 13px;
+    border-radius: 6px;
+    background-color: #29459A;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+.btn-primary.small:hover { background-color: #1f3477; }
+
+/* 내 정보 카드 */
+.user-profile { padding: 16px; border-radius: 12px; background: #fff; display: block; }
+.user-profile .profile-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px solid #f0f0f0;
+}
+.user-profile .profile-row:last-child { border-bottom: none; }
+.user-profile .label { flex: 0 0 80px; font-weight: 500; color: #333; }
+.user-profile .value { flex: 1; color: #555; }
+.user-profile .edit-btn {
+    padding: 4px 10px; font-size: 13px;
+    border: 1px solid #ddd; border-radius: 6px;
+    background: #f9f9f9; cursor: pointer;
+}
+.user-profile .edit-btn:hover { background: #eee; }
+
+/* 팝업 카드 */
+.popup-card { display: flex; align-items: flex-start; gap: 12px; }
+.popup-card img.thumb {
+    width: 70px; height: 70px;
+    border-radius: 8px; object-fit: cover; background: #f0f0f0;
+}
+.popup-card .info { flex: 1; display: flex; flex-direction: column; }
+.popup-card .title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.popup-card .meta { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.popup-card .menu {
+    font-size: 13px; color: #29459A;
+    display: flex; flex-direction: column;
+    gap: 4px; align-items: flex-end;
+}
+
+/* 예약 카드 */
+.rent-card { display: flex; align-items: center; justify-content: space-between; }
+.rent-card .left { display: flex; align-items: center; gap: 10px; }
+.rent-card .icon { font-size: 20px; color: #29459A; }
+.rent-card .address { font-size: 14px; font-weight: 500; }
+.rent-card .desc { font-size: 12px; color: #777; }
+.rent-card .actions { display: flex; gap: 10px; }
+.rent-card .actions button {
+    background: none; border: none; cursor: pointer; font-size: 18px;
+}
+.rent-card .actions .call { color: #29459A; }
+.rent-card .actions .cancel { color: #e74c3c; }
+
+/* 수정/삭제 버튼 개선 */
+.btn-edit, .btn-delete {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+.btn-edit {
+    background: #f0f2fa;
+    color: #29459A;
+}
+.btn-edit:hover { background: #e0e4f5; }
+.btn-delete {
+    background: #fff0f0;
+    color: #c0392b;
+    border: 1px solid #f5c6cb;
+}
+.btn-delete:hover { background: #ffe0e0; }
+
+/* ✅ 상태 뱃지 (팝업/예약 공통) */
+.status-badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-top: 6px;
+}
+.status-badge.planned { background: #e6f0ff; color: #29459A; }
+.status-badge.ongoing { background: #d6f5d6; color: #228B22; }
+.status-badge.finished { background: #eee; color: #555; }
+.status-badge.cancelled { background: #ffd6d6; color: #b22222; }
+.status-badge.pending { background: #ffe8b3; color: #b57f00; }
+.status-badge.accepted { background: #d6f5d6; color: #228B22; }
+.status-badge.rejected { background: #ffd6d6; color: #b22222; }
+
+/* 팝업/예약 공통 썸네일 */
+.popup-card img.thumb,
+.rent-card img.thumb {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: #f0f0f0;
+}

@@ -2,6 +2,7 @@ package com.snow.popin.domain.popup.entity;
 
 import com.snow.popin.domain.category.entity.Category;
 import com.snow.popin.domain.map.entity.Venue;
+import com.snow.popin.domain.mypage.host.dto.PopupRegisterRequestDto;
 import com.snow.popin.global.common.BaseEntity;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
@@ -202,5 +203,41 @@ public class Popup extends BaseEntity {
 
     public void setFeaturedForTest(boolean featured) {
         this.isFeatured = featured;
+    }
+
+    //  생성 메서드
+    public static Popup create(Long brandId, PopupRegisterRequestDto dto) {
+        Popup popup = new Popup();
+        popup.brandId = brandId;
+        popup.title = dto.getTitle();
+        popup.summary = dto.getSummary();
+        popup.description = dto.getDescription();
+        popup.startDate = dto.getStartDate();
+        popup.endDate = dto.getEndDate();
+        popup.entryFee = dto.getEntryFee();
+        popup.reservationAvailable = dto.getReservationAvailable();
+        popup.reservationLink = dto.getReservationLink();
+        popup.waitlistAvailable = dto.getWaitlistAvailable();
+        popup.notice = dto.getNotice();
+        popup.mainImageUrl = dto.getMainImageUrl();
+        popup.isFeatured = dto.getIsFeatured();
+        popup.status = PopupStatus.PLANNED;
+        return popup;
+    }
+
+    //  수정 메서드
+    public void update(PopupRegisterRequestDto dto) {
+        this.title = dto.getTitle();
+        this.summary = dto.getSummary();
+        this.description = dto.getDescription();
+        this.startDate = dto.getStartDate();
+        this.endDate = dto.getEndDate();
+        this.entryFee = dto.getEntryFee();
+        this.reservationAvailable = dto.getReservationAvailable();
+        this.reservationLink = dto.getReservationLink();
+        this.waitlistAvailable = dto.getWaitlistAvailable();
+        this.notice = dto.getNotice();
+        this.mainImageUrl = dto.getMainImageUrl();
+        this.isFeatured = dto.getIsFeatured();
     }
 }
