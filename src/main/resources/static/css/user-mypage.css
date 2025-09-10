@@ -1,13 +1,3 @@
-.mypage-card {
-    width: min(92vw, 420px);
-    max-width: 420px;
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
-    margin: 0 auto;
-    box-shadow: 0 1px 3px rgba(0,0,0,.25);
-    position: relative;
-}
 
 .mypage-title {
     font-size: 1.5rem;
@@ -123,80 +113,50 @@
 
 
 
-/* 팝업 카드 전체 */
-.popup-card {
-    display: flex;
-    align-items: stretch;   /* 이미지와 같은 높이로 info 늘리기 */
-    margin-bottom: 16px;
-}
 
-/* 이미지 래퍼 */
-.popup-image-wrapper {
-    width: 200px;
-    height: 300px;
-    flex-shrink: 0;
+
+.go-missions-btn {
+    background: #4b5ae4;
+    color: #fff;
+    border: none;
     border-radius: 8px;
-    overflow: hidden;
-    background: #f4f4f4;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.popup-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.popup-image.placeholder {
-    font-size: 0.75rem;
-    color: #888;
-    text-align: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-}
-
-/* 텍스트 영역 */
-.popup-info {
-    margin-left: 12px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;  /* 세로 배치 */
-    min-height: 100px;       /* 카드 높이가 일정하게 유지되도록 */
-}
-
-/* 버튼 영역을 항상 하단에 붙이기 */
-.popup-action {
-    margin-bottom: 10px;
-    margin-top: auto;        /* 남은 공간을 밀어내려 항상 바닥으로 */
-    align-self: flex-start;  /* 왼쪽 정렬 (원하면 flex-end로 바꿔서 오른쪽 정렬 가능) */
-}
-
-
-.popup-title {
+    padding: 8px 14px;
+    font-size: 0.9rem;
     font-weight: bold;
-    font-size: 1.5rem;
-    margin-bottom: 10px;
-    margin-top: 10px;
+    cursor: pointer;
+    transition: background 0.2s ease;
 }
 
-.popup-summary {
-    font-size: 1rem;
-    color: #666;
-    margin-bottom: 6px;
+.go-missions-btn:hover {
+    background: #3a46c4;
 }
 
-.popup-link {
-    font-size: 0.85rem;
-    color: #5a5a5a;
+.mypage-menu {
+    padding: 40px 30px 40px;
+}
+
+.menu-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #999;
+    margin: 30px 0 10px;
+}
+
+.menu-list {
+    list-style: none;
+}
+
+
+.menu-list a {
+    display: block;
+    padding: 5px 0 5px;
+    font-size: 18px;
+    color: #777;
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 600;
 }
 
-.popup-link:hover {
-    text-decoration: underline;
+.menu-list a:hover {
+    color: #4a6cf7;
 }
+
