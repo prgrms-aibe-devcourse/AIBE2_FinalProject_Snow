@@ -23,7 +23,7 @@
     <label class="modal-label">정답 입력</label>
     <input id="modal-answer" type="text" placeholder="정답 또는 코드" class="modal-input">
     <div class="modal-actions">
-      <button class="btn primary" id="modal-submit">제출</button>
+      <button class="submit-btn" id="modal-submit">제출</button>
     </div>
   `;
     backdrop.appendChild(card);
