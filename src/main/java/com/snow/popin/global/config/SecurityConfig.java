@@ -54,8 +54,6 @@ public class SecurityConfig {
                         // 인증 관련 페이지
                         .antMatchers("/auth/**").permitAll()
 
-                        .antMatchers("/missions/**", "/users/**").authenticated()
-
                         // === 미션 관련 API (조회만 공개) ===
                         .antMatchers(HttpMethod.GET, "/api/mission-sets/**").permitAll()
                         .antMatchers(HttpMethod.GET, "/api/missions/**").permitAll()
