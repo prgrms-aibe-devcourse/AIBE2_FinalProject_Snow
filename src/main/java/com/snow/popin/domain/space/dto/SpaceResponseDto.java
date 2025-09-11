@@ -17,7 +17,6 @@ public class SpaceResponseDto {
     private String address;
     private Integer areaSize;
 
-
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate startDate;
 
@@ -36,7 +35,6 @@ public class SpaceResponseDto {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 
-    // 소유자 정보 (간단히)
     private OwnerInfo owner;
 
     @Getter
@@ -47,13 +45,23 @@ public class SpaceResponseDto {
         private String email;
     }
 
-    // Entity에서 DTO로 변환
+    @Getter
+    @Builder
+    public static class VenueInfo {
+        private String roadAddress;
+        private String jibunAddress;
+        private String detailAddress;
+        private Double latitude;
+        private Double longitude;
+    }
+
+    private VenueInfo venue;
+
     public static SpaceResponseDto from(Space space) {
         return SpaceResponseDto.builder()
                 .id(space.getId())
                 .title(space.getTitle())
                 .description(space.getDescription())
-                .address(space.getAddress())
                 .areaSize(space.getAreaSize())
                 .startDate(space.getStartDate())
                 .endDate(space.getEndDate())
@@ -69,6 +77,13 @@ public class SpaceResponseDto {
                         .name(space.getOwner().getName())
                         .email(space.getOwner().getEmail())
                         .build())
+                .venue(space.getVenue() != null ? VenueInfo.builder()
+                        .roadAddress(space.getVenue().getRoadAddress())
+                        .jibunAddress(space.getVenue().getJibunAddress())
+                        .detailAddress(space.getVenue().getDetailAddress())
+                        .latitude(space.getVenue().getLatitude())
+                        .longitude(space.getVenue().getLongitude())
+                        .build() : null)
                 .build();
     }
 }

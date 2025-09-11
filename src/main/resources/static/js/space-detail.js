@@ -56,11 +56,10 @@ const SpaceDetailPage = {
         }
 
         if ($('spaceTitle'))   $('spaceTitle').textContent   = space.title || '(제목 없음)';
-        if ($('ownerName'))    $('ownerName').textContent    = space.ownerName || '-';
+        if ($('ownerName'))    $('ownerName').textContent    = space.owner?.name || '-';
         if ($('areaSize'))     $('areaSize').textContent     = (space.areaSize ?? '-') + ' ㎡';
-        if ($('rentalFee'))    $('rentalFee').textContent    =
-            (space.rentalFee != null ? Number(space.rentalFee).toLocaleString('ko-KR') : '-') + ' 만원/일';
-        if ($('address'))      $('address').textContent      = space.address || '-';
+        if ($('rentalFee'))    $('rentalFee').textContent    = this.formatRentalFee(space.rentalFee);
+        if ($('address'))      $('address').textContent      = this.formatAddress(space);
         if ($('period'))       $('period').textContent       = this.formatPeriod(space.startDate, space.endDate);
         if ($('contactPhone')) $('contactPhone').textContent = space.contactPhone || '-';
         if ($('description'))  $('description').textContent  = space.description || '';
@@ -84,6 +83,7 @@ const SpaceDetailPage = {
             });
         });
     },
+
     // 예약하기 형식만 (아직 hostprofile) 존재하지 않음
     async reserveSpace(spaceId) {
         try {
@@ -106,29 +106,74 @@ const SpaceDetailPage = {
     },
 
     getThumbUrl(space) {
-        const u =
-            space?.coverImageUrl ||
-            space?.thumbnailUrl ||
-            space?.imageUrl ||
-            space?.imagePath ||
-            space?.thumbnailPath ||
-            '';
+        if (space?.coverImageUrl) {
+            return `${window.location.origin}${space.coverImageUrl}`;
+        }
+        if (space?.coverImage) {
+            return `${window.location.origin}${space.coverImage}`;
+        }
+
+        // 기타 이미지 필드들
+        const u = space?.thumbnailUrl || space?.imageUrl || space?.imagePath || space?.thumbnailPath || '';
         if (!u) return IMG_PLACEHOLDER;
         if (u.startsWith('http')) return u;
-        if (u.startsWith('/'))   return u;
+        if (u.startsWith('/')) return u;
         return `/uploads/${u}`;
+    },
+
+    // 주소 포맷팅 - 서버에서 이미 조합된 주소 사용
+    formatAddress(space) {
+        if (space?.address && space.address !== '주소 정보 없음') {
+            return space.address;
+        }
+
+        // fallback: venue 정보로부터 직접 조합 (혹시 모를 경우)
+        if (space?.venue) {
+            const venue = space.venue;
+            let address = '';
+
+            if (venue.roadAddress) {
+                address = venue.roadAddress;
+            } else if (venue.jibunAddress) {
+                address = venue.jibunAddress;
+            }
+
+            if (venue.detailAddress && address) {
+                address += ` ${venue.detailAddress}`;
+            } else if (venue.detailAddress && !address) {
+                address = venue.detailAddress;
+            }
+
+            return address || '주소 정보 없음';
+        }
+
+        return '주소 정보 없음';
+    },
+
+    formatRentalFee(amount) {
+        if (!amount && amount !== 0) return '-';
+        return `${amount} 만원`;
     },
 
     formatPeriod(s, e) {
         const f = (d) => {
             if (!d) return '-';
-            try { return new Date(d).toLocaleDateString('ko-KR'); } catch { return d; }
+            try {
+                return new Date(d).toLocaleDateString('ko-KR');
+            } catch {
+                return d;
+            }
         };
         return `${f(s)} ~ ${f(e)}`;
     },
 
-    goList() { location.assign('/templates/pages/space-list.html'); },
-    editSpace(id) { location.assign(`/templates/pages/space-edit.html?id=${encodeURIComponent(id)}`); },
+    goList() {
+        location.assign('/templates/pages/space-list.html');
+    },
+
+    editSpace(id) {
+        location.assign(`/templates/pages/space-edit.html?id=${encodeURIComponent(id)}`);
+    },
 
     async deleteSpace(id) {
         if (!confirm('정말 삭제하시겠습니까?')) return;
@@ -141,6 +186,7 @@ const SpaceDetailPage = {
             alert('삭제 실패');
         }
     },
+
     async inquireSpace(id) {
         try {
             await apiService.inquireSpace(id);
@@ -150,6 +196,7 @@ const SpaceDetailPage = {
             alert('문의 실패');
         }
     },
+
     async reportSpace(id) {
         try {
             await apiService.reportSpace(id);

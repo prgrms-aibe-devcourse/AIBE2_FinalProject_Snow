@@ -2,7 +2,6 @@ package com.snow.popin.domain.space.service;
 
 import com.snow.popin.domain.map.entity.Venue;
 import com.snow.popin.domain.map.repository.MapRepository;
-import com.snow.popin.domain.space.dto.*;
 import com.snow.popin.domain.space.dto.SpaceCreateRequestDto;
 import com.snow.popin.domain.space.dto.SpaceListResponseDto;
 import com.snow.popin.domain.space.dto.SpaceResponseDto;
@@ -12,6 +11,7 @@ import com.snow.popin.domain.space.repository.SpaceRepository;
 import com.snow.popin.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,9 +33,8 @@ public class SpaceService {
     public Long create(User owner, SpaceCreateRequestDto dto) {
         log.info("Creating new space for owner: {}", owner.getId());
 
-        // 1) Venue 생성
         Venue venue = Venue.of(
-                dto.getTitle(),                 // Venue.name 은 NOT NULL → 제목으로 매핑
+                dto.getTitle(),
                 dto.getRoadAddress(),
                 dto.getJibunAddress(),
                 dto.getDetailAddress(),
@@ -45,10 +44,8 @@ public class SpaceService {
         );
         venueRepository.save(venue);
 
-        // 2) 이미지 업로드
         String imageUrl = fileStorageService.save(dto.getImage());
 
-        // 3) Space 생성 + Venue 연결
         Space space = Space.builder()
                 .owner(owner)
                 .title(dto.getTitle())
@@ -91,46 +88,64 @@ public class SpaceService {
 
     //공간 게시글 수정
     @Transactional
-    public void update(User owner, Long id, SpaceUpdateRequestDto dto) {
-        log.info("Updating space ID: {} by owner: {}", id, owner.getId());
+    public void update(User owner, Long spaceId, SpaceUpdateRequestDto dto) {
+        log.info("Updating space ID {} by user: {}", spaceId, owner.getId());
 
-        // 이미지 확인 로그
-        log.info("Received image: {}", dto.getImage() != null ? dto.getImage().getOriginalFilename() : "null");
-        if (dto.getImage() != null) {
-            log.info("Image empty check: {}", dto.getImage().isEmpty());
+        // 1) 기존 Space 조회 및 소유자 검증
+        Space space = spaceRepository.findById(spaceId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 공간이 존재하지 않습니다."));
+
+        if (!space.isOwner(owner)) {
+            throw new AccessDeniedException("해당 공간에 대한 수정 권한이 없습니다.");
         }
 
-        Space space = spaceRepository.findByIdAndOwner(id, owner)
-                .orElseThrow(() -> new IllegalArgumentException("공간이 없거나 수정 권한이 없습니다."));
-
-        // 이미지가 새로 올라온 경우 교체
-        if (dto.getImage() != null && !dto.getImage().isEmpty()) {
-            log.info("기존 이미지 URL: {}", space.getCoverImageUrl());
-
-            String imageUrl = fileStorageService.save(dto.getImage());
-            log.info("새로 저장된 이미지 URL: {}", imageUrl);
-
-            space.updateCoverImage(imageUrl);
-            log.info("엔티티 업데이트 후 이미지 URL: {}", space.getCoverImageUrl());
-            log.info("Image updated for space ID: {}", id);
+        // 2) Venue 수정 또는 새로 생성
+        Venue venue = space.getVenue();
+        if (venue == null) {
+            venue = Venue.of(
+                    dto.getTitle(),  // Venue.name = 공간 제목과 동일
+                    dto.getRoadAddress(),
+                    dto.getJibunAddress(),
+                    dto.getDetailAddress(),
+                    dto.getLatitude(),
+                    dto.getLongitude(),
+                    dto.getParkingAvailable()  // ← 필요 시 null 허용 or 기본값 처리
+            );
         } else {
-            log.info("No image to update for space ID: {}", id);  // 이미지 업데이트 로그
+            venue.update(
+                    dto.getTitle(),
+                    dto.getRoadAddress(),
+                    dto.getJibunAddress(),
+                    dto.getDetailAddress(),
+                    dto.getLatitude(),
+                    dto.getLongitude(),
+                    dto.getParkingAvailable()
+            );
+        }
+        venueRepository.save(venue);
+
+        // 3) 이미지 업로드 (있을 경우만)
+        String imageUrl = space.getCoverImageUrl();
+        if (dto.getImage() != null && !dto.getImage().isEmpty()) {
+            imageUrl = fileStorageService.save(dto.getImage());
         }
 
-        // 나머지 정보 업데이트
+        // 4) Space 엔티티 값 업데이트
         space.updateSpaceInfo(
                 dto.getTitle(),
                 dto.getDescription(),
-                dto.getAddress(),
                 dto.getAreaSize(),
                 dto.getStartDate(),
                 dto.getEndDate(),
                 dto.getRentalFee(),
                 dto.getContactPhone()
         );
+        space.updateVenue(venue);
+        space.updateCoverImage(imageUrl);
 
-        log.info("Space updated successfully: {}", id);
+        log.info("Space ID {} updated successfully", spaceId);
     }
+
 
     //공간 게시글 삭제
 

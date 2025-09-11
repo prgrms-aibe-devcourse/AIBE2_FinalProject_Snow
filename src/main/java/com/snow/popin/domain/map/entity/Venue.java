@@ -87,7 +87,14 @@ public class Venue extends BaseEntity {
         v.parkingAvailable = parking != null ? parking : false;
         return v;
     }
-
-
-
+    public void update(String name, String roadAddress, String jibunAddress, String detailAddress,
+                       Double latitude, Double longitude, Boolean parkingAvailable) {
+        this.name = name;
+        this.roadAddress = roadAddress;
+        this.jibunAddress = jibunAddress;
+        this.detailAddress = detailAddress;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.parkingAvailable = parkingAvailable != null ? parkingAvailable : false;
+    }
 }

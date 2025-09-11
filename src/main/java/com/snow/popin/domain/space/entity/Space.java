@@ -84,17 +84,20 @@ public class Space extends BaseEntity {
     }
 
     // 비즈니스 메서드
-    public void updateSpaceInfo(String title, String description, String address,
+    public void updateSpaceInfo(String title, String description,
                                 Integer areaSize, LocalDate startDate, LocalDate endDate,
                                 Integer rentalFee, String contactPhone) {
         this.title = title;
         this.description = description;
-        this.address = address;
         this.areaSize = areaSize;
         this.startDate = startDate;
         this.endDate = endDate;
         this.rentalFee = rentalFee;
         this.contactPhone = contactPhone;
+    }
+
+    public void updateVenue(Venue newVenue) {
+        this.venue = newVenue;
     }
 
     public void updateCoverImage(String coverImageUrl) {
@@ -103,9 +106,5 @@ public class Space extends BaseEntity {
 
     public boolean isOwner(User user) {
         return this.owner.getId().equals(user.getId());
-    }
-
-    public boolean isAvailableDate(LocalDate checkDate) {
-        return !checkDate.isBefore(startDate) && !checkDate.isAfter(endDate);
     }
 }
