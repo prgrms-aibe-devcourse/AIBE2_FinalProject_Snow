@@ -63,6 +63,7 @@ public class RoleUpgradeService {
     // 역할 승격 요청 생성 + file
     @Transactional
     public Long createRoleUpgradeRequestWithDocuments(String email, CreateRoleUpgradeRequest req, List<MultipartFile> files) {
+
         validateNoDuplicateRequest(email);
 
         try {
@@ -94,12 +95,10 @@ public class RoleUpgradeService {
                     }
                 }
             }
-
             log.info("역할 승격 요청 생성 완료. ID: {}, Email: {}, Role: {}, 첨부파일 수: {}",
                     saved.getId(), email, req.getRequestedRole(), files != null ? files.size() : 0);
 
             return saved.getId();
-
         } catch (Exception e) {
             log.error("역할 승격 요청 생성 실패: {}", e.getMessage());
             throw new GeneralException(ErrorCode.INTERNAL_ERROR);
@@ -120,13 +119,11 @@ public class RoleUpgradeService {
 
     // 내 역할 승격 요청 목록 조회
     public List<RoleUpgradeResponse> getMyRoleUpgradeRequests(String email){
-
         List<RoleUpgrade> reqs = roleRepo.findByEmailOrderByCreatedAtDesc(email);
 
         return reqs.stream()
                 .map(RoleUpgradeResponse::from)
                 .collect(Collectors.toList());
-
     }
 
     // 역할 승격 요청 상세 조회
@@ -138,7 +135,6 @@ public class RoleUpgradeService {
         if (!roleUpgrade.getEmail().equals(email)){
             throw new GeneralException(ErrorCode.ACCESS_DENIED);
         }
-
         return RoleUpgradeResponse.from(roleUpgrade);
     }
 
@@ -165,9 +161,7 @@ public class RoleUpgradeService {
         roleUpgrade.addDocument(document);
 
         log.info("문서가 첨부되었습니다. RequestId: {}, DocType: {}", upgradeId, req.getDocType());
-
     }
-
 
     // 대기중인 요청 개수 조회 (관리자용)
     public long getPendingRequestCount(){
@@ -176,24 +170,40 @@ public class RoleUpgradeService {
 
     // 관리자용: 모든 역할 승격 요청 페이징 조회
     public Page<RoleUpgradeResponse> getAllRoleUpgradeRequests(Pageable pageable){
-
         Page<RoleUpgrade> reqs = roleRepo.findAllByOrderByCreatedAtDesc(pageable);
         return reqs.map(RoleUpgradeResponse::from);
-
     }
 
     // 관리자용: 상태별 역할 승격 요청 조회
     public Page<RoleUpgradeResponse> getRoleUpgradeRequestsByStatus(ApprovalStatus status, Pageable pageable){
-
         Page<RoleUpgrade> reqs = roleRepo.findByStatusOrderByCreatedAtDesc(status, pageable);
         return reqs.map(RoleUpgradeResponse::from);
+    }
 
+    // 관리자용: 요청 역할별 역할 승격 요청 조회
+    public Page<RoleUpgradeResponse> getRoleUpgradeRequestsByRole(Role role, Pageable pageable){
+        Page<RoleUpgrade> reqs = roleRepo.findByRequestedRoleOrderByCreatedAtDesc(role, pageable);
+        return reqs.map(RoleUpgradeResponse::from);
+    }
+
+    // 관리자용: 상태와 역할 모두로 필터링한 역할 승격 요청 조회
+    public Page<RoleUpgradeResponse> getRoleUpgradeRequestsByStatusAndRole(
+            ApprovalStatus status, Role role,Pageable pageable ){
+        Page<RoleUpgrade> reqs = roleRepo.findByStatusAndRequestedRoleOrderByCreatedAtDesc(status, role, pageable);
+        return reqs.map(RoleUpgradeResponse::from);
+    }
+
+    // 관리자용: 역할 승격 요청 상세 조회 (권한 체크 없음)
+    public RoleUpgradeResponse getRoleUpgradeRequestForAdmin(Long id) {
+        RoleUpgrade roleUpgrade = roleRepo.findById(id)
+                .orElseThrow(() -> new GeneralException(ErrorCode.ROLE_UPGRADE_REQUEST_NOT_FOUND));
+
+        return RoleUpgradeResponse.from(roleUpgrade);
     }
 
     // 관리자용: 역할 승격 요청 처리 (승인/반려)
     @Transactional
     public void processRoleUpgradeRequest(Long id, AdminUpdateRequest req){
-
         RoleUpgrade roleUpgrade = roleRepo.findById(id)
                 .orElseThrow(() -> new GeneralException(ErrorCode.ROLE_UPGRADE_REQUEST_NOT_FOUND));
 
@@ -203,7 +213,6 @@ public class RoleUpgradeService {
         if (req.isApprove()){
             // 승인 처리
             roleUpgrade.approve();
-
             // 사용자 역할 업데이트
             User user = userRepo.findByEmail(roleUpgrade.getEmail())
                     .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND));
@@ -212,16 +221,13 @@ public class RoleUpgradeService {
 
             log.info("역할 승격이 승인되었습니다. ID: {}, Email: {}, New Role: {}",
                     id, roleUpgrade.getEmail(), roleUpgrade.getRequestedRole());
-
         } else {
             // 반려처리
             roleUpgrade.reject(req.getRejectReason());
 
             log.info("역할 승격이 반려되었습니다. ID: {}, Reason: {}", id, req.getRejectReason());
-
         }
     }
-
 
     // 공통 로직들
     // 이미 대기중인 요청이 있는지 확인
@@ -253,7 +259,6 @@ public class RoleUpgradeService {
     // 파일 저장 (실제 구현에서는 파일 저장 서비스로 분리)
     private String saveFile(MultipartFile file){
         try{
-
             // 실제로는 AWS S3, 로컬 저장소 등을 사용
             String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
             String filePath = "/uploads/role-upgrade/" + fileName;
@@ -262,11 +267,9 @@ public class RoleUpgradeService {
             // file.transferTo(new File(filePath));
 
             return filePath;
-
         } catch (Exception e) {
             log.error("파일 저장 중 오류 발생: {}", e.getMessage());
             throw new GeneralException(ErrorCode.FILE_UPLOAD_ERROR);
         }
     }
-
 }
