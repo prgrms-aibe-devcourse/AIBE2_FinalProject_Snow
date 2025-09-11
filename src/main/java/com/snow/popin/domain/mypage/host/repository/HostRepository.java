@@ -2,30 +2,31 @@ package com.snow.popin.domain.mypage.host.repository;
 
 import com.snow.popin.domain.mypage.host.entity.Brand;
 import com.snow.popin.domain.mypage.host.entity.Host;
-import com.snow.popin.domain.mypage.host.entity.HostRole;
 import com.snow.popin.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface HostRepository extends JpaRepository<Host, Long> {
 
-    //  유저는 하나의 Host만 가질 수 있음
+    /**
+     * 특정 사용자와 연결된 Host 조회
+     * (한 명의 유저는 하나의 Host만 가질 수 있음)
+     *
+     * @param user 조회할 사용자
+     * @return 해당 사용자의 Host 엔티티 (없으면 Optional.empty)
+     */
     Optional<Host> findByUser(User user);
-
-    // 특정 브랜드의 모든 멤버
-    List<Host> findByBrand(Brand brand);
-
-    // 특정 브랜드-사용자 조합
-    Optional<Host> findByBrandAndUser(Brand brand, User user);
-
-    // 특정 브랜드-사용자 조합 존재 여부
-    boolean existsByBrandAndUser(Brand brand, User user);
-
-    // 사용자가 OWNER인 브랜드들
-    List<Host> findByUserAndRoleInBrand(User user, HostRole role);
-
-    // 특정 브랜드의 OWNER 조회
-    List<Host> findByBrandAndRoleInBrand(Brand brand, HostRole role);
+    /**
+     * 특정 브랜드와 사용자 조합이 존재하는지 여부 확인
+     *
+     * @param brand 브랜드 엔티티
+     * @param userId 사용자 ID
+     * @return 조합이 존재하면 true, 아니면 false
+     */
+    @Query("SELECT CASE WHEN COUNT(h) > 0 THEN true ELSE false END " +
+            "FROM Host h WHERE h.brand = :brand AND h.user.id = :userId")
+    boolean existsByBrandAndUser(@Param("brand") Brand brand, @Param("userId") Long userId);
 }
