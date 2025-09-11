@@ -19,6 +19,7 @@ public class PopupRegisterResponseDto {
     private String venueAddress;
     private String region;
     private String mainImageUrl;
+    private String status;
 
     public static PopupRegisterResponseDto fromEntity(Popup popup) {
         return PopupRegisterResponseDto.builder()
@@ -33,6 +34,7 @@ public class PopupRegisterResponseDto {
                 .venueAddress(popup.getVenueAddress())
                 .region(popup.getRegion())
                 .mainImageUrl(popup.getMainImageUrl())
+                .status(popup.getStatus().name())
                 .build();
     }
 }
