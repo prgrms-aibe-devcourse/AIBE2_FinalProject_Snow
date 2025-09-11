@@ -95,7 +95,7 @@
     margin-top: 22px;
     padding: 14px 16px;
     border: 0;
-    border-radius: 12px;
+    border-radius: 16px;
     font-weight: 700;
     color: #fff;
     box-shadow: 0 4px 10px rgba(0,0,0,.1);
@@ -182,21 +182,23 @@
     display: flex;
     justify-content: flex-end;
 }
-.btn {
-    padding: 10px 16px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    background: #fff;
-    cursor: pointer;
+.submit-btn {
+    padding: 8px 16px;
+    font-size: 14px;
     font-weight: 600;
+    border: none;
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
 }
-.btn.primary {
-    background: #4B5AE4;
-    color: #fff;
-    border-color: #4B5AE4;
-}
-.btn.primary:hover {
-    background: #3b4bd9;
+
+.submit-btn:hover {
+    background-color: #4B5AE4;
+    color: white;
+    box-shadow: 0 2px 8px rgba(75, 90, 228, 0.3);
 }
 
 /* 룰렛 컨테이너 */

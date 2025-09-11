@@ -10,17 +10,22 @@ public class UserPageController {
 
     @GetMapping("/mypage")
     public String myPage() {
-        return "forward:/templates/pages/user-mypage.html"; // static/users/mypage.html
+        return "forward:/templates/pages/mypage/user/user-mypage.html"; // static/users/mypage.html
     }
 
 
     @GetMapping("/user-missions")
     public String myMissions() {
-        return "forward:/templates/pages/user-missions.html"; // static/users/user-missions.html
+        return "forward:/templates/pages/mypage/user/user-missions.html"; // static/users/user-missions.html
     }
 
     @GetMapping("/user-bookmarks")
     public String myBookmarks() {
-        return "forward:/templates/pages/user-bookmarks.html";
+        return "forward:/templates/pages/mypage/user/user-bookmarks.html";
+    }
+
+    @GetMapping("/user-reviews")
+    public String myReviews() {
+        return "forward:/templates/pages/mypage/user/user-reviews.html";
     }
 }

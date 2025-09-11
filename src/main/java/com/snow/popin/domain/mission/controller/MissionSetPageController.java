@@ -11,6 +11,6 @@ public class MissionSetPageController {
 
     @GetMapping("/{missionSetId}")
     public String missionPage(@PathVariable String missionSetId) {
-        return "forward:/templates/pages/mission.html";
+        return "forward:/templates/pages/mission/mission.html";
     }
 }
