@@ -1,0 +1,138 @@
+.mobile-container {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 100vh !important;
+}
+
+.main-content {
+    flex: 1 !important;
+    padding: 0 24px 120px 24px !important; /* 좌우 여백 + 푸터 높이(96px)+여유 */
+    box-sizing: border-box !important;
+}
+
+#footer-container {
+    position: relative !important;
+    flex-shrink: 0 !important;
+}
+
+/* 섹션 제목 */
+.block-title,
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #111;
+}
+
+/* 폼 컨테이너 */
+.popup-form {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* 폼 그룹 */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #333;
+    font-size: 14px;
+}
+
+.form-group input,
+.form-group textarea {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+}
+
+/* 체크박스 그룹 */
+.form-group.checkbox {
+    flex-direction: row;
+    align-items: center;
+}
+
+.form-group.checkbox label {
+    font-weight: 500;
+    margin-bottom: 0;
+    color: #444;
+    font-size: 14px;
+}
+
+/* 버튼 영역 */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-primary,
+.btn-secondary {
+    padding: 10px 16px;
+    font-size: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+    border: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+    transform: scale(1.05);
+}
+
+.btn-secondary {
+    background: #f3f4f6;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background: #e5e7eb;
+}
+
+/* 푸터는 고정되지 않고 flex 맨 아래 위치 */
+#footer-container {
+    flex-shrink: 0;
+}
+
+/* 모바일 대응 */
+@media (max-width: 480px) {
+    .main-content {
+        padding: 0 12px;
+    }
+
+    .popup-form {
+        padding: 16px;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions button {
+        width: 100%;
+    }
+}
