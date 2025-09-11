@@ -1,4 +1,4 @@
-/* 팝업 상세보기 페이지 스타일 */
+/* 팝업 상세보기 카드 */
 .popup-detail-card {
     background: #fff;
     border-radius: 12px;
@@ -18,7 +18,6 @@
     position: relative;
 }
 
-/* 이미지가 없을 때 중앙에 텍스트 표시 */
 .popup-image:not([src])::after {
     content: 'IMG';
     position: absolute;
@@ -29,12 +28,6 @@
     font-size: 24px;
     font-weight: bold;
     letter-spacing: 2px;
-}
-
-/* 이미지 로딩 실패 시 스타일 */
-.popup-image {
-    background-color: #f5f5f5;
-    border: 1px solid #e0e0e0;
 }
 
 .popup-info {
@@ -65,15 +58,38 @@
     word-break: break-word;
 }
 
-/* 빈 상태 스타일 */
-.empty {
-    text-align: center;
-    padding: 40px 20px;
-    color: #999;
-    font-size: 14px;
+/* 버튼 영역 - 카드 하단 */
+.popup-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
 }
 
-/* 반응형 */
+.popup-actions .btn-edit,
+.popup-actions .btn-delete {
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.popup-actions .btn-edit:hover {
+    background: #f5f5f5;
+    color: #2563eb;
+    border-color: #2563eb;
+}
+
+.popup-actions .btn-delete:hover {
+    background: #ffeaea;
+    color: #e74c3c;
+    border-color: #e74c3c;
+}
+
+/* 모바일 대응 */
 @media (max-width: 480px) {
     .popup-detail-card {
         padding: 16px;
@@ -96,5 +112,13 @@
         min-width: auto;
         margin-right: 0;
         margin-bottom: 2px;
+    }
+
+    .popup-actions {
+        flex-direction: column;
+    }
+
+    .popup-actions button {
+        width: 100%;
     }
 }
