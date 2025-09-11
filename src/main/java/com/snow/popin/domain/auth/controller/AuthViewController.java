@@ -21,12 +21,12 @@ public class AuthViewController {
 
     @GetMapping("/login")
     public String loginPage() {
-        return "forward:/auth/login.html";
+        return "forward:/templates/auth/login.html";
     }
 
     @GetMapping("/signup")
     public String signupPage() {
-        return "forward:/auth/signup.html";
+        return "forward:/templates/auth/signup.html";
     }
 
     @GetMapping("/logout")
@@ -41,7 +41,7 @@ public class AuthViewController {
             log.warn("서버 측 로그아웃 처리 중 오류 (계속 진행) : {}", e.getMessage());
         }
 
-        return "forward:/auth/logout.html";
+        return "forward:/templates/auth/logout.html";
 
     }
 }

@@ -49,7 +49,6 @@ public class AuthApiController {
         return ResponseEntity.ok(response);
     }
 
-    // ================ 중복 확인 API ================
     @GetMapping("/check-email")
     public ResponseEntity<Map<String, Boolean>> checkEmailDuplicate(@RequestParam String email){
         boolean exists = authService.emailExists(email);
