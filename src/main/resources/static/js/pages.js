@@ -32,6 +32,12 @@ const Pages = {
         await manager.initialize();
     },
 
+    // 팝업 상세
+    async popupDetail(popupId) {
+        const manager = new PopupDetailManager(popupId);
+        await manager.initialize();
+    },
+
     // 지도 페이지
     async map() {
         const manager = new MapPageManager();
@@ -66,14 +72,15 @@ const Pages = {
 // 팝업 상세 페이지로 이동
 function goToPopupDetail(popupId) {
     console.log('팝업 상세 이동:', popupId);
-    if (popupId == null || (typeof popupId !== 'number' && !/^\d+$/.test(String(popupId)))) {
+
+    if (!popupId || !/^\d+$/.test(String(popupId))) {
         console.warn('잘못된 팝업 ID:', popupId);
+        alert('잘못된 팝업 정보입니다.');
         return;
     }
-    const id = encodeURIComponent(String(popupId));
-    // TODO: 상세 페이지 구현 시 활성화
-    // location.href = `/templates/pages/popup-detail.html?id=${id}`;
-    alert(`팝업 ID ${id} 상세 페이지는 준비 중입니다.`);
+
+    // 실제 페이지 이동
+    location.href = `/templates/pages/popup-detail.html?id=${encodeURIComponent(popupId)}`;
 }
 
 window.Pages = Pages;

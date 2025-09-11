@@ -1,0 +1,426 @@
+/* 팝업 상세 페이지 CSS */
+.popup-detail-page {
+    background: #f8f9fa;
+    min-height: 100vh;
+    padding-bottom: 20px;
+}
+
+/* 로딩 및 에러 컨테이너 */
+.loading-container, .error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+    padding: 40px 20px;
+}
+
+/* 메인 이미지 섹션 */
+.popup-main-image {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    overflow: hidden;
+}
+
+.main-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.image-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 30%);
+}
+
+.action-buttons {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 12px;
+}
+
+.action-btn {
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+}
+
+.action-btn svg {
+    width: 20px;
+    height: 20px;
+    color: #374151;
+}
+
+.action-btn:hover {
+    background: white;
+    transform: scale(1.05);
+}
+
+.action-btn.bookmarked svg {
+    fill: #4B5AE4;
+    color: #4B5AE4;
+}
+
+/* 팝업 정보 섹션 */
+.popup-info-section {
+    background: white;
+    padding: 24px;
+    margin-bottom: 12px;
+}
+
+.popup-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 16px;
+    line-height: 1.3;
+}
+
+.popup-dates {
+    margin-bottom: 20px;
+}
+
+.date-info {
+    margin-bottom: 8px;
+}
+
+.period-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.hours-info {
+    margin-bottom: 4px;
+}
+
+.hours-text {
+    font-size: 16px;
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+/* 태그 섹션 */
+.popup-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.popup-tag {
+    background: #4B5AE4;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.popup-tag:hover {
+    background: #5855eb;
+    transform: translateY(-1px);
+}
+
+/* 예약하기 버튼 */
+.reservation-btn {
+    width: 100%;
+    background: #4B5AE4;
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reservation-btn:hover {
+    background: #5855eb;
+    transform: translateY(-1px);
+}
+
+.reservation-btn:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 리뷰 섹션 */
+.reviews-section {
+    background: white;
+    padding: 24px;
+    margin-bottom: 12px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.write-review-btn {
+    background: #4B5AE4;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.write-review-btn:hover {
+    background: #5855eb;
+}
+
+/* 평점 요약 */
+.rating-summary {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.stars-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stars {
+    display: flex;
+    gap: 2px;
+}
+
+.star {
+    font-size: 20px;
+    color: #e5e7eb;
+    transition: color 0.2s ease;
+}
+
+.star.filled {
+    color: #fbbf24;
+}
+
+.review-count {
+    font-size: 16px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+/* 리뷰 목록 */
+.reviews-list {
+    margin-bottom: 20px;
+}
+
+.review-item {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    background: white;
+}
+
+.review-rating {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.review-rating .stars .star {
+    font-size: 16px;
+}
+
+.review-date {
+    font-size: 12px;
+    color: #9ca3af;
+    cursor: pointer;
+}
+
+.review-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+.review-body {
+    font-size: 14px;
+    color: #4b5563;
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+
+.reviewer-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.reviewer-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.reviewer-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.reviewer-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.reviewer-details .review-date {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+.load-more-btn {
+    width: 100%;
+    background: #f3f4f6;
+    color: #374151;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.load-more-btn:hover {
+    background: #e5e7eb;
+}
+
+/* 유사한 팝업 섹션 */
+.similar-popups-section {
+    background: white;
+    padding: 24px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 20px;
+}
+
+.similar-popups-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    overflow-x: auto;
+}
+
+.similar-popup-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb;
+    aspect-ratio: 0.8;
+}
+
+.similar-popup-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+.similar-card-image {
+    width: 100%;
+    height: 70%;
+    object-fit: cover;
+}
+
+.similar-card-content {
+    padding: 12px;
+    height: 30%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.similar-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.similar-card-info {
+    font-size: 12px;
+    color: #6b7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 반응형 */
+@media (max-width: 375px) {
+    .popup-main-image {
+        height: 250px;
+    }
+
+    .popup-info-section {
+        padding: 20px;
+    }
+
+    .popup-title {
+        font-size: 20px;
+    }
+
+    .period-text {
+        font-size: 16px;
+    }
+
+    .similar-popups-grid {
+        gap: 12px;
+    }
+}
+
+@media (min-width: 600px) {
+    .popup-detail-page {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+}
