@@ -18,16 +18,6 @@ public interface MapRepository extends JpaRepository<Venue, Long> {
             "ORDER BY v.region")
     List<String> findDistinctRegionsWithActivePopups();
 
-    // 모든 지역 목록 조회 (팝업 유무 관계없이)
-    @Query("SELECT DISTINCT v.region FROM Venue v " +
-            "WHERE v.region IS NOT NULL " +
-            "ORDER BY v.region")
-    List<String> findDistinctRegions();
-
-    // 특정 지역의 장소 개수 조회
-    @Query("SELECT COUNT(v) FROM Venue v WHERE v.region = :region")
-    Long countVenuesByRegion(String region);
-
     //좌표가 있는 장소들의 지역 목록 조회
     @Query("SELECT DISTINCT v.region FROM Venue v " +
             "WHERE v.region IS NOT NULL " +

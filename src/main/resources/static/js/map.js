@@ -7,6 +7,8 @@ class MapPageManager {
         this.popups = [];
         this.userLocation = null;
         this.currentLocationMarker = null;
+        this._reqSeq = 0;
+        this._debouncedLoadInBounds = null;
     }
 
     // 페이지 초기화
@@ -56,7 +58,8 @@ class MapPageManager {
         const options = { center: new window.kakao.maps.LatLng(37.5665, 126.9780), level: 5 };
         this.map = new window.kakao.maps.Map(container, options);
         this.addLocationButton();
-        window.kakao.maps.event.addListener(this.map, 'idle', () => this.loadMapPopupsInBounds());
+        this._debouncedLoadInBounds = this.debounce(() => this.loadMapPopupsInBounds(), 250);
+        window.kakao.maps.event.addListener(this.map, 'idle', this._debouncedLoadInBounds);
     }
 
     // 현재 위치 버튼
@@ -75,6 +78,12 @@ class MapPageManager {
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 this.userLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
+
+                if (!this.map) {
+                    console.warn('카카오맵이 초기화되지 않아 위치 설정을 건너뜁니다.');
+                    return;
+                }
+
                 const center = new window.kakao.maps.LatLng(this.userLocation.lat, this.userLocation.lng);
                 this.map.setCenter(center);
                 this.map.setLevel(4);
@@ -126,6 +135,7 @@ class MapPageManager {
     // 지도 범위 내 팝업 로드
     async loadMapPopupsInBounds() {
         if (!this.map) return;
+        const reqId = ++this._reqSeq;
 
         const popupList = document.getElementById('popup-list');
         if (popupList) {
@@ -140,6 +150,7 @@ class MapPageManager {
             const sw = bounds.getSouthWest(), ne = bounds.getNorthEast();
             const popups = await apiService.getPopupsInBounds(sw.getLat(), sw.getLng(), ne.getLat(), ne.getLng());
 
+            if (reqId !== this._reqSeq) return; // stale response
             this.popups = popups || [];
             this.renderMapMarkers(this.popups);
             // API 응답 후, 로딩 인디케이터를 새로운 팝업 리스트로 교체
@@ -163,7 +174,7 @@ class MapPageManager {
             if (!popup.latitude || !popup.longitude) return;
             const position = new window.kakao.maps.LatLng(popup.latitude, popup.longitude);
             const marker = new window.kakao.maps.Marker({ position, title: popup.title });
-            const content = `<div class="popup-marker-label">${popup.title}</div>`;
+            const content = `<div class="popup-marker-label">${this.escapeHTML(popup.title || '')}</div>`;
             const customOverlay = new window.kakao.maps.CustomOverlay({ position, content, yAnchor: -0.2 });
 
             window.kakao.maps.event.addListener(marker, 'click', () => {
@@ -184,12 +195,12 @@ class MapPageManager {
         section.innerHTML = `
             <div class="popup-card-horizontal selected">
                 <div class="popup-image-wrapper">
-                    <img src="${popup.mainImageUrl || 'https://via.placeholder.com/80x80/667eea/ffffff?text=🎪'}" alt="${popup.title}" class="popup-image">
+                    <img src="${popup.mainImageUrl || 'https://via.placeholder.com/80x80/667eea/ffffff?text=🎪'}" alt="${this.escapeHTML(popup.title || '')}" class="popup-image">
                 </div>
                 <div class="popup-info">
-                    <div class="popup-title">${popup.title}</div>
-                    <div class="popup-period">${popup.period || '기간 미정'}</div>
-                    <div class="popup-location">${popup.venueName || '장소 미정'}</div>
+                    <div class="popup-title">${this.escapeHTML(popup.title || '')}</div>
+                    <div class="popup-period">${this.escapeHTML(popup.period || '기간 미정')}</div>
+                    <div class="popup-location">${this.escapeHTML(popup.venueName || '장소 미정')}</div>
                 </div>
                 <button class="close-btn">&times;</button>
             </div>
@@ -219,14 +230,14 @@ class MapPageManager {
             return;
         }
         popupList.innerHTML = popups.map(popup => `
-            <div class="popup-card-horizontal" onclick="goToPopupDetail('${popup.id}')">
+            <div class="popup-card-horizontal" onclick="goToPopupDetail('${String(popup.id).replace(/'/g, '&#39;')}')">
                 <div class="popup-image-wrapper">
-                    <img src="${popup.mainImageUrl || 'https://via.placeholder.com/80x80/667eea/ffffff?text=🎪'}" alt="${popup.title}" class="popup-image">
+                    <img src="${popup.mainImageUrl || 'https://via.placeholder.com/80x80/667eea/ffffff?text=🎪'}" alt="${this.escapeHTML(popup.title || '')}" class="popup-image">               
                 </div>
                 <div class="popup-info">
-                    <div class="popup-title">${popup.title}</div>
-                    <div class="popup-period">${popup.period || '기간 미정'}</div>
-                    <div class="popup-location">${popup.venueName || '장소 미정'}</div>
+                    <div class="popup-title">${this.escapeHTML(popup.title || '')}</div>
+                    <div class="popup-period">${this.escapeHTML(popup.period || '기간 미정')}</div>
+                    <div class="popup-location">${this.escapeHTML(popup.venueName || '장소 미정')}</div>
                 </div>
             </div>
         `).join('');
@@ -242,6 +253,20 @@ class MapPageManager {
     }
 
     wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+    debounce(fn, delay = 250) {
+        let t;
+        return (...args) => {
+            clearTimeout(t);
+            t = setTimeout(() => fn.apply(this, args), delay);
+        };
+    }
+
+    escapeHTML(str) {
+        const m = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+        return String(str).replace(/[&<>"']/g, ch => m[ch]);
+    }
+
     cleanup() {
         this.markers.forEach(marker => marker.setMap(null));
         this.overlays.forEach(overlay => overlay.setMap(null));

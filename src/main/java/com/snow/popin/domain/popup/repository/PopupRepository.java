@@ -113,18 +113,18 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
                                    @Param("northEastLng") double northEastLng);
 
     // 특정 지점 주변 팝업 조회 (반경 기반)
-    @Query(value = "SELECT p.*, " +
-            "(6371 * acos(cos(radians(:lat)) * cos(radians(v.latitude)) * " +
-            "cos(radians(v.longitude) - radians(:lng)) + " +
-            "sin(radians(:lat)) * sin(radians(v.latitude)))) AS distance " +
+    @Query(value = "SELECT p.* " +
             "FROM popups p " +
             "INNER JOIN venues v ON p.venue_id = v.id " +
-            "LEFT JOIN categories c ON p.category_id = c.id " +
             "WHERE p.status IN ('ONGOING', 'PLANNED') " +
             "AND v.latitude IS NOT NULL " +
             "AND v.longitude IS NOT NULL " +
-            "HAVING distance <= :radiusKm " +
-            "ORDER BY distance ASC",
+            "AND (6371 * acos(cos(radians(:lat)) * cos(radians(v.latitude)) * " +
+            "     cos(radians(v.longitude) - radians(:lng)) + " +
+            "     sin(radians(:lat)) * sin(radians(v.latitude)))) <= :radiusKm " +
+            "ORDER BY (6371 * acos(cos(radians(:lat)) * cos(radians(v.latitude)) * " +
+            "         cos(radians(v.longitude) - radians(:lng)) + " +
+            "         sin(radians(:lat)) * sin(radians(v.latitude)))) ASC",
             nativeQuery = true)
     List<Popup> findPopupsWithinRadius(@Param("lat") double latitude,
                                        @Param("lng") double longitude,

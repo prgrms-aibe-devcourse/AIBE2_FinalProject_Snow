@@ -4,7 +4,7 @@
     position: relative;
     height: 50vh;
     min-height: 300px;
-    width: 100%;
+    width: auto;
     margin: 0 16px;
     padding: 16px;
 }

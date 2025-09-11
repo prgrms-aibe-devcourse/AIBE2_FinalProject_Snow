@@ -86,6 +86,7 @@ public class PopupMapResponseDto {
     }
 
     private static String getStatusDisplayText(PopupStatus status) {
+        if (status == null) return "상태 미정";
         switch (status) {
             case ONGOING: return "진행 중";
             case PLANNED: return "오픈 예정";

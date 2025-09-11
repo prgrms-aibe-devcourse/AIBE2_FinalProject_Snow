@@ -59,9 +59,11 @@ class PopupListManager {
             this.handleFilterClick(e);
         });
 
-        window.addEventListener('scroll', () => {
+        this._onScroll = () => {
+            if (this.isFetching || !this.hasMore) return;
             this.handlePageScroll();
-        });
+        };
+        window.addEventListener('scroll', this._onScroll, { passive: true });
 
         // 카드 클릭 위임
         this.grid.addEventListener('click', (e) => {
@@ -108,7 +110,7 @@ class PopupListManager {
     // 팝업 카드 HTML 생성
     createPopupCard(popup) {
         return `
-            <div class="popup-card" onclick="goToPopupDetail('${popup.id}')" data-id="${popup.id}">
+            <div class="popup-card" data-id="${popup.id}">
                 <div class="card-image-wrapper">
                     <img src="${popup.thumbnailUrl || 'https://via.placeholder.com/150x150/667eea/ffffff?text=🎪'}" 
                          alt="${popup.title}" class="card-image" 
@@ -216,7 +218,10 @@ class PopupListManager {
 
     // 컴포넌트 정리 (페이지 전환 시 호출)
     cleanup() {
-        window.removeEventListener('scroll', this.handlePageScroll.bind(this));
+        if (this._onScroll) {
+            window.removeEventListener('scroll', this._onScroll);
+            this._onScroll = null;
+        }
     }
 }
 

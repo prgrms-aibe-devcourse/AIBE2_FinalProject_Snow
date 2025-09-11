@@ -49,6 +49,10 @@ public class MapService {
     public List<PopupMapResponseDto> getPopupsForMap(String region, List<Long> categoryIds) {
         log.info("지도용 팝업 목록 조회 - 지역: {}, 카테고리: {}", region, categoryIds);
 
+        if (categoryIds != null && categoryIds.isEmpty()) {
+            categoryIds = null;
+        }
+
         List<Popup> popups = popupRepository.findPopupsForMap(region, categoryIds);
 
         List<PopupMapResponseDto> mapPopups = popups.stream()
@@ -115,8 +119,9 @@ public class MapService {
 
         Map<String, Long> stats = results.stream()
                 .collect(Collectors.toMap(
-                        row -> (String) row[0],  // 카테고리명
-                        row -> (Long) row[1]     // 개수
+                        row -> (String) row[0],
+                        row -> ((Number) row[1]).longValue(),
+                        Long::sum
                 ));
 
         log.info("카테고리별 통계 조회 완료 - {}개 카테고리", stats.size());
@@ -134,7 +139,8 @@ public class MapService {
         Map<String, Long> stats = results.stream()
                 .collect(Collectors.toMap(
                         row -> (String) row[0],  // 지역명
-                        row -> (Long) row[1]     // 개수
+                        row -> ((Number) row[1]).longValue(),// 개수
+                        Long::sum
                 ));
 
         log.info("지역별 통계 조회 완료 - {}개 지역", stats.size());
@@ -149,13 +155,16 @@ public class MapService {
         List<PopupMapResponseDto> popups = getPopupsForMap(region, categoryIds);
 
         if (query != null && !query.trim().isEmpty()) {
-            String searchTerm = query.toLowerCase().trim();
+            final String searchTerm = query.toLowerCase(java.util.Locale.ROOT).trim();
             popups = popups.stream()
-                    .filter(popup ->
-                            popup.getTitle().toLowerCase().contains(searchTerm) ||
-                                    (popup.getSummary() != null && popup.getSummary().toLowerCase().contains(searchTerm)) ||
-                                    (popup.getVenueName() != null && popup.getVenueName().toLowerCase().contains(searchTerm))
-                    )
+                    .filter(p -> {
+                        final String t = p.getTitle();
+                        final String s = p.getSummary();
+                        final String v = p.getVenueName();
+                        return (t != null && t.toLowerCase(java.util.Locale.ROOT).contains(searchTerm))
+                                || (s != null && s.toLowerCase(java.util.Locale.ROOT).contains(searchTerm))
+                                || (v != null && v.toLowerCase(java.util.Locale.ROOT).contains(searchTerm));
+                        })
                     .collect(Collectors.toList());
         }
 

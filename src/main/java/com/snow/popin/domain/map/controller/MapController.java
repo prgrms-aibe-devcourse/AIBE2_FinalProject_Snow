@@ -5,6 +5,7 @@ import com.snow.popin.domain.map.service.MapService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,6 +20,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/map")
 @RequiredArgsConstructor
+@Validated
 public class MapController {
 
     private final MapService mapService;
@@ -104,6 +106,11 @@ public class MapController {
             @RequestParam(required = false) List<Long> categoryIds) {
 
         log.info("지도 팝업 검색 API 호출 - 검색어: {}, 지역: {}, 카테고리: {}", query, region, categoryIds);
+
+        if (categoryIds != null && categoryIds.isEmpty()) {
+            categoryIds = null;
+        }
+
         List<PopupMapResponseDto> popups = mapService.searchMapPopups(query, region, categoryIds);
         return ResponseEntity.ok(popups);
     }
