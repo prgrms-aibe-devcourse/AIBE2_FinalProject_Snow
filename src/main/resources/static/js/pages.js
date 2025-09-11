@@ -32,6 +32,12 @@ const Pages = {
         await manager.initialize();
     },
 
+    // 지도 페이지
+    async map() {
+        const manager = new MapPageManager();
+        await manager.initialize();
+    },
+
     // == 마이페이지 - 공간제공자 (현재 비어있음) ===
 
 

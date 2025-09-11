@@ -462,3 +462,59 @@ apiService.searchPopups = async function(params = {}) {
     const query = sp.toString() ? `?${sp.toString()}` : '';
     return await this.get(`/search/popups${query}`);
 };
+
+// 지역 목록 조회
+apiService.getMapRegions = async function() {
+    return await this.get('/map/regions');
+};
+
+// 좌표 기반 지역 목록 조회
+apiService.getMapRegionsWithCoordinates = async function() {
+    return await this.get('/map/regions/coordinates');
+};
+
+// 지도용 팝업 목록 조회
+apiService.getMapPopups = async function(params = {}) {
+    const sp = new URLSearchParams(params);
+    const query = sp.toString() ? `?${sp.toString()}` : '';
+    return await this.get(`/map/popups${query}`);
+};
+
+// 특정 범위 내 팝업 조회
+apiService.getPopupsInBounds = async function(southWestLat, southWestLng, northEastLat, northEastLng) {
+    const params = new URLSearchParams({
+        southWestLat,
+        southWestLng,
+        northEastLat,
+        northEastLng
+    });
+    return await this.get(`/map/popups/bounds?${params}`);
+};
+
+// 주변 팝업 조회
+apiService.getNearbyPopups = async function(lat, lng, radiusKm = 10) {
+    const params = new URLSearchParams({
+        lat,
+        lng,
+        radiusKm
+    });
+    return await this.get(`/map/popups/nearby?${params}`);
+};
+
+// 카테고리별 지도 팝업 통계
+apiService.getMapPopupStatsByCategory = async function(region = null) {
+    const params = region ? `?region=${encodeURIComponent(region)}` : '';
+    return await this.get(`/map/popups/stats/category${params}`);
+};
+
+// 지역별 지도 팝업 통계
+apiService.getMapPopupStatsByRegion = async function() {
+    return await this.get('/map/popups/stats/region');
+};
+
+// 지도 팝업 검색
+apiService.searchMapPopups = async function(params = {}) {
+    const sp = new URLSearchParams(params);
+    const query = sp.toString() ? `?${sp.toString()}` : '';
+    return await this.get(`/map/popups/search${query}`);
+};
