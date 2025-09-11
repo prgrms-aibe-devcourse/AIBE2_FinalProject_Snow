@@ -14,14 +14,15 @@
 <body>
 <div class="mobile-container">
     <!-- 헤더 영역 -->
-    <div id="header-container">
-        <!-- JavaScript로 동적 로드 -->
-    </div>
+    <div id="header-container"></div>
 
     <!-- 메인 콘텐츠 영역 -->
     <main class="main-content" id="main-content">
         <section class="block">
-            <h3 class="block-title">등록 팝업 상세보기</h3>
+            <div class="page-header">
+                <h3 class="block-title">등록 팝업 상세보기</h3>
+            </div>
+
             <div class="popup-detail-card">
                 <img id="popup-image" class="popup-image" alt="팝업 이미지">
                 <div class="popup-info">
@@ -33,14 +34,18 @@
                     <p><b>주소:</b> <span id="popup-address">-</span></p>
                     <p><b>상태:</b> <span id="popup-status">-</span></p>
                 </div>
+
+                <!-- 버튼 영역 (하단 배치) -->
+                <div class="popup-actions">
+                    <button class="btn-edit">수정</button>
+                    <button class="btn-delete">삭제</button>
+                </div>
             </div>
         </section>
     </main>
 
     <!-- 푸터 영역 -->
-    <div id="footer-container">
-        <!-- JavaScript로 동적 로드 -->
-    </div>
+    <div id="footer-container"></div>
 </div>
 
 <!-- 공통 스크립트 -->
@@ -58,7 +63,6 @@
     document.addEventListener('DOMContentLoaded', async function() {
         await loadComponents();
         initializeLayout();
-        // 이 페이지는 HostPopupDetailPage 전용
         if (window.HostPopupDetailPage) {
             HostPopupDetailPage.init();
         }

@@ -73,4 +73,28 @@ public class Venue extends BaseEntity {
         venue.parkingAvailable = parkingAvailable;
         return venue;
     }
+    //공간등록시 venue 추가 메서드
+    public static Venue of(String name,
+                           String road, String jibun, String detail,
+                           Double lat, Double lng, Boolean parking) {
+        Venue v = new Venue();
+        v.name = name;
+        v.roadAddress = road;
+        v.jibunAddress = jibun;
+        v.detailAddress = detail;
+        v.latitude = lat;
+        v.longitude = lng;
+        v.parkingAvailable = parking != null ? parking : false;
+        return v;
+    }
+    public void update(String name, String roadAddress, String jibunAddress, String detailAddress,
+                       Double latitude, Double longitude, Boolean parkingAvailable) {
+        this.name = name;
+        this.roadAddress = roadAddress;
+        this.jibunAddress = jibunAddress;
+        this.detailAddress = detailAddress;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.parkingAvailable = parkingAvailable != null ? parkingAvailable : false;
+    }
 }

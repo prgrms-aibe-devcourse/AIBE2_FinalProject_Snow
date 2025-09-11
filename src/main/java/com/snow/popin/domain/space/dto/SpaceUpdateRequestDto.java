@@ -21,10 +21,6 @@ public class SpaceUpdateRequestDto {
     @Size(max = 1000, message = "상세 설명은 1000자를 초과할 수 없습니다.")
     private String description;
 
-    @NotBlank(message = "주소는 필수입니다.")
-    @Size(max = 500, message = "주소는 500자를 초과할 수 없습니다.")
-    private String address;
-
     @NotNull(message = "면적은 필수입니다.")
     @Positive(message = "면적은 0보다 커야 합니다.")
     private Integer areaSize;
@@ -46,6 +42,21 @@ public class SpaceUpdateRequestDto {
     private String contactPhone;
 
     private MultipartFile image;
+
+    // venue 관련 추가 필드
+    @Size(max = 255)
+    private String roadAddress;
+
+    @Size(max = 255)
+    private String jibunAddress;
+
+    @Size(max = 255)
+    private String detailAddress;
+
+    private Double latitude;
+    private Double longitude;
+
+    private Boolean parkingAvailable;
 
     @AssertTrue(message = "종료일은 시작일 이후여야 합니다.")
     public boolean isValidDateRange() {
