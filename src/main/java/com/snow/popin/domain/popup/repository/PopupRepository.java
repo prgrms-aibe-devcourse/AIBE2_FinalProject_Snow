@@ -86,11 +86,12 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
     @Query("SELECT p FROM Popup p " +
             "LEFT JOIN FETCH p.venue v " +
             "LEFT JOIN FETCH p.category c " +
-            "WHERE p.status IN ('ONGOING', 'PLANNED') " +
+            "WHERE (p.status = com.snow.popin.domain.popup.entity.PopupStatus.ONGOING OR " +
+            "       p.status = com.snow.popin.domain.popup.entity.PopupStatus.PLANNED) " +
             "AND v.latitude IS NOT NULL " +
             "AND v.longitude IS NOT NULL " +
             "AND (:region IS NULL OR :region = '전체' OR v.region = :region) " +
-            "AND (:categoryIds IS NULL OR SIZE(:categoryIds) = 0 OR c.id IN :categoryIds) " +
+            "AND (:categoryIds IS NULL OR c.id IN :categoryIds) " +
             "ORDER BY p.createdAt DESC")
     List<Popup> findPopupsForMap(@Param("region") String region,
                                  @Param("categoryIds") List<Long> categoryIds);
@@ -99,7 +100,8 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
     @Query("SELECT p FROM Popup p " +
             "LEFT JOIN FETCH p.venue v " +
             "LEFT JOIN FETCH p.category c " +
-            "WHERE p.status IN ('ONGOING', 'PLANNED') " +
+            "WHERE (p.status = com.snow.popin.domain.popup.entity.PopupStatus.ONGOING OR " +
+            "       p.status = com.snow.popin.domain.popup.entity.PopupStatus.PLANNED) " +
             "AND v.latitude IS NOT NULL " +
             "AND v.longitude IS NOT NULL " +
             "AND v.latitude BETWEEN :southWestLat AND :northEastLat " +
@@ -132,7 +134,8 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
     @Query("SELECT c.name, COUNT(p) FROM Popup p " +
             "LEFT JOIN p.category c " +
             "LEFT JOIN p.venue v " +
-            "WHERE p.status IN ('ONGOING', 'PLANNED') " +
+            "WHERE (p.status = com.snow.popin.domain.popup.entity.PopupStatus.ONGOING OR " +
+            "       p.status = com.snow.popin.domain.popup.entity.PopupStatus.PLANNED) " +
             "AND v.latitude IS NOT NULL " +
             "AND v.longitude IS NOT NULL " +
             "AND (:region IS NULL OR :region = '전체' OR v.region = :region) " +
@@ -143,7 +146,8 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
     // 지역별 지도 팝업 통계 조회
     @Query("SELECT v.region, COUNT(p) FROM Popup p " +
             "LEFT JOIN p.venue v " +
-            "WHERE p.status IN ('ONGOING', 'PLANNED') " +
+            "WHERE (p.status = com.snow.popin.domain.popup.entity.PopupStatus.ONGOING OR " +
+            "       p.status = com.snow.popin.domain.popup.entity.PopupStatus.PLANNED) " +
             "AND v.latitude IS NOT NULL " +
             "AND v.longitude IS NOT NULL " +
             "AND v.region IS NOT NULL " +
