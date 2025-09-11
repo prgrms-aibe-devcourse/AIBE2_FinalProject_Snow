@@ -1,13 +1,14 @@
 package com.snow.popin.domain.space.entity;
 
+import com.snow.popin.domain.map.entity.Venue;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.global.common.BaseEntity;
-import javax.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.*;
 import java.time.LocalDate;
 
 @Entity
@@ -33,7 +34,6 @@ public class Space extends BaseEntity {
     @Column(name = "area_size")
     private Integer areaSize;
 
-
     @Column(name = "is_public", nullable = false)
     private Boolean isPublic = true;
 
@@ -44,7 +44,7 @@ public class Space extends BaseEntity {
     private String coverImageUrl;
 
     @Column(length = 500)
-    private String address;
+    private String address; // 임시 호환 필드
 
     @Column(name = "start_date")
     private LocalDate startDate;
@@ -58,10 +58,16 @@ public class Space extends BaseEntity {
     @Column(name = "contact_phone", length = 20)
     private String contactPhone;
 
+    //  Venue 연관관계 추가
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "venue_id")
+    private Venue venue;
+
     @Builder
     public Space(User owner, String title, String description,
                  String address, Integer areaSize, LocalDate startDate, LocalDate endDate,
-                 Integer rentalFee, String contactPhone, String coverImageUrl) {
+                 Integer rentalFee, String contactPhone, String coverImageUrl,
+                 Venue venue) {
         this.owner = owner;
         this.title = title;
         this.description = description;
@@ -72,6 +78,7 @@ public class Space extends BaseEntity {
         this.rentalFee = rentalFee;
         this.contactPhone = contactPhone;
         this.coverImageUrl = coverImageUrl;
+        this.venue = venue;
         this.isPublic = true;
         this.isOfficial = false;
     }

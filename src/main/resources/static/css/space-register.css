@@ -1,71 +1,224 @@
-/* 공간 등록 페이지 */
-.space-register-container{
-    padding:20px;
-    background:#fff;
-    margin-top:10px;
-    padding-bottom:100px;
+/* 공간 등록 페이지 전용 스타일 */
+
+/* 필수 필드 표시 */
+.required {
+    color: #e74c3c;
+    font-weight: bold;
 }
 
-.page-title{
-    font-size:20px;
-    font-weight:700;
-    color:#111827;
-    margin:0 0 24px;
+/* 폼 그룹 기본 스타일 */
+.form-group {
+    margin-bottom: 1rem;
 }
 
-/* 이미지 업로드 */
-.image-upload{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    margin:16px 0 28px;
-    gap:10px;
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
 }
 
-.image-preview{
-    width:120px;
-    height:120px;
-    border:2px dashed #e5e7eb;
-    border-radius:10px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    overflow:hidden;
-    cursor:pointer;
-    background:#f9fafb;
-    transition:border-color .2s ease;
-}
-.image-preview:hover{ border-color:#6366f1; }
-.image-preview img{
-    width:100%; height:100%; object-fit:cover; display:block;
-}
-
-/* 폼 공통 */
-.form-group{ margin-bottom:18px; }
-.form-group label{
-    display:block; margin-bottom:8px; font-weight:700; color:#374151; font-size:14px;
-}
+/* 입력 필드 스타일 */
 .form-group input,
-.form-group textarea{
-    width:100%; padding:12px 14px;
-    border:1px solid #e5e7eb; border-radius:10px;
-    background:#f9fafb; font-size:16px; color:#111827;
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
 }
-.form-group textarea{ min-height:110px; resize:vertical; }
-.form-group input::placeholder,
-.form-group textarea::placeholder{ color:#9ca3af; }
+
+/* 포커스 상태 */
 .form-group input:focus,
-.form-group textarea:focus{
-    outline:0; border-color:#6366f1; background:#fff; box-shadow:0 0 0 3px rgba(99,102,241,.15);
+.form-group textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
-/* 에러 */
-.error{ color:#e11d48; font-size:13px; margin-top:6px; }
-
-/* 버튼 */
-.submit-btn{
-    width:100%; padding:14px 16px; border:0; border-radius:10px;
-    background:#6366f1; color:#fff; font-weight:700; font-size:16px; cursor:pointer;
+/* 읽기 전용 필드 */
+.form-group input[readonly] {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
 }
-.submit-btn:hover{ background:#5856eb; }
-.submit-btn:disabled{ opacity:.6; cursor:not-allowed; }
+
+/* 텍스트 영역 특별 스타일 */
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* 파일 입력 스타일 */
+.form-group input[type="file"] {
+    padding: 0.5rem;
+    border: 2px dashed #ddd;
+    background-color: #fafafa;
+    cursor: pointer;
+}
+
+.form-group input[type="file"]:hover {
+    border-color: #007bff;
+    background-color: #f0f8ff;
+}
+
+/* 번호 입력 필드 */
+.form-group input[type="number"] {
+    -moz-appearance: textfield; /* Firefox */
+}
+
+.form-group input[type="number"]::-webkit-outer-spin-button,
+.form-group input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* 날짜 입력 필드 */
+.form-group input[type="date"] {
+    cursor: pointer;
+}
+
+/* 버튼 컨테이너 */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+/* 버튼 기본 스타일 */
+.btn-primary,
+.btn-secondary {
+    flex: 1;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    min-height: 44px; /* 터치 친화적 크기 */
+}
+
+/* 주요 버튼 */
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 보조 버튼 */
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: #545b62;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 주소 검색 버튼 */
+#btn-search-address {
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    width: 100%;
+    max-width: 200px;
+}
+
+/* 오류 메시지 스타일 (향후 사용) */
+.error-message {
+    color: #e74c3c;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* 성공 메시지 스타일 (향후 사용) */
+.success-message {
+    color: #27ae60;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* 폼 검증 스타일 */
+.form-group input:invalid:not(:focus):not(:placeholder-shown) {
+    border-color: #e74c3c;
+}
+
+.form-group input:valid:not(:focus):not(:placeholder-shown) {
+    border-color: #27ae60;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        flex: none;
+        width: 100%;
+    }
+
+    #btn-search-address {
+        max-width: none;
+    }
+}
+
+/* 접근성 향상 */
+@media (prefers-reduced-motion: reduce) {
+    .btn-primary,
+    .btn-secondary,
+    .form-group input,
+    .form-group textarea {
+        transition: none;
+    }
+
+    .btn-primary:hover:not(:disabled),
+    .btn-secondary:hover:not(:disabled) {
+        transform: none;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .form-group label {
+        color: #f8f9fa;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        background-color: #343a40;
+        color: #f8f9fa;
+        border-color: #495057;
+    }
+
+    .form-group input[readonly] {
+        background-color: #495057;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 2px rgba(128, 189, 255, 0.25);
+    }
+}

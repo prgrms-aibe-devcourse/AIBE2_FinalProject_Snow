@@ -1,5 +1,7 @@
 package com.snow.popin.domain.space.service;
 
+import com.snow.popin.domain.map.entity.Venue;
+import com.snow.popin.domain.map.repository.MapRepository;
 import com.snow.popin.domain.space.dto.*;
 import com.snow.popin.domain.space.dto.SpaceCreateRequestDto;
 import com.snow.popin.domain.space.dto.SpaceListResponseDto;
@@ -24,34 +26,47 @@ public class SpaceService {
 
     private final SpaceRepository spaceRepository;
     private final FileStorageService fileStorageService;
+    private final MapRepository venueRepository;
 
     //공간 등록
+    @Transactional
     public Long create(User owner, SpaceCreateRequestDto dto) {
         log.info("Creating new space for owner: {}", owner.getId());
 
-        // 이미지 업로드 처리
+        // 1) Venue 생성
+        Venue venue = Venue.of(
+                dto.getTitle(),                 // Venue.name 은 NOT NULL → 제목으로 매핑
+                dto.getRoadAddress(),
+                dto.getJibunAddress(),
+                dto.getDetailAddress(),
+                dto.getLatitude(),
+                dto.getLongitude(),
+                dto.getParkingAvailable()
+        );
+        venueRepository.save(venue);
+
+        // 2) 이미지 업로드
         String imageUrl = fileStorageService.save(dto.getImage());
 
-        // Entity 생성
+        // 3) Space 생성 + Venue 연결
         Space space = Space.builder()
                 .owner(owner)
                 .title(dto.getTitle())
                 .description(dto.getDescription())
-                .address(dto.getAddress())
                 .areaSize(dto.getAreaSize())
                 .startDate(dto.getStartDate())
                 .endDate(dto.getEndDate())
                 .rentalFee(dto.getRentalFee())
                 .contactPhone(dto.getContactPhone())
                 .coverImageUrl(imageUrl)
+                .venue(venue)
                 .build();
 
-        // 저장
         Space saved = spaceRepository.save(space);
         log.info("Space created successfully with ID: {}", saved.getId());
-
         return saved.getId();
     }
+
     //모든 공간 목록 조회
     @Transactional(readOnly = true)
     public List<SpaceListResponseDto> listAll(User me) {
