@@ -1,5 +1,6 @@
 package com.snow.popin.domain.popup.repository;
 
+import com.fasterxml.classmate.TypeBindings;
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.entity.PopupStatus;
 import org.springframework.data.domain.Page;
@@ -84,4 +85,7 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
 
     // 브랜드 ID를 기준으로 등록된 모든 팝업 조회
     List<Popup> findByBrandId(Long brandId);
+
+    // title로 팝업 조회
+    Optional<Popup> findFirstByTitle(String title);
 }
