@@ -71,7 +71,17 @@ public class DataInitializer implements CommandLineRunner {
                 .role(Role.USER)
                 .build();
 
-        userRepository.saveAll(Arrays.asList(user1, user2));
+        User user3 = User.builder()
+                .email("user3@test.com")
+                .password(passwordEncoder.encode("1234"))
+                .name("관리자1")
+                .nickname("관리자1닉네임")
+                .phone("010-5678-5678")
+                .authProvider(AuthProvider.LOCAL)
+                .role(Role.ADMIN)
+                .build();
+
+        userRepository.saveAll(Arrays.asList(user1, user2, user3));
         log.info("유저 더미 데이터 생성 완료");
     }
 
