@@ -147,7 +147,7 @@ public class DataInitializer implements CommandLineRunner {
         dto.setDescription("테스트 설명");
         dto.setStartDate(LocalDate.now());
         dto.setEndDate(LocalDate.now().plusDays(7));
-        dto.setEntryFee(0);
+        dto.setEntryFee(1);
         dto.setReservationAvailable(true);
         dto.setWaitlistAvailable(false);
         dto.setNotice("공지 없음");
@@ -193,8 +193,8 @@ public class DataInitializer implements CommandLineRunner {
                                 .build()
                 ));
 
-        // 호스트 등록
-        if (!hostRepository.existsByBrandAndUser(brand, host1)) {
+        // 호스트 등록 (userId로 체크)
+        if (!hostRepository.existsByBrandAndUser(brand, host1.getId())) {
             hostRepository.save(Host.builder()
                     .brand(brand)
                     .user(host1)
@@ -202,30 +202,42 @@ public class DataInitializer implements CommandLineRunner {
                     .build());
         }
 
-        // 팝업 3개 생성
-        Popup popup1 = Popup.create(brand.getId(), buildPopupDto("가짜 팝업1"));
-        Popup popup2 = Popup.create(brand.getId(), buildPopupDto("가짜 팝업2"));
-        Popup popup3 = Popup.create(brand.getId(), buildPopupDto("가짜 팝업3"));
-        popupRepository.saveAll(Arrays.asList(popup1,  popup2, popup3));
+        // 팝업 3개 생성 (중복 방지: 같은 이름 있으면 skip)
+        if (popupRepository.findFirstByTitle("가짜 팝업1").isEmpty()) {
+            Popup popup1 = Popup.create(brand.getId(), buildPopupDto("가짜 팝업1"));
+            popupRepository.save(popup1);
 
-        // 예약 생성: 상태 다르게 지정
-        Reservation r1 = Reservation.create(
-                popup1, reservation1, "예약자1", "010-3333-3333", LocalDateTime.now().plusDays(1)
-        ); // RESERVED 그대로
+            Reservation r1 = Reservation.create(
+                    popup1, reservation1, "예약자1", "010-3333-3333", LocalDateTime.now().plusDays(1)
+            );
+            reservationRepository.save(r1);
+        }
 
-        Reservation r2 = Reservation.create(
-                popup2, reservation1, "예약자1", "010-3333-3333", LocalDateTime.now().minusDays(1)
-        );
-        r2.markAsVisited(); // 방문 완료
+        if (popupRepository.findFirstByTitle("가짜 팝업2").isEmpty()) {
+            Popup popup2 = Popup.create(brand.getId(), buildPopupDto("가짜 팝업2"));
+            popupRepository.save(popup2);
 
-        Reservation r3 = Reservation.create(
-                popup3, reservation1, "예약자1", "010-3333-3333", LocalDateTime.now().plusDays(2)
-        );
-        r3.cancel(); // 취소됨
+            Reservation r2 = Reservation.create(
+                    popup2, reservation1, "예약자1", "010-3333-3333", LocalDateTime.now().minusDays(1)
+            );
+            r2.markAsVisited();
+            reservationRepository.save(r2);
+        }
 
-        reservationRepository.saveAll(Arrays.asList(r1, r2, r3));
+        if (popupRepository.findFirstByTitle("가짜 팝업3").isEmpty()) {
+            Popup popup3 = Popup.create(brand.getId(), buildPopupDto("가짜 팝업3"));
+            popupRepository.save(popup3);
 
-        log.info("더미 데이터 생성 완료: host1@test.com → 브랜드/팝업3개, reservation1@test.com → 예약(RESERVED, VISITED, CANCELLED)");
+            Reservation r3 = Reservation.create(
+                    popup3, reservation1, "예약자1", "010-3333-3333", LocalDateTime.now().plusDays(2)
+            );
+            r3.cancel();
+            reservationRepository.save(r3);
+        }
+
+        log.info(" 더미 데이터 생성 완료: host1@test.com → 브랜드/팝업3개, reservation1@test.com → 예약 3건");
     }
+
+
 
 }
