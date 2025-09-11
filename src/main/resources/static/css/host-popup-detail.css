@@ -1,3 +1,13 @@
+/* 메인 콘텐츠 좌우 패딩 (마이페이지와 동일) */
+.main-content {
+    padding: 0 24px;
+}
+/* 제목과 카드 간격 */
+.page-header,
+.block-title {
+    margin-bottom: 20px; /* 제목 아래 공간 확보 */
+}
+
 /* 팝업 상세보기 카드 */
 .popup-detail-card {
     background: #fff;
@@ -91,9 +101,13 @@
 
 /* 모바일 대응 */
 @media (max-width: 480px) {
+    .main-content {
+        padding: 0 12px; /* 모바일에서는 조금 줄임 */
+    }
+
     .popup-detail-card {
         padding: 16px;
-        margin: 12px;
+        margin: 12px 0;
     }
 
     .popup-image {
