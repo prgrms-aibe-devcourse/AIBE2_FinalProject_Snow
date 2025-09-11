@@ -19,6 +19,15 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * 팝업 예약 관련 서비스
+ *
+ * - 예약 생성
+ * - 팝업별 예약 현황 조회
+ * - 내 예약 조회
+ * - 예약 취소
+ * - 방문 완료 처리
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -29,7 +38,13 @@ public class ReservationService {
     private final HostRepository hostRepository;
     private final BrandRepository brandRepository;
 
-    // 예약하기
+    /**
+     * 팝업 예약 생성
+     *
+     * @param currentUser 현재 사용자
+     * @param popupId 예약할 팝업 ID
+     * @param dto 예약 요청 DTO
+     */
     @Transactional
     public Long createReservation(User currentUser, Long popupId, ReservationRequestDto dto) {
         Popup popup = popupRepository.findById(popupId)
@@ -55,8 +70,14 @@ public class ReservationService {
 
         return reservation.getId();
     }
-
-    // 팝업 예약 현황 조회 (브랜드 멤버만 가능)
+    /**
+     * 특정 팝업의 예약 현황 조회
+     * (브랜드 멤버만 가능)
+     *
+     * @param popupId 팝업 ID
+     * @param currentUser 현재 사용자
+     * @return 예약 응답 DTO 리스트
+     */
     public List<ReservationResponseDto> getPopupReservations(Long popupId, User currentUser) {
         Popup popup = popupRepository.findById(popupId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "팝업이 존재하지 않습니다."));
@@ -64,7 +85,7 @@ public class ReservationService {
         Brand brand = brandRepository.findById(popup.getBrandId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "브랜드가 존재하지 않습니다."));
 
-        boolean isMember = hostRepository.existsByBrandAndUser(brand, currentUser);
+        boolean isMember = hostRepository.existsByBrandAndUser(brand, currentUser.getId());
         if (!isMember) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "권한이 없습니다.");
         }
@@ -74,14 +95,24 @@ public class ReservationService {
                 .map(ReservationResponseDto::from)
                 .collect(Collectors.toList());
     }
-
+    /**
+     * 현재 사용자의 예약 목록 조회
+     *
+     * @param currentUser 현재 사용자
+     * @return 예약 응답 DTO 리스트
+     */
     public List<ReservationResponseDto> getMyReservations(User currentUser) {
         return reservationRepository.findByUser(currentUser)
                 .stream()
                 .map(ReservationResponseDto::from)
                 .collect(Collectors.toList());
     }
-
+    /**
+     * 예약 취소
+     *
+     * @param reservationId 예약 ID
+     * @param currentUser 현재 사용자
+     */
     @Transactional
     public void cancelReservation(Long reservationId, User currentUser) {
         Reservation reservation = reservationRepository.findById(reservationId)
@@ -92,8 +123,12 @@ public class ReservationService {
         }
         reservation.cancel();
     }
-
-    //  방문 완료 처리
+    /**
+     * 예약을 방문 완료 처리
+     *
+     * @param reservationId 예약 ID
+     * @param currentUser 현재 사용자
+     */
     @Transactional
     public void markAsVisited(Long reservationId, User currentUser) {
         Reservation reservation = reservationRepository.findById(reservationId)
@@ -102,7 +137,7 @@ public class ReservationService {
         Brand brand = brandRepository.findById(reservation.getPopup().getBrandId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "브랜드가 존재하지 않습니다."));
 
-        boolean isMember = hostRepository.existsByBrandAndUser(brand, currentUser);
+        boolean isMember = hostRepository.existsByBrandAndUser(brand, currentUser.getId());
         if (!isMember) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "권한이 없습니다.");
         }

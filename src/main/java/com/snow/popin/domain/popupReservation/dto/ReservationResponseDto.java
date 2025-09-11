@@ -7,6 +7,11 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
+/**
+ * 예약 응답 DTO
+ *
+ * 예약 정보와 함께 팝업 정보, 상태를 포함
+ */
 @Getter
 @Builder
 public class ReservationResponseDto {
