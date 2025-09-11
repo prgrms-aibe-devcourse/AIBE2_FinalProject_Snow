@@ -83,7 +83,7 @@ class AdminRoleUpgradeManager {
             if (!response.ok) {
                 if (response.status === 401) {
                     alert('로그인이 필요합니다.');
-                    window.location.href = '/auth/login';
+                    window.location.href = '../../templates/auth/login';
                     return;
                 }
                 throw new Error(`HTTP error! status: ${response.status}`);

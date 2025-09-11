@@ -114,12 +114,12 @@ async function goToProfile() {
             location.assign('/templates/pages/mpg-host.html');
         } else {
             alert('로그인이 필요합니다.');
-            location.assign('/templates/pages/auth/login.html');
+            location.assign('/auth/login');
         }
     } catch (err) {
         console.error('프로필 이동 실패:', err);
         alert('로그인이 필요합니다.');
-        location.assign('/templates/pages/auth/login.html');
+        location.assign('/auth/login');
     }
 }
 
