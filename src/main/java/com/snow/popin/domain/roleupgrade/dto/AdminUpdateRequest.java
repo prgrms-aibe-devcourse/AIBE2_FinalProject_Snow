@@ -1,18 +1,17 @@
 package com.snow.popin.domain.roleupgrade.dto;
 
-import com.snow.popin.domain.roleupgrade.entity.ApprovalStatus;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 @Getter
 @NoArgsConstructor
 public class AdminUpdateRequest {
 
-    @NotBlank(message = "승인 상태는 필수입니다")
+    @NotNull(message = "승인 상태는 필수입니다")
     private Boolean approve;
 
     private String rejectReason; // 반려 시에만 필요
