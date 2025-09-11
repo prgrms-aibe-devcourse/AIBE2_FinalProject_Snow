@@ -59,17 +59,14 @@ class PopupListManager {
             this.handleFilterClick(e);
         });
 
-        // 무한 스크롤 이벤트
-        const mainContent = document.getElementById('main-content');
-        mainContent.addEventListener('scroll', () => {
-            this.handleScroll(mainContent);
+        window.addEventListener('scroll', () => {
+            this.handlePageScroll();
         });
 
         // 카드 클릭 위임
         this.grid.addEventListener('click', (e) => {
             const card = e.target.closest('.popup-card');
             if (card && card.dataset.id) {
-                // global nav function assumed to exist
                 goToPopupDetail(card.dataset.id);
             }
         });
@@ -96,10 +93,14 @@ class PopupListManager {
         this.resetAndLoad();
     }
 
-    // 스크롤 처리 (무한 스크롤)
-    handleScroll(mainContent) {
-        const { scrollTop, scrollHeight, clientHeight } = mainContent;
-        if (scrollHeight - scrollTop - clientHeight < 200) {
+    // 전체 페이지 스크롤 처리 (무한 스크롤)
+    handlePageScroll() {
+        // 페이지 하단에서 200px 이내일 때 다음 페이지 로드
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+
+        if (documentHeight - scrollTop - windowHeight < 200) {
             this.loadMore();
         }
     }
@@ -107,7 +108,7 @@ class PopupListManager {
     // 팝업 카드 HTML 생성
     createPopupCard(popup) {
         return `
-            <div class="popup-card" onclick="goToPopupDetail('${popup.id}')">
+            <div class="popup-card" onclick="goToPopupDetail('${popup.id}')" data-id="${popup.id}">
                 <div class="card-image-wrapper">
                     <img src="${popup.thumbnailUrl || 'https://via.placeholder.com/150x150/667eea/ffffff?text=🎪'}" 
                          alt="${popup.title}" class="card-image" 
@@ -136,6 +137,10 @@ class PopupListManager {
     async resetAndLoad() {
         this.currentPage = 0;
         this.hasMore = true;
+
+        // 맨 위로 스크롤
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
         await this.fetchAndDisplayPopups(false);
     }
 
@@ -207,6 +212,11 @@ class PopupListManager {
     // 에러 표시
     showError(message) {
         this.grid.innerHTML = `<p class="alert alert-error" style="grid-column: 1 / -1; text-align: center;">${message}</p>`;
+    }
+
+    // 컴포넌트 정리 (페이지 전환 시 호출)
+    cleanup() {
+        window.removeEventListener('scroll', this.handlePageScroll.bind(this));
     }
 }
 
