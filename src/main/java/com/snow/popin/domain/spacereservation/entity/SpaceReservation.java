@@ -2,6 +2,7 @@ package com.snow.popin.domain.spacereservation.entity;
 
 import com.snow.popin.domain.space.entity.Space;
 import com.snow.popin.domain.user.entity.User;
+import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.global.common.BaseEntity;
 import lombok.*;
 
@@ -28,11 +29,9 @@ public class SpaceReservation extends BaseEntity {
     @JoinColumn(name = "host_id", nullable = false)
     private User host;
 
-    @Column(nullable = false, length = 100)
-    private String brand;
-
-    @Column(name = "popup_title", length = 100)
-    private String popupTitle;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "popup_id", nullable = false)
+    private Popup popup;
 
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
@@ -45,9 +44,6 @@ public class SpaceReservation extends BaseEntity {
 
     @Column(name = "contact_phone", length = 20)
     private String contactPhone;
-
-    @Column(name = "popup_description", columnDefinition = "TEXT")
-    private String popupDescription;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

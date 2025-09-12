@@ -68,9 +68,8 @@ const SpaceListPage = {
         const card = document.createElement('div');
         card.className = 'space-card';
 
-        const imageHtml = `<img class="thumb" src="${space.coverImageUrl || space.coverImage || IMG_PLACEHOLDER}" alt="썸네일">`;
-
-
+        const imageUrl = this.getThumbUrl(space);
+        const imageHtml = `<img class="thumb" src="${imageUrl}" alt="썸네일">`;
 
         card.innerHTML = `
       <div class="space-header">
@@ -78,7 +77,7 @@ const SpaceListPage = {
           <h4 class="space-title">${space.title || '(제목 없음)'}</h4>
           <div class="space-details">
             <div>등록자: ${space.ownerName || '-'}</div>
-            <div>임대료: 하루 ${this.formatCurrency(space.rentalFee)} 원</div>
+            <div>임대료: ${this.formatRentalFee(space.rentalFee)}</div>
             <div>주소: ${space.address || '-'}</div>
             <div>면적: ${space.areaSize || '-'} m²</div>
             <div class="actions-inline">
@@ -105,8 +104,8 @@ const SpaceListPage = {
         const imgEl = card.querySelector('.thumb');
         if (imgEl) {
             imgEl.onerror = function () {
-                this.onerror = null;               // 재귀 방지
-                this.src = IMG_PLACEHOLDER;        // 파일 의존 X
+                this.onerror = null;
+                this.src = IMG_PLACEHOLDER;
             };
         }
 
@@ -140,11 +139,16 @@ const SpaceListPage = {
         return card;
     },
 
-    // 썸네일 URL 처리 (여러 필드 대응)
+    // 썸네일 URL 처리 (coverImageUrl → 절대 경로 변환 포함)
     getThumbUrl(space) {
-        return space?.coverImage || IMG_PLACEHOLDER;
+        if (space.coverImageUrl) {
+            return `${window.location.origin}${space.coverImageUrl}`;
+        }
+        if (space.coverImage) {
+            return `${window.location.origin}${space.coverImage}`;
+        }
+        return IMG_PLACEHOLDER;
     },
-
 
     // API
     async deleteSpace(spaceId) {
@@ -161,7 +165,6 @@ const SpaceListPage = {
     async inquireSpace(spaceId) {
         try {
             await apiService.inquireSpace(spaceId);
-            alert('문의 요청이 접수되었습니다.');
         } catch (error) {
             console.error('문의 실패:', error);
             alert('문의 중 오류가 발생했습니다.');
@@ -170,23 +173,24 @@ const SpaceListPage = {
     async reportSpace(spaceId) {
         try {
             await apiService.reportSpace(spaceId);
-            alert('신고가 접수되었습니다.');
         } catch (error) {
             console.error('신고 실패:', error);
             alert('신고 중 오류가 발생했습니다.');
         }
     },
 
-    // 유틸
+    // 유틸리티 함수들
     formatDate(dateString) {
         if (!dateString) return '날짜 정보 없음';
         const date = new Date(dateString);
         return date.toLocaleDateString('ko-KR');
     },
-    formatCurrency(amount) {
-        if (!amount && amount !== 0) return '0';
-        return Number(amount).toLocaleString('ko-KR');
+
+    formatRentalFee(amount) {
+        if (!amount && amount !== 0) return '-';
+        return `${amount} 만원`;
     },
+
     showError(message) {
         this.hideLoading();
         const spaceListEl = document.getElementById('spaceList');

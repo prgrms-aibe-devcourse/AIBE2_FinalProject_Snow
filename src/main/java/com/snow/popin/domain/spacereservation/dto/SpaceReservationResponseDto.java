@@ -13,8 +13,11 @@ import java.time.LocalDateTime;
 @Builder
 public class SpaceReservationResponseDto {
     private Long id;
-    private String brand;
+
+    private Long popupId;
     private String popupTitle;
+    private String brandName;
+    private String popupMainImage;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate startDate;
@@ -24,7 +27,6 @@ public class SpaceReservationResponseDto {
 
     private String message;
     private String contactPhone;
-    private String popupDescription;
     private ReservationStatus status;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -33,11 +35,7 @@ public class SpaceReservationResponseDto {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 
-    // 공간 정보
     private SpaceInfo space;
-
-    // 예약자(HOST) 정보
-    private HostInfo host;
 
     @Getter
     @Builder
@@ -49,26 +47,17 @@ public class SpaceReservationResponseDto {
         private String coverImageUrl;
     }
 
-    @Getter
-    @Builder
-    public static class HostInfo {
-        private Long id;
-        private String name;
-        private String email;
-        private String phone;
-    }
-
-    // Entity -> DTO 변환
     public static SpaceReservationResponseDto from(SpaceReservation reservation) {
         return SpaceReservationResponseDto.builder()
                 .id(reservation.getId())
-                .brand(reservation.getBrand())
-                .popupTitle(reservation.getPopupTitle())
+                .popupId(reservation.getPopup().getId())
+                .popupTitle(reservation.getPopup().getTitle())
+                .brandName(reservation.getPopup().getBrandId().toString())
+                .popupMainImage(reservation.getPopup().getMainImageUrl())
                 .startDate(reservation.getStartDate())
                 .endDate(reservation.getEndDate())
                 .message(reservation.getMessage())
                 .contactPhone(reservation.getContactPhone())
-                .popupDescription(reservation.getPopupDescription())
                 .status(reservation.getStatus())
                 .createdAt(reservation.getCreatedAt())
                 .updatedAt(reservation.getUpdatedAt())
@@ -78,12 +67,6 @@ public class SpaceReservationResponseDto {
                         .address(reservation.getSpace().getAddress())
                         .rentalFee(reservation.getSpace().getRentalFee())
                         .coverImageUrl(reservation.getSpace().getCoverImageUrl())
-                        .build())
-                .host(HostInfo.builder()
-                        .id(reservation.getHost().getId())
-                        .name(reservation.getHost().getName())
-                        .email(reservation.getHost().getEmail())
-                        .phone(reservation.getHost().getPhone())
                         .build())
                 .build();
     }

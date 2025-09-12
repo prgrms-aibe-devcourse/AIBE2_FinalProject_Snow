@@ -21,10 +21,6 @@ public class SpaceCreateRequestDto {
     @Size(max = 1000, message = "상세 설명은 1000자를 초과할 수 없습니다.")
     private String description;
 
-    @NotBlank(message = "주소는 필수입니다.")
-    @Size(max = 500, message = "주소는 500자를 초과할 수 없습니다.")
-    private String address;
-
     @NotNull(message = "면적은 필수입니다.")
     @Positive(message = "면적은 0보다 커야 합니다.")
     private Integer areaSize;
@@ -49,11 +45,26 @@ public class SpaceCreateRequestDto {
 
     private MultipartFile image;
 
+    //  Venue 관련 필드
+    @Size(max = 255, message = "도로명 주소는 255자를 초과할 수 없습니다.")
+    private String roadAddress;
+
+    @Size(max = 255, message = "지번 주소는 255자를 초과할 수 없습니다.")
+    private String jibunAddress;
+
+    @Size(max = 255, message = "상세 주소는 255자를 초과할 수 없습니다.")
+    private String detailAddress;
+
+    private Double latitude;   // 좌표 (API 붙이면 활용)
+    private Double longitude;
+
+    private Boolean parkingAvailable;
+
     // 유효성 검증 메서드
     @AssertTrue(message = "종료일은 시작일 이후여야 합니다.")
     public boolean isValidDateRange() {
         if (startDate == null || endDate == null) {
-            return true; // null 체크는 @NotNull에서 처리
+            return true;
         }
         return !endDate.isBefore(startDate);
     }

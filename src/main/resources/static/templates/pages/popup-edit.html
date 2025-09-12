@@ -3,20 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>팝업 수정 | POPIN</title>
+    <title id="page-title">팝업 수정 | POPIN</title>
+
+    <!-- 공통 레이아웃 CSS -->
     <link rel="stylesheet" href="/css/layout.css">
-    <link rel="stylesheet" href="/css/popup-register.css"> <!-- 등록 폼 CSS 재사용 -->
+
+    <!-- 페이지별 CSS (등록 폼 CSS 재사용) -->
+    <link rel="stylesheet" href="/css/popup-edit.css">
 </head>
 <body>
 <div class="mobile-container">
-    <div id="header-container"></div>
+    <!-- 헤더 영역 -->
+    <div id="header-container">
+        <!-- JavaScript로 동적 로드 -->
+    </div>
 
+    <!-- 메인 콘텐츠 영역 -->
     <main class="main-content" id="main-content">
-        <div class="container">
-            <h2 class="section-title">팝업 수정</h2>
 
-            <form id="popup-edit-form">
-                <!-- 등록 폼과 동일, 단 값은 JS에서 채워 넣음 -->
+        <!-- 팝업 수정 폼 -->
+        <section class="block">
+            <div class="page-header">
+                <h3 class="block-title">팝업 수정</h3>
+            </div>
+
+            <form id="popup-edit-form" class="popup-form">
                 <div class="form-group">
                     <label for="title">제목</label>
                     <input type="text" id="title" name="title" required />
@@ -41,14 +52,14 @@
                     <label for="entryFee">입장료</label>
                     <input type="number" id="entryFee" name="entryFee" />
                 </div>
-                <div class="form-group">
+                <div class="form-group checkbox">
                     <label><input type="checkbox" id="reservationAvailable" /> 예약 가능 여부</label>
                 </div>
                 <div class="form-group">
                     <label for="reservationLink">예약 링크</label>
                     <input type="text" id="reservationLink" name="reservationLink" />
                 </div>
-                <div class="form-group">
+                <div class="form-group checkbox">
                     <label><input type="checkbox" id="waitlistAvailable" /> 대기자 등록 가능 여부</label>
                 </div>
                 <div class="form-group">
@@ -59,7 +70,7 @@
                     <label for="mainImageUrl">대표 이미지 URL</label>
                     <input type="text" id="mainImageUrl" name="mainImageUrl" />
                 </div>
-                <div class="form-group">
+                <div class="form-group checkbox">
                     <label><input type="checkbox" id="isFeatured" /> 추천 여부</label>
                 </div>
 
@@ -68,15 +79,33 @@
                     <button type="button" class="btn-secondary" onclick="history.back()">취소</button>
                 </div>
             </form>
-        </div>
+        </section>
+
     </main>
 
-    <div id="footer-container"></div>
+    <!-- 푸터 영역 -->
+    <div id="footer-container">
+        <!-- JavaScript로 동적 로드 -->
+    </div>
 </div>
 
+<!-- 공통 스크립트 -->
 <script src="/js/templateLoader.js"></script>
 <script src="/js/api.js"></script>
 <script src="/js/layout.js"></script>
+
+<!-- 페이지별 스크립트 -->
 <script src="/js/popup-edit.js"></script>
+
+<!-- 초기화 -->
+<script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        await loadComponents();
+        initializeLayout();
+        if (window.PopupEditPage) {
+            PopupEditPage.init();
+        }
+    });
+</script>
 </body>
 </html>

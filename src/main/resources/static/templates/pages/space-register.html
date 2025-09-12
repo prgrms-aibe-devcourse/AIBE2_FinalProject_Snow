@@ -1,112 +1,127 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>팝업 공간 대여 등록</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">POPIN | 공간 등록</title>
 
-    <!-- 공통 레이아웃 -->
-    <link rel="stylesheet" href="/css/layout.css" />
-    <!-- 페이지 전용 CSS(있으면) -->
-    <link rel="stylesheet" href="/css/space-register.css" />
+    <!-- 공통 레이아웃 CSS -->
+    <link rel="stylesheet" href="/css/layout.css">
+
+    <!-- 공간 등록 폼 전용 CSS -->
+    <link rel="stylesheet" href="/css/popup-register.css">
 </head>
 <body>
 <div class="mobile-container">
+    <!-- 헤더 영역 -->
     <div id="header-container"></div>
 
-    <main class="main-content">
-        <div class="space-register-container" style="padding:20px;background:#fff;margin-top:10px;padding-bottom:100px">
-            <h1 class="page-title">팝업 공간 대여 등록</h1>
+    <!-- 메인 콘텐츠 -->
+    <main class="main-content" id="main-content">
+        <section class="block">
+            <h3 class="block-title">공간 등록</h3>
+            <div class="card popup-form">
+                <form id="space-register-form" enctype="multipart/form-data">
 
-            <form id="spaceForm">
-                <div class="form-group">
-                    <label for="title">글 제목</label>
-                    <input type="text" id="title" name="title" placeholder="등록글 제목을 입력해 주세요" required />
-                    <div class="error" id="titleError"></div>
-                </div>
-
-                <div class="image-upload" style="display:flex;flex-direction:column;align-items:center;margin:16px 0 28px">
-                    <div id="imagePreview" class="image-preview"
-                         style="width:120px;height:120px;border:2px dashed #ddd;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden"
-                         onclick="document.getElementById('imageFile').click()">
-                        <span style="font-size:38px;color:#9aa">📷</span>
+                    <!-- 주소 검색 -->
+                    <div class="form-group">
+                        <label for="roadAddress">도로명 주소 <span class="required">*</span></label>
+                        <input type="text" id="roadAddress" name="roadAddress" readonly required />
                     </div>
-                    <input type="file" id="imageFile" accept="image/*" style="display:none" />
-                </div>
+                    <div class="form-group">
+                        <label for="jibunAddress">지번 주소</label>
+                        <input type="text" id="jibunAddress" name="jibunAddress" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label for="detailAddress">상세 주소</label>
+                        <input type="text" id="detailAddress" name="detailAddress" placeholder="상세 주소 입력" />
+                    </div>
+                    <button type="button" id="btn-search-address" class="btn-secondary">주소 검색</button>
 
-                <div class="form-group">
-                    <label for="address">주소</label>
-                    <input type="text" id="address" name="address" placeholder="주소를 입력하세요" required />
-                    <div class="error" id="addressError"></div>
-                </div>
+                    <!-- 제목 -->
+                    <div class="form-group">
+                        <label for="title">제목 <span class="required">*</span></label>
+                        <input type="text" id="title" name="title" required maxlength="200" />
+                    </div>
 
-                <div class="form-group">
-                    <label for="areaSize">면적 (㎡)</label>
-                    <input type="number" id="areaSize" name="areaSize" placeholder="예: 120" required />
-                    <div class="error" id="areaSizeError"></div>
-                </div>
+                    <!-- 설명 추가 -->
+                    <div class="form-group">
+                        <label for="description">상세 설명</label>
+                        <textarea id="description" name="description" rows="4" maxlength="1000" placeholder="공간에 대한 상세한 설명을 입력해주세요"></textarea>
+                    </div>
 
-                <div class="form-group">
-                    <label for="startDate">임대 시작일</label>
-                    <input type="date" id="startDate" name="startDate" required />
-                    <div class="error" id="startDateError"></div>
-                </div>
+                    <!-- 임대료 -->
+                    <div class="form-group">
+                        <label for="rentalFee">임대료 (원/일) <span class="required">*</span></label>
+                        <input type="number" id="rentalFee" name="rentalFee" required min="0" max="999999999" />
+                    </div>
 
-                <div class="form-group">
-                    <label for="endDate">임대 종료일</label>
-                    <input type="date" id="endDate" name="endDate" required />
-                    <div class="error" id="endDateError"></div>
-                </div>
+                    <!-- 면적 -->
+                    <div class="form-group">
+                        <label for="areaSize">면적 (m²) <span class="required">*</span></label>
+                        <input type="number" id="areaSize" name="areaSize" required min="1" />
+                    </div>
 
-                <div class="form-group">
-                    <label for="rentalFee">임대료 (하루 만원 단위)</label>
-                    <input type="number" id="rentalFee" name="rentalFee" placeholder="예: 50" required />
-                    <div class="error" id="rentalFeeError"></div>
-                </div>
+                    <!-- 시작일 / 종료일 -->
+                    <div class="form-group">
+                        <label for="startDate">임대 시작일 <span class="required">*</span></label>
+                        <input type="date" id="startDate" name="startDate" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">임대 종료일 <span class="required">*</span></label>
+                        <input type="date" id="endDate" name="endDate" required />
+                    </div>
 
-                <div class="form-group">
-                    <label for="contactPhone">문의 전화번호</label>
-                    <input type="tel" id="contactPhone" name="contactPhone" placeholder="010-1234-5678" required />
-                    <div class="error" id="contactPhoneError"></div>
-                </div>
+                    <!-- 연락처 -->
+                    <div class="form-group">
+                        <label for="contactPhone">연락처 <span class="required">*</span></label>
+                        <input type="text" id="contactPhone" name="contactPhone" required maxlength="20"
+                               pattern="^[0-9-+()\\s]+$" placeholder="010-1234-5678" />
+                    </div>
 
-                <div class="form-group">
-                    <label for="description">상세 설명</label>
-                    <textarea id="description" name="description" rows="4" placeholder="공간 상세 내용을 입력하세요"></textarea>
-                    <div class="error" id="descriptionError"></div>
-                </div>
+                    <!-- 대표 이미지 -->
+                    <div class="form-group">
+                        <label for="image">대표 이미지</label>
+                        <input type="file" id="image" name="image" accept="image/*" />
+                    </div>
 
-                <button type="submit" class="submit-btn" style="width:100%;padding:14px 16px;border:0;border-radius:8px;background:#6366f1;color:#fff;font-weight:700">등록하기</button>
-            </form>
-        </div>
+                    <!-- 버튼 -->
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">등록</button>
+                        <button type="button" class="btn-secondary" data-act="back">취소</button>
+                    </div>
+                </form>
+            </div>
+        </section>
     </main>
 
-    <div id="footer-container"></div>
+    <!-- 푸터 영역 -->
+    <div id="footer-container">
+        <!-- JavaScript로 동적 로드 -->
+    </div>
 </div>
 
-<!-- 공통/페이지 스크립트 -->
+<!-- 공통 스크립트 -->
 <script src="/js/templateLoader.js"></script>
 <script src="/js/api.js"></script>
 <script src="/js/layout.js"></script>
+<script src="/js/pages.js"></script>
+
+<!-- 카카오 주소 검색 API -->
+<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+
+<!-- 페이지별 스크립트 -->
 <script src="/js/space-register.js"></script>
+
+<!-- 애플리케이션 초기화 -->
 <script>
-    document.addEventListener('DOMContentLoaded', async () => {
+    document.addEventListener('DOMContentLoaded', async function() {
         await loadComponents();
         initializeLayout();
-
-        // 파일 미리보기(간단)
-        const file = document.getElementById('imageFile');
-        const prev = document.getElementById('imagePreview');
-        if (file && prev) {
-            file.addEventListener('change', e => {
-                const f = e.target.files?.[0]; if (!f) return;
-                const img = new Image(); img.onload = () => { prev.innerHTML = ''; prev.appendChild(img); };
-                img.style.width='100%'; img.style.height='100%'; img.style.objectFit='cover';
-                img.src = URL.createObjectURL(f);
-            });
+        // SpaceRegisterPage 초기화
+        if (window.SpaceRegisterPage) {
+            SpaceRegisterPage.init();
         }
-
-        window.SpaceRegisterPage?.init?.();
     });
 </script>
 </body>
