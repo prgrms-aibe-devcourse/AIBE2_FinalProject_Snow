@@ -1,13 +1,13 @@
-// 공통 레이아웃 스크립트 (템플릿 로더 방식)
+// 공통 레이아웃 스크립트
 
 // HTML 컴포넌트 로드 함수
 async function loadComponents() {
     try {
-        // 헤더 로드 - 경로 변경
+        // 헤더 로드
         const headerHTML = await TemplateLoader.load('components/header');
         document.getElementById('header-container').innerHTML = headerHTML;
 
-        // 푸터 로드 - 경로 변경
+        // 푸터 로드
         document.getElementById('footer-container').innerHTML = createFooterByRole();
 
         // 컴포넌트 로드 완료 후 이벤트 설정
@@ -23,6 +23,9 @@ async function loadComponents() {
 function setupComponentEvents() {
     // 푸터 네비게이션 이벤트
     setupFooterNavigation();
+
+    // 현재 페이지에 맞는 활성 탭 설정
+    setActiveFooterTab();
 }
 
 // 푸터 네비게이션 이벤트 설정
@@ -33,6 +36,11 @@ function setupFooterNavigation() {
             e.preventDefault();
 
             const page = this.getAttribute('data-page');
+
+            if (page === 'popupList') {
+                window.location.href = '/';
+                return;
+            }
 
             // 모든 탭에서 active 클래스 제거
             footerItems.forEach(tab => tab.classList.remove('active'));
@@ -48,6 +56,43 @@ function setupFooterNavigation() {
             }
         });
     });
+}
+
+// 현재 페이지에 맞는 푸터 탭 활성화 (새로운 URL 구조 적용)
+function setActiveFooterTab() {
+    const footerItems = document.querySelectorAll('.footer-item');
+    const currentPath = window.location.pathname;
+
+    // 모든 탭에서 active 클래스 제거
+    footerItems.forEach(tab => tab.classList.remove('active'));
+
+    // 현재 경로에 따라 활성 탭 설정
+    let activeTab = null;
+
+    if (currentPath === '/' || currentPath === '/index.html') {
+        activeTab = document.querySelector('[data-page="popupList"]');
+    } else if (currentPath.startsWith('/popup/search')) {
+        activeTab = document.querySelector('[data-page="popupSearch"]');
+    } else if (currentPath.startsWith('/popup/') && /\/popup\/\d+$/.test(currentPath)) {
+        // 팝업 상세 페이지에서는 홈 탭 활성화
+        activeTab = document.querySelector('[data-page="popupList"]');
+    } else if (currentPath.startsWith('/map')) {
+        activeTab = document.querySelector('[data-page="map"]');
+    } else if (currentPath.includes('bookmark')) {
+        activeTab = document.querySelector('[data-page="bookmark"]');
+    } else if (currentPath.includes('space')) {
+        activeTab = document.querySelector('[data-page="spaceList"]');
+    }
+
+    if (activeTab) {
+        activeTab.classList.add('active');
+    } else {
+        // 기본값: 홈 탭 활성화
+        const homeTab = document.querySelector('[data-page="popupList"]');
+        if (homeTab) {
+            homeTab.classList.add('active');
+        }
+    }
 }
 
 // 컴포넌트 로드 실패 시 기본 레이아웃 생성
@@ -287,7 +332,6 @@ function createFooterByRole() {
     `;
 }
 
-// 사용자 역할 가져오기 함수 (테스트용으로 쓰고 나중엔 실제로 가져오게)
 // 현재 사용자 ROLE 반환
 async function getUserRole() {
     try {
@@ -298,7 +342,6 @@ async function getUserRole() {
         return 'GUEST'; // 기본값
     }
 }
-
 
 // === 초기화 ===
 document.addEventListener('DOMContentLoaded', () => {

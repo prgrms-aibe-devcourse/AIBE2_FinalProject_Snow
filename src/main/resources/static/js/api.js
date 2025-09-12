@@ -426,7 +426,11 @@ apiService.getPopup = async function(popupId) {
 // TODO: 실제 배포 시 전체 함수 삭제 - Dummy 팝업 상세 조회
 apiService.getDummyPopup = async function(popupId) {
     try {
-        const response = await fetch('/data/popup-dummy-data.json');
+        const response = await fetch('/popup-dummy-data.json');
+        if (!response.ok) {
+            throw new Error('Dummy data 파일을 찾을 수 없습니다.');
+        }
+
         const data = await response.json();
         const popup = data.popups.find(p => p.id == popupId);
 
@@ -434,7 +438,22 @@ apiService.getDummyPopup = async function(popupId) {
             throw new Error('팝업을 찾을 수 없습니다.');
         }
 
-        return popup;
+        // 팝업 상세 페이지에 필요한 추가 정보 보강
+        return {
+            ...popup,
+            hours: popup.hours || [
+                { dayOfWeek: 0, openTime: '10:30', closeTime: '22:30' },
+                { dayOfWeek: 1, openTime: '10:30', closeTime: '22:30' },
+                { dayOfWeek: 2, openTime: '10:30', closeTime: '22:30' },
+                { dayOfWeek: 3, openTime: '10:30', closeTime: '22:30' },
+                { dayOfWeek: 4, openTime: '10:30', closeTime: '22:30' }
+            ],
+            reservationAvailable: popup.reservationAvailable !== false,
+            waitlistAvailable: popup.waitlistAvailable || false,
+            summary: popup.summary || '흥미로운 팝업 스토어입니다.',
+            categoryId: popup.categoryId || 1,
+            categoryName: popup.categoryName || '라이프스타일'
+        };
     } catch (error) {
         console.error('Dummy 팝업 상세 로드 오류:', error);
         throw error;
