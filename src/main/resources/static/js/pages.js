@@ -1,49 +1,43 @@
 // 페이지별 로직
 const Pages = {
-    // 홈
-    async home() {
-        try {
-            const userData = await apiService.getCurrentUser();
-
-            const templateData = {
-                userName: userData ? userData.name : '게스트',
-                lastLogin: userData ? new Date(userData.lastLogin).toLocaleDateString() : '',
-                activityCount: userData ? userData.activityCount : 0
-            };
-
-            const homeHtml = await TemplateLoader.load('pages/home', templateData);
-            document.getElementById('main-content').innerHTML = homeHtml;
-        } catch (error) {
-            console.error('홈 페이지 로드 실패:', error);
-            const guestData = { userName: '게스트', lastLogin: '', activityCount: 0 };
-            const homeHtml = await TemplateLoader.load('pages/home', guestData);
-            document.getElementById('main-content').innerHTML = homeHtml;
-        }
-    },
-
-    // 팝업 리스트
+    // 홈 (팝업 리스트 - index.html에서 표시)
     async popupList() {
         const manager = new PopupListManager();
         await manager.initialize();
     },
 
-    async popupSearch() {
-        const manager = new PopupSearchManager();
-        await manager.initialize();
+    // 팝업 검색 페이지로 이동
+    popupSearch(searchParams = {}) {
+        const params = new URLSearchParams();
+
+        if (searchParams.query) params.set('query', searchParams.query);
+        if (searchParams.region) params.set('region', searchParams.region);
+        if (searchParams.category) params.set('category', searchParams.category);
+
+        const queryString = params.toString();
+        const url = queryString ? `/popup/search?${queryString}` : '/popup/search';
+
+        window.location.href = url;
     },
 
-    // 팝업 상세
-    async popupDetail(popupId) {
-        const manager = new PopupDetailManager(popupId);
-        await manager.initialize();
+    // 지도 페이지로 이동
+    map(filterParams = {}) {
+        const params = new URLSearchParams();
+
+        if (filterParams.region) params.set('region', filterParams.region);
+        if (filterParams.category) params.set('category', filterParams.category);
+
+        const queryString = params.toString();
+        const url = queryString ? `/map?${queryString}` : '/map';
+
+        window.location.href = url;
     },
 
-    // 지도 페이지
-    async map() {
-        const manager = new MapPageManager();
-        await manager.initialize();
+    // 북마크 페이지
+    bookmark() {
+        alert('북마크 기능은 준비 중입니다.');
+        // TODO: 북마크 페이지 구현
     },
-
     // == 마이페이지 - 공간제공자 (현재 비어있음) ===
 
 
@@ -79,8 +73,7 @@ function goToPopupDetail(popupId) {
         return;
     }
 
-    // 실제 페이지 이동
-    location.href = `/templates/pages/popup-detail.html?id=${encodeURIComponent(popupId)}`;
+    window.location.href = `/popup/${encodeURIComponent(popupId)}`;
 }
 
 window.Pages = Pages;

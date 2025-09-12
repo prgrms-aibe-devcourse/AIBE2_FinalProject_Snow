@@ -50,6 +50,7 @@ public class SecurityConfig {
 
                         // 공개 페이지
                         .antMatchers("/", "/index.html", "/main", "/error").permitAll()
+                        .antMatchers("/popup/**", "/map").permitAll()
 
                         // 인증 관련 페이지
                         .antMatchers("/auth/**").permitAll()
@@ -64,6 +65,11 @@ public class SecurityConfig {
                         .antMatchers("/api/auth/check-email").permitAll()
                         .antMatchers("/api/auth/check-nickname").permitAll()
                         .antMatchers("/api/auth/logout").permitAll()
+
+                        // 팝업 관련 공개 API 추가
+                        .antMatchers(HttpMethod.GET, "/api/popups/**").permitAll()
+                        .antMatchers(HttpMethod.GET, "/api/search/**").permitAll()
+                        .antMatchers(HttpMethod.GET, "/api/map/**").permitAll()
 
                         // 역할별 접근 제어
                         .antMatchers("/admin/**").hasRole("ADMIN")

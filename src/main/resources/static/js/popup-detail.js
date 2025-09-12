@@ -20,7 +20,7 @@ class PopupDetailManager {
 
     // HTML 렌더링
     async renderHTML() {
-        const template = await TemplateLoader.load('pages/popup-detail');
+        const template = await TemplateLoader.load('pages/popup/popup-detail');
         document.getElementById('main-content').innerHTML = template;
         document.getElementById('page-title').textContent = 'POPIN - 팝업 상세';
     }
@@ -91,7 +91,7 @@ class PopupDetailManager {
         // 메인 이미지
         const mainImg = document.getElementById('popup-main-img');
         if (mainImg) {
-            mainImg.src = this.popupData.mainImageUrl || 'https://via.placeholder.com/600x300/4B5AE4/ffffff?text=🎪';
+            mainImg.src = this.popupData.thumbnailUrl || 'https://via.placeholder.com/600x300/4B5AE4/ffffff?text=🎪';
             mainImg.alt = this.popupData.title;
         }
 
@@ -345,9 +345,12 @@ class PopupDetailManager {
 
 // 태그로 검색하는 함수
 function searchByTag(tag) {
-    alert(`"${tag}" 태그 검색 기능은 준비 중입니다.`);
-    // TODO: 검색 페이지로 이동하거나 메인 페이지의 검색으로 이동
-    // location.href = `/index.html?search=${encodeURIComponent(tag)}`;
+    console.log(`"${tag}" 태그로 검색`);
+
+    // 태그에서 # 제거
+    const cleanTag = tag.startsWith('#') ? tag.substring(1) : tag;
+
+    window.location.href = `/popup/search?query=${encodeURIComponent(cleanTag)}`;
 }
 
 // 전역 등록

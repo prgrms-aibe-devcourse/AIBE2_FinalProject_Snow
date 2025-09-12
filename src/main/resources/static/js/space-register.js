@@ -36,7 +36,7 @@ const SpaceRegisterPage = {
 
             // 만약 상세로 보내고 싶으면:
             // const res = await apiService.createSpace(fd);
-            // if (res?.id) location.assign(`/templates/pages/space-detail.html?id=${encodeURIComponent(res.id)}`);
+            // if (res?.id) location.assign(`/templates/pages/space-popup-detail.html?id=${encodeURIComponent(res.id)}`);
             // else this.goList();
 
         } catch (err) {
