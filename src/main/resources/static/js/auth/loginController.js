@@ -85,7 +85,6 @@ class LoginController {
     async handleSubmit(e) {
         e.preventDefault();
 
-        // 클라이언트 사이드 검증
         if (!this.ui.validateForm()) {
             return;
         }
@@ -104,11 +103,15 @@ class LoginController {
                 this.loginApi.storeToken(response.accessToken, response);
 
                 // 성공 메시지 표시
-                this.ui.showAlert('로그인 성공! 메인 페이지로 이동합니다.', 'success');
+                this.ui.showAlert('로그인 성공!', 'success');
 
-                // 메인 페이지로 리다이렉트
+                // 역할에 따른 리디렉션 ← 이 부분만 수정
                 setTimeout(() => {
-                    window.location.href = '/';
+                    if (response.role === 'ADMIN') {
+                        window.location.href = '/templates/admin/admin-inquiry-main.html';
+                    } else {
+                        window.location.href = '/';
+                    }
                 }, 1500);
             } else {
                 throw new Error('로그인 응답이 올바르지 않습니다.');

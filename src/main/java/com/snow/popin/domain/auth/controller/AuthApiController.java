@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @RestController
@@ -29,7 +30,8 @@ public class AuthApiController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest req){
-        return ResponseEntity.ok(authService.login(req));
+        LoginResponse  res = authService.login(req);
+        return ResponseEntity.ok(res);
     }
 
     @PostMapping("/logout")
