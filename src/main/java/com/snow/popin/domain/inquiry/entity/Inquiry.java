@@ -48,17 +48,6 @@ public class Inquiry extends BaseTimeEntity {
         this.status = status;
     }
 
-    @Builder
-    public Inquiry(String email, TargetType targetType, Long targetId,
-                   String subject, String content) {
-        this.email = email;
-        this.targetType = targetType;
-        this.targetId = targetId;
-        this.subject = subject;
-        this.content = content;
-        this.status = InquiryStatus.OPEN;
-    }
-
     public void updateStatus(InquiryStatus status) {
         this.status = status;
     }

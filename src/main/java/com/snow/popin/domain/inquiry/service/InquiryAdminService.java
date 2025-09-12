@@ -71,7 +71,7 @@ public class InquiryAdminService {
     @Transactional
     public void updateInquiryStatus(Long id, InquiryStatusUpdateRequest req){
         Inquiry inquiry = inquiryRepo.findById(id)
-                .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND,"신고를 찾을 수 업습니다."));
+                .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND,"신고를 찾을 수 없습니다."));
 
         inquiry.updateStatus(req.getStatus());
         log.info("신고 상태가 변경되었습니다. ID: {}, 상태: {}", id, req.getStatus());
