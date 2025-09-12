@@ -20,11 +20,13 @@ public class RoleUpgradeResponse {
     private String rejectReason;
     private String payload; // JSON 문자열
     private List<DocumentResponse> documents;
-
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     @Builder
     public RoleUpgradeResponse(Long id, String email, Role requestedRole, ApprovalStatus status,
-                               String rejectReason, String payload, List<DocumentResponse> documents) {
+                               String rejectReason, String payload, List<DocumentResponse> documents,
+                               LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.email = email;
         this.requestedRole = requestedRole;
@@ -32,8 +34,9 @@ public class RoleUpgradeResponse {
         this.rejectReason = rejectReason;
         this.payload = payload;
         this.documents = documents;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
-
 
     // RoleUpgrade 엔티티를 Response DTO로 변환
     // 순환 참조 주의
@@ -55,6 +58,8 @@ public class RoleUpgradeResponse {
                 .rejectReason(roleUpgrade.getRejectReason())
                 .payload(roleUpgrade.getPayload())
                 .documents(documents)
+                .createdAt(roleUpgrade.getCreatedAt())  // 추가
+                .updatedAt(roleUpgrade.getUpdatedAt())  // 추가
                 .build();
     }
 }
