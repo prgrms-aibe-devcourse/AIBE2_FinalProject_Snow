@@ -1,4 +1,4 @@
-// 팝업 검색 페이지 전용 모듈
+// 팝업 검색 페이지 전용 모듈 (수정된 버전)
 class PopupSearchManager {
     constructor() {
         this.searchInput = null;
@@ -17,7 +17,11 @@ class PopupSearchManager {
     // 페이지 초기화
     async initialize() {
         try {
-            await this.renderHTML();
+            // HTML이 이미 있는지 확인
+            if (!this.checkExistingHTML()) {
+                await this.renderHTML();
+            }
+
             this.setupElements();
             this.loadSuggestionData();
             this.setupEventListeners();
@@ -28,7 +32,14 @@ class PopupSearchManager {
         }
     }
 
-    // HTML 렌더링 (사용자 기존 코드 유지)
+    // 기존 HTML 확인
+    checkExistingHTML() {
+        const searchInput = document.getElementById('popup-search-input');
+        const searchContainer = document.querySelector('.popup-search-container');
+        return searchInput && searchContainer;
+    }
+
+    // HTML 렌더링 (필요할 때만)
     async renderHTML() {
         try {
             const html = await TemplateLoader.load('pages/popup-search');
@@ -39,7 +50,7 @@ class PopupSearchManager {
                 <div class="popup-search-container">
                     <div class="search-area">
                         <div class="search-input-wrapper">
-                            <input type="text" id="popup-search-input" class="search-input" placeholder="검색어" autocomplete="off">
+                            <input type="text" id="popup-search-input" class="search-input" placeholder="검색어를 입력하세요" autocomplete="off">
                             <button class="search-button" id="popup-search-button">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <circle cx="11" cy="11" r="8"></circle>
@@ -64,6 +75,11 @@ class PopupSearchManager {
         this.relatedSearches = document.getElementById('popup-related-searches');
         this.searchResults = document.getElementById('popup-search-results');
         this.searchLoading = document.getElementById('popup-search-loading');
+
+        // 요소가 없으면 오류 발생
+        if (!this.searchInput || !this.searchButton) {
+            throw new Error('필수 DOM 요소를 찾을 수 없습니다.');
+        }
     }
 
     // 검색 제안 데이터 로드
@@ -98,13 +114,15 @@ class PopupSearchManager {
             }
         });
 
-        this.relatedSearches.addEventListener('click', (e) => {
-            const item = e.target.closest('.autocomplete-item');
-            if (item) {
-                this.searchInput.value = item.textContent.trim();
-                this.performSearch();
-            }
-        });
+        if (this.relatedSearches) {
+            this.relatedSearches.addEventListener('click', (e) => {
+                const item = e.target.closest('.autocomplete-item');
+                if (item) {
+                    this.searchInput.value = item.textContent.trim();
+                    this.performSearch();
+                }
+            });
+        }
     }
 
     // 입력 처리를 위한 디바운싱 핸들러
@@ -123,7 +141,7 @@ class PopupSearchManager {
 
     // 키보드 이벤트
     handleKeyDown(e) {
-        const isAutocompleteVisible = this.relatedSearches.classList.contains('show');
+        const isAutocompleteVisible = this.relatedSearches && this.relatedSearches.classList.contains('show');
 
         switch (e.key) {
             case 'Enter':
@@ -153,6 +171,8 @@ class PopupSearchManager {
 
     // 자동완성 표시
     showAutocomplete() {
+        if (!this.relatedSearches) return;
+
         const query = this.searchInput.value.trim();
         const filteredSuggestions = this.allSuggestions
             .filter(suggestion => suggestion.toLowerCase().includes(query.toLowerCase()))
@@ -227,6 +247,8 @@ class PopupSearchManager {
 
     // 검색 결과 표시
     displaySearchResults(response) {
+        if (!this.searchResults) return;
+
         if (!response || !response.popups || response.popups.length === 0) {
             this.showNoResults();
             return;
@@ -261,17 +283,23 @@ class PopupSearchManager {
 
     // 결과 없음 표시
     showNoResults() {
+        if (!this.searchResults) return;
+
+        const safeQuery = this.escapeHtml(this.currentQuery);
+
         this.searchResults.innerHTML = `
             <div class="no-results">
                 <svg class="no-results-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
-                <div class="no-results-title">'${this.currentQuery}'에 대한 검색 결과가 없습니다</div>
-                <div class.no-results-desc">다른 검색어를 시도해보세요</div>
+                <div class="no-results-title">'${safeQuery}'에 대한 검색 결과가 없습니다</div>
+                <div class="no-results-desc">다른 검색어를 시도해보세요</div>
             </div>`;
         this.showSearchResults();
     }
 
     // 검색 오류 표시
     showSearchError() {
+        if (!this.searchResults) return;
+
         this.searchResults.innerHTML = `
             <div class="no-results">
                 <div class="no-results-title">검색 중 오류가 발생했습니다</div>
@@ -282,19 +310,48 @@ class PopupSearchManager {
 
     // UI 상태 관리
     hideAutocomplete() {
+        if (!this.relatedSearches) return;
+
         this.relatedSearches.classList.remove('show');
         this.selectedIndex = -1;
 
-        this.searchInput.closest('.search-input-wrapper').classList.remove('autocomplete-active');
-        this.searchInput.closest('.search-area').classList.remove('active');
+        const wrapper = this.searchInput.closest('.search-input-wrapper');
+        const area = this.searchInput.closest('.search-area');
+        if (wrapper) wrapper.classList.remove('autocomplete-active');
+        if (area) area.classList.remove('active');
     }
 
-    showSearchResults() { this.searchResults.classList.add('show'); }
-    hideSearchResults() { this.searchResults.classList.remove('show'); }
-    hideAllResults() { this.hideAutocomplete(); this.hideSearchResults(); }
-    showLoading() { this.searchLoading.style.display = 'flex'; }
-    hideLoading() { this.searchLoading.style.display = 'none'; }
-    showError(message) { document.getElementById('main-content').innerHTML = `<div class="alert alert-error">${message}</div>`; }
+    showSearchResults() {
+        if (this.searchResults) this.searchResults.classList.add('show');
+    }
+
+    hideSearchResults() {
+        if (this.searchResults) this.searchResults.classList.remove('show');
+    }
+
+    hideAllResults() {
+        this.hideAutocomplete();
+        this.hideSearchResults();
+    }
+
+    showLoading() {
+        if (this.searchLoading) this.searchLoading.style.display = 'flex';
+    }
+
+    hideLoading() {
+        if (this.searchLoading) this.searchLoading.style.display = 'none';
+    }
+
+    showError(message) {
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            const div = document.createElement('div');
+            div.className = 'alert alert-error';
+            div.textContent = String(message);
+            mainContent.innerHTML = '';
+            mainContent.appendChild(div);
+        }
+    }
 }
 
 // 전역 인스턴스

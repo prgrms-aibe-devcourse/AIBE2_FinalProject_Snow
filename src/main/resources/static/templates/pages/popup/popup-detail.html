@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">POPIN - 팝업 상세</title>
+
+    <!-- 공통 레이아웃 CSS -->
+    <link rel="stylesheet" href="/css/layout.css">
+    <link rel="stylesheet" href="/css/popup-detail.css">
+</head>
+<body>
+<div class="mobile-container">
+    <!-- 헤더 영역 -->
+    <div id="header-container">
+        <!-- JavaScript로 동적 로드 -->
+    </div>
+
+    <!-- 메인 콘텐츠 영역 -->
+    <main class="main-content" id="main-content">
+        <!-- 팝업 상세 페이지 콘텐츠 -->
+        <div id="popup-detail-loading" class="loading-container">
+            <div class="loading"></div>
+        </div>
+
+        <div id="popup-detail-content" class="popup-detail-page" style="display: none;">
+            <!-- 메인 이미지 섹션 -->
+            <div class="popup-main-image">
+                <img id="popup-main-img" src="" alt="팝업 이미지" class="main-image">
+                <div class="image-overlay">
+                    <div class="action-buttons">
+                        <button class="action-btn" id="share-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                                <polyline points="16,6 12,2 8,6"></polyline>
+                                <line x1="12" y1="2" x2="12" y2="15"></line>
+                            </svg>
+                        </button>
+                        <button class="action-btn" id="bookmark-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 팝업 정보 섹션 -->
+            <div class="popup-info-section">
+                <h1 id="popup-title" class="popup-title"></h1>
+
+                <div class="popup-dates">
+                    <div class="date-info">
+                        <span id="popup-period" class="period-text"></span>
+                    </div>
+                    <div class="hours-info">
+                        <div id="popup-hours" class="hours-text"></div>
+                    </div>
+                </div>
+
+                <!-- 태그 섹션 -->
+                <div id="popup-tags" class="popup-tags"></div>
+
+                <!-- 예약하기 버튼 -->
+                <button id="reservation-btn" class="reservation-btn">
+                    예약하기
+                </button>
+            </div>
+
+            <!-- 리뷰 섹션 -->
+            <div class="reviews-section">
+                <div class="section-header">
+                    <h2>Reviews</h2>
+                    <button class="write-review-btn">+ 리뷰 작성</button>
+                </div>
+
+                <!-- 평점 요약 -->
+                <div class="rating-summary">
+                    <div class="stars-container">
+                        <div class="stars">
+                            <span class="star filled">★</span>
+                            <span class="star filled">★</span>
+                            <span class="star filled">★</span>
+                            <span class="star filled">★</span>
+                            <span class="star">★</span>
+                        </div>
+                        <span class="review-count">(4)</span>
+                    </div>
+                </div>
+
+                <!-- 리뷰 목록 -->
+                <div class="reviews-list">
+                    <div class="review-item">
+                        <div class="review-rating">
+                            <div class="stars">
+                                <span class="star filled">★</span>
+                                <span class="star filled">★</span>
+                                <span class="star filled">★</span>
+                                <span class="star filled">★</span>
+                                <span class="star filled">★</span>
+                            </div>
+                            <span class="review-date">신고 ></span>
+                        </div>
+                        <h3 class="review-title">정말 재미있는 팝업이었어요!</h3>
+                        <p class="review-body">요아정 팝업 정말 귀엽고 예뻤어요. 포토존도 많고 굿즈도 다양해서 만족스러웠습니다.</p>
+                        <div class="reviewer-info">
+                            <img src="https://via.placeholder.com/40x40/4B5AE4/ffffff?text=👤" alt="리뷰어" class="reviewer-avatar">
+                            <div class="reviewer-details">
+                                <span class="reviewer-name">김민지</span>
+                                <span class="review-date">2025.08.15</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="review-item">
+                        <div class="review-rating">
+                            <div class="stars">
+                                <span class="star filled">★</span>
+                                <span class="star filled">★</span>
+                                <span class="star filled">★</span>
+                                <span class="star filled">★</span>
+                                <span class="star">★</span>
+                            </div>
+                            <span class="review-date">신고 ></span>
+                        </div>
+                        <h3 class="review-title">귀여운 굿즈들이 많아요</h3>
+                        <p class="review-body">특히 인형이랑 키링이 너무 귀여워서 다 사고 싶었어요. 다음에 또 가고 싶습니다!</p>
+                        <div class="reviewer-info">
+                            <img src="https://via.placeholder.com/40x40/8b5cf6/ffffff?text=👤" alt="리뷰어" class="reviewer-avatar">
+                            <div class="reviewer-details">
+                                <span class="reviewer-name">이서연</span>
+                                <span class="review-date">2025.08.10</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="load-more-btn">+ 더보기</button>
+            </div>
+
+            <!-- 유사한 팝업 스토어 섹션 -->
+            <div class="similar-popups-section">
+                <h2 class="section-title">유사한 팝업 스토어</h2>
+                <div id="similar-popups-grid" class="similar-popups-grid">
+                    <!-- 동적으로 로드됩니다 -->
+                </div>
+            </div>
+        </div>
+
+        <div id="popup-detail-error" class="error-container" style="display: none;">
+            <p class="alert alert-error">팝업 정보를 불러오는 중 오류가 발생했습니다.</p>
+            <button class="btn btn-primary" onclick="window.history.back()">돌아가기</button>
+        </div>
+    </main>
+
+    <!-- 푸터 영역 -->
+    <div id="footer-container">
+        <!-- JavaScript로 동적 로드 -->
+    </div>
+</div>
+
+<!-- 공통 스크립트 -->
+<script src="/js/templateLoader.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/layout.js"></script>
+<script src="/js/popup-list.js"></script>
+<script src="/js/popup-search.js"></script>
+<script src="/js/map.js"></script>
+<script src="/js/pages.js"></script>
+<script src="/js/popup-detail.js"></script>
+
+<!-- 애플리케이션 초기화 -->
+<script>
+    // 페이지 로드 시 헤더/푸터 로드 및 팝업 상세 초기화
+    document.addEventListener('DOMContentLoaded', async function() {
+        await loadComponents();
+        initializeLayout();
+
+        // URL에서 팝업 ID 가져오기 (새로운 경로 구조)
+        const pathParts = window.location.pathname.split('/');
+        const popupId = pathParts[2]; // /popup/{id} 에서 {id} 부분
+
+        if (popupId && /^\d+$/.test(popupId)) {
+            const manager = new PopupDetailManager(popupId);
+            await manager.initialize();
+        } else {
+            // 팝업 ID가 없거나 잘못된 경우
+            document.getElementById('popup-detail-error').style.display = 'flex';
+            const errorText = document.querySelector('#popup-detail-error .alert');
+            if (errorText) {
+                errorText.textContent = '잘못된 팝업 ID입니다.';
+            }
+        }
+    });
+</script>
+</body>
+</html>
