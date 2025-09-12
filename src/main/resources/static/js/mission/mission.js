@@ -52,7 +52,7 @@
     <label class="modal-label">스태프 PIN 입력</label>
     <input id="staff-pin" type="password" placeholder="PIN 코드" class="modal-input">
     <div class="modal-actions">
-      <button class="btn primary" id="confirm">확인</button>
+      <button class="submit-btn" id="confirm">확인</button>
     </div>
   `;
     backdrop.appendChild(card);

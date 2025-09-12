@@ -43,7 +43,7 @@
       <div style="position:absolute;top:-40px;left:50%;transform:translateX(-50%);font-size:40px;color:#79f;">▼</div>
     </div>
     <div style="display:flex; gap:8px; justify-content:center; margin-top:16px;">
-      <button id="spin-btn" class="btn primary flex-btn">돌리기</button>
+      <button id="spin-btn" class="submit-btn">돌리기</button>
     </div>
   </div>
 `;
