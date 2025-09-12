@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원관리 - POPPIN</title>
+    <link rel="stylesheet" href="/css/layout.css">
+    <link rel="stylesheet" href="/css/user-management.css">
+</head>
+<body>
+<!-- Header -->
+<div id="app-header-mount"></div>
+
+<div class="admin-container">
+    <!-- Page Title -->
+    <div class="page-title">
+        <h1>회원관리</h1>
+    </div>
+
+    <!-- Management Cards -->
+    <nav class="management-cards">
+        <a class="card account-upgrade" href="/templates/admin/role-upgrade/admin-role-upgrade.html" aria-label="계정 전환 요청 처리하러 가기">
+            <div class="card-content">
+                <div class="card-title">계정 전환 요청 <span class="badge" id="upgradeRequestCount">0</span></div>
+                <div class="card-sub">처리하러 가기 ›</div>
+            </div>
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="9 6 15 12 9 18"></polyline>
+            </svg>
+        </a>
+
+        <a class="card member-search" href="#" aria-label="회원 검색">
+            <div class="card-content">
+                <div class="card-title">회원 검색</div>
+                <div class="card-sub">처리하러 가기 ›</div>
+            </div>
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="9 6 15 12 9 18"></polyline>
+            </svg>
+        </a>
+    </nav>
+</div>
+
+<!-- Admin Footer -->
+<div id="admin-footer-mount"></div>
+
+<script>
+    async function injectPartial(selector, url) {
+        const mount = document.querySelector(selector);
+        if (!mount) return;
+        try {
+            const res = await fetch(url, { cache: 'no-cache' });
+            if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+            mount.innerHTML = await res.text();
+        } catch (err) {
+            console.warn('Include failed:', url, err);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        injectPartial('#app-header-mount', '../components/header.html');
+        injectPartial('#admin-footer-mount', '../components/admin-footer.html');
+    });
+
+    // 계정 전환 요청 개수 로드
+    async function loadUpgradeRequestCount() {
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch('/api/admin/role-upgrades/count', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const count = await response.json();
+                document.getElementById('upgradeRequestCount').textContent = count;
+            }
+        } catch (error) {
+            console.error('계정 전환 요청 개수 로드 실패:', error);
+        }
+    }
+</script>
+</body>
+</html>
