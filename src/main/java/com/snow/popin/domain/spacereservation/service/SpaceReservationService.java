@@ -1,5 +1,6 @@
 package com.snow.popin.domain.spacereservation.service;
 
+import com.snow.popin.domain.mypage.host.entity.Brand;
 import com.snow.popin.domain.mypage.host.entity.Host;
 import com.snow.popin.domain.mypage.host.repository.HostRepository;
 import com.snow.popin.domain.popup.entity.Popup;
@@ -42,37 +43,36 @@ public class SpaceReservationService {
      */
     @Transactional
     public Long createReservation(User user, SpaceReservationCreateRequestDto dto) {
-        if (user.getRole() != Role.HOST) {
-            throw new IllegalArgumentException("HOST 권한이 필요합니다.");
-        }
+        log.info("DTO start={}, end={}", dto.getStartDate(), dto.getEndDate());
 
         Host hostEntity = hostRepository.findByUser(user)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저의 호스트 정보가 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("호스트 정보가 없습니다."));
+
+        Brand brand = hostEntity.getBrand();
 
         Space space = spaceRepository.findById(dto.getSpaceId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공간입니다."));
 
-        if (space.getOwner().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("본인 공간은 예약할 수 없습니다.");
-        }
-
         Popup popup = popupRepository.findById(dto.getPopupId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 팝업입니다."));
 
-        if (!popup.getBrandId().equals(hostEntity.getBrand().getId())) {
-            throw new IllegalArgumentException("해당 팝업은 현재 호스트 브랜드 소속이 아닙니다.");
-        }
-
+        // 예약 엔티티 생성
         SpaceReservation reservation = SpaceReservation.builder()
                 .space(space)
                 .host(user)
                 .popup(popup)
+                .brand(brand)
                 .startDate(dto.getStartDate())
                 .endDate(dto.getEndDate())
                 .message(dto.getMessage())
                 .contactPhone(dto.getContactPhone())
                 .status(ReservationStatus.PENDING)
                 .build();
+
+        log.info("Entity start={}, end={}, brand={}",
+                reservation.getStartDate(),
+                reservation.getEndDate(),
+                reservation.getBrand().getName());
 
         return reservationRepository.save(reservation).getId();
     }

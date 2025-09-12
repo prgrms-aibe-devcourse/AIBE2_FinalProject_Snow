@@ -1,5 +1,6 @@
 package com.snow.popin.domain.spacereservation.entity;
 
+import com.snow.popin.domain.mypage.host.entity.Brand;
 import com.snow.popin.domain.space.entity.Space;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.domain.popup.entity.Popup;
@@ -32,6 +33,10 @@ public class SpaceReservation extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "popup_id", nullable = false)
     private Popup popup;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "brand_id", nullable = false)
+    private Brand brand;
 
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
