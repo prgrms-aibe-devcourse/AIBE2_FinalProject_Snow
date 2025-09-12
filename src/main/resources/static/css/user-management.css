@@ -1,3 +1,5 @@
+/* /css/user-management.css */
+
 * {
     margin: 0;
     padding: 0;
@@ -147,20 +149,12 @@ body {
 }
 
 /* 카드별 hover 색상 */
-.card.popup-report:hover {
-    border-color: #6366f1;
-}
-
-.card.review-report:hover {
-    border-color: #10b981;
-}
-
 .card.account-upgrade:hover {
     border-color: #f59e0b;
 }
 
-.card.general-report:hover {
-    border-color: #ef4444;
+.card.member-search:hover {
+    border-color: #10b981;
 }
 
 /* 반응형 디자인 */
