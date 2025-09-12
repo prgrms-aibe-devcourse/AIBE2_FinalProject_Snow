@@ -285,10 +285,12 @@ class PopupSearchManager {
     showNoResults() {
         if (!this.searchResults) return;
 
+        const safeQuery = this.escapeHtml(this.currentQuery);
+
         this.searchResults.innerHTML = `
             <div class="no-results">
                 <svg class="no-results-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
-                <div class="no-results-title">'${this.currentQuery}'에 대한 검색 결과가 없습니다</div>
+                <div class="no-results-title">'${safeQuery}'에 대한 검색 결과가 없습니다</div>
                 <div class="no-results-desc">다른 검색어를 시도해보세요</div>
             </div>`;
         this.showSearchResults();
@@ -343,7 +345,11 @@ class PopupSearchManager {
     showError(message) {
         const mainContent = document.getElementById('main-content');
         if (mainContent) {
-            mainContent.innerHTML = `<div class="alert alert-error">${message}</div>`;
+            const div = document.createElement('div');
+            div.className = 'alert alert-error';
+            div.textContent = String(message);
+            mainContent.innerHTML = '';
+            mainContent.appendChild(div);
         }
     }
 }

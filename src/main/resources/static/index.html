@@ -85,13 +85,15 @@
                 <div class="content-section">
                     <div class="alert alert-error">
                         애플리케이션을 불러오는 중 오류가 발생했습니다.
-                        <br><small>오류: ${error.message}</small>
+                        <br><small id="init-error-text"></small>
                     </div>
                     <button class="btn btn-primary" onclick="window.location.reload()">
                         새로고침
                     </button>
                 </div>
             `;
+                const t = document.getElementById('init-error-text');
+                if (t) t.textContent = `오류: ${String(error && error.message ? error.message : error)}`;
             }
         }
     }

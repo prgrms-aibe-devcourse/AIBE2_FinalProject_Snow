@@ -9,7 +9,9 @@ class PopupDetailManager {
     // 페이지 초기화
     async initialize() {
         try {
-            await this.renderHTML();
+            if (!document.getElementById('popup-detail-content')) {
+                await this.renderHTML();
+            }
             this.setupEventListeners();
             await this.loadPopupData();
         } catch (error) {
@@ -240,14 +242,16 @@ class PopupDetailManager {
             return;
         }
 
+        const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
         const cardsHTML = popups.map(popup => `
             <div class="similar-popup-card" data-id="${popup.id}">
                 <img src="${popup.mainImageUrl || popup.thumbnailUrl || 'https://via.placeholder.com/150x150/4B5AE4/ffffff?text=🎪'}" 
-                     alt="${popup.title}" class="similar-card-image"
+                     alt="${esc(popup.title)}" class="similar-card-image"
                      onerror="this.src='https://via.placeholder.com/150x150/4B5AE4/ffffff?text=🎪'">
                 <div class="similar-card-content">
-                    <h3 class="similar-card-title">${popup.title}</h3>
-                    <p class="similar-card-info">${popup.region || ''}</p>
+                    <h3 class="similar-card-title">${esc(popup.title)}</h3>
+                    <p class="similar-card-info">${esc(popup.region)}</p>
                 </div>
             </div>
         `).join('');
