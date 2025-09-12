@@ -1,0 +1,90 @@
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>신고 관리 - POPPIN</title>
+    <link rel="stylesheet" href="/css/layout.css">
+    <link rel="stylesheet" href="/css/report-management.css">
+</head>
+<body>
+<!-- Header -->
+<div id="app-header-mount"></div>
+
+<div class="admin-container">
+    <!-- Page Title -->
+    <div class="page-title">
+        <h1>신고 관리</h1>
+    </div>
+
+    <!-- Management Cards -->
+    <nav class="management-cards">
+        <a class="card popup-report" href="/templates/admin/popup-report.html" aria-label="팝업 신고 처리하러 가기">
+            <div class="card-content">
+                <div class="card-title">팝업 신고 <span class="badge" id="popupReportCount">0</span></div>
+                <div class="card-sub">처리하러 가기 ›</div>
+            </div>
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="9 6 15 12 9 18"></polyline>
+            </svg>
+        </a>
+
+        <a class="card space-report" href="/templates/admin/space-report.html" aria-label="장소 대여 신고 처리하러 가기">
+            <div class="card-content">
+                <div class="card-title">장소 대여 신고 <span class="badge" id="spaceReportCount">0</span></div>
+                <div class="card-sub">처리하러 가기 ›</div>
+            </div>
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="9 6 15 12 9 18"></polyline>
+            </svg>
+        </a>
+
+        <a class="card review-report" href="/templates/admin/review-report.html" aria-label="리뷰 신고 처리하러 가기">
+            <div class="card-content">
+                <div class="card-title">리뷰 신고 <span class="badge" id="reviewReportCount">0</span></div>
+                <div class="card-sub">처리하러 가기 ›</div>
+            </div>
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="9 6 15 12 9 18"></polyline>
+            </svg>
+        </a>
+
+        <a class="card general-report" href="/templates/admin/general-report.html" aria-label="일반 신고 처리하러 가기">
+            <div class="card-content">
+                <div class="card-title">일반 신고 <span class="badge" id="generalReportCount">0</span></div>
+                <div class="card-sub">처리하러 가기 ›</div>
+            </div>
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="9 6 15 12 9 18"></polyline>
+            </svg>
+        </a>
+
+        <a class="card account-upgrade" href="/templates/admin/role-upgrade/admin-role-upgrade.html" aria-label="계정 전환 요청 처리하러 가기">
+            <div class="card-content">
+                <div class="card-title">계정 전환 요청 <span class="badge" id="upgradeRequestCount">0</span></div>
+                <div class="card-sub">처리하러 가기 ›</div>
+            </div>
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="9 6 15 12 9 18"></polyline>
+            </svg>
+        </a>
+    </nav>
+</div>
+<script>
+    async function injectPartial(selector, url) {
+        const mount = document.querySelector(selector);
+        if (!mount) return;
+        try {
+            const res = await fetch(url, { cache: 'no-cache' });
+            if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+            mount.innerHTML = await res.text();
+        } catch (err) {
+            console.warn('Include failed:', url, err);
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        injectPartial('#app-header-mount', './components/header.html');
+    });
+</script>
+<script src="/js/admin/report-management.js"></script>
+</body>
+</html>
