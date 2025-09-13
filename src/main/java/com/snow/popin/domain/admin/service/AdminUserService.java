@@ -17,7 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.persistence.criteria.Predicate;
 
 @Service
@@ -40,10 +42,20 @@ public class AdminUserService {
     }
 
     /**
-     * 회원 상세 정보 조회
+     * 회원 상세 정보 조회 by email
      */
-    public UserDetailResponse getUserDetail(String email){
+    public UserDetailResponse getUserDetailByEmail(String email){
         User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND));
+
+        return UserDetailResponse.from(user);
+    }
+
+    /**
+     * 회원 상세 정보 조회 by id
+     */
+    public UserDetailResponse getUserDetailById(Long id){
+        User user = userRepo.findById(id)
                 .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND));
 
         return UserDetailResponse.from(user);
@@ -59,6 +71,17 @@ public class AdminUserService {
     /**
      * 역할별 회원 수 조회
      */
+    public Map<String, Long> getUserCountByRole(){
+        Map<String, Long> roleState = new HashMap<>();
+
+        // 각 역할별로 회원 수 조회
+        for (Role role : Role.values()){
+            Long count = userRepo.countByRole(role);
+            roleState.put(role.name(), count);
+        }
+
+        return roleState;
+    }
 
 
     private Specification<User> createSearchSpecification(String searchType, String keyword, Role role) {

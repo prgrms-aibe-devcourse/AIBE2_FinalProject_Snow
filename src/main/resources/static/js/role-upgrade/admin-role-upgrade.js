@@ -2,7 +2,7 @@
 
 class AdminRoleUpgradeManager {
     constructor() {
-        this.baseURL = '/api';
+        this.baseURL = '/api/admin/role-upgrade';  // 정확한 API 경로로 수정
         this.currentRequestId = null;
         this.currentPage = 0;
         this.pageSize = 20;
@@ -20,38 +20,54 @@ class AdminRoleUpgradeManager {
     // 이벤트 리스너 설정
     setupEventListeners() {
         // 검색 버튼
-        document.getElementById('searchBtn').addEventListener('click', () => {
-            this.handleSearch();
-        });
+        const searchBtn = document.getElementById('searchBtn');
+        if (searchBtn) {
+            searchBtn.addEventListener('click', () => {
+                this.handleSearch();
+            });
+        }
 
         // 초기화 버튼
-        document.getElementById('resetBtn').addEventListener('click', () => {
-            this.resetFilters();
-        });
+        const resetBtn = document.getElementById('resetBtn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                this.resetFilters();
+            });
+        }
 
         // 엔터키로 검색
-        document.getElementById('searchKeyword').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.handleSearch();
-            }
-        });
+        const searchKeyword = document.getElementById('searchKeyword');
+        if (searchKeyword) {
+            searchKeyword.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.handleSearch();
+                }
+            });
+        }
 
         // 모달 닫기
-        document.getElementById('modalCloseBtn').addEventListener('click', () => {
-            this.closeModal();
-        });
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+        if (modalCloseBtn) {
+            modalCloseBtn.addEventListener('click', () => {
+                this.closeModal();
+            });
+        }
 
         // 모달 배경 클릭시 닫기
-        document.getElementById('detailModal').addEventListener('click', (e) => {
-            if (e.target.id === 'detailModal') {
-                this.closeModal();
-            }
-        });
+        const detailModal = document.getElementById('detailModal');
+        if (detailModal) {
+            detailModal.addEventListener('click', (e) => {
+                if (e.target.id === 'detailModal') {
+                    this.closeModal();
+                }
+            });
+        }
     }
 
-    // JWT 토큰 가져오기
+    // JWT 토큰 가져오기 - authToken으로 통일
     getStoredToken() {
-        return localStorage.getItem('accessToken') ||
+        return localStorage.getItem('authToken') ||
+            localStorage.getItem('accessToken') ||
             localStorage.getItem('token') ||
             sessionStorage.getItem('accessToken') ||
             sessionStorage.getItem('token');
@@ -83,7 +99,7 @@ class AdminRoleUpgradeManager {
             if (!response.ok) {
                 if (response.status === 401) {
                     alert('로그인이 필요합니다.');
-                    window.location.href = '../../templates/auth/login';
+                    window.location.href = '/templates/pages/auth/login.html';
                     return;
                 }
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -101,8 +117,11 @@ class AdminRoleUpgradeManager {
     // 통계 로드
     async loadStats() {
         try {
-            const data = await this.apiCall(`${this.baseURL}/admin/role-upgrade/pending-count`);
-            document.getElementById('pendingCount').textContent = data.pendingCount || 0;
+            const data = await this.apiCall(`${this.baseURL}/pending-count`);
+            const pendingElement = document.getElementById('pendingCount');
+            if (pendingElement) {
+                pendingElement.textContent = data || 0;
+            }
         } catch (error) {
             console.error('통계 로드 실패:', error);
         }
@@ -111,11 +130,15 @@ class AdminRoleUpgradeManager {
     // 요청 목록 로드
     async loadRequests() {
         try {
-            const status = document.getElementById('statusFilter').value;
-            const role = document.getElementById('roleFilter').value;
-            const keyword = document.getElementById('searchKeyword').value;
+            const statusFilter = document.getElementById('statusFilter');
+            const roleFilter = document.getElementById('roleFilter');
+            const searchKeyword = document.getElementById('searchKeyword');
 
-            let url = `${this.baseURL}/admin/role-upgrade/requests?page=${this.currentPage}&size=${this.pageSize}`;
+            const status = statusFilter ? statusFilter.value : '';
+            const role = roleFilter ? roleFilter.value : '';
+            const keyword = searchKeyword ? searchKeyword.value : '';
+
+            let url = `${this.baseURL}/requests?page=${this.currentPage}&size=${this.pageSize}`;
 
             if (status) url += `&status=${status}`;
             if (role) url += `&role=${role}`;
@@ -126,15 +149,17 @@ class AdminRoleUpgradeManager {
 
         } catch (error) {
             console.error('요청 목록 로드 실패:', error);
-            document.getElementById('tableContainer').innerHTML =
-                '<div class="error-message">데이터를 불러오는데 실패했습니다.</div>';
+            const tableContainer = document.getElementById('tableContainer');
+            if (tableContainer) {
+                tableContainer.innerHTML = '<div class="error-message">데이터를 불러오는데 실패했습니다.</div>';
+            }
         }
     }
 
     // 테이블 렌더링
-    // renderTable 함수에서 사업자번호 컬럼 제거
     renderTable(data) {
         const container = document.getElementById('tableContainer');
+        if (!container) return;
 
         if (!data.content || data.content.length === 0) {
             container.innerHTML = '<div class="no-data">데이터가 없습니다.</div>';
@@ -205,6 +230,7 @@ class AdminRoleUpgradeManager {
     // 페이지네이션 렌더링
     renderPagination(data) {
         const paginationContainer = document.getElementById('pagination');
+        if (!paginationContainer) return;
 
         if (data.totalPages <= 1) {
             paginationContainer.innerHTML = '';
@@ -250,13 +276,17 @@ class AdminRoleUpgradeManager {
     async showDetail(requestId) {
         try {
             this.currentRequestId = requestId;
-            const request = await this.apiCall(`${this.baseURL}/admin/role-upgrade/requests/${requestId}`);
+            const request = await this.apiCall(`${this.baseURL}/requests/${requestId}`);
 
             const modal = document.getElementById('detailModal');
             const modalBody = document.getElementById('modalBody');
 
-            modalBody.innerHTML = this.generateDetailHTML(request);
-            modal.style.display = 'block';
+            if (modalBody) {
+                modalBody.innerHTML = this.generateDetailHTML(request);
+            }
+            if (modal) {
+                modal.style.display = 'block';
+            }
 
         } catch (error) {
             console.error('상세 조회 실패:', error);
@@ -380,9 +410,14 @@ class AdminRoleUpgradeManager {
 
     // 필터 초기화
     resetFilters() {
-        document.getElementById('statusFilter').value = '';
-        document.getElementById('roleFilter').value = '';
-        document.getElementById('searchKeyword').value = '';
+        const statusFilter = document.getElementById('statusFilter');
+        const roleFilter = document.getElementById('roleFilter');
+        const searchKeyword = document.getElementById('searchKeyword');
+
+        if (statusFilter) statusFilter.value = '';
+        if (roleFilter) roleFilter.value = '';
+        if (searchKeyword) searchKeyword.value = '';
+
         this.currentPage = 0;
         this.loadRequests();
     }
@@ -411,7 +446,7 @@ class AdminRoleUpgradeManager {
                 requestData.rejectReason = adminComment.trim();
             }
 
-            await this.apiCall(`${this.baseURL}/admin/role-upgrade/requests/${this.currentRequestId}/process`, {
+            await this.apiCall(`${this.baseURL}/requests/${this.currentRequestId}/process`, {
                 method: 'PUT',
                 body: JSON.stringify(requestData)
             });

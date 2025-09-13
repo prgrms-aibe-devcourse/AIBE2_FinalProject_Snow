@@ -87,7 +87,8 @@ class UserManagementApi {
     async getUpgradeRequestCount() {
         try {
             const token = this.getStoredToken();
-            const response = await fetch('/api/admin/role-upgrades/count', {
+            // 백엔드 컨트롤러의 실제 경로로 수정
+            const response = await fetch('/api/admin/users/upgrade-requests/count', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
