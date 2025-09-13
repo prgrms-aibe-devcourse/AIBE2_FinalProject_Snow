@@ -1,5 +1,6 @@
 package com.snow.popin.domain.admin.controller;
 
+import com.snow.popin.domain.admin.service.RoleUpgradeAdminService;
 import com.snow.popin.domain.roleupgrade.dto.AdminUpdateRequest;
 import com.snow.popin.domain.roleupgrade.dto.RoleUpgradeResponse;
 import com.snow.popin.domain.roleupgrade.entity.ApprovalStatus;
@@ -23,7 +24,7 @@ import java.util.Map;
 @PreAuthorize("hasRole('ADMIN')")
 public class RoleUpgradeAdminApiController {
 
-    private final RoleUpgradeService roleService;
+    private final RoleUpgradeAdminService roleService;
 
     @GetMapping("/requests")
     public ResponseEntity<Page<RoleUpgradeResponse>> getAllRequests(
