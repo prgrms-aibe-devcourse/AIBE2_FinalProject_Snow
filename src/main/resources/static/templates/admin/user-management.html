@@ -154,10 +154,49 @@
         }
     }
 
+    // 계정 전환 요청 개수 로드
+    async function loadUpgradeRequestCount() {
+        try {
+            const token = localStorage.getItem('authToken');
+            // 백엔드에서 제공하는 정확한 API 경로로 수정
+            const response = await fetch('/api/admin/users/upgrade-requests/count', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const count = await response.json();
+                document.getElementById('upgradeRequestCount').textContent = count;
+            } else {
+                console.error('API 호출 실패:', response.status);
+                // 백업으로 다른 API 시도
+                try {
+                    const backupResponse = await fetch('/api/admin/role-upgrade/pending-count', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (backupResponse.ok) {
+                        const count = await backupResponse.json();
+                        document.getElementById('upgradeRequestCount').textContent = count;
+                    }
+                } catch (backupError) {
+                    console.error('백업 API도 실패:', backupError);
+                }
+            }
+        } catch (error) {
+            console.error('계정 전환 요청 개수 로드 실패:', error);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         // 헤더/푸터 로드
         injectPartial('#app-header-mount', '../components/header.html');
         injectPartial('#admin-footer-mount', '../components/admin-footer.html');
+
+        // 계정 전환 요청 개수 로드
+        loadUpgradeRequestCount();
 
         // 회원 관리 컨트롤러 초기화
         new UserManagementController();

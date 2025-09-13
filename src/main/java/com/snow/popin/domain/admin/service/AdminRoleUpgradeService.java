@@ -23,7 +23,7 @@ import static com.snow.popin.domain.roleupgrade.service.RoleUpgradeService.valid
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
-public class RoleUpgradeAdminService {
+public class AdminRoleUpgradeService {
 
     private final RoleUpgradeRepository roleRepo;
     private final UserRepository userRepo;

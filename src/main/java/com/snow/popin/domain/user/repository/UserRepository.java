@@ -1,5 +1,6 @@
 package com.snow.popin.domain.user.repository;
 
+import com.snow.popin.domain.user.constant.Role;
 import com.snow.popin.domain.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,9 +17,10 @@ public interface UserRepository extends JpaRepository<User, Long> , JpaSpecifica
     // 이메일 중복 체크
     boolean existsByEmail(String email);
 
-    Optional<User> findByNickname(String nickname);
-
+    // 닉네임 중복 체크
     boolean existsByNickname(String nickname);
 
-    Page<User> findAll(Specification<User> spec, Pageable pageable);
+    // 역할별 회원 수 조회
+    Long countByRole(Role role);
+
 }

@@ -146,7 +146,8 @@ class UserManagementUI {
             </div>
         `;
 
-        this.elements.userDetailModal.style.display = 'block';
+        // CSS의 flexbox 속성을 활용하기 위해 display: flex로 설정
+        this.elements.userDetailModal.style.display = 'flex';
     }
 
     /**

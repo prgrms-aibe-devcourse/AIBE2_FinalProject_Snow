@@ -1,10 +1,9 @@
 package com.snow.popin.domain.admin.controller;
 
-import com.snow.popin.domain.admin.service.RoleUpgradeAdminService;
+import com.snow.popin.domain.admin.service.AdminRoleUpgradeService;
 import com.snow.popin.domain.roleupgrade.dto.AdminUpdateRequest;
 import com.snow.popin.domain.roleupgrade.dto.RoleUpgradeResponse;
 import com.snow.popin.domain.roleupgrade.entity.ApprovalStatus;
-import com.snow.popin.domain.roleupgrade.service.RoleUpgradeService;
 import com.snow.popin.domain.user.constant.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,9 +21,9 @@ import java.util.Map;
 @RequestMapping("/api/admin/role-upgrade")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
-public class RoleUpgradeAdminApiController {
+public class AdminRoleUpgradeApiController {
 
-    private final RoleUpgradeAdminService roleService;
+    private final AdminRoleUpgradeService roleService;
 
     @GetMapping("/requests")
     public ResponseEntity<Page<RoleUpgradeResponse>> getAllRequests(
