@@ -30,14 +30,11 @@ import java.util.stream.Collectors;
 public class RoleUpgradeService {
 
     private final RoleUpgradeRepository roleRepo;
-    private final UserRepository userRepo;
     private final ObjectMapper objMapper;
-
 
     // 역할 승격 요청 생성
     @Transactional
     public Long createRoleUpgradeRequest(String email, CreateRoleUpgradeRequest  req){
-
         validateNoDuplicateRequest(email);
 
         try {
@@ -63,7 +60,6 @@ public class RoleUpgradeService {
     // 역할 승격 요청 생성 + file
     @Transactional
     public Long createRoleUpgradeRequestWithDocuments(String email, CreateRoleUpgradeRequest req, List<MultipartFile> files) {
-
         validateNoDuplicateRequest(email);
 
         try {
@@ -171,6 +167,7 @@ public class RoleUpgradeService {
         }
     }
 
+    // 본인의 요청인지 확인
     private void validateOwnership(RoleUpgrade roleUpgrade, String email){
         if (!roleUpgrade.getEmail().equals(email)){
             throw new GeneralException(ErrorCode.ACCESS_DENIED);
