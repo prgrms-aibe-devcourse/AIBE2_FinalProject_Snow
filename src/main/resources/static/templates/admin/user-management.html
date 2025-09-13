@@ -28,21 +28,118 @@
                 <polyline points="9 6 15 12 9 18"></polyline>
             </svg>
         </a>
-
-        <a class="card member-search" href="#" aria-label="회원 검색">
-            <div class="card-content">
-                <div class="card-title">회원 검색</div>
-                <div class="card-sub">처리하러 가기 ›</div>
-            </div>
-            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polyline points="9 6 15 12 9 18"></polyline>
-            </svg>
-        </a>
     </nav>
+
+    <!-- 회원 검색 섹션 -->
+    <div class="member-search-section">
+        <div class="section-header">
+            <h2>회원 검색</h2>
+        </div>
+
+        <div class="search-form">
+            <div class="search-controls">
+                <div class="search-field">
+                    <select id="searchType">
+                        <option value="name">이름</option>
+                        <option value="email">이메일</option>
+                        <option value="nickname">닉네임</option>
+                        <option value="phone">전화번호</option>
+                    </select>
+                </div>
+                <div class="search-field">
+                    <input type="text" id="searchKeyword" placeholder="검색어를 입력하세요" />
+                </div>
+                <div class="search-field">
+                    <select id="roleFilter">
+                        <option value="">전체 역할</option>
+                        <option value="USER">일반 사용자</option>
+                        <option value="PROVIDER">제공자</option>
+                        <option value="HOST">호스트</option>
+                        <option value="ADMIN">관리자</option>
+                    </select>
+                </div>
+                <button type="button" id="searchBtn" class="search-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    검색
+                </button>
+                <button type="button" id="resetBtn" class="reset-btn">초기화</button>
+            </div>
+        </div>
+
+        <!-- 검색 결과 -->
+        <div class="search-results">
+            <div class="results-header">
+                <span class="results-count">총 <span id="totalCount">0</span>명</span>
+            </div>
+
+            <div class="user-table-container">
+                <table class="user-table">
+                    <thead>
+                    <tr>
+                        <th>이름</th>
+                        <th>닉네임</th>
+                        <th>이메일</th>
+                        <th>전화번호</th>
+                        <th>역할</th>
+                        <th>가입일</th>
+                        <th>상태</th>
+                        <th>관리</th>
+                    </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                    <!-- 검색 결과가 여기에 동적으로 추가됩니다 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 페이징 -->
+            <div class="pagination" id="pagination">
+                <!-- 페이징 버튼이 동적으로 생성됩니다 -->
+            </div>
+        </div>
+
+        <!-- 로딩 표시 -->
+        <div class="loading" id="searchLoading" style="display: none;">
+            <div class="spinner"></div>
+            <span>검색 중...</span>
+        </div>
+
+        <!-- 검색 결과 없음 -->
+        <div class="no-results" id="noResults" style="display: none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <h3>검색 결과가 없습니다</h3>
+            <p>다른 검색 조건으로 다시 시도해보세요.</p>
+        </div>
+    </div>
 </div>
 
 <!-- Admin Footer -->
 <div id="admin-footer-mount"></div>
+
+<!-- 회원 상세보기 모달 -->
+<div id="userDetailModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>회원 상세 정보</h3>
+            <button type="button" class="modal-close" id="closeModal">&times;</button>
+        </div>
+        <div class="modal-body" id="userDetailContent">
+            <!-- 사용자 상세 정보가 동적으로 로드됩니다 -->
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript 파일들 로드 -->
+<script src="/js/api.js"></script>
+<script src="/js/admin/UserManagementApi.js"></script>
+<script src="/js/admin/UserManagementUI.js"></script>
+<script src="/js/admin/UserManagementController.js"></script>
 
 <script>
     async function injectPartial(selector, url) {
@@ -58,28 +155,13 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+        // 헤더/푸터 로드
         injectPartial('#app-header-mount', '../components/header.html');
         injectPartial('#admin-footer-mount', '../components/admin-footer.html');
+
+        // 회원 관리 컨트롤러 초기화
+        new UserManagementController();
     });
-
-    // 계정 전환 요청 개수 로드
-    async function loadUpgradeRequestCount() {
-        try {
-            const token = localStorage.getItem('authToken');
-            const response = await fetch('/api/admin/role-upgrades/count', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (response.ok) {
-                const count = await response.json();
-                document.getElementById('upgradeRequestCount').textContent = count;
-            }
-        } catch (error) {
-            console.error('계정 전환 요청 개수 로드 실패:', error);
-        }
-    }
 </script>
 </body>
 </html>
