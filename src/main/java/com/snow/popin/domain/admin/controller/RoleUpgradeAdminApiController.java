@@ -52,35 +52,6 @@ public class RoleUpgradeAdminApiController {
         return ResponseEntity.ok(reqs);
     }
 
-    // 상태별 역할 승격 요청 목록 조회 (하위 호환성을 위해 유지)
-    @GetMapping("/requests/status/{status}")
-    public ResponseEntity<Page<RoleUpgradeResponse>> getRequestsByStatus(
-            @PathVariable ApprovalStatus status,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
-            Pageable pageable) {
-
-        Page<RoleUpgradeResponse> reqs = roleService.getRoleUpgradeRequestsByStatus(status, pageable);
-        return ResponseEntity.ok(reqs);
-    }
-
-    // 요청 역할별 역할 승격 요청 목록 조회 (하위 호환성을 위해 유지)
-    @GetMapping("/requests/role/{role}")
-    public ResponseEntity<Page<RoleUpgradeResponse>> getRequestsByRole(
-            @PathVariable Role role,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
-            Pageable pageable) {
-
-        Page<RoleUpgradeResponse> reqs = roleService.getRoleUpgradeRequestsByRole(role, pageable);
-        return ResponseEntity.ok(reqs);
-    }
-
-    // 대기중인 요청 개수 조회
-    @GetMapping("/pending-count")
-    public ResponseEntity<Map<String, Long>> getPendingCount(){
-        long count = roleService.getPendingRequestCount();
-        return ResponseEntity.ok(Map.of("pendingCount", count));
-    }
-
     // 역할 승격 요청 상세 조회
     @GetMapping("/requests/{id}")
     public ResponseEntity<RoleUpgradeResponse> getRequestDetail(@PathVariable Long id) {
@@ -100,4 +71,12 @@ public class RoleUpgradeAdminApiController {
 
         return ResponseEntity.ok(Map.of("message", msg));
     }
+
+    // 대기중인 요청 개수 조회
+    @GetMapping("/pending-count")
+    public ResponseEntity<Long> getPendingCount(){
+        long count = roleService.getPendingRequestCount();
+        return ResponseEntity.of(java.util.Optional.of(count));
+    }
+
 }
