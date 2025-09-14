@@ -91,7 +91,10 @@ const ProviderPage = {
         btnMap.className = 'btn icon';
         btnMap.title = '지도 보기';
         btnMap.textContent = '🗺️';
-        btnMap.addEventListener('click', () => { alert('지도 기능은 준비중입니다.'); });
+        // 지도 기능 개선
+        btnMap.addEventListener('click', () => {
+            this.openSpaceInMap(space);
+        });
 
         const btnDel = document.createElement('button');
         btnDel.className = 'btn icon';
@@ -115,19 +118,52 @@ const ProviderPage = {
         return card;
     },
 
+    // 공간 지도에서 보기 기능 추가
+    openSpaceInMap(space) {
+        let address = '';
+
+        // venue 정보가 있으면 활용
+        if (space.venue) {
+            if (space.venue.roadAddress) {
+                address = space.venue.roadAddress;
+            } else if (space.venue.jibunAddress) {
+                address = space.venue.jibunAddress;
+            }
+            if (space.venue.detailAddress && address) {
+                address += ` ${space.venue.detailAddress}`;
+            }
+        } else if (space.address) {
+            address = space.address;
+        }
+
+        if (address) {
+            const searchUrl = `https://map.naver.com/v5/search/${encodeURIComponent(address)}`;
+            window.open(searchUrl, '_blank');
+        } else {
+            alert('주소 정보가 없습니다.');
+        }
+    },
+
     renderReservations(reservations) {
         const listEl = document.getElementById('reservation-list');
         listEl.innerHTML = "";
-        const emptyEl = listEl.querySelector('[data-empty]');
 
         if (reservations && reservations.length > 0) {
-            if (emptyEl) emptyEl.remove();
-            reservations.forEach(reservation => {
-                const card = this.createReservationCard(reservation);
-                listEl.appendChild(card);
-            });
+            // 취소/거절된 예약 제외하고 필터링
+            const activeReservations = reservations.filter(r =>
+                r.status !== 'CANCELLED' && r.status !== 'REJECTED'
+            );
+
+            if (activeReservations.length > 0) {
+                activeReservations.forEach(reservation => {
+                    const card = this.createReservationCard(reservation);
+                    listEl.appendChild(card);
+                });
+            } else {
+                listEl.innerHTML = '<div class="empty" data-empty>진행 중인 예약 요청이 없습니다.</div>';
+            }
         } else {
-            listEl.innerHTML = '<div class="empty" data-empty>예약 내역이 없습니다.</div>';
+            listEl.innerHTML = '<div class="empty" data-empty>아직 받은 예약 요청이 없습니다.</div>';
         }
     },
 
@@ -158,7 +194,7 @@ const ProviderPage = {
 
         const brand = document.createElement('div');
         brand.className = 'brand';
-        brand.textContent = reservation.brand;
+        brand.textContent = reservation.brandName || reservation.brand;
 
         const popupTitle = document.createElement('div');
         popupTitle.className = 'popup-title';
@@ -188,35 +224,17 @@ const ProviderPage = {
             btnAccept.className = 'btn btn-success';
             btnAccept.textContent = '승인';
             btnAccept.addEventListener('click', () => {
-                this.handleReservationAction('accept', reservation.id, reservation.brand);
+                this.handleReservationAction('accept', reservation.id, reservation.brandName || reservation.brand, card);
             });
 
             const btnReject = document.createElement('button');
             btnReject.className = 'btn btn-danger';
             btnReject.textContent = '거절';
             btnReject.addEventListener('click', () => {
-                this.handleReservationAction('reject', reservation.id, reservation.brand);
+                this.handleReservationAction('reject', reservation.id, reservation.brandName || reservation.brand, card);
             });
 
             actions.append(btnAccept, btnReject);
-        }
-
-        if (reservation.status === 'REJECTED') {
-            const btnDelete = document.createElement('button');
-            btnDelete.className = 'btn btn-danger';
-            btnDelete.textContent = '삭제';
-            btnDelete.addEventListener('click', async () => {
-                if (!confirm('이 예약을 삭제하시겠습니까?')) return;
-                try {
-                    await apiService.deleteReservation(reservation.id);
-                    alert('예약이 삭제되었습니다.');
-                    card.remove();
-                } catch (err) {
-                    console.error('예약 삭제 실패:', err);
-                    alert('예약 삭제에 실패했습니다.');
-                }
-            });
-            actions.appendChild(btnDelete);
         }
 
         card.append(thumbWrap, info, actions);
@@ -238,13 +256,13 @@ const ProviderPage = {
             const detail = await apiService.getReservationDetail(reservationId);
             const detailInfo = `
 예약 ID: ${detail.id}
-브랜드: ${detail.brand}
+브랜드: ${detail.brandName || detail.brand}
 팝업명: ${detail.popupTitle}
 기간: ${detail.startDate} ~ ${detail.endDate}
 연락처: ${detail.contactPhone || '없음'}
 메시지: ${detail.message || '없음'}
 공간: ${detail.space.title}
-예약자: ${detail.host.name} (${detail.host.email})
+예약자: ${detail.hostName} (${detail.hostEmail || 'email 없음'})
             `;
             alert(detailInfo);
         } catch (error) {
@@ -253,7 +271,7 @@ const ProviderPage = {
         }
     },
 
-    async handleReservationAction(action, reservationId, brandName) {
+    async handleReservationAction(action, reservationId, brandName, cardElement) {
         const actionText = action === 'accept' ? '승인' : '거절';
         if (!confirm(`${brandName}의 예약을 ${actionText}하시겠습니까?`)) return;
 
@@ -264,7 +282,13 @@ const ProviderPage = {
                 await apiService.rejectReservation(reservationId);
             }
             alert(`예약이 ${actionText}되었습니다.`);
-            this.init();
+
+            // 거절한 경우 카드 즉시 제거, 승인한 경우는 새로고침
+            if (action === 'reject') {
+                cardElement.remove();
+            } else {
+                this.init(); // 승인의 경우 상태 업데이트를 위해 새로고침
+            }
         } catch (error) {
             console.error(`예약 ${actionText} 실패:`, error);
             alert(`예약 ${actionText}에 실패했습니다. ${error.message}`);
@@ -277,7 +301,11 @@ const ProviderPage = {
                 const status = btn.dataset.status;
 
                 if (status === "ALL") {
-                    this.renderReservations(this.allReservations);
+                    // 전체 보기에서도 취소/거절된 것은 제외
+                    const activeReservations = this.allReservations.filter(r =>
+                        r.status !== 'CANCELLED' && r.status !== 'REJECTED'
+                    );
+                    this.renderReservations(activeReservations);
                 } else {
                     const filtered = this.allReservations.filter((r) => r.status === status);
                     this.renderReservations(filtered);
