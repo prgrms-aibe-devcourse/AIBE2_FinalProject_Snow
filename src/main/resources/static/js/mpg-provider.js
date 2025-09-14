@@ -1,42 +1,18 @@
-// 마이페이지 - 공간제공자
 const ProviderPage = {
-    // 전체 예약 데이터를 저장할 변수
-    allReservations: [],
-    currentFilter: 'all', // 현재 필터 상태
-
-    // 페이지 초기화
     async init() {
         try {
-            console.log('마이페이지 - provider 로딩중..');
-
-            // 데이터 병렬로 가져오기
             const [spaces, reservations, stats] = await Promise.all([
-                apiService.getMySpaces().catch(e => {
-                    console.error('공간 목록 로드 실패:', e);
-                    return [];
-                }),
-                apiService.getMyReservations().catch(e => {
-                    console.error('예약 목록 로드 실패:', e);
-                    return [];
-                }),
-                apiService.getReservationStats().catch(e => {
-                    console.error('통계 로드 실패:', e);
-                    return {};
-                })
+                apiService.getMySpaces().catch(() => []),
+                apiService.getMyReservations().catch(() => []),
+                apiService.getReservationStats().catch(() => ({}))
             ]);
 
-            // 전체 예약 데이터 저장
             this.allReservations = reservations;
 
-            // 렌더링
             this.renderStats(stats);
             this.renderSpaces(spaces);
             this.renderReservations(reservations);
-
-            // 통계 버튼에 이벤트 리스너 추가
-            this.initializeStatButtons();
-
-            console.log('Provider page loaded successfully');
+            this.bindFilters();
 
         } catch (error) {
             console.error('Provider page initialization failed:', error);
@@ -45,59 +21,6 @@ const ProviderPage = {
         }
     },
 
-    // 통계 버튼 초기화
-    initializeStatButtons() {
-        const statCards = document.querySelectorAll('.stat-card');
-
-        statCards.forEach((card, index) => {
-            card.style.cursor = 'pointer';
-            card.addEventListener('click', () => {
-                const filters = ['pending', 'accepted', 'rejected', 'all'];
-                this.filterReservations(filters[index]);
-                this.updateActiveStatCard(index);
-            });
-        });
-    },
-
-    // 활성 통계 카드 업데이트
-    updateActiveStatCard(activeIndex) {
-        const statCards = document.querySelectorAll('.stat-card');
-
-        statCards.forEach((card, index) => {
-            if (index === activeIndex) {
-                card.classList.add('active');
-            } else {
-                card.classList.remove('active');
-            }
-        });
-    },
-
-    // 예약 필터링
-    filterReservations(filterType) {
-        this.currentFilter = filterType;
-        let filteredReservations = this.allReservations;
-
-        switch (filterType) {
-            case 'pending':
-                filteredReservations = this.allReservations.filter(r => r.status === 'PENDING');
-                break;
-            case 'accepted':
-                filteredReservations = this.allReservations.filter(r => r.status === 'ACCEPTED');
-                break;
-            case 'rejected':
-                filteredReservations = this.allReservations.filter(r => r.status === 'REJECTED');
-                break;
-            case 'all':
-            default:
-                filteredReservations = this.allReservations;
-                break;
-        }
-
-        // 필터링된 결과로 예약 목록 다시 렌더링
-        this.renderReservations(filteredReservations, true);
-    },
-
-    // 통계 렌더링
     renderStats(stats) {
         const elements = {
             pending: document.getElementById('stat-pending'),
@@ -112,14 +35,12 @@ const ProviderPage = {
         if (elements.total) elements.total.textContent = stats.totalReservations || 0;
     },
 
-    // 공간 목록 렌더링
     renderSpaces(spaces) {
         const listEl = document.getElementById('provider-space-list');
         const emptyEl = listEl.querySelector('[data-empty]');
 
         if (spaces && spaces.length > 0) {
             if (emptyEl) emptyEl.remove();
-
             spaces.forEach(space => {
                 const card = this.createSpaceCard(space);
                 listEl.appendChild(card);
@@ -127,14 +48,12 @@ const ProviderPage = {
         }
     },
 
-    // 공간 카드 생성
     createSpaceCard(space) {
         const card = document.createElement('div');
         card.className = 'card space-card';
 
         const detailUrl = `/templates/pages/space-detail.html?id=${encodeURIComponent(space.id)}`;
 
-        // 썸네일
         const thumbWrap = document.createElement('div');
         thumbWrap.className = 'thumb';
         if (space.coverImageUrl) {
@@ -148,28 +67,23 @@ const ProviderPage = {
             img.onerror = () => { img.style.display = 'none'; };
             thumbWrap.appendChild(img);
         }
+        thumbWrap.addEventListener('click', () => { window.location.href = detailUrl; });
 
-        //  썸네일 클릭 → 상세 페이지 이동
-        const goDetail = () => { window.location.href = detailUrl; };
-        thumbWrap.addEventListener('click', goDetail);
-
-        // 정보 영역
         const info = document.createElement('div');
         info.className = 'info';
 
         const title = document.createElement('div');
         title.className = 'title linklike';
         title.textContent = space.title || '등록 공간';
-        title.addEventListener('click', goDetail);
+        title.addEventListener('click', () => { window.location.href = detailUrl; });
 
         const desc = document.createElement('div');
         desc.className = 'desc linklike';
         desc.textContent = space.description || '공간 설명';
-        desc.addEventListener('click', goDetail);
+        desc.addEventListener('click', () => { window.location.href = detailUrl; });
 
         info.append(title, desc);
 
-        // 버튼 영역
         const actions = document.createElement('div');
         actions.className = 'btn-row';
 
@@ -177,9 +91,7 @@ const ProviderPage = {
         btnMap.className = 'btn icon';
         btnMap.title = '지도 보기';
         btnMap.textContent = '🗺️';
-        btnMap.addEventListener('click', () => {
-            alert('지도 기능은 준비중입니다.');
-        });
+        btnMap.addEventListener('click', () => { alert('지도 기능은 준비중입니다.'); });
 
         const btnDel = document.createElement('button');
         btnDel.className = 'btn icon';
@@ -203,47 +115,26 @@ const ProviderPage = {
         return card;
     },
 
-    // 예약 목록 렌더링
-    renderReservations(reservations, isFiltered = false) {
+    renderReservations(reservations) {
         const listEl = document.getElementById('reservation-list');
-
-        // 기존 카드들 제거 (empty 메시지 제외)
-        const existingCards = listEl.querySelectorAll('.reservation-card');
-        existingCards.forEach(card => card.remove());
-
+        listEl.innerHTML = "";
         const emptyEl = listEl.querySelector('[data-empty]');
 
         if (reservations && reservations.length > 0) {
-            if (emptyEl) emptyEl.style.display = 'none';
-
+            if (emptyEl) emptyEl.remove();
             reservations.forEach(reservation => {
                 const card = this.createReservationCard(reservation);
                 listEl.appendChild(card);
             });
         } else {
-            // 필터링된 결과가 없을 때 메시지 변경
-            if (emptyEl) {
-                emptyEl.style.display = 'block';
-                if (isFiltered && this.currentFilter !== 'all') {
-                    const filterNames = {
-                        pending: '대기중인',
-                        accepted: '승인된',
-                        rejected: '거절된'
-                    };
-                    emptyEl.textContent = `${filterNames[this.currentFilter]} 예약 요청이 없습니다.`;
-                } else {
-                    emptyEl.textContent = '아직 받은 예약 요청이 없습니다.';
-                }
-            }
+            listEl.innerHTML = '<div class="empty" data-empty>예약 내역이 없습니다.</div>';
         }
     },
 
-    // 예약 카드 생성
     createReservationCard(reservation) {
         const card = document.createElement('div');
         card.className = 'card reservation-card';
 
-        // 썸네일 (공간 이미지)
         const thumbWrap = document.createElement('div');
         thumbWrap.className = 'thumb';
         if (reservation.spaceImageUrl) {
@@ -258,52 +149,40 @@ const ProviderPage = {
             thumbWrap.appendChild(img);
         }
 
-        // 예약 정보
         const info = document.createElement('div');
         info.className = 'info';
 
-        // 상태 뱃지
         const statusBadge = document.createElement('div');
         statusBadge.className = `status-badge ${reservation.status.toLowerCase()}`;
         statusBadge.textContent = this.getStatusText(reservation.status);
 
-        // 브랜드명
         const brand = document.createElement('div');
         brand.className = 'brand';
         brand.textContent = reservation.brand;
 
-        // 팝업명
         const popupTitle = document.createElement('div');
         popupTitle.className = 'popup-title';
         popupTitle.textContent = reservation.popupTitle || '팝업 제목 없음';
 
-        // 예약 기간
         const dates = document.createElement('div');
         dates.className = 'dates';
         dates.textContent = `${reservation.startDate} ~ ${reservation.endDate}`;
 
-        // 공간 정보
         const spaceInfo = document.createElement('div');
         spaceInfo.className = 'space-info';
         spaceInfo.textContent = `${reservation.spaceTitle} • ${reservation.hostName}`;
 
         info.append(statusBadge, brand, popupTitle, dates, spaceInfo);
 
-        // 버튼 영역
         const actions = document.createElement('div');
         actions.className = 'btn-row';
 
-        // 상세보기 버튼
         const btnDetail = document.createElement('button');
         btnDetail.className = 'btn btn-outline';
         btnDetail.textContent = '상세보기';
-        btnDetail.addEventListener('click', () => {
-            this.showReservationDetail(reservation.id);
-        });
-
+        btnDetail.addEventListener('click', () => { this.showReservationDetail(reservation.id); });
         actions.appendChild(btnDetail);
 
-        // 대기중 상태일 때만 승인/거절 버튼 표시
         if (reservation.status === 'PENDING') {
             const btnAccept = document.createElement('button');
             btnAccept.className = 'btn btn-success';
@@ -322,11 +201,28 @@ const ProviderPage = {
             actions.append(btnAccept, btnReject);
         }
 
+        if (reservation.status === 'REJECTED') {
+            const btnDelete = document.createElement('button');
+            btnDelete.className = 'btn btn-danger';
+            btnDelete.textContent = '삭제';
+            btnDelete.addEventListener('click', async () => {
+                if (!confirm('이 예약을 삭제하시겠습니까?')) return;
+                try {
+                    await apiService.deleteReservation(reservation.id);
+                    alert('예약이 삭제되었습니다.');
+                    card.remove();
+                } catch (err) {
+                    console.error('예약 삭제 실패:', err);
+                    alert('예약 삭제에 실패했습니다.');
+                }
+            });
+            actions.appendChild(btnDelete);
+        }
+
         card.append(thumbWrap, info, actions);
         return card;
     },
 
-    // 상태 텍스트 변환
     getStatusText(status) {
         const statusMap = {
             'PENDING': '대기중',
@@ -337,12 +233,9 @@ const ProviderPage = {
         return statusMap[status] || status;
     },
 
-    // 예약 상세보기
     async showReservationDetail(reservationId) {
         try {
             const detail = await apiService.getReservationDetail(reservationId);
-
-            // 간단한 모달이나 새 페이지로 상세 정보 표시
             const detailInfo = `
 예약 ID: ${detail.id}
 브랜드: ${detail.brand}
@@ -353,22 +246,16 @@ const ProviderPage = {
 공간: ${detail.space.title}
 예약자: ${detail.host.name} (${detail.host.email})
             `;
-
-            alert(detailInfo); // 임시로 alert 사용, 추후 모달로 변경
-
+            alert(detailInfo);
         } catch (error) {
             console.error('예약 상세 조회 실패:', error);
             alert('예약 상세 정보를 불러올 수 없습니다.');
         }
     },
 
-    // 예약 승인/거절 처리
     async handleReservationAction(action, reservationId, brandName) {
         const actionText = action === 'accept' ? '승인' : '거절';
-
-        if (!confirm(`${brandName}의 예약을 ${actionText}하시겠습니까?`)) {
-            return;
-        }
+        if (!confirm(`${brandName}의 예약을 ${actionText}하시겠습니까?`)) return;
 
         try {
             if (action === 'accept') {
@@ -376,33 +263,28 @@ const ProviderPage = {
             } else {
                 await apiService.rejectReservation(reservationId);
             }
-
             alert(`예약이 ${actionText}되었습니다.`);
-
-            // 데이터 다시 로드하고 현재 필터 유지
-            const [reservations, stats] = await Promise.all([
-                apiService.getMyReservations().catch(e => {
-                    console.error('예약 목록 로드 실패:', e);
-                    return [];
-                }),
-                apiService.getReservationStats().catch(e => {
-                    console.error('통계 로드 실패:', e);
-                    return {};
-                })
-            ]);
-
-            this.allReservations = reservations;
-            this.renderStats(stats);
-
-            // 현재 필터 상태 유지하며 재렌더링
-            this.filterReservations(this.currentFilter);
-
+            this.init();
         } catch (error) {
             console.error(`예약 ${actionText} 실패:`, error);
             alert(`예약 ${actionText}에 실패했습니다. ${error.message}`);
         }
+    },
+
+    bindFilters() {
+        document.querySelectorAll(".filter-btn").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const status = btn.dataset.status;
+
+                if (status === "ALL") {
+                    this.renderReservations(this.allReservations);
+                } else {
+                    const filtered = this.allReservations.filter((r) => r.status === status);
+                    this.renderReservations(filtered);
+                }
+            });
+        });
     }
 };
 
-// 전역으로 노출
 window.ProviderPage = ProviderPage;

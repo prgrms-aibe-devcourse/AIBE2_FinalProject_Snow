@@ -326,9 +326,51 @@ apiService.rejectReservation = async function(reservationId) {
     return await this.put(`/space-reservations/${encodeURIComponent(reservationId)}/reject`, {});
 };
 
+// 예약 삭제 (거절된 예약만)
+apiService.deleteReservation = async function(reservationId) {
+    return await this.delete(`/space-reservations/${encodeURIComponent(reservationId)}/delete`);
+};
 // 예약 현황 통계
 apiService.getReservationStats = async function() {
-    return await this.get('/space-reservations/stats');
+    try {
+        const reservations = await this.getMyReservations();
+
+        const stats = {
+            pendingCount: 0,
+            acceptedCount: 0,
+            rejectedCount: 0,
+            cancelledCount: 0,
+            totalReservations: reservations.length
+        };
+
+        reservations.forEach(reservation => {
+            switch(reservation.status) {
+                case 'PENDING':
+                    stats.pendingCount++;
+                    break;
+                case 'ACCEPTED':
+                    stats.acceptedCount++;
+                    break;
+                case 'REJECTED':
+                    stats.rejectedCount++;
+                    break;
+                case 'CANCELLED':
+                    stats.cancelledCount++;
+                    break;
+            }
+        });
+
+        return stats;
+    } catch (error) {
+        console.error('통계 계산 오류:', error);
+        return {
+            pendingCount: 0,
+            acceptedCount: 0,
+            rejectedCount: 0,
+            cancelledCount: 0,
+            totalReservations: 0
+        };
+    }
 };
 
 // === 팝업 관련 API ===
