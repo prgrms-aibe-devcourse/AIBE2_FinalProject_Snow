@@ -63,16 +63,14 @@ public class SpaceService {
         log.info("Space created successfully with ID: {}", saved.getId());
         return saved.getId();
     }
-
     //모든 공간 목록 조회
     @Transactional(readOnly = true)
     public List<SpaceListResponseDto> listAll(User me) {
-        return spaceRepository.findByIsPublicTrueOrderByCreatedAtDesc()
+        return spaceRepository.findByIsPublicTrueAndIsHiddenFalseOrderByCreatedAtDesc()
                 .stream()
                 .map(space -> SpaceListResponseDto.from(space, me))
                 .collect(Collectors.toList());
     }
-
     //공간 상세보기
     @Transactional(readOnly = true)
     public SpaceResponseDto getDetail(User me, Long id) {
@@ -85,7 +83,6 @@ public class SpaceService {
         }
         return SpaceResponseDto.from(space);
     }
-
     //공간 게시글 수정
     @Transactional
     public void update(User owner, Long spaceId, SpaceUpdateRequestDto dto) {
@@ -98,18 +95,17 @@ public class SpaceService {
         if (!space.isOwner(owner)) {
             throw new AccessDeniedException("해당 공간에 대한 수정 권한이 없습니다.");
         }
-
         // 2) Venue 수정 또는 새로 생성
         Venue venue = space.getVenue();
         if (venue == null) {
             venue = Venue.of(
-                    dto.getTitle(),  // Venue.name = 공간 제목과 동일
+                    dto.getTitle(),
                     dto.getRoadAddress(),
                     dto.getJibunAddress(),
                     dto.getDetailAddress(),
                     dto.getLatitude(),
                     dto.getLongitude(),
-                    dto.getParkingAvailable()  // ← 필요 시 null 허용 or 기본값 처리
+                    dto.getParkingAvailable()
             );
         } else {
             venue.update(
@@ -124,13 +120,10 @@ public class SpaceService {
         }
         venueRepository.save(venue);
 
-        // 3) 이미지 업로드 (있을 경우만)
         String imageUrl = space.getCoverImageUrl();
         if (dto.getImage() != null && !dto.getImage().isEmpty()) {
             imageUrl = fileStorageService.save(dto.getImage());
         }
-
-        // 4) Space 엔티티 값 업데이트
         space.updateSpaceInfo(
                 dto.getTitle(),
                 dto.getDescription(),
@@ -145,10 +138,7 @@ public class SpaceService {
 
         log.info("Space ID {} updated successfully", spaceId);
     }
-
-
     //공간 게시글 삭제
-
     public void delete(User owner, Long id) {
         log.info("Deleting space ID: {} by owner: {}", id, owner.getId());
 
@@ -169,6 +159,19 @@ public class SpaceService {
                 .map(space -> SpaceListResponseDto.from(space, owner))
                 .collect(Collectors.toList());
     }
+    // 공간 숨김 처리 (신고 시)
+    @Transactional
+    public void hideSpace(User reporter, Long spaceId) {
+        log.info("Hiding space ID: {} reported by user: {}", spaceId, reporter.getId());
 
+        Space space = spaceRepository.findById(spaceId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 공간이 존재하지 않습니다."));
 
+        if (space.isOwner(reporter)) {
+            throw new IllegalArgumentException("자신의 공간은 신고할 수 없습니다.");
+        }
+
+        space.hide();
+        log.info("Space ID {} hidden successfully", spaceId);
+    }
 }

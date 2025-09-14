@@ -63,6 +63,18 @@ public class Space extends BaseEntity {
     @JoinColumn(name = "venue_id")
     private Venue venue;
 
+    //is_hidden 추가
+    @Column(name = "is_hidden", nullable = false)
+    private Boolean isHidden = false;
+
+    public void hide() {
+        this.isHidden = true;
+    }
+
+    public void show() {
+        this.isHidden = false;
+    }
+
     @Builder
     public Space(User owner, String title, String description,
                  String address, Integer areaSize, LocalDate startDate, LocalDate endDate,
