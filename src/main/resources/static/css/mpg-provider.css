@@ -1,3 +1,18 @@
+/* ===== 공통 ===== */
+.main-content {
+    padding: 0 24px;
+}
+
+.block {
+    margin-bottom: 28px;
+}
+
+.block-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #111;
+}
 /* 공간 카드 */
 .space-card {
     display: flex;
