@@ -180,6 +180,32 @@
     color: #222; /* 숫자/라벨 색 기본 진한 회색 */
     font-weight: bold;
     background: #f6a9a9; /* 디폴트 배경 */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.stat-card.active .stat-number,
+.stat-card.active .stat-label {
+    color: white;
+}
+
+/* 호버 효과 추가 */
+.stat-card:not(.active):hover {
+    background-color: #f8f9fa;
+    border-color: #667eea;
 }
 
 .stat-card .stat-number {
@@ -271,4 +297,3 @@
     background: #3498db;
     color: #fff;
 }
-

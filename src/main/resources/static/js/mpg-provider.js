@@ -1,5 +1,9 @@
 // 마이페이지 - 공간제공자
 const ProviderPage = {
+    // 전체 예약 데이터를 저장할 변수
+    allReservations: [],
+    currentFilter: 'all', // 현재 필터 상태
+
     // 페이지 초기화
     async init() {
         try {
@@ -21,10 +25,16 @@ const ProviderPage = {
                 })
             ]);
 
+            // 전체 예약 데이터 저장
+            this.allReservations = reservations;
+
             // 렌더링
             this.renderStats(stats);
             this.renderSpaces(spaces);
             this.renderReservations(reservations);
+
+            // 통계 버튼에 이벤트 리스너 추가
+            this.initializeStatButtons();
 
             console.log('Provider page loaded successfully');
 
@@ -33,6 +43,58 @@ const ProviderPage = {
             document.getElementById('main-content').innerHTML =
                 '<div class="error">페이지 로딩 중 오류가 발생했습니다.</div>';
         }
+    },
+
+    // 통계 버튼 초기화
+    initializeStatButtons() {
+        const statCards = document.querySelectorAll('.stat-card');
+
+        statCards.forEach((card, index) => {
+            card.style.cursor = 'pointer';
+            card.addEventListener('click', () => {
+                const filters = ['pending', 'accepted', 'rejected', 'all'];
+                this.filterReservations(filters[index]);
+                this.updateActiveStatCard(index);
+            });
+        });
+    },
+
+    // 활성 통계 카드 업데이트
+    updateActiveStatCard(activeIndex) {
+        const statCards = document.querySelectorAll('.stat-card');
+
+        statCards.forEach((card, index) => {
+            if (index === activeIndex) {
+                card.classList.add('active');
+            } else {
+                card.classList.remove('active');
+            }
+        });
+    },
+
+    // 예약 필터링
+    filterReservations(filterType) {
+        this.currentFilter = filterType;
+        let filteredReservations = this.allReservations;
+
+        switch (filterType) {
+            case 'pending':
+                filteredReservations = this.allReservations.filter(r => r.status === 'PENDING');
+                break;
+            case 'accepted':
+                filteredReservations = this.allReservations.filter(r => r.status === 'ACCEPTED');
+                break;
+            case 'rejected':
+                filteredReservations = this.allReservations.filter(r => r.status === 'REJECTED');
+                break;
+            case 'all':
+            default:
+                filteredReservations = this.allReservations;
+                break;
+        }
+
+        // 필터링된 결과로 예약 목록 다시 렌더링
+        this.renderReservations(filteredReservations, true);
     },
 
     // 통계 렌더링
@@ -141,19 +203,38 @@ const ProviderPage = {
         return card;
     },
 
-
     // 예약 목록 렌더링
-    renderReservations(reservations) {
+    renderReservations(reservations, isFiltered = false) {
         const listEl = document.getElementById('reservation-list');
+
+        // 기존 카드들 제거 (empty 메시지 제외)
+        const existingCards = listEl.querySelectorAll('.reservation-card');
+        existingCards.forEach(card => card.remove());
+
         const emptyEl = listEl.querySelector('[data-empty]');
 
         if (reservations && reservations.length > 0) {
-            if (emptyEl) emptyEl.remove();
+            if (emptyEl) emptyEl.style.display = 'none';
 
             reservations.forEach(reservation => {
                 const card = this.createReservationCard(reservation);
                 listEl.appendChild(card);
             });
+        } else {
+            // 필터링된 결과가 없을 때 메시지 변경
+            if (emptyEl) {
+                emptyEl.style.display = 'block';
+                if (isFiltered && this.currentFilter !== 'all') {
+                    const filterNames = {
+                        pending: '대기중인',
+                        accepted: '승인된',
+                        rejected: '거절된'
+                    };
+                    emptyEl.textContent = `${filterNames[this.currentFilter]} 예약 요청이 없습니다.`;
+                } else {
+                    emptyEl.textContent = '아직 받은 예약 요청이 없습니다.';
+                }
+            }
         }
     },
 
@@ -298,8 +379,23 @@ const ProviderPage = {
 
             alert(`예약이 ${actionText}되었습니다.`);
 
-            // 페이지 새로고침하여 업데이트된 상태 반영
-            this.init();
+            // 데이터 다시 로드하고 현재 필터 유지
+            const [reservations, stats] = await Promise.all([
+                apiService.getMyReservations().catch(e => {
+                    console.error('예약 목록 로드 실패:', e);
+                    return [];
+                }),
+                apiService.getReservationStats().catch(e => {
+                    console.error('통계 로드 실패:', e);
+                    return {};
+                })
+            ]);
+
+            this.allReservations = reservations;
+            this.renderStats(stats);
+
+            // 현재 필터 상태 유지하며 재렌더링
+            this.filterReservations(this.currentFilter);
 
         } catch (error) {
             console.error(`예약 ${actionText} 실패:`, error);
