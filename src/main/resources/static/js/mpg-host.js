@@ -85,56 +85,112 @@ const HostPage = {
         listEl.innerHTML = '';
 
         if (reservations && reservations.length > 0) {
-            reservations.forEach(r => {
-                const status = r.status || '';
-                const card = document.createElement('div');
-                card.className = 'rent-card';
-                card.innerHTML = `
-                    <div class="left">
-                        <img src="${r.spaceImageUrl || '/img/placeholder.png'}" class="thumb" alt="공간 이미지" />
-                        <div>
-                            <div class="address"><strong>${r.spaceTitle || '공간명 없음'}</strong></div>
-                            <div class="desc">주소 : ${r.spaceAddress || '-'}</div>
-                            <div class="dates">${r.startDate || ''} ~ ${r.endDate || ''}</div>
-                            <span class="status-badge ${status.toLowerCase()}">${translateStatus(status)}</span>
+            // 취소된 예약은 제외하고 필터링
+            const activeReservations = reservations.filter(r => r.status !== 'CANCELLED');
+
+            if (activeReservations.length > 0) {
+                activeReservations.forEach(r => {
+                    const status = r.status || '';
+                    const card = document.createElement('div');
+                    card.className = 'rent-card';
+                    card.innerHTML = `
+                        <div class="left">
+                            <img src="${r.spaceImageUrl || '/img/placeholder.png'}" class="thumb" alt="공간 이미지" />
+                            <div>
+                                <div class="address"><strong>${r.spaceTitle || '공간명 없음'}</strong></div>
+                                <div class="desc">주소 : ${r.spaceAddress || '주소 정보 없음'}</div>
+                                <div class="dates">${r.startDate || ''} ~ ${r.endDate || ''}</div>
+                                <span class="status-badge ${status.toLowerCase()}">${translateStatus(status)}</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="right-actions">
-                        <button class="btn-detail" data-reservation-id="${r.id}">상세보기</button>
-                        <button class="btn-map" data-address="${r.spaceAddress || ''}">지도로 보기</button>
-                        <button class="btn-cancel" data-reservation-id="${r.id}">예약취소</button>
-                    </div>
-                `;
-                this.addReservationCardEventListeners(card, r);
-                listEl.appendChild(card);
-            });
+                        <div class="right-actions">
+                            <button class="btn-detail" data-reservation-id="${r.id}" data-space-id="${r.spaceId}">상세보기</button>
+                            <button class="btn-map" data-address="${r.spaceAddress || ''}">지도로 보기</button>
+                            <button class="btn-cancel" data-reservation-id="${r.id}">예약취소</button>
+                        </div>
+                    `;
+                    this.addReservationCardEventListeners(card, r);
+                    listEl.appendChild(card);
+                });
+            } else {
+                listEl.innerHTML = '<div class="empty">진행 중인 예약 내역이 없습니다.</div>';
+            }
         } else {
             listEl.innerHTML = '<div class="empty">예약 내역이 없습니다.</div>';
         }
     },
 
     addReservationCardEventListeners(card, reservation) {
-        // 상세보기 → 예약 상세 페이지 이동
+        // 상세보기 → 공간 상세 페이지로 이동 (수정됨)
         card.querySelector('.btn-detail').addEventListener('click', () => {
-            window.location.href = `/templates/pages/space-detail.html?id=${reservation.id}`;
+            if (reservation.spaceId) {
+                window.location.href = `/templates/pages/space-detail.html?id=${reservation.spaceId}`;
+            } else {
+                // 백업: spaceId가 없으면 예약 정보 표시
+                const info = `
+예약 ID: ${reservation.id}
+공간명: ${reservation.spaceTitle || '공간명 없음'}
+주소: ${reservation.spaceAddress || '주소 없음'}
+예약 기간: ${reservation.startDate || ''} ~ ${reservation.endDate || ''}
+상태: ${translateStatus(reservation.status)}
+                `.trim();
+                alert(info);
+            }
         });
 
-        // 지도로 보기
+        // 지도로 보기 (개선됨)
         card.querySelector('.btn-map').addEventListener('click', () => {
-            alert("지도 서비스는 준비중입니다.")
+            const address = reservation.spaceAddress;
+            if (address && address !== '주소 정보 없음') {
+                // 네이버 지도로 주소 검색
+                const searchUrl = `https://map.naver.com/v5/search/${encodeURIComponent(address)}`;
+                window.open(searchUrl, '_blank');
+            } else {
+                alert("주소 정보가 없습니다.");
+            }
         });
 
-        // 예약 취소
+        // 예약 취소 (HOST용 취소 API 사용)
         card.querySelector('.btn-cancel').addEventListener('click', async () => {
             if (!confirm('정말 예약을 취소하시겠습니까?')) return;
             try {
-                await apiService.delete(`/space-reservations/${reservation.id}`);
+                console.log('예약 취소 시작, ID:', reservation.id);
+                console.log('예약 상태:', reservation.status);
+
+                // HOST용 예약 취소 API 사용
+                const result = await apiService.delete(`/space-reservations/${reservation.id}`);
+                console.log('취소 성공:', result);
                 alert('예약이 취소되었습니다.');
-                const updatedReservations = await apiService.get('/space-reservations/my-requests');
-                this.renderReservations(updatedReservations);
+
+                // 카드를 즉시 제거
+                card.remove();
             } catch (err) {
-                console.error('예약 취소 실패:', err);
-                alert('예약 취소에 실패했습니다.');
+                console.error('예약 취소 실패 상세:', err);
+
+                let errorMessage = '예약 취소에 실패했습니다.';
+
+                if (err.message && err.message.includes('500')) {
+                    errorMessage = '서버에서 처리 중 오류가 발생했습니다. 예약 상태를 확인해주세요.';
+                } else if (err.message && err.message.includes('401')) {
+                    errorMessage = '인증이 필요합니다. 다시 로그인해주세요.';
+                } else if (err.message && err.message.includes('403')) {
+                    errorMessage = '권한이 없습니다.';
+                } else if (err.message && err.message.includes('404')) {
+                    errorMessage = '예약을 찾을 수 없습니다.';
+                } else if (err.message && err.message.includes('400')) {
+                    errorMessage = '취소할 수 없는 예약입니다. (이미 승인되었거나 완료된 예약일 수 있습니다)';
+                }
+
+                alert(errorMessage);
+
+                // 500 에러 발생 시 상세 정보 표시
+                if (err.message && err.message.includes('500')) {
+                    console.log('=== 디버깅 정보 ===');
+                    console.log('예약 ID:', reservation.id);
+                    console.log('예약 상태:', reservation.status);
+                    console.log('공간 정보:', reservation.spaceTitle);
+                    console.log('전체 예약 객체:', reservation);
+                }
             }
         });
     }
