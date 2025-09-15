@@ -9,7 +9,6 @@
     animation: popIn .25s ease;
 }
 
-/* 닫기 버튼 (미션 모달과 통일) */
 .modal-close {
     position: absolute;
     top: 12px;

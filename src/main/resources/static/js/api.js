@@ -537,3 +537,61 @@ apiService.searchMapPopups = async function(params = {}) {
     const query = sp.toString() ? `?${sp.toString()}` : '';
     return await this.get(`/map/popups/search${query}`);
 };
+
+// === 팝업 제보 API ===
+
+// 제보 생성
+apiService.createPopupReport = async function(formData) {
+    try {
+        const response = await fetch(`${this.baseURL}/popups/reports`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${this.getStoredToken()}`
+            },
+            body: formData,
+            credentials: 'include'
+        });
+
+        if (response.status === 401) {
+            this.removeToken();
+            throw new Error('인증이 필요합니다.');
+        }
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('팝업 제보 API Error:', error);
+        throw error;
+    }
+};
+
+
+// 제보 단건 조회
+apiService.getPopupReport = async function(reportId) {
+    return await this.get(`/popups/reports/${encodeURIComponent(reportId)}`);
+};
+
+// 상태별 제보 목록 (관리자)
+apiService.listPopupReportsByStatus = async function(status, page = 0, size = 20) {
+    const params = new URLSearchParams({ status, page, size });
+    return await this.get(`/popups/reports?${params}`);
+};
+
+// 내 제보 목록
+apiService.getMyPopupReports = async function(page = 0, size = 20) {
+    const params = new URLSearchParams({ page, size });
+    return await this.get(`/popups/reports/me?${params}`);
+};
+
+// 제보 승인 (관리자)
+apiService.approvePopupReport = async function(reportId) {
+    return await this.put(`/popups/reports/${encodeURIComponent(reportId)}/approve`, {});
+};
+
+// 제보 반려 (관리자)
+apiService.rejectPopupReport = async function(reportId) {
+    return await this.put(`/popups/reports/${encodeURIComponent(reportId)}/reject`, {});
+};
