@@ -13,81 +13,45 @@
     margin-bottom: 12px;
     color: #111;
 }
-/* 공간 카드 */
-.space-card {
-    display: flex;
-    gap: 12px;
-    background: #fff;
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 16px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    align-items: center;
-    justify-content: space-between; /* 양 끝 배치 */
-}
 
-/* 썸네일 */
-.space-card img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 8px;
-    flex-shrink: 0;
-}
-
-/* 정보 영역 */
-.space-info {
-    flex: 1;
-    margin-left: 10px;
-}
-
-.space-title {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 4px;
-}
-
-.space-desc {
-    font-size: 14px;
-    color: #555;
-}
-
-/* 액션 버튼 */
-.space-actions {
-    display: flex;
-    gap: 6px;
-}
-
-
-.space-actions button {
-    background: transparent;
-    border: none;
-    font-size: 18px; /* 아이콘 크기 조금 키움 */
-    cursor: pointer;
-}
-
-
-.space-actions button:hover {
-    background: #e0e0e0;
-}
-/* 예약 카드 */
+/* ===== 카드 공통 ===== */
+.space-card,
 .reservation-card {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    border: 1px solid #eee;
-    border-radius: 12px;
+    justify-content: space-between;
     background: #fff;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    gap: 12px;
     margin-bottom: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
 }
+
+/* hover 효과 추가 */
+.space-card:hover,
+.reservation-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    border-color: #d1d5db;
+}
+
+/* 썸네일 */
+.space-card .thumb,
 .reservation-card .thumb {
     flex: 0 0 70px;
     height: 70px;
     border-radius: 8px;
     overflow: hidden;
+    background: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
+.space-card .thumb img,
 .reservation-card .thumb img {
     width: 100%;
     height: 100%;
@@ -95,220 +59,133 @@
 }
 
 /* 정보 */
+.space-card .info,
 .reservation-card .info {
     flex: 1;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     gap: 4px;
 }
 
-.reservation-card .brand {
-    font-weight: bold;
-    font-size: 14px;
-}
-
+.space-card .title,
 .reservation-card .popup-title {
-    font-size: 13px;
-    color: #444;
+    font-size: 15px;
+    font-weight: 600;
+    color: #111827;
 }
 
+.space-card .desc,
 .reservation-card .dates {
-    font-size: 12px;
-    color: #777;
+    font-size: 13px;
+    color: #555;
 }
 
-.reservation-card .space-info {
-    font-size: 12px;
-    color: #999;
-}
-
-/* 상태 뱃지 */
-.status-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 500;
-    margin-bottom: 2px;
-    width: fit-content;
-}
-.status-badge.pending { background: #fff4e5; color: #e67e22; }
-.status-badge.accepted { background: #e8f8f0; color: #27ae60; }
-.status-badge.rejected { background: #fdecea; color: #c0392b; }
-.status-badge.cancelled { background: #f0f0f0; color: #555; }
-
-/* 버튼 영역 */
+/* 버튼 */
+.space-card .btn-row,
 .reservation-card .btn-row {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
+    gap: 8px;
+    align-items: center;
+    margin-top: 6px;
 }
 
-.reservation-card .btn {
-    padding: 4px 10px;
+/* 버튼 스타일 */
+.btn {
+    padding: 6px 12px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
-    border: 1px solid transparent;
-    background: #efc0c0;
-    color: #221818;
-    transition: all 0.2s ease;
-}
-/* hover 효과 */
-.reservation-card .btn:hover {
-    background: #f0f0f0;
+    border: 1px solid #ddd;
+    background: #f9fafb;
+    color: #333;
+    transition: all 0.2s;
 }
 
-/* 승인 버튼 (연한 톤) */
+.btn:hover {
+    background: #f3f4f6;
+}
+
+.btn.icon {
+    font-size: 18px;
+    background: #f3f4f6;
+}
+
+/* 상태별 버튼 */
 .btn-success {
-    border: 1px solid #27ae60;
-    background: #eafaf1;
-    color: #27ae60;
+    background: #dcfce7;
+    color: #15803d;
+    border: none;
 }
-.btn-success:hover {
-    background: #d4f5e0;
-}
-/* 거절 버튼 (연한 톤) */
+
 .btn-danger {
-    border: 1px solid #c0392b;
-    background: #fdecea;
-    color: #c0392b;
+    background: #fee2e2;
+    color: #b91c1c;
+    border: none;
 }
-.btn-danger:hover {
-    background: #fadbd8;
+
+.btn-outline {
+    background: #fff;
+    border: 1px solid #d1d5db;
+    color: #374151;
 }
-/* === 통계 영역 === */
+
+.btn-call {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: none;
+}
+
+/* ===== 통계 네모 박스 ===== */
 .stats-grid {
     display: flex;
-    gap: 10px;
-    margin: 10px 0;
+    gap: 12px;
+    margin-bottom: 16px;
 }
 
 .stat-card {
     flex: 1;
-    aspect-ratio: 1 / 1; /* 정사각형 */
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #222; /* 숫자/라벨 색 기본 진한 회색 */
-    font-weight: bold;
-    background: #f6a9a9; /* 디폴트 배경 */
+    background: #f3f4f6;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
     cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
+    transition: transform 0.2s ease;
 }
 
 .stat-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: #e5e7eb;
 }
 
-.stat-card.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.stat-card.active .stat-number,
-.stat-card.active .stat-label {
-    color: white;
-}
-
-/* 호버 효과 추가 */
-.stat-card:not(.active):hover {
-    background-color: #f8f9fa;
-    border-color: #667eea;
-}
-
-.stat-card .stat-number {
-    font-size: 20px;
-    margin-bottom: 5px;
-}
-
-.stat-card .stat-label {
-    font-size: 12px;
-    color: #555;
-}
-
-/* 카드별 색상 */
-.stat-pending { background: #e6ddd0; }   /* 연주황 */
-.stat-accepted { background: #d5f5e3; }  /* 연초록 */
-.stat-rejected { background: #fadbd8; }  /* 연빨강 */
-.stat-total { background: #d6eaf8; }     /* 연파랑 */
-
-
-/* === 카드 공통 === */
-.card {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    margin-bottom: 10px;
-    border-radius: 12px;
-    background: #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-}
-
-.card .thumb {
-    width: 64px;
-    height: 64px;
-    flex-shrink: 0;
-}
-
-.card .thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 8px;
-}
-
-.card .info {
-    flex: 1;
-    min-width: 0;
-}
-
-.card .title {
-    font-weight: bold;
+.stat-label {
     font-size: 14px;
-    margin-bottom: 4px;
+    font-weight: 600;
+    margin-bottom: 6px;
 }
 
-.card .desc {
-    font-size: 12px;
-    color: #666;
+.stat-number {
+    font-size: 18px;
+    font-weight: bold;
+    color: #111;
 }
 
-.card .btn-row {
-    display: flex;
-    gap: 6px;
-}
-
-.card .btn {
-    padding: 6px 10px;
+/* ===== 카드 내부 상태 네모 박스 ===== */
+.status-box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 70px;
+    height: 26px;
     border-radius: 6px;
-    font-size: 12px;
-    cursor: pointer;
-    border: none;
-}
-
-.card .btn.icon {
-    background: #f0f0f0;
-}
-
-.btn-approve {
-    background: #27ae60;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
     color: #fff;
 }
 
-.btn-reject {
-    background: #e74c3c;
-    color: #fff;
-}
-
-.btn-detail {
-    background: #3498db;
-    color: #fff;
-}
+.status-box.pending  { background: #3b82f6; }
+.status-box.accepted { background: #10b981; }
+.status-box.rejected { background: #ef4444; }
+.status-box.cancelled{ background: #9ca3af; }

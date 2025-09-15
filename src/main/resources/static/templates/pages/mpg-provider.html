@@ -40,23 +40,24 @@
         <!-- 예약 현황 통계 -->
         <div id="reservation-stats" class="stats-grid">
           <div class="stat-card filter-btn" data-status="PENDING">
-            <div class="stat-number" id="stat-pending">-</div>
             <div class="stat-label">대기중</div>
+            <div class="stat-number" id="stat-pending">0</div>
           </div>
           <div class="stat-card filter-btn" data-status="ACCEPTED">
-            <div class="stat-number" id="stat-accepted">-</div>
             <div class="stat-label">승인됨</div>
+            <div class="stat-number" id="stat-accepted">0</div>
           </div>
           <div class="stat-card filter-btn" data-status="REJECTED">
-            <div class="stat-number" id="stat-rejected">-</div>
             <div class="stat-label">거절됨</div>
+            <div class="stat-number" id="stat-rejected">0</div>
           </div>
           <div class="stat-card filter-btn" data-status="ALL">
-            <div class="stat-number" id="stat-total">-</div>
             <div class="stat-label">전체</div>
+            <div class="stat-number" id="stat-total">0</div>
           </div>
         </div>
 
+        <!-- 예약자 카드 -->
         <div id="reservation-list" class="card-list">
           <div class="empty" data-empty>
             아직 받은 예약 요청이 없습니다.
