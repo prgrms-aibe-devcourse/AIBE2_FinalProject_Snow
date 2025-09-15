@@ -47,7 +47,7 @@ const HostPage = {
                 const card = document.createElement('div');
                 card.className = 'popup-card';
                 card.innerHTML = `
-                    <img src="${p.imageUrl || '/img/placeholder.png'}" class="thumb" alt="썸네일">
+                    <img src="${p.mainImageUrl || '/img/placeholder.png'}" class="thumb" alt="썸네일">
                     <div class="info">
                         <div class="title">${p.title || '제목 없음'}</div>
                         <div class="meta">
