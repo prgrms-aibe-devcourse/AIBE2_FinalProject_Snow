@@ -21,14 +21,14 @@ function addHourItem() {
     const item = document.createElement("div");
     item.className = "hour-item";
 
-    // 요일 버튼 (1=월, ..., 7=일)
+    // 요일 버튼 (0=월, 1=화, ..., 6=일) - 엔티티와 맞춤
     const days = ["월","화","수","목","금","토","일"];
     const dayButtons = days.map((day, i) => {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "day-btn";
         btn.textContent = day;
-        btn.dataset.value = i + 1;
+        btn.dataset.value = i; // 0=월, 1=화, ..., 6=일
 
         btn.addEventListener("click", () => {
             btn.classList.toggle("active");
