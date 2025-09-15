@@ -13,7 +13,6 @@ public class UserPageController {
         return "forward:/templates/pages/mypage/user/user-mypage.html"; // static/users/mypage.html
     }
 
-
     @GetMapping("/user-missions")
     public String myMissions() {
         return "forward:/templates/pages/mypage/user/user-missions.html"; // static/users/user-missions.html
@@ -27,5 +26,10 @@ public class UserPageController {
     @GetMapping("/user-reviews")
     public String myReviews() {
         return "forward:/templates/pages/mypage/user/user-reviews.html";
+    }
+
+    @GetMapping("/user-popup-reservation")
+    public String myPopupReservation() {
+        return "forward:/templates/pages/mypage/user/user-popup-reservation.html";
     }
 }
