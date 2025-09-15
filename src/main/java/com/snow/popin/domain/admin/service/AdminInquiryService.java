@@ -1,4 +1,4 @@
-package com.snow.popin.domain.inquiry.service;
+package com.snow.popin.domain.admin.service;
 
 import com.snow.popin.domain.inquiry.dto.InquiryCountResponse;
 import com.snow.popin.domain.inquiry.dto.InquiryDetailResponse;
@@ -8,7 +8,7 @@ import com.snow.popin.domain.inquiry.entity.Inquiry;
 import com.snow.popin.domain.inquiry.entity.InquiryStatus;
 import com.snow.popin.domain.inquiry.entity.TargetType;
 import com.snow.popin.domain.inquiry.repository.InquiryRepository;
-import com.snow.popin.domain.popup.repository.PopupRepository;
+import com.snow.popin.domain.inquiry.service.InquiryService;
 import com.snow.popin.global.constant.ErrorCode;
 import com.snow.popin.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Slf4j
-public class InquiryAdminService {
+public class AdminInquiryService {
 
     private final InquiryRepository inquiryRepo;
     private final InquiryService inquiryService;
