@@ -52,6 +52,7 @@ public class SecurityConfig {
                         .antMatchers("/", "/index.html", "/main", "/error").permitAll()
                         .antMatchers("/popup/**", "/map", "/users/**", "/missions/**").permitAll()
 
+
                         // 인증 관련 페이지궁금
                         .antMatchers("/auth/**").permitAll()
 
