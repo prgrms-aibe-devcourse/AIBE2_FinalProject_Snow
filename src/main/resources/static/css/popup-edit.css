@@ -1,13 +1,16 @@
+/* ===== 공통 ===== */
+.main-content {
+    background: #f9fafb;
+    padding: 0 20px;
+    flex: 1 !important;
+    padding: 0 20px 120px 20px !important;
+    box-sizing: border-box !important;
+}
+
 .mobile-container {
     display: flex !important;
     flex-direction: column !important;
     min-height: 100vh !important;
-}
-
-.main-content {
-    flex: 1 !important;
-    padding: 0 24px 120px 24px !important; /* 좌우 여백 + 푸터 높이(96px)+여유 */
-    box-sizing: border-box !important;
 }
 
 #footer-container {
@@ -15,116 +18,192 @@
     flex-shrink: 0 !important;
 }
 
-/* 섹션 제목 */
+/* ===== 섹션 제목 (호스트 페이지와 통일) ===== */
 .block-title,
-.section-title {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 20px;
-    color: #111;
+.section-title,
+h3.block-title,
+h2.block-title {
+    background: #2563eb !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    margin-bottom: 24px !important;
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3) !important;
+    color: white !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    margin: 0 0 24px 0 !important;
 }
 
-/* 폼 컨테이너 */
+/* ===== 폼 컨테이너 ===== */
 .popup-form {
-    background: #fff;
+    background: white;
     border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #e5e7eb;
+    margin-bottom: 16px;
 }
 
-/* 폼 그룹 */
+/* ===== 폼 그룹 ===== */
 .form-group {
     display: flex;
     flex-direction: column;
     margin-bottom: 16px;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .form-group label {
     font-weight: 600;
-    margin-bottom: 6px;
-    color: #333;
+    margin-bottom: 8px;
+    color: #111827;
     font-size: 14px;
 }
 
 .form-group input,
-.form-group textarea {
-    border: 1px solid #ddd;
+.form-group textarea,
+.form-group select {
+    border: 1px solid #e5e7eb;
     border-radius: 8px;
-    padding: 10px;
+    padding: 12px;
     font-size: 14px;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
 }
 
+/* ===== 포커스 상태 (호스트 페이지와 통일) ===== */
 .form-group input:focus,
-.form-group textarea:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+.form-group textarea:focus,
+.form-group select:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
 }
 
-/* 체크박스 그룹 */
+textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* ===== 체크박스 스타일 (호스트 페이지와 통일) ===== */
 .form-group.checkbox {
     flex-direction: row;
     align-items: center;
+    padding: 16px 20px;
 }
 
 .form-group.checkbox label {
     font-weight: 500;
     margin-bottom: 0;
-    color: #444;
+    margin-left: 8px;
+    color: #374151;
     font-size: 14px;
 }
 
-/* 버튼 영역 */
+input[type="checkbox"] {
+    width: auto !important;
+    margin: 0;
+    accent-color: #2563eb !important;
+}
+
+/* ===== 파일 업로드 (호스트 페이지와 통일) ===== */
+.form-group input[type="file"] {
+    padding: 8px;
+    border: 2px dashed #e5e7eb;
+    background: #f9fafb;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.form-group input[type="file"]:hover {
+    border-color: #2563eb !important;
+    background: #dbeafe !important;
+}
+
+/* ===== 이미지 미리보기 ===== */
+.image-preview {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.image-preview img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.image-preview img:hover {
+    transform: scale(1.05);
+}
+
+/* ===== 버튼 영역 ===== */
 .form-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
+    gap: 12px;
+    margin-top: 24px;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .btn-primary,
 .btn-secondary {
-    padding: 10px 16px;
+    padding: 12px 20px;
     font-size: 14px;
     border-radius: 8px;
     cursor: pointer;
     font-weight: 500;
     transition: all 0.2s;
     border: none;
+    min-width: 80px;
 }
 
+/* ===== 주요 버튼 (호스트 페이지와 통일) ===== */
 .btn-primary {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: #fff;
+    background: #1e40af !important;
+    color: white;
+    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3) !important;
 }
 
 .btn-primary:hover {
-    opacity: 0.9;
-    transform: scale(1.05);
+    background: #1e3a8a !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4) !important;
 }
 
 .btn-secondary {
     background: #f3f4f6;
-    color: #333;
+    color: #374151;
+    border: 1px solid #e5e7eb;
 }
 
 .btn-secondary:hover {
     background: #e5e7eb;
+    transform: translateY(-1px);
 }
 
-/* 푸터는 고정되지 않고 flex 맨 아래 위치 */
-#footer-container {
-    flex-shrink: 0;
-}
-
-/* 모바일 대응 */
+/* ===== 모바일 대응 ===== */
 @media (max-width: 480px) {
     .main-content {
-        padding: 0 12px;
+        padding: 0 12px 120px 12px !important;
     }
 
-    .popup-form {
+    .popup-form,
+    .form-group,
+    .form-actions {
         padding: 16px;
     }
 
@@ -134,5 +213,6 @@
 
     .form-actions button {
         width: 100%;
+        min-width: auto;
     }
 }

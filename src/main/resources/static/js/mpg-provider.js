@@ -90,12 +90,12 @@ const ProviderPage = {
 
         const btnMap = document.createElement('button');
         btnMap.className = 'btn icon';
-        btnMap.textContent = '🗺️';
+        btnMap.innerHTML = '<div class="icon-map"></div>';
         btnMap.addEventListener('click', () => this.openSpaceInMap(space));
 
         const btnDel = document.createElement('button');
         btnDel.className = 'btn icon';
-        btnDel.textContent = '🗑️';
+        btnDel.innerHTML = '<div class="icon-delete"></div>';
         btnDel.addEventListener('click', async () => {
             if (!confirm(`"${space.title}" 공간을 삭제하시겠습니까?`)) return;
             try {
@@ -210,12 +210,12 @@ const ProviderPage = {
         // 공통 버튼
         const btnDetail = document.createElement('button');
         btnDetail.className = 'btn btn-outline';
-        btnDetail.textContent = '상세보기';
+        btnDetail.innerHTML = '<div class="icon-detail"></div>';
         btnDetail.addEventListener('click', () => this.showReservationDetail(reservation.id));
 
         const btnCall = document.createElement('button');
         btnCall.className = 'btn btn-call';
-        btnCall.textContent = '통화';
+        btnCall.innerHTML = '<div class="icon-phone"></div>';
         btnCall.addEventListener('click', () => {
             if (reservation.hostPhone) {
                 window.open(`tel:${reservation.hostPhone}`, '_self');
@@ -230,14 +230,14 @@ const ProviderPage = {
         if (reservation.status === 'PENDING') {
             const btnAccept = document.createElement('button');
             btnAccept.className = 'btn btn-success';
-            btnAccept.textContent = '승인';
+            btnAccept.innerHTML = '<div class="icon-check"></div>';
             btnAccept.addEventListener('click', () => {
                 this.handleReservationAction('accept', reservation.id, reservation.popupTitle, card);
             });
 
             const btnReject = document.createElement('button');
             btnReject.className = 'btn btn-danger';
-            btnReject.textContent = '거절';
+            btnReject.innerHTML = '<div class="icon-x"></div>';
             btnReject.addEventListener('click', () => {
                 this.handleReservationAction('reject', reservation.id, reservation.popupTitle, card);
             });
@@ -247,7 +247,7 @@ const ProviderPage = {
         } else if (reservation.status === 'REJECTED' || reservation.status === 'CANCELLED') {
             const btnDelete = document.createElement('button');
             btnDelete.className = 'btn btn-danger';
-            btnDelete.textContent = '삭제';
+            btnDelete.innerHTML = '<div class="icon-delete"></div>';
             btnDelete.addEventListener('click', () => {
                 if (!confirm('이 예약을 화면에서 지우시겠습니까?')) return;
                 card.remove();
