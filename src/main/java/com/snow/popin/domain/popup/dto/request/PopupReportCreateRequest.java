@@ -1,6 +1,7 @@
 package com.snow.popin.domain.popup.dto.request;
 
 import lombok.Getter;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDate;
@@ -14,5 +15,5 @@ public class PopupReportCreateRequest {
     private LocalDate startDate;
     private LocalDate endDate;
     private String extraInfo;
-    private List<String> images;
+    private List<MultipartFile> images;
 }

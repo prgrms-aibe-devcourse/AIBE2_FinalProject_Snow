@@ -1,17 +1,21 @@
 package com.snow.popin.domain.popup.controller;
 
 import com.snow.popin.domain.popup.dto.request.PopupReportCreateRequest;
+import com.snow.popin.domain.popup.dto.response.PopupReportResponse;
 import com.snow.popin.domain.popup.entity.PopupReport;
 import com.snow.popin.domain.popup.service.PopupReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/popups/reports")
@@ -22,8 +26,11 @@ public class PopupReportController {
     private final PopupReportService service;
 
     /** 제보 생성 */
-    @PostMapping
-    public ResponseEntity<PopupReport> create(@Valid @RequestBody PopupReportCreateRequest req) {
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<PopupReportResponse> create(
+            @RequestPart("data") @Valid PopupReportCreateRequest req,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) {
+
         PopupReport created = service.create(
                 req.getBrandName(),
                 req.getPopupName(),
@@ -31,10 +38,12 @@ public class PopupReportController {
                 req.getStartDate(),
                 req.getEndDate(),
                 req.getExtraInfo(),
-                req.getImages()
+                images
         );
-        return ResponseEntity.ok(created);
+
+        return ResponseEntity.ok(PopupReportResponse.from(created));
     }
+
 
     /** 제보 단건 조회 */
     @GetMapping("/{id}")
