@@ -8,11 +8,18 @@
     margin-bottom: 24px;
 }
 
+/* ===== 블록 제목 (호스트 페이지와 통일) ===== */
 .block-title {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 12px;
-    color: #111;
+    background: #2563eb !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    margin-bottom: 24px !important;
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3) !important;
+    color: white !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    margin: 0 0 24px 0 !important;
 }
 
 /* ===== 헤더 섹션 ===== */
@@ -20,14 +27,15 @@
     padding: 16px 0;
 }
 
+/* ===== 팝업 헤더 (호스트 페이지와 통일) ===== */
 .popup-header {
     display: flex;
     align-items: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #2563eb !important;
     padding: 20px;
     border-radius: 16px;
     color: white;
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3) !important;
 }
 
 .popup-icon {
@@ -120,10 +128,11 @@
     margin-bottom: 12px;
 }
 
+/* ===== 사용자 아바타 (호스트 페이지와 통일) ===== */
 .user-avatar {
     width: 44px;
     height: 44px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #2563eb !important;
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -149,6 +158,7 @@
     color: #6b7280;
 }
 
+/* ===== 상태 배지 (호스트 페이지와 통일) ===== */
 .status-badge {
     padding: 6px 12px;
     border-radius: 12px;
@@ -215,13 +225,14 @@
     transition: all 0.2s;
 }
 
+/* ===== 액션 버튼 (호스트 페이지와 통일) ===== */
 .btn-complete {
-    background: #3b82f6;
+    background: #1e40af !important;
     color: white;
 }
 
 .btn-complete:hover {
-    background: #2563eb;
+    background: #1e3a8a !important;
     transform: translateY(-1px);
 }
 
