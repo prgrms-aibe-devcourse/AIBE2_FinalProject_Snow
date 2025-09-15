@@ -23,7 +23,7 @@ import java.util.Map;
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminRoleUpgradeApiController {
 
-    private final AdminRoleUpgradeService roleService;
+    private final AdminRoleUpgradeService adminRoleService;
 
     @GetMapping("/requests")
     public ResponseEntity<Page<RoleUpgradeResponse>> getAllRequests(
@@ -36,16 +36,16 @@ public class AdminRoleUpgradeApiController {
 
         if (status != null && role != null) {
             // 상태와 역할 모두 필터링
-            reqs = roleService.getRoleUpgradeRequestsByStatusAndRole(status, role, pageable);
+            reqs = adminRoleService.getRoleUpgradeRequestsByStatusAndRole(status, role, pageable);
         } else if (status != null) {
             // 상태만 필터링
-            reqs = roleService.getRoleUpgradeRequestsByStatus(status, pageable);
+            reqs = adminRoleService.getRoleUpgradeRequestsByStatus(status, pageable);
         } else if (role != null) {
             // 역할만 필터링
-            reqs = roleService.getRoleUpgradeRequestsByRole(role, pageable);
+            reqs = adminRoleService.getRoleUpgradeRequestsByRole(role, pageable);
         } else {
             // 전체 조회
-            reqs = roleService.getAllRoleUpgradeRequests(pageable);
+            reqs = adminRoleService.getAllRoleUpgradeRequests(pageable);
         }
 
         return ResponseEntity.ok(reqs);
@@ -54,7 +54,7 @@ public class AdminRoleUpgradeApiController {
     // 역할 승격 요청 상세 조회
     @GetMapping("/requests/{id}")
     public ResponseEntity<RoleUpgradeResponse> getRequestDetail(@PathVariable Long id) {
-        RoleUpgradeResponse res = roleService.getRoleUpgradeRequestForAdmin(id);
+        RoleUpgradeResponse res = adminRoleService.getRoleUpgradeRequestForAdmin(id);
         return ResponseEntity.ok(res);
     }
 
@@ -63,7 +63,7 @@ public class AdminRoleUpgradeApiController {
     public ResponseEntity<Map<String, String>> processRequest(
             @PathVariable Long id,
             @Valid @RequestBody AdminUpdateRequest req) {
-        roleService.processRoleUpgradeRequest(id, req);
+        adminRoleService.processRoleUpgradeRequest(id, req);
 
         String msg = req.isApprove() ?
                 "역할 승격 요청이 승인되었습니다." : "역할 승격 요청이 거절되었습니다.";
@@ -74,7 +74,7 @@ public class AdminRoleUpgradeApiController {
     // 대기중인 요청 개수 조회
     @GetMapping("/pending-count")
     public ResponseEntity<Long> getPendingCount(){
-        long count = roleService.getPendingRequestCount();
+        long count = adminRoleService.getPendingRequestCount();
         return ResponseEntity.of(java.util.Optional.of(count));
     }
 
