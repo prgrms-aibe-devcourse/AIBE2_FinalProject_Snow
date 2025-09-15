@@ -240,4 +240,12 @@ public class Popup extends BaseEntity {
         this.mainImageUrl = dto.getMainImageUrl();
         this.isFeatured = dto.getIsFeatured();
     }
+    //
+    public void setVenue(Venue venue) {
+        this.venue = venue;
+    }
+
+    public void setStatus(PopupStatus status) {
+        this.status = status;
+    }
 }

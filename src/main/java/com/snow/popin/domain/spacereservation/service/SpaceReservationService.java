@@ -1,9 +1,11 @@
 package com.snow.popin.domain.spacereservation.service;
 
+import com.snow.popin.domain.map.entity.Venue;
 import com.snow.popin.domain.mypage.host.entity.Brand;
 import com.snow.popin.domain.mypage.host.entity.Host;
 import com.snow.popin.domain.mypage.host.repository.HostRepository;
 import com.snow.popin.domain.popup.entity.Popup;
+import com.snow.popin.domain.popup.entity.PopupStatus;
 import com.snow.popin.domain.popup.repository.PopupRepository;
 import com.snow.popin.domain.space.entity.Space;
 import com.snow.popin.domain.space.repository.SpaceRepository;
@@ -103,11 +105,28 @@ public class SpaceReservationService {
     /**
      * 예약 승인 (PROVIDER)
      */
-    public void acceptReservation(User provider, Long reservationId) {
-        SpaceReservation reservation = reservationRepository.findByIdAndSpaceOwner(reservationId, provider)
-                .orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않거나 승인 권한이 없습니다."));
+    @Transactional
+    public void acceptReservation(User currentUser, Long reservationId) {
+        SpaceReservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
+
+        if (!reservation.getSpace().getOwner().equals(currentUser)) {
+            throw new IllegalArgumentException("해당 공간에 대한 승인 권한이 없습니다.");
+        }
+
         reservation.accept();
+
+        Popup popup = reservation.getPopup();
+        if (popup != null && reservation.getSpace() != null) {
+            Venue venue = reservation.getSpace().getVenue();
+            if (venue != null) {
+                popup.setVenue(venue);
+                popup.setStatus(PopupStatus.ONGOING);
+            }
+        }
     }
+
+
 
     /**
      * 예약 거절 (PROVIDER)
