@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     await loadComponents();   // header/footer 로드
     initializeLayout();
 
+
     try {
         // =============================
         // 사용자 정보 불러오기

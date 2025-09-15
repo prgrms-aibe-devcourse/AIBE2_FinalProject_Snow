@@ -50,9 +50,9 @@ public class SecurityConfig {
 
                         // 공개 페이지
                         .antMatchers("/", "/index.html", "/main", "/error").permitAll()
-                        .antMatchers("/popup/**", "/map").permitAll()
+                        .antMatchers("/popup/**", "/map", "/users/**", "/missions/**").permitAll()
 
-                        // 인증 관련 페이지
+                        // 인증 관련 페이지궁금
                         .antMatchers("/auth/**").permitAll()
 
                         // === 미션 관련 API (조회만 공개) ===
