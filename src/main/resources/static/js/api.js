@@ -637,3 +637,34 @@ apiService.approvePopupReport = async function(reportId) {
 apiService.rejectPopupReport = async function(reportId) {
     return await this.put(`/popups/reports/${encodeURIComponent(reportId)}/reject`, {});
 };
+
+// === 마이페이지 HOST api ===
+// 팝업 등록
+apiService.createPopup = async function(data) {
+    return await this.post('/hosts/popups', data);
+};
+
+// 내 팝업 목록 조회
+apiService.getMyPopups = async function() {
+    return await this.get('/hosts/popups');
+};
+
+// 내 팝업 상세 조회
+apiService.getMyPopupDetail = async function(popupId) {
+    return await this.get(`/hosts/popups/${encodeURIComponent(popupId)}`);
+};
+
+// 팝업 수정
+apiService.updatePopup = async function(popupId, data) {
+    return await this.put(`/hosts/popups/${encodeURIComponent(popupId)}`, data);
+};
+
+// 팝업 삭제
+apiService.deletePopup = async function(popupId) {
+    return await this.delete(`/hosts/popups/${encodeURIComponent(popupId)}`);
+};
+
+// 호스트 프로필 조회
+apiService.getMyHostProfile = async function() {
+    return await this.get('/hosts/me');
+};
