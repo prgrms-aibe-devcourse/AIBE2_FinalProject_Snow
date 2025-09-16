@@ -71,13 +71,6 @@ public class User extends BaseEntity {
         }
     }
 
-    /**
-     * 개별 관심사 추가
-     */
-    public void addInterest(UserInterest userInterest) {
-        this.interests.add(userInterest);
-    }
-
     public void changePassword(String newPassword) {
         this.password = newPassword;
     }

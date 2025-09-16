@@ -4,6 +4,7 @@ import com.snow.popin.domain.auth.constant.AuthProvider;
 import com.snow.popin.domain.auth.dto.*;
 import com.snow.popin.domain.category.entity.Category;
 import com.snow.popin.domain.category.repository.CategoryRepository;
+import com.snow.popin.domain.category.repository.UserInterestRepository;
 import com.snow.popin.domain.user.constant.Role;
 import com.snow.popin.domain.category.entity.UserInterest;
 import com.snow.popin.domain.user.entity.User;
@@ -44,6 +45,7 @@ public class AuthService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final JwtTokenResolver jwtTokenResolver;
+    private final UserInterestRepository userInterestRepository;
 
     /**
      * 회원가입 처리
@@ -56,12 +58,64 @@ public class AuthService implements UserDetailsService {
         checkDuplicates(request);
 
         User user = createUser(request);
-        processUserInterests(user, request.getInterests());
-
         User savedUser = userRepository.save(user);
+
+        processUserInterests(savedUser, request.getInterests());
 
         log.info("회원가입 완료: userId={}, email={}", savedUser.getId(), savedUser.getEmail());
         return SignupResponse.success(savedUser.getEmail(), savedUser.getName(), savedUser.getNickname());
+    }
+
+    /**
+     * 사용자 로그인 처리
+     */
+    public LoginResponse login(LoginRequest request) {
+        log.info("로그인 시도: email={}", request.getEmail());
+
+        User user = validateUserCredentials(request);
+        String accessToken = generateAccessToken(user);
+
+        log.info("로그인 성공: email={}", user.getEmail());
+        return createLoginResponse(user, accessToken);
+    }
+
+    /**
+     * 사용자 로그아웃 처리
+     */
+    public LogoutResponse logout(LogoutRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        String userEmail = extractUserEmailFromToken(request, httpRequest);
+
+        log.info("로그아웃 요청 처리: email={}", userEmail);
+
+        processLogout(httpResponse);
+
+        log.info("로그아웃 완료: email={}", userEmail);
+        return LogoutResponse.success("로그아웃이 완료되었습니다.");
+    }
+
+    /**
+     * Spring Security UserDetailsService 구현
+     */
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
+
+        return createUserDetails(user);
+    }
+
+    /**
+     * 이메일 중복 확인
+     */
+    public boolean emailExists(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    /**
+     * 닉네임 중복 확인
+     */
+    public boolean nicknameExists(String nickname) {
+        return userRepository.existsByNickname(nickname);
     }
 
     /**
@@ -110,10 +164,16 @@ public class AuthService implements UserDetailsService {
             return;
         }
 
+        log.info("관심사 처리 시작 - 요청된 관심사: {}", interests);
+
         validateInterests(interests);
 
         Set<Category> categories = findCategoriesByNames(interests);
-        addInterestsToUser(user, categories);
+        log.info("찾은 카테고리 수: {}, 카테고리 이름들: {}",
+                categories.size(),
+                categories.stream().map(Category::getName).collect(Collectors.toList()));
+
+        saveUserInterests(user, categories);
 
         log.info("사용자 관심사 설정 완료: 관심사 개수={}", categories.size());
     }
@@ -145,26 +205,18 @@ public class AuthService implements UserDetailsService {
     }
 
     /**
-     * 사용자에게 관심사 추가
+     * 사용자 관심사 DB에 저장
      */
-    private void addInterestsToUser(User user, Set<Category> categories) {
-        categories.forEach(category -> {
-            UserInterest userInterest = new UserInterest(user, category);
-            user.addInterest(userInterest);
-        });
-    }
+    private void saveUserInterests(User user, Set<Category> categories) {
+        log.debug("사용자 관심사 저장 시작 - 카테고리 수: {}", categories.size());
 
-    /**
-     * 사용자 로그인 처리
-     */
-    public LoginResponse login(LoginRequest request) {
-        log.info("로그인 시도: email={}", request.getEmail());
+        List<UserInterest> userInterests = categories.stream()
+                .map(category -> new UserInterest(user, category))
+                .collect(Collectors.toList());
 
-        User user = validateUserCredentials(request);
-        String accessToken = generateAccessToken(user);
+        userInterestRepository.saveAll(userInterests);
 
-        log.info("로그인 성공: email={}", user.getEmail());
-        return createLoginResponse(user, accessToken);
+        log.debug("사용자 관심사 저장 완료: {} 개", userInterests.size());
     }
 
     /**
@@ -213,20 +265,6 @@ public class AuthService implements UserDetailsService {
                 user.getName(),
                 user.getRole().name()
         );
-    }
-
-    /**
-     * 사용자 로그아웃 처리
-     */
-    public LogoutResponse logout(LogoutRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-        String userEmail = extractUserEmailFromToken(request, httpRequest);
-
-        log.info("로그아웃 요청 처리: email={}", userEmail);
-
-        processLogout(httpResponse);
-
-        log.info("로그아웃 완료: email={}", userEmail);
-        return LogoutResponse.success("로그아웃이 완료되었습니다.");
     }
 
     /**
@@ -295,16 +333,6 @@ public class AuthService implements UserDetailsService {
         return jwtTokenResolver.resolve(httpRequest);
     }
 
-    /**
-     * Spring Security UserDetailsService 구현
-     */
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
-
-        return createUserDetails(user);
-    }
 
     /**
      * Spring Security UserDetails 객체 생성
@@ -327,17 +355,4 @@ public class AuthService implements UserDetailsService {
                 .build();
     }
 
-    /**
-     * 이메일 중복 확인
-     */
-    public boolean emailExists(String email) {
-        return userRepository.existsByEmail(email);
-    }
-
-    /**
-     * 닉네임 중복 확인
-     */
-    public boolean nicknameExists(String nickname) {
-        return userRepository.existsByNickname(nickname);
-    }
 }
