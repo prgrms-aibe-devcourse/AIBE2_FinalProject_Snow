@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/css/layout.css">
 
     <!-- 공간 수정 폼 전용 CSS (등록과 동일) -->
-    <link rel="stylesheet" href="/css/popup-register.css">
+    <link rel="stylesheet" href="/css/space-register.css">
 </head>
 <body>
 <div class="mobile-container">
@@ -17,7 +17,7 @@
     <div id="header-container"></div>
 
     <!-- 메인 콘텐츠 -->
-    <main class="main-content" id="main-content">
+    <main id="main-content" class="main-content">
         <section class="block">
             <h3 class="block-title">공간 수정</h3>
             <div class="card popup-form">
@@ -47,12 +47,12 @@
                     <!-- 상세 설명 -->
                     <div class="form-group">
                         <label for="description">상세 설명</label>
-                        <textarea id="description" name="description" rows="4" maxlength="1000"></textarea>
+                        <textarea id="description" name="description" rows="4" maxlength="1000" placeholder="공간에 대한 상세 설명을 입력해주세요"></textarea>
                     </div>
 
                     <!-- 임대료 -->
                     <div class="form-group">
-                        <label for="rentalFee">임대료 (만원/일) <span class="required">*</span></label>
+                        <label for="rentalFee">임대료 (원/일) <span class="required">*</span></label>
                         <input type="number" id="rentalFee" name="rentalFee" required min="0" max="999999999" />
                     </div>
 
@@ -114,6 +114,9 @@
     document.addEventListener('DOMContentLoaded', async function() {
         await loadComponents();
         initializeLayout();
+        if (window.SpaceEditPage) {
+            SpaceEditPage.init();
+        }
     });
 </script>
 </body>

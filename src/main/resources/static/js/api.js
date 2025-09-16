@@ -326,9 +326,51 @@ apiService.rejectReservation = async function(reservationId) {
     return await this.put(`/space-reservations/${encodeURIComponent(reservationId)}/reject`, {});
 };
 
+// 예약 삭제 (거절된 예약만)
+apiService.deleteReservation = async function(reservationId) {
+    return await this.delete(`/space-reservations/${encodeURIComponent(reservationId)}/delete`);
+};
 // 예약 현황 통계
 apiService.getReservationStats = async function() {
-    return await this.get('/space-reservations/stats');
+    try {
+        const reservations = await this.getMyReservations();
+
+        const stats = {
+            pendingCount: 0,
+            acceptedCount: 0,
+            rejectedCount: 0,
+            cancelledCount: 0,
+            totalReservations: reservations.length
+        };
+
+        reservations.forEach(reservation => {
+            switch(reservation.status) {
+                case 'PENDING':
+                    stats.pendingCount++;
+                    break;
+                case 'ACCEPTED':
+                    stats.acceptedCount++;
+                    break;
+                case 'REJECTED':
+                    stats.rejectedCount++;
+                    break;
+                case 'CANCELLED':
+                    stats.cancelledCount++;
+                    break;
+            }
+        });
+
+        return stats;
+    } catch (error) {
+        console.error('통계 계산 오류:', error);
+        return {
+            pendingCount: 0,
+            acceptedCount: 0,
+            rejectedCount: 0,
+            cancelledCount: 0,
+            totalReservations: 0
+        };
+    }
 };
 
 // === 팝업 관련 API ===
@@ -594,4 +636,35 @@ apiService.approvePopupReport = async function(reportId) {
 // 제보 반려 (관리자)
 apiService.rejectPopupReport = async function(reportId) {
     return await this.put(`/popups/reports/${encodeURIComponent(reportId)}/reject`, {});
+};
+
+// === 마이페이지 HOST api ===
+// 팝업 등록
+apiService.createPopup = async function(data) {
+    return await this.post('/hosts/popups', data);
+};
+
+// 내 팝업 목록 조회
+apiService.getMyPopups = async function() {
+    return await this.get('/hosts/popups');
+};
+
+// 내 팝업 상세 조회
+apiService.getMyPopupDetail = async function(popupId) {
+    return await this.get(`/hosts/popups/${encodeURIComponent(popupId)}`);
+};
+
+// 팝업 수정
+apiService.updatePopup = async function(popupId, data) {
+    return await this.put(`/hosts/popups/${encodeURIComponent(popupId)}`, data);
+};
+
+// 팝업 삭제
+apiService.deletePopup = async function(popupId) {
+    return await this.delete(`/hosts/popups/${encodeURIComponent(popupId)}`);
+};
+
+// 호스트 프로필 조회
+apiService.getMyHostProfile = async function() {
+    return await this.get('/hosts/me');
 };

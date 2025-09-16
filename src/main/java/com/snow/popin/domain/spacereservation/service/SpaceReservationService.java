@@ -1,8 +1,11 @@
 package com.snow.popin.domain.spacereservation.service;
 
+import com.snow.popin.domain.map.entity.Venue;
+import com.snow.popin.domain.mypage.host.entity.Brand;
 import com.snow.popin.domain.mypage.host.entity.Host;
 import com.snow.popin.domain.mypage.host.repository.HostRepository;
 import com.snow.popin.domain.popup.entity.Popup;
+import com.snow.popin.domain.popup.entity.PopupStatus;
 import com.snow.popin.domain.popup.repository.PopupRepository;
 import com.snow.popin.domain.space.entity.Space;
 import com.snow.popin.domain.space.repository.SpaceRepository;
@@ -12,7 +15,6 @@ import com.snow.popin.domain.spacereservation.dto.SpaceReservationResponseDto;
 import com.snow.popin.domain.spacereservation.entity.SpaceReservation;
 import com.snow.popin.domain.spacereservation.entity.ReservationStatus;
 import com.snow.popin.domain.spacereservation.repository.SpaceReservationRepository;
-import com.snow.popin.domain.user.constant.Role;
 import com.snow.popin.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,38 +37,25 @@ public class SpaceReservationService {
 
     /**
      * 공간 예약 생성
-     *
-     * @param user HOST 권한 사용자
-     * @param dto  예약 요청 DTO (spaceId, popupId)
-     * @return 생성된 예약 ID
      */
     @Transactional
     public Long createReservation(User user, SpaceReservationCreateRequestDto dto) {
-        if (user.getRole() != Role.HOST) {
-            throw new IllegalArgumentException("HOST 권한이 필요합니다.");
-        }
+        log.info("DTO start={}, end={}", dto.getStartDate(), dto.getEndDate());
 
         Host hostEntity = hostRepository.findByUser(user)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저의 호스트 정보가 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("호스트 정보가 없습니다."));
+        Brand brand = hostEntity.getBrand();
 
         Space space = spaceRepository.findById(dto.getSpaceId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공간입니다."));
-
-        if (space.getOwner().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("본인 공간은 예약할 수 없습니다.");
-        }
-
         Popup popup = popupRepository.findById(dto.getPopupId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 팝업입니다."));
-
-        if (!popup.getBrandId().equals(hostEntity.getBrand().getId())) {
-            throw new IllegalArgumentException("해당 팝업은 현재 호스트 브랜드 소속이 아닙니다.");
-        }
 
         SpaceReservation reservation = SpaceReservation.builder()
                 .space(space)
                 .host(user)
                 .popup(popup)
+                .brand(brand)
                 .startDate(dto.getStartDate())
                 .endDate(dto.getEndDate())
                 .message(dto.getMessage())
@@ -82,8 +71,6 @@ public class SpaceReservationService {
      */
     @Transactional(readOnly = true)
     public List<SpaceReservationListResponseDto> getMyRequests(User host) {
-        log.info("Fetching reservations for host: {}", host.getId());
-
         return reservationRepository.findByHostOrderByCreatedAtDesc(host)
                 .stream()
                 .map(SpaceReservationListResponseDto::fromForHost)
@@ -95,8 +82,6 @@ public class SpaceReservationService {
      */
     @Transactional(readOnly = true)
     public List<SpaceReservationListResponseDto> getMySpaceReservations(User provider) {
-        log.info("Fetching space reservations for provider: {}", provider.getId());
-
         return reservationRepository.findBySpaceOwnerOrderByCreatedAtDesc(provider)
                 .stream()
                 .map(SpaceReservationListResponseDto::fromForProvider)
@@ -114,46 +99,65 @@ public class SpaceReservationService {
         if (!reservation.isOwner(user) && !reservation.isSpaceOwner(user)) {
             throw new IllegalArgumentException("조회 권한이 없습니다.");
         }
-
         return SpaceReservationResponseDto.from(reservation);
     }
 
     /**
-     * 예약 승인 (PROVIDER만 가능)
+     * 예약 승인 (PROVIDER)
      */
-    public void acceptReservation(User provider, Long reservationId) {
-        log.info("Accepting reservation {} by provider {}", reservationId, provider);
+    @Transactional
+    public void acceptReservation(User currentUser, Long reservationId) {
+        SpaceReservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
 
-        SpaceReservation reservation = reservationRepository.findByIdAndSpaceOwner(reservationId, provider)
-                .orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않거나 승인 권한이 없습니다."));
+        if (!reservation.getSpace().getOwner().equals(currentUser)) {
+            throw new IllegalArgumentException("해당 공간에 대한 승인 권한이 없습니다.");
+        }
 
         reservation.accept();
-        log.info("Reservation {} accepted successfully", reservationId);
+
+        Popup popup = reservation.getPopup();
+        if (popup != null && reservation.getSpace() != null) {
+            Venue venue = reservation.getSpace().getVenue();
+            if (venue != null) {
+                popup.setVenue(venue);
+                popup.setStatus(PopupStatus.ONGOING);
+            }
+        }
     }
 
+
+
     /**
-     * 예약 거절 (PROVIDER만 가능)
+     * 예약 거절 (PROVIDER)
      */
     public void rejectReservation(User provider, Long reservationId) {
-        log.info("Rejecting reservation {} by provider {}", reservationId, provider);
-
         SpaceReservation reservation = reservationRepository.findByIdAndSpaceOwner(reservationId, provider)
                 .orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않거나 거절 권한이 없습니다."));
-
         reservation.reject();
-        log.info("Reservation {} rejected successfully", reservationId);
     }
 
     /**
-     * 예약 취소 (HOST만 가능)
+     * 예약 취소 (HOST)
      */
     public void cancelReservation(User host, Long reservationId) {
-        log.info("Cancelling reservation {} by host {}", reservationId, host.getId());
-
         SpaceReservation reservation = reservationRepository.findByIdAndHost(reservationId, host)
                 .orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않거나 취소 권한이 없습니다."));
-
         reservation.cancel();
-        log.info("Reservation {} cancelled successfully", reservationId);
+    }
+
+    /**
+     * 예약 삭제 (거절된 예약만 가능, PROVIDER)
+     */
+    public void deleteReservation(User provider, Long reservationId) {
+        SpaceReservation reservation = reservationRepository.findByIdAndSpaceOwner(reservationId, provider)
+                .orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않거나 삭제 권한이 없습니다."));
+
+        if (reservation.getStatus() == ReservationStatus.REJECTED) {
+            reservationRepository.delete(reservation);
+            log.info("Reservation {} deleted by provider {}", reservationId, provider.getEmail());
+        } else {
+            throw new IllegalArgumentException("승인되었거나 취소된 예약은 삭제할 수 없습니다.");
+        }
     }
 }

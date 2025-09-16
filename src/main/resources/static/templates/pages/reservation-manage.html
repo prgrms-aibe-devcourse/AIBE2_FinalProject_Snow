@@ -14,38 +14,53 @@
 </head>
 <body>
 <div class="mobile-container">
-    <!-- 헤더 영역 -->
-    <div id="header-container">
-        <!-- JavaScript로 동적 로드 -->
-    </div>
+    <!-- 헤더 -->
+    <div id="header-container"></div>
 
-    <!-- 메인 콘텐츠 영역 -->
+    <!-- 메인 -->
     <main class="main-content" id="main-content">
-
-        <!-- 페이지 헤더 -->
         <section class="block">
             <div class="page-header">
-                <h3 class="block-title">예약 관리</h3>
-                <div class="popup-info">
-                    <span id="popup-title">팝업명 로딩중...</span>
+                <div class="popup-header">
+                    <div class="popup-info">
+                        <h1 class="popup-title" id="popup-title">팝업명 로딩중...</h1>
+                        <div class="popup-subtitle">예약 관리</div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- 예약자 목록 -->
+        <!-- 통계 섹션 -->
         <section class="block">
-            <h4 class="section-title">예약자 목록</h4>
-            <div id="reservation-list" class="reservation-list">
-                <div class="empty" data-empty>예약자가 없습니다.</div>
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-count">0</div>
+                    <div class="stat-label">전체 예약</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="reserved-count">0</div>
+                    <div class="stat-label">예약됨</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="visited-count">0</div>
+                    <div class="stat-label">방문완료</div>
+                </div>
             </div>
         </section>
 
+        <section class="block">
+            <h2 class="section-title">예약자 목록</h2>
+            <div id="reservation-list" class="reservation-list">
+                <div class="empty-state">
+                    <div class="icon">📅</div>
+                    <div class="text">예약자가 없습니다.</div>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <!-- 푸터 영역 -->
-    <div id="footer-container">
-        <!-- JavaScript로 동적 로드 -->
-    </div>
+    <!-- 푸터 -->
+    <div id="footer-container"></div>
 </div>
 
 <!-- 공통 스크립트 -->
@@ -58,7 +73,6 @@
 <script src="/js/reservation-manage.js"></script>
 <div id="additional-scripts"></div>
 
-<!-- 애플리케이션 초기화 -->
 <script>
     document.addEventListener('DOMContentLoaded', async function() {
         await loadComponents();

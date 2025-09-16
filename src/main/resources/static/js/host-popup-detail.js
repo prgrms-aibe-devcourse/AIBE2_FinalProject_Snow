@@ -40,6 +40,9 @@ const HostPopupDetailPage = {
             if (element) element.textContent = value;
         });
 
+        // 운영시간 렌더링
+        this.renderOperatingHours(popup.hours);
+
         const imageElement = document.getElementById("popup-image");
         if (imageElement) {
             if (popup.mainImageUrl) {
@@ -82,6 +85,62 @@ const HostPopupDetailPage = {
                 }
             });
         }
+    },
+
+    renderOperatingHours(hours) {
+        // 운영시간을 표시할 요소 찾기 (기존 요소를 활용하거나 새로 생성)
+        let hoursElement = document.getElementById('popup-hours');
+
+        // 만약 해당 요소가 없다면, 상태 정보 다음에 추가
+        if (!hoursElement) {
+            const statusElement = document.getElementById('popup-status');
+            if (statusElement && statusElement.parentElement) {
+                const newHoursRow = document.createElement('p');
+                newHoursRow.innerHTML = '<b>운영시간:</b><span id="popup-hours-content"></span>';
+                statusElement.parentElement.insertAdjacentElement('afterend', newHoursRow);
+                hoursElement = document.getElementById('popup-hours-content');
+            }
+        }
+
+        if (!hoursElement) return;
+
+        if (!hours || hours.length === 0) {
+            hoursElement.textContent = '운영시간 정보가 없습니다.';
+            return;
+        }
+
+        // 요일별로 그룹화
+        const groupedHours = this.groupHoursByDay(hours);
+
+        // HTML 생성
+        const hoursHTML = Object.entries(groupedHours).map(([timeSlot, days]) => {
+            const dayNames = days.sort().map(day => this.getDayName(day)).join(', ');
+            return `<div class="hour-item">
+                <span class="hour-days">${dayNames}</span>
+                <span class="hour-time">${timeSlot}</span>
+            </div>`;
+        }).join('');
+
+        hoursElement.innerHTML = `<div class="operating-hours">${hoursHTML}</div>`;
+    },
+
+    groupHoursByDay(hours) {
+        const grouped = {};
+
+        hours.forEach(hour => {
+            const timeSlot = `${hour.openTime} - ${hour.closeTime}`;
+            if (!grouped[timeSlot]) {
+                grouped[timeSlot] = [];
+            }
+            grouped[timeSlot].push(hour.dayOfWeek);
+        });
+
+        return grouped;
+    },
+
+    getDayName(dayOfWeek) {
+        const days = ['일', '월', '화', '수', '목', '금', '토'];
+        return days[dayOfWeek] || dayOfWeek;
     },
 
     translateStatus(status) {
