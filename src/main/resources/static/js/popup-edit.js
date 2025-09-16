@@ -1,16 +1,16 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    const params = new URLSearchParams(window.location.search);
-    const popupId = params.get('id');
+    // RESTful 경로에서 popupId 추출 (/mypage/host/popup/{id}/edit)
+    const pathParts = window.location.pathname.split("/");
+    const popupId = pathParts[pathParts.indexOf("popup") + 1];
 
     if (!popupId) {
-        alert('잘못된 접근입니다.');
+        alert("잘못된 접근입니다.");
         history.back();
         return;
     }
 
     const form = document.getElementById('popup-edit-form');
 
-    // 기존 데이터 불러오기
     try {
         const popup = await apiService.get(`/hosts/popups/${popupId}`);
         form.title.value = popup.title;
@@ -30,7 +30,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         alert('데이터 로딩 실패');
     }
 
-    // 수정 완료
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -52,7 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             await apiService.put(`/hosts/popups/${popupId}`, payload);
             alert('팝업이 수정되었습니다.');
-            window.location.href = '/templates/pages/mpg-host.html';
+            window.location.href = `/mypage/host/popup/${popupId}`;
         } catch (err) {
             console.error('팝업 수정 실패:', err);
             alert('수정 실패');
