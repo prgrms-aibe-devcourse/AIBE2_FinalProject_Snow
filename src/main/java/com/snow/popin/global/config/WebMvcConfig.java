@@ -2,6 +2,9 @@ package com.snow.popin.global.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -15,12 +18,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
         // CSS 파일들
         registry.addResourceHandler("/css/**")
                 .addResourceLocations("classpath:/static/css/")
-                .setCachePeriod(0); // 개발 시 캐시 비활성화
+                .setCachePeriod(0)
+                .resourceChain(true);
 
         // JavaScript 파일들
         registry.addResourceHandler("/js/**")
                 .addResourceLocations("classpath:/static/js/")
-                .setCachePeriod(0);
+                .setCachePeriod(0)
+                .resourceChain(true);
 
         // 이미지 파일들
         registry.addResourceHandler("/images/**")
@@ -46,5 +51,27 @@ public class WebMvcConfig implements WebMvcConfigurer {
         String dir = uploadPath.endsWith("/") ? uploadPath : uploadPath + "/";
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:" + dir);
+    }
+
+    // CORS 설정 추가
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/api/**")
+                .allowedOrigins("http://localhost:8080", "http://127.0.0.1:8080")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true)
+                .maxAge(3600);
+    }
+
+    // MIME 타입 문제 해결을 위해 추가
+    @Override
+    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+        configurer
+                .favorPathExtension(false)
+                .favorParameter(false)
+                .mediaType("css", MediaType.valueOf("text/css"))
+                .mediaType("js", MediaType.valueOf("application/javascript"))
+                .defaultContentType(MediaType.APPLICATION_JSON);
     }
 }
