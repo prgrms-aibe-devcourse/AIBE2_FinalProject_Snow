@@ -174,4 +174,16 @@ public class SpaceService {
         space.hide();
         log.info("Space ID {} hidden successfully", spaceId);
     }
+    //검색
+    @Transactional(readOnly = true)
+    public List<SpaceListResponseDto> searchSpaces(User me, String keyword, String location,
+                                                   Integer minArea, Integer maxArea) {
+        log.debug("Searching spaces with filters - keyword: {}, location: {}", keyword, location);
+
+        List<Space> spaces = spaceRepository.searchSpaces(keyword, location, minArea, maxArea);
+
+        return spaces.stream()
+                .map(space -> SpaceListResponseDto.from(space, me))
+                .collect(Collectors.toList());
+    }
 }
