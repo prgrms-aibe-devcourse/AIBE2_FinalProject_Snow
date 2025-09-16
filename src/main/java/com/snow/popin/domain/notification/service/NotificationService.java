@@ -1,5 +1,6 @@
 package com.snow.popin.domain.notification.service;
 
+import com.snow.popin.domain.notification.controller.NotificationController;
 import com.snow.popin.domain.notification.dto.NotificationResponse;
 import com.snow.popin.domain.notification.entity.Notification;
 import com.snow.popin.domain.notification.entity.NotificationSetting;
@@ -8,9 +9,7 @@ import com.snow.popin.domain.notification.repository.NotificationRepository;
 import com.snow.popin.domain.notification.repository.NotificationSettingRepository;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.domain.user.repository.UserRepository;
-import com.snow.popin.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,55 +21,26 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final NotificationSettingRepository notificationSettingRepository;
-    private final SimpMessagingTemplate messagingTemplate; // 웹소켓 메시지 전송용
     private final UserRepository userRepository;
 
-    @Transactional
-    public Notification sendNotification(User user, String message, NotificationType type, String title, String link) {
-        Notification notification = new Notification(user, message, type, title, link);
-        Notification saved = notificationRepository.save(notification);
-
-        // WebSocket 구독자에게 푸시
-        messagingTemplate.convertAndSendToUser(
-                user.getId().toString(), // userId 기준 구독
-                "/queue/notifications",
-                saved
-        );
-
-        return saved;
-    }
-
-    @Transactional(readOnly = true)
-    public List<Notification> getUserNotifications(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다. id=" + userId));
-
-        return notificationRepository.findByUserOrderByCreatedAtDesc(user);
-    }
-
-
-    @Transactional
-    public void markAsRead(Long notificationId) {
-        Notification n = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 알림입니다."));
-        n.markAsRead();
-    }
-
+    /**
+     * 특정 사용자에게 알림 생성 & SSE 푸시
+     */
     @Transactional
     public Notification createNotification(Long userId, String title, String message, NotificationType type, String link) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 유저의 알림 설정 조회
+        // 유저 알림 설정 확인
         NotificationSetting setting = notificationSettingRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("알림 설정이 없습니다."));
 
-        // 전체 알림 off → 바로 종료
+        // 전체 OFF
         if (!setting.isEnabled()) {
             return null;
         }
 
-        // 타입별 알림 off → 종료
+        // 타입별 OFF
         switch (type) {
             case RESERVATION:
                 if (!setting.isReservationEnabled()) return null;
@@ -83,7 +53,7 @@ public class NotificationService {
                 break;
         }
 
-        // 알림 생성
+        // 알림 저장
         Notification notification = Notification.builder()
                 .user(user)
                 .title(title)
@@ -94,14 +64,30 @@ public class NotificationService {
 
         Notification saved = notificationRepository.save(notification);
 
-        messagingTemplate.convertAndSendToUser(
-                user.getId().toString(),
-                "/queue/notifications",
-                NotificationResponse.from(saved)
-        );
+        // SSE 푸시
+        NotificationController.sendToClient(userId, NotificationResponse.from(saved));
 
         return saved;
     }
 
+    /**
+     * 유저 알림 목록 조회
+     */
+    @Transactional(readOnly = true)
+    public List<Notification> getUserNotifications(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다. id=" + userId));
 
+        return notificationRepository.findByUserOrderByCreatedAtDesc(user);
+    }
+
+    /**
+     * 알림 읽음 처리
+     */
+    @Transactional
+    public void markAsRead(Long notificationId) {
+        Notification n = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 알림입니다."));
+        n.markAsRead();
+    }
 }

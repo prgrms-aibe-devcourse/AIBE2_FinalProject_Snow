@@ -611,3 +611,7 @@ apiService.createReservationNotification = async function(userId) {
         params: { userId }
     });
 };
+
+apiService.markNotificationRead = async function(id) {
+    return await this.post(`/notifications/${id}/read`);
+};

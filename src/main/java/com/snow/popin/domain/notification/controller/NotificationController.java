@@ -6,13 +6,15 @@ import com.snow.popin.domain.notification.entity.NotificationType;
 import com.snow.popin.domain.notification.service.NotificationService;
 import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @RestController
@@ -20,9 +22,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class NotificationController {
 
-    private final SimpMessagingTemplate messagingTemplate;
     private final NotificationService notificationService;
     private final UserUtil userUtil;
+
+    // 유저별 SSE 연결 보관
+    private static final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
 
     /** 내 알림 목록 조회 */
     @GetMapping("/me")
@@ -36,6 +40,7 @@ public class NotificationController {
                         .collect(Collectors.toList())
         );
     }
+
     /** 알림 읽음 처리 */
     @PostMapping("/{id}/read")
     public ResponseEntity<Void> markAsRead(@PathVariable Long id) {
@@ -43,25 +48,55 @@ public class NotificationController {
         return ResponseEntity.ok().build();
     }
 
-    /** 예약 확정 시 알림 보내기 */
-    @PostMapping("/api/notifications/reservation")
+    /** SSE 구독 엔드포인트 */
+    @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter subscribe() {
+        Long userId = userUtil.getCurrentUserId();
+        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+
+        // 종료/타임아웃 시 제거
+        emitter.onCompletion(() -> emitters.remove(userId));
+        emitter.onTimeout(() -> emitters.remove(userId));
+
+        emitters.put(userId, emitter);
+
+        // 연결 확인용 더미 이벤트
+        try {
+            emitter.send(SseEmitter.event().name("INIT").data("connected"));
+        } catch (IOException e) {
+            emitters.remove(userId);
+        }
+
+        return emitter;
+    }
+
+    /** 예약 확정 시 알림 (테스트용 엔드포인트) */
+    @PostMapping("/reservation")
     public ResponseEntity<Void> sendReservationNotification(@RequestParam Long userId) {
         Notification n = notificationService.createNotification(
                 userId,
                 "예약 확정",
                 "예약이 확정되었습니다!",
                 NotificationType.RESERVATION,
-                "/users/user-popup-reservation" // 알림 클릭 시 이동할 경로
-
+                "/users/user-popup-reservation"
         );
 
-        /** 특정 유저에게 WebSocket push */
-        messagingTemplate.convertAndSendToUser(
-                userId.toString(), // userDestinationPrefix (/user) + userId
-                "/queue/notifications",
-                NotificationResponse.from(n)
-        );
+        if (n != null) {
+            sendToClient(userId, NotificationResponse.from(n));
+        }
 
         return ResponseEntity.ok().build();
+    }
+
+    /** 특정 유저에게 SSE 전송 */
+    public static void sendToClient(Long userId, NotificationResponse dto) {
+        SseEmitter emitter = emitters.get(userId);
+        if (emitter != null) {
+            try {
+                emitter.send(SseEmitter.event().name("notification").data(dto));
+            } catch (IOException e) {
+                emitters.remove(userId);
+            }
+        }
     }
 }

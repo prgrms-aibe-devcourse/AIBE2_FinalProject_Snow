@@ -139,40 +139,6 @@ function initializeLayout() {
     }
 }
 
-async function showNotifications() {
-    const dropdown = document.getElementById("notificationDropdown");
-    dropdown.classList.toggle("hidden");
-
-    if (!dropdown.classList.contains("hidden")) {
-        try {
-            const notifications = await apiService.getNotifications();
-
-            const listEl = document.getElementById("notificationList");
-            listEl.innerHTML = "";
-
-            if (notifications.length === 0) {
-                listEl.innerHTML = "<li class='no-data'>알림이 없습니다.</li>";
-                return;
-            }
-
-            notifications.forEach(n => {
-                const li = document.createElement("li");
-                li.className = n.read ? "notification-item read" : "notification-item unread";
-                li.innerHTML = `
-          <div class="notification-title">${n.title}</div>
-          <div class="notification-message">${n.message}</div>
-        `;
-                listEl.appendChild(li);
-            });
-        } catch (err) {
-            console.error("알림 불러오기 실패:", err);
-            const listEl = document.getElementById("notificationList");
-            listEl.innerHTML = "<li class='error'>알림을 불러오는 중 오류가 발생했습니다.</li>";
-        }
-    }
-}
-
-
 // 프로필 선택 시 이동
 async function goToProfile() {
     try {
@@ -372,10 +338,171 @@ async function getUserRole() {
 }
 
 // === 초기화 ===
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // 인증 체크
     if (checkAuthOnPageLoad()) {
-        // 자동 로그아웃 설정
         setupAutoLogout();
+
+        // 로그인된 사용자면 알림 상태 초기화
+        const userInfo = getUserInfo();
+        if (userInfo?.userId) {
+            subscribeNotifications(userInfo.userId);
+
+            try {
+                // 초기 알림 목록 조회 → 뱃지 상태 업데이트
+                const notifications = await apiService.getNotifications();
+                const hasUnread = notifications.some(n => !n.read);
+                updateNotificationBadge(hasUnread);
+            } catch (err) {
+                console.error("초기 알림 조회 실패:", err);
+            }
+        }
     }
 });
+
+// === 알림 SSE 구독 ===
+function subscribeNotifications(userId) {
+    if (!userId) return;
+
+    const eventSource = new EventSource(`/api/notifications/subscribe?userId=${userId}`);
+
+    eventSource.onmessage = (event) => {
+        try {
+            const notification = JSON.parse(event.data);
+            console.log("새 알림:", notification);
+
+            // 뱃지 표시
+            updateNotificationBadge(true);
+
+            // 드롭다운 열려 있으면 즉시 추가
+            const listEl = document.getElementById("notificationList");
+            if (listEl && !document.getElementById("notificationDropdown").classList.contains("hidden")) {
+                const li = buildNotificationItem(notification);
+                listEl.prepend(li);
+            }
+        } catch (err) {
+            console.error("알림 처리 오류:", err);
+        }
+    };
+
+    eventSource.onerror = (err) => {
+        console.error("SSE 연결 오류:", err);
+        eventSource.close();
+    };
+}
+
+// === 알림 목록 불러오기 ===
+async function showNotifications() {
+    const dropdown = document.getElementById("notificationDropdown");
+    dropdown.classList.toggle("hidden");
+
+    if (!dropdown.classList.contains("hidden")) {
+        try {
+            const notifications = await apiService.getNotifications();
+            const listEl = document.getElementById("notificationList");
+            listEl.innerHTML = "";
+
+            if (!notifications || notifications.length === 0) {
+                listEl.innerHTML = "<li class='no-data'>알림이 없습니다.</li>";
+                updateNotificationBadge(false);
+                return;
+            }
+
+            notifications.forEach(n => {
+                const li = buildNotificationItem(n);
+                listEl.appendChild(li);
+            });
+
+            // 뱃지 상태 갱신
+            const hasUnread = notifications.some(n => !n.read);
+            updateNotificationBadge(hasUnread);
+
+        } catch (err) {
+            console.error("알림 불러오기 실패:", err);
+            document.getElementById("notificationList").innerHTML =
+                "<li class='error'>알림을 불러오는 중 오류가 발생했습니다.</li>";
+        }
+    }
+}
+
+// === 알림 아이템 HTML 생성 ===
+function buildNotificationItem(n) {
+    const li = document.createElement("li");
+    li.className = n.read ? "notification-item read" : "notification-item unread";
+
+    // 왼쪽 내용
+    const contentDiv = document.createElement("div");
+    contentDiv.className = "notification-content";
+    contentDiv.innerHTML = `
+        <div class="notification-title">${n.title}</div>
+        <div class="notification-message">${n.message}</div>
+    `;
+
+    li.appendChild(contentDiv);
+
+    // 읽지 않은 경우 → 읽음 버튼 추가
+    if (!n.read) {
+        const btn = document.createElement("button");
+        btn.className = "mark-read-btn";
+        btn.textContent = "읽음";
+
+        btn.addEventListener("click", async (e) => {
+            e.stopPropagation();
+
+            li.classList.remove("unread");
+            li.classList.add("read");
+            btn.remove();
+            updateNotificationBadge(false);
+
+            await apiService.markNotificationRead(n.id);
+        });
+
+        li.appendChild(btn);
+    }
+
+    // 알림 전체 클릭 → 읽음 처리 + 링크 이동
+    li.addEventListener("click", async () => {
+        if (!li.classList.contains("read")) {
+            li.classList.remove("unread");
+            li.classList.add("read");
+            const btn = li.querySelector(".mark-read-btn");
+            if (btn) btn.remove();
+
+            try {
+                await apiService.markNotificationRead(n.id);
+            } catch (err) {
+                console.error("알림 읽음 처리 실패:", err);
+            }
+        }
+
+        if (n.link) {
+            window.location.href = n.link;
+        }
+    });
+
+    return li;
+}
+
+// === 알림 아이콘 뱃지 표시 ===
+function updateNotificationBadge(show) {
+    const iconBtn = document.getElementById("notificationIcon");
+    if (!iconBtn) return;
+
+    let badge = iconBtn.querySelector(".notification-badge");
+
+    if (show) {
+        if (!badge) {
+            badge = document.createElement("span");
+            badge.className = "notification-badge";
+            badge.style.cssText = `
+                position:absolute; top:2px; right:2px;
+                width:8px; height:8px;
+                background:red; border-radius:50%;
+            `;
+            iconBtn.style.position = "relative";
+            iconBtn.appendChild(badge);
+        }
+    } else {
+        if (badge) badge.remove();
+    }
+}
