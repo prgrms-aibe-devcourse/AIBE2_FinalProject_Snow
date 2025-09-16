@@ -1,9 +1,9 @@
 package com.snow.popin.domain.admin.controller;
 
+import com.snow.popin.domain.admin.service.AdminRoleUpgradeService;
 import com.snow.popin.domain.roleupgrade.dto.AdminUpdateRequest;
 import com.snow.popin.domain.roleupgrade.dto.RoleUpgradeResponse;
 import com.snow.popin.domain.roleupgrade.entity.ApprovalStatus;
-import com.snow.popin.domain.roleupgrade.service.RoleUpgradeService;
 import com.snow.popin.domain.user.constant.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,9 +21,9 @@ import java.util.Map;
 @RequestMapping("/api/admin/role-upgrade")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
-public class RoleUpgradeAdminApiController {
+public class AdminRoleUpgradeApiController {
 
-    private final RoleUpgradeService roleService;
+    private final AdminRoleUpgradeService adminRoleService;
 
     @GetMapping("/requests")
     public ResponseEntity<Page<RoleUpgradeResponse>> getAllRequests(
@@ -36,54 +36,25 @@ public class RoleUpgradeAdminApiController {
 
         if (status != null && role != null) {
             // 상태와 역할 모두 필터링
-            reqs = roleService.getRoleUpgradeRequestsByStatusAndRole(status, role, pageable);
+            reqs = adminRoleService.getRoleUpgradeRequestsByStatusAndRole(status, role, pageable);
         } else if (status != null) {
             // 상태만 필터링
-            reqs = roleService.getRoleUpgradeRequestsByStatus(status, pageable);
+            reqs = adminRoleService.getRoleUpgradeRequestsByStatus(status, pageable);
         } else if (role != null) {
             // 역할만 필터링
-            reqs = roleService.getRoleUpgradeRequestsByRole(role, pageable);
+            reqs = adminRoleService.getRoleUpgradeRequestsByRole(role, pageable);
         } else {
             // 전체 조회
-            reqs = roleService.getAllRoleUpgradeRequests(pageable);
+            reqs = adminRoleService.getAllRoleUpgradeRequests(pageable);
         }
 
         return ResponseEntity.ok(reqs);
     }
 
-    // 상태별 역할 승격 요청 목록 조회 (하위 호환성을 위해 유지)
-    @GetMapping("/requests/status/{status}")
-    public ResponseEntity<Page<RoleUpgradeResponse>> getRequestsByStatus(
-            @PathVariable ApprovalStatus status,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
-            Pageable pageable) {
-
-        Page<RoleUpgradeResponse> reqs = roleService.getRoleUpgradeRequestsByStatus(status, pageable);
-        return ResponseEntity.ok(reqs);
-    }
-
-    // 요청 역할별 역할 승격 요청 목록 조회 (하위 호환성을 위해 유지)
-    @GetMapping("/requests/role/{role}")
-    public ResponseEntity<Page<RoleUpgradeResponse>> getRequestsByRole(
-            @PathVariable Role role,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
-            Pageable pageable) {
-
-        Page<RoleUpgradeResponse> reqs = roleService.getRoleUpgradeRequestsByRole(role, pageable);
-        return ResponseEntity.ok(reqs);
-    }
-
-    // 대기중인 요청 개수 조회
-    @GetMapping("/pending-count")
-    public ResponseEntity<Map<String, Long>> getPendingCount(){
-        long count = roleService.getPendingRequestCount();
-        return ResponseEntity.ok(Map.of("pendingCount", count));
-    }
-
     // 역할 승격 요청 상세 조회
     @GetMapping("/requests/{id}")
     public ResponseEntity<RoleUpgradeResponse> getRequestDetail(@PathVariable Long id) {
-        RoleUpgradeResponse res = roleService.getRoleUpgradeRequestForAdmin(id);
+        RoleUpgradeResponse res = adminRoleService.getRoleUpgradeRequestForAdmin(id);
         return ResponseEntity.ok(res);
     }
 
@@ -92,11 +63,19 @@ public class RoleUpgradeAdminApiController {
     public ResponseEntity<Map<String, String>> processRequest(
             @PathVariable Long id,
             @Valid @RequestBody AdminUpdateRequest req) {
-        roleService.processRoleUpgradeRequest(id, req);
+        adminRoleService.processRoleUpgradeRequest(id, req);
 
         String msg = req.isApprove() ?
                 "역할 승격 요청이 승인되었습니다." : "역할 승격 요청이 거절되었습니다.";
 
         return ResponseEntity.ok(Map.of("message", msg));
     }
+
+    // 대기중인 요청 개수 조회
+    @GetMapping("/pending-count")
+    public ResponseEntity<Long> getPendingCount(){
+        long count = adminRoleService.getPendingRequestCount();
+        return ResponseEntity.of(java.util.Optional.of(count));
+    }
+
 }
