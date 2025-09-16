@@ -148,9 +148,9 @@ async function goToProfile() {
             window.location.href = '/users/mypage';
         }
         else if (role === 'PROVIDER') {
-            location.assign('/templates/pages/mpg-provider.html');
+            location.assign('../templates/pages/mypage/provider/mpg-provider.html');
         } else if (role === 'HOST') {
-            location.assign('/templates/pages/mpg-host.html');
+            window.location.href = '/mypage/host';
         } else {
             alert('로그인이 필요합니다.');
             location.assign('/auth/login');

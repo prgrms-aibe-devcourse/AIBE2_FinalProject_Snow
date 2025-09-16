@@ -43,23 +43,42 @@ const Pages = {
 
     // === 공간 목록 페이지 ===
     spaceList() {
-        location.href = '/templates/pages/space-list.html';
+        location.href = '../templates/pages/space/space-list.html';
     },
 
     //공간 등록 페이지
     spaceRegister() {
-        location.href = '/templates/pages/space-register.html';
+        location.href = '../templates/pages/space/space-register.html';
     },
 
     // 공간 상세 페이지
     spaceDetail(spaceId) {
-        location.href = `/templates/pages/space-detail.html?id=${spaceId}`;
+        location.href = `../templates/pages/space/space-detail.html`;
     },
 
 
     // 공간 수정 페이지
     spaceEdit(spaceId) {
-        location.href = `/templates/pages/space-edit.html?id=${spaceId}`;
+        location.href = `../templates/pages/space/space-edit.html`;
+    },
+    // == 마이페이지 - 호스트 ==
+    mypageHost() {
+        window.location.href = '/mypage/host';
+    },
+
+    // 팝업 등록
+    popupRegister() {
+        window.location.href = '/popup/register';
+    },
+
+    // 팝업 수정
+    popupEdit(popupId) {
+        window.location.href = `/mypage/host/popup/${popupId}/edit`;
+    },
+
+    // 예약 관리
+    reservationManage(popupId) {
+        window.location.href = `/mypage/host/popup/${popupId}/reservation`;
     },
 };
 

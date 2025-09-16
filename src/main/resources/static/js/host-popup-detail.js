@@ -1,7 +1,7 @@
 const HostPopupDetailPage = {
     async init() {
-        const params = new URLSearchParams(window.location.search);
-        const popupId = params.get("popupId") || params.get("id");
+        const pathParts = window.location.pathname.split("/");
+        const popupId = pathParts[pathParts.indexOf("popup") + 1];
 
         if (!popupId) {
             alert("popupId가 없습니다.");
@@ -40,9 +40,6 @@ const HostPopupDetailPage = {
             if (element) element.textContent = value;
         });
 
-        // 운영시간 렌더링
-        this.renderOperatingHours(popup.hours);
-
         const imageElement = document.getElementById("popup-image");
         if (imageElement) {
             if (popup.mainImageUrl) {
@@ -62,15 +59,13 @@ const HostPopupDetailPage = {
             };
         }
 
-        // 수정 버튼
         const editBtn = document.querySelector('.btn-edit');
         if (editBtn) {
             editBtn.addEventListener('click', () => {
-                window.location.href = `/templates/pages/popup-edit.html?id=${popup.id}`;
+                window.location.href = `/mypage/host/popup/${popup.id}/edit`;
             });
         }
 
-        // 삭제 버튼
         const deleteBtn = document.querySelector('.btn-delete');
         if (deleteBtn) {
             deleteBtn.addEventListener('click', async () => {
@@ -78,7 +73,7 @@ const HostPopupDetailPage = {
                 try {
                     await apiService.delete(`/hosts/popups/${popup.id}`);
                     alert("팝업이 삭제되었습니다.");
-                    window.location.href = "/templates/pages/mpg-host.html";
+                    window.location.href = "/mypage/host";
                 } catch (err) {
                     console.error("삭제 실패:", err);
                     alert("팝업 삭제에 실패했습니다.");
@@ -88,10 +83,8 @@ const HostPopupDetailPage = {
     },
 
     renderOperatingHours(hours) {
-        // 운영시간을 표시할 요소 찾기 (기존 요소를 활용하거나 새로 생성)
         let hoursElement = document.getElementById('popup-hours');
 
-        // 만약 해당 요소가 없다면, 상태 정보 다음에 추가
         if (!hoursElement) {
             const statusElement = document.getElementById('popup-status');
             if (statusElement && statusElement.parentElement) {
@@ -109,10 +102,8 @@ const HostPopupDetailPage = {
             return;
         }
 
-        // 요일별로 그룹화
         const groupedHours = this.groupHoursByDay(hours);
 
-        // HTML 생성
         const hoursHTML = Object.entries(groupedHours).map(([timeSlot, days]) => {
             const dayNames = days.sort().map(day => this.getDayName(day)).join(', ');
             return `<div class="hour-item">
@@ -126,7 +117,6 @@ const HostPopupDetailPage = {
 
     groupHoursByDay(hours) {
         const grouped = {};
-
         hours.forEach(hour => {
             const timeSlot = `${hour.openTime} - ${hour.closeTime}`;
             if (!grouped[timeSlot]) {
@@ -134,7 +124,6 @@ const HostPopupDetailPage = {
             }
             grouped[timeSlot].push(hour.dayOfWeek);
         });
-
         return grouped;
     },
 
@@ -156,5 +145,9 @@ const HostPopupDetailPage = {
         }
     }
 };
+
+document.addEventListener("DOMContentLoaded", () => {
+    HostPopupDetailPage.init();
+});
 
 window.HostPopupDetailPage = HostPopupDetailPage;

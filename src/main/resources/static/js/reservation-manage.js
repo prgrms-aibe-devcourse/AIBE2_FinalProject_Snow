@@ -23,7 +23,6 @@ function updateStats(reservations) {
     const totalCount = reservations.length;
     const reservedCount = reservations.filter(r => r.status === 'RESERVED').length;
     const visitedCount = reservations.filter(r => r.status === 'VISITED').length;
-    const cancelledCount = reservations.filter(r => r.status === 'CANCELLED').length;
 
     document.getElementById('total-count').textContent = totalCount;
     document.getElementById('reserved-count').textContent = reservedCount;
@@ -32,8 +31,10 @@ function updateStats(reservations) {
 
 const ReservationManagePage = {
     async init() {
-        const params = new URLSearchParams(window.location.search);
-        const popupId = params.get("popupId");
+        // RESTful 경로: /mypage/host/popup/{id}/reservation
+        const pathParts = window.location.pathname.split("/");
+        const popupId = pathParts[pathParts.indexOf("popup") + 1];
+
         if (!popupId) {
             alert("popupId가 없습니다.");
             return;
@@ -160,11 +161,9 @@ const ReservationManagePage = {
 
 // 페이지 초기화
 document.addEventListener("DOMContentLoaded", () => {
-    // 기존 초기화 로직과 충돌하지 않도록 조건부 실행
     if (!window.componentLoaded) {
         ReservationManagePage.init();
     }
 });
 
-// 전역 함수로 노출 (기존 코드 호환성)
 window.ReservationManagePage = ReservationManagePage;
