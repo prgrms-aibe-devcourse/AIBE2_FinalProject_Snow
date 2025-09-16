@@ -142,4 +142,50 @@ public class PopupManagementResponse {
                 .brandBusinessType(brand != null ? brand.getBusinessType().name() : null)
                 .build();
     }
+
+    /**
+     * 브랜드와 호스트 정보를 함께 포함한 PopupManagementResponse 생성
+     */
+    public static PopupManagementResponse fromWithBrandAndHost(Popup popup, Brand brand, User hostUser) {
+        return PopupManagementResponse.builder()
+                .id(popup.getId())
+                .title(popup.getTitle())
+                .summary(popup.getSummary())
+                .description(popup.getDescription())
+                .startDate(popup.getStartDate())
+                .endDate(popup.getEndDate())
+                .status(popup.getStatus())
+                .mainImageUrl(popup.getMainImageUrl())
+                .isFeatured(popup.getIsFeatured())
+                .reservationAvailable(popup.getReservationAvailable())
+                .waitlistAvailable(popup.getWaitlistAvailable())
+                .entryFee(popup.getEntryFee())
+                .isFreeEntry(popup.isFreeEntry())
+                .feeDisplayText(popup.getFeeDisplayText())
+                .createdAt(popup.getCreatedAt())
+                .updatedAt(popup.getUpdatedAt())
+                .venueName(popup.getVenueName())
+                .venueAddress(popup.getVenueAddress())
+                .region(popup.getRegion())
+                .categoryId(popup.getCategory() != null ? popup.getCategory().getId() : null)
+                .categoryName(popup.getCategoryName())
+                .images(popup.getImages() != null ? popup.getImages().stream()
+                        .map(PopupImageResponseDto::from)
+                        .collect(Collectors.toList()) : null)
+                .hours(popup.getHours() != null ? popup.getHours().stream()
+                        .map(PopupHoursResponseDto::from)
+                        .collect(Collectors.toList()) : null)
+                // 브랜드 정보
+                .brandId(popup.getBrandId())
+                .brandName(brand != null ? brand.getName() : null)
+                .brandDescription(brand != null ? brand.getDescription() : null)
+                .brandOfficialSite(brand != null ? brand.getOfficialSite() : null)
+                .brandLogoUrl(brand != null ? brand.getLogoUrl() : null)
+                .brandBusinessType(brand != null ? brand.getBusinessType().name() : null)
+                // 주최자 정보
+                .hostId(hostUser != null ? hostUser.getId() : null)
+                .hostName(hostUser != null ? hostUser.getName() : "정보 없음")
+                .hostEmail(hostUser != null ? hostUser.getEmail() : "정보 없음")
+                .build();
+    }
 }

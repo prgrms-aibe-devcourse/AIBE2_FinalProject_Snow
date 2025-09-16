@@ -44,7 +44,7 @@ public class AdminPopupService {
         log.debug("팝업 통계 조회 시작");
 
         return PopupStatsResponse.builder()
-                .completed(popupRepo.count())
+                .total(popupRepo.count())
                 .planning(popupRepo.countByStatus(PopupStatus.PLANNED))
                 .ongoing(popupRepo.countByStatus(PopupStatus.ONGOING))
                 // TODO 일단은 ENDED로 is_hidden 생기면 고치기
@@ -60,7 +60,6 @@ public class AdminPopupService {
         log.debug("관리자용 팝업 목록 조회 - 상태: {}, 카테고리: {}, 키워드: {}", status, category, keyword);
 
         Specification<Popup> spec = createPopupSpecification(status, category, keyword);
-
         Page<Popup> popups = popupRepo.findAll(spec, pageable);
 
         return popups.map(PopupManagementResponse::from);

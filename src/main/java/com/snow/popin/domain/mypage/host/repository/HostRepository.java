@@ -29,4 +29,12 @@ public interface HostRepository extends JpaRepository<Host, Long> {
     @Query("SELECT CASE WHEN COUNT(h) > 0 THEN true ELSE false END " +
             "FROM Host h WHERE h.brand = :brand AND h.user.id = :userId")
     boolean existsByBrandAndUser(@Param("brand") Brand brand, @Param("userId") Long userId);
+
+    /**
+     * 특정 브랜드의 첫 번째 호스트 조회 (주로 소유자)
+     *
+     * @param brand 브랜드 엔티티
+     * @return 해당 브랜드의 첫 번째 호스트 (없으면 Optional.empty)
+     */
+    Optional<Host> findFirstByBrand(Brand brand);
 }
