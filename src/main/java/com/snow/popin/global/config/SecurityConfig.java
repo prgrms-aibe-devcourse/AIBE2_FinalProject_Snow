@@ -78,7 +78,7 @@ public class SecurityConfig {
                         .antMatchers("/provider/**").hasRole("PROVIDER")
 
                         .antMatchers("/api/public/**").permitAll()
-                        .antMatchers("/api/**").authenticated()
+                        .antMatchers("/api/**").permitAll()
 
                         .anyRequest().authenticated()
                 )

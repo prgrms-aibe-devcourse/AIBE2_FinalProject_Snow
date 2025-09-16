@@ -11,7 +11,7 @@
         </div>
 
     </div>
-    <div class="logo">
+    <div class="logo" onclick="location.href='/'">
         <!-- 로고 이미지 -->
         <img src="/images/logo.png"
              alt="POPIN"
@@ -23,13 +23,18 @@
         </div>
     </div>
     <div class="header-right">
-        <div class="icon-btn" onclick="showNotifications()">
+        <div class="icon-btn" id="notificationIcon"  onclick="showNotifications()">
             <!-- 알림 아이콘 -->
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg id="notificationIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                 <path d="m13.73 21a2 2 0 0 1-3.46 0"></path>
             </svg>
         </div>
+        <div id="notificationDropdown" class="notification-dropdown hidden">
+            <div class="notification-header">알림</div>
+            <ul id="notificationList"></ul>
+        </div>
+
         <div class="icon-btn" onclick="goToProfile()">
             <!-- 프로필 아이콘 -->
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

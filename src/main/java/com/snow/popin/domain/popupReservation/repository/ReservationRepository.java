@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -22,6 +23,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
      * @return 예약 목록
      */
     List<Reservation> findByUser(User currentUser);
+
     /**
      * 특정 팝업의 예약 목록 조회
      *
@@ -29,6 +31,13 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
      * @return 예약 목록
      */
     List<Reservation> findByPopup(Popup popup);
+
+    /**
+     * 특정 시간 범위 내의 예약 조회 (예: 예약 30분 전 확인용)
+     */
+    @Query("SELECT r FROM Reservation r WHERE FUNCTION('DATE_FORMAT', r.reservationDate, '%Y-%m-%d %H:%i') = :target")
+    List<Reservation> findByReservationMinute(@Param("target") String targetMinute);
+
     /**
      * 특정 팝업과 사용자에 대해 예약 존재 여부 확인
      *
@@ -37,4 +46,5 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
      * @return 존재 여부
      */
     boolean existsByPopupAndUser(Popup popup, User currentUser);
+
 }

@@ -638,6 +638,24 @@ apiService.rejectPopupReport = async function(reportId) {
     return await this.put(`/popups/reports/${encodeURIComponent(reportId)}/reject`, {});
 };
 
+// === 알림 관련 API ===
+apiService.getNotifications = async function() {
+    return await this.get('/notifications/me');
+};
+
+apiService.markNotificationAsRead = async function(notificationId) {
+    return await this.post(`/notifications/${encodeURIComponent(notificationId)}/read`);
+};
+
+apiService.createReservationNotification = async function(userId) {
+    return await this.post('/notifications/reservation', null, {
+        params: { userId }
+    });
+};
+
+apiService.markNotificationRead = async function(id) {
+    return await this.post(`/notifications/${id}/read`);
+};
 // === 마이페이지 HOST api ===
 // 팝업 등록
 apiService.createPopup = async function(data) {
@@ -668,3 +686,4 @@ apiService.deletePopup = async function(popupId) {
 apiService.getMyHostProfile = async function() {
     return await this.get('/hosts/me');
 };
+
