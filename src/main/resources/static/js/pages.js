@@ -43,17 +43,16 @@ const Pages = {
 
     // === 공간 목록 페이지 ===
     spaceList() {
-        location.href = '../templates/pages/space/space-list.html';
+        window.location.href = '/space/list';
     },
-
-    //공간 등록 페이지
     spaceRegister() {
-        location.href = '../templates/pages/space/space-register.html';
+        window.location.href = '/space/register';
     },
-
-    // 공간 상세 페이지
     spaceDetail(spaceId) {
-        location.href = `../templates/pages/space/space-detail.html`;
+        window.location.href = `/space/detail/${spaceId}`;
+    },
+    spaceEdit(spaceId) {
+        window.location.href = `/space/edit/${spaceId}`;
     },
 
 
