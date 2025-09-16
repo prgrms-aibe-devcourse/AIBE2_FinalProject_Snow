@@ -53,16 +53,12 @@ public class NotificationSetting {
     /**
      * 비즈니스 메소드
      */
-
     public void enableAll() { this.enabled = true; }
     public void disableAll() { this.enabled = false; }
-
     public void enableReservation() { this.reservationEnabled = true; }
     public void disableReservation() { this.reservationEnabled = false; }
-
     public void enableSystem() { this.systemEnabled = true; }
     public void disableSystem() { this.systemEnabled = false; }
-
     public void enableInquiry() { this.inquiryEnabled = true; }
     public void disableInquiry() { this.inquiryEnabled = false; }
 }
