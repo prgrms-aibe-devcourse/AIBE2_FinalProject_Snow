@@ -16,11 +16,48 @@
     <div id="header-container"></div>
 
     <main class="main-content" id="main-content">
-        <!-- 기존 목록 마크업 (그대로 유지) -->
         <div class="space-list-container">
             <div class="page-header">
                 <h1 class="page-title">팝업 공간 대여</h1>
                 <a class="register-btn" href="/templates/pages/space-register.html">등록하기</a>
+            </div>
+
+            <!-- 검색 영역 -->
+            <div class="search-section">
+                <div class="search-bar">
+                    <input type="text" id="searchKeyword" placeholder="제목, 설명으로 검색..." class="search-input">
+                    <button id="searchBtn" class="search-btn">검색</button>
+                </div>
+
+                <div class="filter-section">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="locationFilter">위치</label>
+                            <input type="text" id="locationFilter" placeholder="지역명, 주소" class="filter-input">
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="minArea">최소 면적 (m²)</label>
+                            <input type="number" id="minArea" placeholder="50" class="filter-input">
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="maxArea">최대 면적 (m²)</label>
+                            <input type="number" id="maxArea" placeholder="500" class="filter-input">
+                        </div>
+                    </div>
+
+                    <div class="filter-actions">
+                        <button id="resetBtn" class="reset-btn">초기화</button>
+                        <button id="applyFilter" class="apply-btn">필터 적용</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 검색 결과 정보 -->
+            <div id="searchInfo" class="search-info" style="display: none;">
+                <span><span id="resultCount">0</span>개의 공간을 찾았습니다.</span>
+                <button id="clearSearch" class="clear-search-btn">전체보기</button>
             </div>
 
             <!-- 로딩 -->
@@ -34,6 +71,13 @@
                 <div class="empty-icon">🏢</div>
                 <p>등록된 공간이 없습니다.</p><br />
                 <a class="register-btn" href="/templates/pages/space-register.html">등록하기</a>
+            </div>
+
+            <!-- 검색 결과 없음 -->
+            <div id="noSearchResult" class="empty-state" style="display:none;">
+                <div class="empty-icon">🔍</div>
+                <p>검색 결과가 없습니다.</p>
+                <button id="resetSearch" class="register-btn">검색 초기화</button>
             </div>
         </div>
     </main>
@@ -49,21 +93,18 @@
 <!-- 페이지 JS -->
 <script src="/js/space-list.js"></script>
 
-<!-- MPA용 라우팅 호환(기존 Pages 호출을 일반 이동으로 바꿈) -->
 <script>
-
     document.addEventListener('DOMContentLoaded', async () => {
         await loadComponents();      // header/footer 로드
         initializeLayout();
 
-        // 상단/빈상태 “등록하기” 버튼 → 독립 페이지로 이동
+        // 상단/빈상태 "등록하기" 버튼 → 독립 페이지로 이동
         document.querySelectorAll('.register-btn').forEach(btn => {
             btn.addEventListener('click', () => Pages.spaceRegister());
         });
 
         // 페이지 초기화
         if (window.SpaceListPage?.init) {
-            // 기존 space-list.js가 내부에서 Pages.spaceDetail(id) 등을 호출해도 위의 MPA용 Pages가 처리함
             SpaceListPage.init();
         } else {
             document.getElementById('loading').textContent = '목록 스크립트를 찾을 수 없습니다.';
