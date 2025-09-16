@@ -595,3 +595,19 @@ apiService.approvePopupReport = async function(reportId) {
 apiService.rejectPopupReport = async function(reportId) {
     return await this.put(`/popups/reports/${encodeURIComponent(reportId)}/reject`, {});
 };
+
+
+// === 알림 관련 API ===
+apiService.getNotifications = async function() {
+    return await this.get('/notifications/me');
+};
+
+apiService.markNotificationAsRead = async function(notificationId) {
+    return await this.post(`/notifications/${encodeURIComponent(notificationId)}/read`);
+};
+
+apiService.createReservationNotification = async function(userId) {
+    return await this.post('/notifications/reservation', null, {
+        params: { userId }
+    });
+};

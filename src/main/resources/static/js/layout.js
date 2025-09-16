@@ -139,11 +139,39 @@ function initializeLayout() {
     }
 }
 
-// 헤더 아이콘 클릭 이벤트
-function showNotifications() {
-    console.log('알림 클릭');
-    // 알림 템플릿 로드 예정
+async function showNotifications() {
+    const dropdown = document.getElementById("notificationDropdown");
+    dropdown.classList.toggle("hidden");
+
+    if (!dropdown.classList.contains("hidden")) {
+        try {
+            const notifications = await apiService.getNotifications();
+
+            const listEl = document.getElementById("notificationList");
+            listEl.innerHTML = "";
+
+            if (notifications.length === 0) {
+                listEl.innerHTML = "<li class='no-data'>알림이 없습니다.</li>";
+                return;
+            }
+
+            notifications.forEach(n => {
+                const li = document.createElement("li");
+                li.className = n.read ? "notification-item read" : "notification-item unread";
+                li.innerHTML = `
+          <div class="notification-title">${n.title}</div>
+          <div class="notification-message">${n.message}</div>
+        `;
+                listEl.appendChild(li);
+            });
+        } catch (err) {
+            console.error("알림 불러오기 실패:", err);
+            const listEl = document.getElementById("notificationList");
+            listEl.innerHTML = "<li class='error'>알림을 불러오는 중 오류가 발생했습니다.</li>";
+        }
+    }
 }
+
 
 // 프로필 선택 시 이동
 async function goToProfile() {
