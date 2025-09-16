@@ -111,7 +111,6 @@ class PopupManagement {
     }
 
     // 통계 정보 로드
-    // 통계 정보 로드 - 백엔드 응답에 맞게 수정
     async loadStats() {
         try {
             const response = await fetch('/api/admin/popups/stats', {
@@ -124,8 +123,8 @@ class PopupManagement {
 
             // 백엔드에서 제공하는 필드명에 맞게 수정
             document.getElementById('totalCount').textContent = stats.total || 0;
-            document.getElementById('pendingCount').textContent = stats.planning || 0;  // planning -> pendingCount
-            document.getElementById('activeCount').textContent = stats.ongoing || 0;    // ongoing -> activeCount
+            document.getElementById('pendingCount').textContent = stats.pending || 0;
+            document.getElementById('activeCount').textContent = stats.active || 0;
 
         } catch (error) {
             console.error('통계 로딩 실패:', error);
