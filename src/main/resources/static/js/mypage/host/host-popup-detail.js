@@ -73,7 +73,7 @@ const HostPopupDetailPage = {
                 try {
                     await apiService.delete(`/hosts/popups/${popup.id}`);
                     alert("팝업이 삭제되었습니다.");
-                    window.location.href = "/mypage/host";
+                    window.location.href = "";
                 } catch (err) {
                     console.error("삭제 실패:", err);
                     alert("팝업 삭제에 실패했습니다.");

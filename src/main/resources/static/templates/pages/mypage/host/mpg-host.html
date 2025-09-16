@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/css/layout.css">
 
     <!-- 페이지별 CSS -->
-    <link rel="stylesheet" href="/css/mpg-host.css">
+    <link rel="stylesheet" href="/css/mypage/host/mpg-host.css">
 </head>
 <body>
 <div class="mobile-container">
@@ -21,9 +21,9 @@
     <!-- 메인 콘텐츠 영역 -->
     <main class="main-content" id="main-content">
 
-        <!-- 내 정보 -->
+        <!-- 마이페이지 (변경) -->
         <section class="block user-info">
-            <h3 class="block-title">내 정보</h3>
+            <h3 class="block-title">마이페이지</h3>
             <div class="card user-profile">
                 <div class="profile-row"><span class="label">계정명</span><span id="user-email" class="value"></span><button class="edit-btn">수정</button></div>
                 <div class="profile-row"><span class="label">이름</span><span id="user-name" class="value"></span><button class="edit-btn">수정</button></div>
@@ -33,12 +33,10 @@
             </div>
         </section>
 
-        <!-- 내가 등록한 팝업 -->
+        <!-- 내가 등록한 팝업 (레이아웃 변경) -->
         <section class="block">
-            <div class="page-header">
-                <h3 class="block-title">내가 등록한 팝업</h3>
-                <button id="btn-popup-register" class="btn-primary small">팝업 등록하기</button>
-            </div>
+            <h3 class="block-title">내가 등록한 팝업</h3>
+            <button id="btn-popup-register" class="btn-primary register-btn">팝업 등록하기</button>
             <div id="my-popup-list" class="card-list">
                 <div class="empty" data-empty>등록한 팝업이 없습니다.</div>
             </div>
@@ -67,7 +65,7 @@
 <script src="/js/pages.js"></script>
 
 <!-- 페이지별 스크립트 -->
-<script src="/js/mpg-host.js"></script>
+<script src="/js/mypage/host/mpg-host.js"></script>
 
 <!-- 애플리케이션 초기화 -->
 <script>
