@@ -5,6 +5,8 @@ import com.snow.popin.domain.inquiry.entity.Inquiry;
 import com.snow.popin.domain.inquiry.entity.InquiryStatus;
 import com.snow.popin.domain.inquiry.entity.TargetType;
 import com.snow.popin.domain.inquiry.repository.InquiryRepository;
+import com.snow.popin.domain.map.entity.Venue;
+import com.snow.popin.domain.map.repository.MapRepository;
 import com.snow.popin.domain.mission.entity.Mission;
 import com.snow.popin.domain.mission.entity.MissionSet;
 import com.snow.popin.domain.mission.repository.MissionRepository;
@@ -24,6 +26,8 @@ import com.snow.popin.domain.reward.entity.RewardOption;
 import com.snow.popin.domain.reward.repository.RewardOptionRepository;
 import com.snow.popin.domain.roleupgrade.entity.RoleUpgrade;
 import com.snow.popin.domain.roleupgrade.repository.RoleUpgradeRepository;
+import com.snow.popin.domain.space.entity.Space;
+import com.snow.popin.domain.space.repository.SpaceRepository;
 import com.snow.popin.domain.user.repository.UserRepository;
 import com.snow.popin.domain.user.constant.Role;
 import com.snow.popin.domain.user.entity.User;
@@ -35,6 +39,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -57,14 +62,18 @@ public class DataInitializer implements CommandLineRunner {
     private final ReservationRepository reservationRepository;
     private final InquiryRepository inquiryRepository;
     private final RoleUpgradeRepository roleUpgradeRepository;
+    private final SpaceRepository spaceRepository;
+    private final MapRepository venueRepository;
 
     @Override
     public void run(String... args) throws Exception {
         createDummyUsers();
+        createDummyVenues();
         createDummyMissions();
         createFakeHostAndReservations();
         createDummyInquiries();
         createDummyRoleUpgrades();
+        createDummySpaces();
     }
 
     private void createDummyUsers() {
@@ -107,6 +116,48 @@ public class DataInitializer implements CommandLineRunner {
 
         userRepository.saveAll(Arrays.asList(user1, user2, user3));
         log.info("유저 더미 데이터 생성 완료");
+    }
+
+    private void createDummyVenues() {
+        if (venueRepository.count() > 0) {
+            log.info("Venue 더미 데이터가 이미 존재하여 생성하지 않습니다.");
+            return;
+        }
+
+        log.info("Venue 더미 데이터를 생성합니다.");
+
+        Venue venue1 = Venue.of(
+                "테스트 팝업 장소1",
+                "서울특별시 강남구 테헤란로 123",
+                "서울특별시 강남구 역삼동 123-45",
+                "1층 101호",
+                37.5012,
+                127.0396,
+                true
+        );
+
+        Venue venue2 = Venue.of(
+                "테스트 팝업 장소2",
+                "서울특별시 마포구 홍익로 234",
+                "서울특별시 마포구 홍익동 234-56",
+                "2층 전체",
+                37.5512,
+                126.9222,
+                false
+        );
+
+        Venue venue3 = Venue.of(
+                "테스트 팝업 장소3",
+                "서울특별시 용산구 이태원로 345",
+                "서울특별시 용산구 이태원동 345-67",
+                "지하 1층",
+                37.5345,
+                126.9947,
+                true
+        );
+
+        venueRepository.saveAll(Arrays.asList(venue1, venue2, venue3));
+        log.info("Venue 더미 데이터 생성 완료");
     }
 
     private void createDummyMissions() {
@@ -258,6 +309,16 @@ public class DataInitializer implements CommandLineRunner {
         log.info(" 더미 데이터 생성 완료: host1@test.com → 브랜드/팝업3개, reservation1@test.com → 예약 3건");
     }
 
+    // BrandId 설정 헬퍼 메서드 (리플렉션 사용)
+    private void setBrandId(Popup popup, Long brandId) {
+        try {
+            Field brandIdField = Popup.class.getDeclaredField("brandId");
+            brandIdField.setAccessible(true);
+            brandIdField.set(popup, brandId);
+        } catch (Exception e) {
+            log.warn("brandId 설정 실패: {}", e.getMessage());
+        }
+    }
 
     private void createDummyInquiries() {
         if (inquiryRepository.count() > 0) {
@@ -433,7 +494,6 @@ public class DataInitializer implements CommandLineRunner {
         log.info("신고 더미 데이터 생성 완료 - 총 {}건", inquiries.size());
     }
 
-
     private void createDummyRoleUpgrades() {
         if (roleUpgradeRepository.count() > 0) {
             log.info("역할 승격 요청 더미 데이터가 이미 존재하여 생성하지 않습니다.");
@@ -491,4 +551,154 @@ public class DataInitializer implements CommandLineRunner {
         log.info("역할 승격 요청 더미 데이터 생성 완료 - 총 {}건", roleUpgrades.size());
     }
 
+    /**
+     * 장소 더미 데이터 생성
+     */
+    private void createDummySpaces() {
+        if (spaceRepository.count() > 0) {
+            log.info("장소 더미 데이터가 이미 존재하여 생성하지 않습니다.");
+            return;
+        }
+
+        log.info("장소 더미 데이터를 생성합니다.");
+
+        // PROVIDER 역할의 사용자들 생성
+        User provider1 = userRepository.findByEmail("provider1@test.com")
+                .orElseGet(() -> userRepository.save(User.builder()
+                        .email("provider1@test.com")
+                        .password(passwordEncoder.encode("1234"))
+                        .name("공간제공자1")
+                        .nickname("provider1")
+                        .phone("010-1111-2222")
+                        .authProvider(AuthProvider.LOCAL)
+                        .role(Role.PROVIDER)
+                        .build()));
+
+        User provider2 = userRepository.findByEmail("provider2@test.com")
+                .orElseGet(() -> userRepository.save(User.builder()
+                        .email("provider2@test.com")
+                        .password(passwordEncoder.encode("1234"))
+                        .name("공간제공자2")
+                        .nickname("provider2")
+                        .phone("010-2222-3333")
+                        .authProvider(AuthProvider.LOCAL)
+                        .role(Role.PROVIDER)
+                        .build()));
+
+        // 일반 사용자도 공간 등록 가능
+        User user1 = userRepository.findByEmail("user1@test.com").orElse(null);
+
+        // 추가 Venue 데이터 생성 (기존에 없다면)
+        List<Venue> venues = venueRepository.findAll();
+
+        if (venues.size() < 5) {
+            Venue venue4 = Venue.of(
+                    "송파 컨벤션센터",
+                    "서울특별시 송파구 올림픽로 456",
+                    "서울특별시 송파구 잠실동 456-78",
+                    "메인홀",
+                    37.5145,
+                    127.1026,
+                    true
+            );
+
+            Venue venue5 = Venue.of(
+                    "성수동 카페 스페이스",
+                    "서울특별시 성동구 성수일로 567",
+                    "서울특별시 성동구 성수동2가 567-89",
+                    "1층 카페공간",
+                    37.5445,
+                    127.0560,
+                    false
+            );
+
+            venueRepository.saveAll(Arrays.asList(venue4, venue5));
+            venues = venueRepository.findAll(); // 다시 로드
+        }
+
+        // Space 데이터 생성 (기존 빌더 패턴 사용)
+        List<Space> spaces = Arrays.asList(
+                Space.builder()
+                        .owner(provider1)
+                        .title("강남 프리미엄 스튜디오")
+                        .description("촬영, 전시회, 세미나에 최적화된 프리미엄 스튜디오입니다. 최신 조명 장비와 음향 시설을 완비하고 있으며, 강남역에서 도보 5분 거리에 위치해 있어 접근성이 뛰어납니다.")
+                        .areaSize(120)
+                        .startDate(LocalDate.now().minusDays(10))
+                        .endDate(LocalDate.now().plusDays(60))
+                        .rentalFee(300000)
+                        .contactPhone("010-1111-2222")
+                        .coverImageUrl("https://dummyimage.com/600x400/4A90E2/ffffff?text=Premium+Studio")
+                        .venue(venues.get(0))
+                        .build(),
+
+                Space.builder()
+                        .owner(provider1)
+                        .title("홍대 아트스페이스")
+                        .description("예술 작품 전시와 창작 활동을 위한 아트스페이스입니다. 자연광이 풍부하게 들어오는 넓은 공간으로, 갤러리나 워크샵 진행에 적합합니다.")
+                        .areaSize(80)
+                        .startDate(LocalDate.now())
+                        .endDate(LocalDate.now().plusDays(90))
+                        .rentalFee(180000)
+                        .contactPhone("010-1111-2222")
+                        .coverImageUrl("https://dummyimage.com/600x400/E74C3C/ffffff?text=Art+Space")
+                        .venue(venues.size() > 1 ? venues.get(1) : venues.get(0))
+                        .build(),
+
+                Space.builder()
+                        .owner(provider2)
+                        .title("이태원 이벤트홀")
+                        .description("각종 이벤트, 파티, 워크샵을 위한 다목적 이벤트홀입니다. 최대 100명까지 수용 가능하며, 케이터링 서비스도 이용 가능합니다.")
+                        .areaSize(200)
+                        .startDate(LocalDate.now().plusDays(5))
+                        .endDate(LocalDate.now().plusDays(120))
+                        .rentalFee(500000)
+                        .contactPhone("010-2222-3333")
+                        .coverImageUrl("https://dummyimage.com/600x400/F39C12/ffffff?text=Event+Hall")
+                        .venue(venues.size() > 2 ? venues.get(2) : venues.get(0))
+                        .build(),
+
+                Space.builder()
+                        .owner(provider2)
+                        .title("송파 컨벤션센터")
+                        .description("대규모 컨퍼런스, 전시회, 세미나를 위한 컨벤션센터입니다. 최신 AV 장비와 동시통역 시설을 갖추고 있어 국제 행사에도 적합합니다.")
+                        .areaSize(500)
+                        .startDate(LocalDate.now().minusDays(5))
+                        .endDate(LocalDate.now().plusDays(180))
+                        .rentalFee(1200000)
+                        .contactPhone("010-2222-3333")
+                        .coverImageUrl("https://dummyimage.com/600x400/9B59B6/ffffff?text=Convention+Center")
+                        .venue(venues.size() > 3 ? venues.get(3) : venues.get(0))
+                        .build(),
+
+                Space.builder()
+                        .owner(user1 != null ? user1 : provider1)
+                        .title("성수동 카페 스페이스")
+                        .description("아늑한 카페 분위기의 소규모 모임 공간입니다. 북카페 형태로 운영되며, 소규모 독서모임, 스터디, 브런치 파티 등에 적합합니다.")
+                        .areaSize(50)
+                        .startDate(LocalDate.now().plusDays(1))
+                        .endDate(LocalDate.now().plusDays(45))
+                        .rentalFee(80000)
+                        .contactPhone("010-1234-1234")
+                        .coverImageUrl("https://dummyimage.com/600x400/1ABC9C/ffffff?text=Cafe+Space")
+                        .venue(venues.size() > 4 ? venues.get(4) : venues.get(0))
+                        .build()
+        );
+
+        // 일부는 비공개로 설정 (리플렉션 사용)
+        try {
+            Field isPublicField = Space.class.getDeclaredField("isPublic");
+            isPublicField.setAccessible(true);
+            isPublicField.set(spaces.get(1), false); // 홍대 아트스페이스 비공개
+            isPublicField.set(spaces.get(4), false); // 성수동 카페 스페이스 비공개
+        } catch (Exception e) {
+            log.warn("isPublic 필드 설정 실패: {}", e.getMessage());
+        }
+
+        spaceRepository.saveAll(spaces);
+
+        log.info("장소 더미 데이터 생성 완료 - 총 {}개", spaces.size());
+        log.info("공개 장소: {}개, 비공개 장소: {}개",
+                spaces.stream().mapToInt(s -> s.getIsPublic() ? 1 : 0).sum(),
+                spaces.stream().mapToInt(s -> s.getIsPublic() ? 0 : 1).sum());
+    }
 }

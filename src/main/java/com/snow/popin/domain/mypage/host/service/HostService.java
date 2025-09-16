@@ -6,6 +6,8 @@ import com.snow.popin.domain.mypage.host.dto.PopupRegisterResponseDto;
 import com.snow.popin.domain.mypage.host.entity.Host;
 import com.snow.popin.domain.mypage.host.repository.HostRepository;
 import com.snow.popin.domain.popup.entity.Popup;
+import com.snow.popin.domain.popup.entity.PopupHours;
+import com.snow.popin.domain.popup.repository.PopupHoursRepository;
 import com.snow.popin.domain.popup.repository.PopupRepository;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.global.constant.ErrorCode;
@@ -32,6 +34,7 @@ public class HostService {
 
     private final HostRepository hostRepository;
     private final PopupRepository popupRepository;
+    private final PopupHoursRepository popupHoursRepository;
     /**
      * 팝업 등록
      *
@@ -41,14 +44,21 @@ public class HostService {
      */
     @Transactional
     public Long createPopup(User user, PopupRegisterRequestDto dto) {
-        // 유저가 Host인지 검증
+        // 기존 코드
         Host host = hostRepository.findByUser(user)
                 .orElseThrow(() -> new GeneralException(ErrorCode.UNAUTHORIZED));
 
-        //  팝업 생성
         Popup popup = Popup.create(host.getBrand().getId(), dto);
-
         popupRepository.save(popup);
+
+        // 운영시간 저장 로직 추가
+        if (dto.getHours() != null && !dto.getHours().isEmpty()) {
+            List<PopupHours> hours = dto.getHours().stream()
+                    .map(hourDto -> PopupHours.create(popup, hourDto))
+                    .collect(Collectors.toList());
+            popupHoursRepository.saveAll(hours);
+        }
+
         return popup.getId();
     }
     /**
@@ -142,5 +152,4 @@ public class HostService {
 
         return HostProfileResponseDto.from(host);
     }
-
 }

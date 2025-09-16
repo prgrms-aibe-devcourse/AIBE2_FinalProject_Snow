@@ -5,6 +5,17 @@
     <title>신고 관리 - POPPIN</title>
     <link rel="stylesheet" href="/css/layout.css">
     <link rel="stylesheet" href="/css/report-management.css">
+    <style>
+        /* 관리자용 footer 스타일 추가 */
+        body {
+            padding-bottom: 96px;
+        }
+
+        .main-content {
+            height: calc(100vh - 206px); /* 헤더(110px) + 푸터(96px) 제외 */
+            overflow-y: auto;
+        }
+    </style>
 </head>
 <body>
 <!-- Header -->
@@ -57,18 +68,12 @@
                 <polyline points="9 6 15 12 9 18"></polyline>
             </svg>
         </a>
-
-        <a class="card account-upgrade" href="/templates/admin/role-upgrade/admin-role-upgrade.html" aria-label="계정 전환 요청 처리하러 가기">
-            <div class="card-content">
-                <div class="card-title">계정 전환 요청 <span class="badge" id="upgradeRequestCount">0</span></div>
-                <div class="card-sub">처리하러 가기 ›</div>
-            </div>
-            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polyline points="9 6 15 12 9 18"></polyline>
-            </svg>
-        </a>
     </nav>
 </div>
+
+<!-- Admin Footer -->
+<div id="admin-footer-mount"></div>
+
 <script>
     async function injectPartial(selector, url) {
         const mount = document.querySelector(selector);
@@ -81,8 +86,10 @@
             console.warn('Include failed:', url, err);
         }
     }
+
     document.addEventListener('DOMContentLoaded', function () {
-        injectPartial('#app-header-mount', './components/header.html');
+        injectPartial('#app-header-mount', '../components/header.html');
+        injectPartial('#admin-footer-mount', '../components/admin-footer.html');
     });
 </script>
 <script src="/js/admin/report-management.js"></script>

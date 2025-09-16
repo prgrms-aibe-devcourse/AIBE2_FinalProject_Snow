@@ -4,11 +4,13 @@ import com.snow.popin.domain.mypage.host.dto.HostProfileResponseDto;
 import com.snow.popin.domain.mypage.host.dto.PopupRegisterRequestDto;
 import com.snow.popin.domain.mypage.host.dto.PopupRegisterResponseDto;
 import com.snow.popin.domain.mypage.host.service.HostService;
+import com.snow.popin.domain.space.service.FileStorageService;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -26,6 +28,7 @@ public class HostController {
 
     private final HostService hostService;
     private final UserUtil userUtil;
+    private final FileStorageService fileStorageService;
 
     /**
      * 팝업 등록
@@ -95,6 +98,15 @@ public class HostController {
     public ResponseEntity<HostProfileResponseDto> getMyHostProfile() {
         User user = userUtil.getCurrentUser();
         return ResponseEntity.ok(hostService.getMyHostProfile(user));
+    }
+    @PostMapping("/upload/image")
+    public ResponseEntity<?> uploadImage(@RequestParam("image") MultipartFile file) {
+        try {
+            String imageUrl = fileStorageService.save(file);
+            return ResponseEntity.ok(Map.of("imageUrl", imageUrl));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
 }

@@ -1,5 +1,6 @@
 package com.snow.popin.domain.popup.entity;
 
+import com.snow.popin.domain.mypage.host.dto.PopupHourResponseDto;
 import com.snow.popin.global.common.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -39,5 +40,13 @@ public class PopupHours extends BaseEntity {
 
     public void updateNote(String note) {
         this.note = note;
+    }
+    public static PopupHours create(Popup popup, PopupHourResponseDto dto) {
+        PopupHours hours = new PopupHours();
+        hours.popup = popup;
+        hours.dayOfWeek = dto.getDayOfWeek();
+        hours.openTime = LocalTime.parse(dto.getOpenTime());
+        hours.closeTime = LocalTime.parse(dto.getCloseTime());
+        return hours;
     }
 }

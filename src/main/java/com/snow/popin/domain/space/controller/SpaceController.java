@@ -4,6 +4,8 @@ import com.snow.popin.domain.space.dto.SpaceCreateRequestDto;
 import com.snow.popin.domain.space.dto.SpaceListResponseDto;
 import com.snow.popin.domain.space.dto.SpaceResponseDto;
 import com.snow.popin.domain.space.dto.SpaceUpdateRequestDto;
+import com.snow.popin.domain.space.entity.Space;
+import com.snow.popin.domain.space.repository.SpaceRepository;
 import com.snow.popin.domain.space.service.SpaceService;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.domain.user.repository.UserRepository;
@@ -11,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,6 +30,7 @@ import java.util.*;
 public class SpaceController {
 
     private final SpaceService spaceService;
+    private final SpaceRepository spaceRepository;
     private final UserRepository userRepository;
 
     // 모든 공간 목록 조회
@@ -99,7 +103,26 @@ public class SpaceController {
     //신고
     @PostMapping("/{id}/reports")
     public ResponseEntity<?> report(@PathVariable Long id) {
-        return ResponseEntity.accepted().build();
+        User me = getCurrentUser();
+        spaceService.hideSpace(me, id); // 신고 시 숨김 처리
+        return ResponseEntity.ok(Map.of("message", "신고가 접수되어 해당 공간이 숨겨졌습니다."));
+    }
+
+    // 공간 숨김 처리 (신고 시)
+    @Transactional
+    public void hideSpace(User reporter, Long spaceId) {
+        log.info("Hiding space ID: {} reported by user: {}", spaceId, reporter.getId());
+
+        Space space = spaceRepository.findById(spaceId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 공간이 존재하지 않습니다."));
+
+        // 자신의 공간은 신고할 수 없음
+        if (space.isOwner(reporter)) {
+            throw new IllegalArgumentException("자신의 공간은 신고할 수 없습니다.");
+        }
+
+        space.hide(); // Space 엔티티에 hide() 메서드 필요
+        log.info("Space ID {} hidden successfully", spaceId);
     }
 
     //공통: 유효성 검증 실패 시 에러 응답 생성

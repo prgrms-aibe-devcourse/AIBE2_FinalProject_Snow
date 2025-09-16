@@ -1,56 +1,72 @@
 /* ===== 공통 ===== */
 .main-content {
-    padding: 0 24px;
+    background: #f9fafb;
+    padding: 0 20px;
 }
 
 .block {
-    margin-bottom: 28px;
+    margin-bottom: 24px;
 }
 
-.block-title {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 12px;
-    color: #111;
+/* ===== 제목 스타일 (블루 헤더) ===== */
+.block-title,
+.section-title,
+h3.block-title,
+h2.block-title {
+    background: #2563eb !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    margin-bottom: 24px !important;
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3) !important;
+    color: white !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    margin: 0 0 24px 0 !important;
 }
 
 /* 카드 공통 */
 .card,
 .popup-card,
 .rent-card {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #e5e7eb;
     padding: 16px;
-    margin-bottom: 16px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .card:hover,
 .popup-card:hover,
 .rent-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .empty {
     text-align: center;
     padding: 40px 20px;
-    color: #999;
+    color: #6b7280;
     font-size: 14px;
 }
 
-/* ===== 사용자 정보 카드 ===== */
+/* ===== 사용자 정보 카드 (흰색 계열) ===== */
 .user-info .card {
-    padding: 0; /* 내부 row별 패딩 사용 */
+    padding: 0;
+    background: white;
+    color: #374151;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #e5e7eb;
 }
 
 .profile-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 16px;
-    border-bottom: 1px solid #f2f2f2;
+    padding: 16px;
+    border-bottom: 1px solid #f3f4f6;
 }
 
 .profile-row:last-child {
@@ -59,30 +75,34 @@
 
 .profile-row .label {
     font-weight: 600;
-    color: #333;
+    color: #111827;
     min-width: 80px;
+    font-size: 14px;
 }
 
 .profile-row .value {
     flex: 1;
     margin: 0 12px;
-    color: #555;
+    color: #6b7280;
     font-size: 14px;
 }
 
 .profile-row .edit-btn {
     font-size: 12px;
-    padding: 4px 10px;
-    border: 1px solid #ddd;
-    border-radius: 14px;
-    background: #fff;
-    color: #666;
+    padding: 6px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f9fafb;
+    color: #6b7280;
     cursor: pointer;
     transition: all 0.2s;
+    font-weight: 500;
 }
 
 .profile-row .edit-btn:hover {
-    background: #f5f5f5;
+    background: #f3f4f6;
+    color: #374151;
+    transform: translateY(-1px);
 }
 
 /* ===== 페이지 헤더 ===== */
@@ -94,20 +114,22 @@
 }
 
 .btn-primary.small {
-    padding: 8px 16px;
+    padding: 10px 16px;
     font-size: 14px;
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    background: #1e40af;
     color: white;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     font-weight: 500;
     transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
 }
 
 .btn-primary.small:hover {
-    opacity: 0.9;
-    transform: scale(1.05);
+    background: #1e3a8a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
 }
 
 /* ===== 팝업 카드 ===== */
@@ -122,62 +144,69 @@
     height: 72px;
     border-radius: 10px;
     object-fit: cover;
-    background: #f5f5f5;
+    background: #f9fafb;
     flex-shrink: 0;
+    border: 1px solid #e5e7eb;
 }
 
 .popup-card .info {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 }
 
 .popup-card .info .title {
     font-size: 16px;
     font-weight: 600;
-    color: #222;
+    color: #111827;
 }
 
 .popup-card .info .meta {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
 }
 
 /* 상태 뱃지 */
 .status-badge {
     display: inline-block;
-    padding: 5px 10px;
-    font-size: 13px;
-    border-radius: 20px;
-    font-weight: 600;
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 12px;
+    font-weight: 500;
     white-space: nowrap;
 }
 
-.status-badge.ongoing {
-    background: #e0f7ec;
-    color: #16a34a;
+.status-badge.ongoing,
+.status-badge.planned {
+    background: #dbeafe;
+    color: #1e40af;
 }
+
 .status-badge.finished {
-    background: #f0f0f0;
-    color: #6b7280;
+    background: #d1fae5;
+    color: #065f46;
 }
+
 .status-badge.cancelled {
-    background: #ffe4e6;
-    color: #dc2626;
+    background: #fee2e2;
+    color: #991b1b;
 }
+
 .status-badge.pending {
-    background: #fff7ed;
-    color: #d97706;
+    background: #fef3c7;
+    color: #92400e;
 }
+
 .status-badge.accepted {
-    background: #ecfdf5;
-    color: #059669;
+    background: #d1fae5;
+    color: #065f46;
 }
+
 .status-badge.rejected {
-    background: #fef2f2;
-    color: #b91c1c;
+    background: #fee2e2;
+    color: #991b1b;
 }
 
 /* 팝업 카드 버튼 */
@@ -189,20 +218,22 @@
 }
 
 .popup-card .right-actions button {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: #fff;
+    background: #1e40af;
+    color: white;
     border: none;
-    border-radius: 16px;
+    border-radius: 8px;
     font-size: 12px;
-    padding: 6px 12px;
+    padding: 8px 12px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
+    min-width: 80px;
 }
 
 .popup-card .right-actions button:hover {
-    opacity: 0.9;
-    transform: scale(1.05);
+    background: #1e3a8a;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
 }
 
 /* ===== 공간 예약 카드 ===== */
@@ -225,7 +256,27 @@
     height: 60px;
     border-radius: 8px;
     object-fit: cover;
-    background: #f5f5f5;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+}
+
+.rent-card .left .address {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 4px;
+}
+
+.rent-card .left .desc {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+.rent-card .left .dates {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 8px;
 }
 
 /* 공간 예약 카드 버튼 */
@@ -237,20 +288,34 @@
 }
 
 .rent-card .right-actions button {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: #fff;
+    background: #1e40af;
+    color: white;
     border: none;
-    border-radius: 16px;
+    border-radius: 8px;
     font-size: 12px;
-    padding: 6px 12px;
+    padding: 8px 12px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
+    min-width: 80px;
 }
 
 .rent-card .right-actions button:hover {
-    opacity: 0.9;
-    transform: scale(1.05);
+    background: #1e3a8a;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
+}
+
+.rent-card .right-actions .btn-cancel {
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+}
+
+.rent-card .right-actions .btn-cancel:hover {
+    background: #e5e7eb;
+    color: #374151;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* ===== 푸터 겹침 방지 ===== */
@@ -262,12 +327,12 @@
 
 .main-content {
     flex: 1 !important;
-    padding: 0 24px 120px 24px !important; /* 푸터 높이 + 여유 */
+    padding: 0 20px 120px 20px !important;
     box-sizing: border-box !important;
 }
 
 #footer-container {
-    position: relative !important; /* fixed 제거 */
+    position: relative !important;
     flex-shrink: 0 !important;
 }
 
@@ -300,5 +365,25 @@
     .popup-card .right-actions button,
     .rent-card .right-actions button {
         flex: 1;
+        min-width: auto;
+        padding: 6px 8px;
+    }
+
+    .profile-row {
+        padding: 12px 16px;
+    }
+
+    .profile-row .label {
+        min-width: 60px;
+        font-size: 13px;
+    }
+
+    .profile-row .value {
+        font-size: 13px;
+    }
+
+    .profile-row .edit-btn {
+        padding: 4px 8px;
+        font-size: 11px;
     }
 }

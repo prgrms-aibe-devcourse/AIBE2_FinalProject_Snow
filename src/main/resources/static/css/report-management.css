@@ -44,7 +44,7 @@ body {
 }
 
 .logo {
-    background-color: #6366f1;
+    background-color: transparent;
     color: white;
     padding: 8px 16px;
     border-radius: 20px;

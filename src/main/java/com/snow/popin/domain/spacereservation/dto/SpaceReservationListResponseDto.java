@@ -18,6 +18,7 @@ public class SpaceReservationListResponseDto {
     private String popupTitle;
     private String brandName;
     private String popupMainImage;
+    private Long spaceId;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate startDate;
@@ -46,12 +47,15 @@ public class SpaceReservationListResponseDto {
                 .popupTitle(reservation.getPopup().getTitle())
                 .brandName(reservation.getPopup().getBrandId().toString())
                 .popupMainImage(reservation.getPopup().getMainImageUrl())
+                .spaceId(reservation.getSpace().getId()) // 추가
                 .startDate(reservation.getStartDate())
                 .endDate(reservation.getEndDate())
                 .status(reservation.getStatus())
                 .createdAt(reservation.getCreatedAt())
                 .spaceTitle(reservation.getSpace().getTitle())
-                .spaceAddress(reservation.getSpace().getAddress())
+                .spaceAddress(reservation.getSpace().getVenue() != null ? // 수정
+                        reservation.getSpace().getVenue().getFullAddress() :
+                        (reservation.getSpace().getAddress() != null ? reservation.getSpace().getAddress() : "주소 정보 없음"))
                 .spaceImageUrl(reservation.getSpace().getCoverImageUrl())
                 .build();
     }

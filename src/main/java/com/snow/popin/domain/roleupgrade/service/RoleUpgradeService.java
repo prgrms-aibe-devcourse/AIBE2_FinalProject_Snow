@@ -30,14 +30,11 @@ import java.util.stream.Collectors;
 public class RoleUpgradeService {
 
     private final RoleUpgradeRepository roleRepo;
-    private final UserRepository userRepo;
     private final ObjectMapper objMapper;
-
 
     // 역할 승격 요청 생성
     @Transactional
     public Long createRoleUpgradeRequest(String email, CreateRoleUpgradeRequest  req){
-
         validateNoDuplicateRequest(email);
 
         try {
@@ -63,7 +60,6 @@ public class RoleUpgradeService {
     // 역할 승격 요청 생성 + file
     @Transactional
     public Long createRoleUpgradeRequestWithDocuments(String email, CreateRoleUpgradeRequest req, List<MultipartFile> files) {
-
         validateNoDuplicateRequest(email);
 
         try {
@@ -163,72 +159,6 @@ public class RoleUpgradeService {
         log.info("문서가 첨부되었습니다. RequestId: {}, DocType: {}", upgradeId, req.getDocType());
     }
 
-    // 대기중인 요청 개수 조회 (관리자용)
-    public long getPendingRequestCount(){
-        return roleRepo.countByStatus(ApprovalStatus.PENDING);
-    }
-
-    // 관리자용: 모든 역할 승격 요청 페이징 조회
-    public Page<RoleUpgradeResponse> getAllRoleUpgradeRequests(Pageable pageable){
-        Page<RoleUpgrade> reqs = roleRepo.findAllByOrderByCreatedAtDesc(pageable);
-        return reqs.map(RoleUpgradeResponse::from);
-    }
-
-    // 관리자용: 상태별 역할 승격 요청 조회
-    public Page<RoleUpgradeResponse> getRoleUpgradeRequestsByStatus(ApprovalStatus status, Pageable pageable){
-        Page<RoleUpgrade> reqs = roleRepo.findByStatusOrderByCreatedAtDesc(status, pageable);
-        return reqs.map(RoleUpgradeResponse::from);
-    }
-
-    // 관리자용: 요청 역할별 역할 승격 요청 조회
-    public Page<RoleUpgradeResponse> getRoleUpgradeRequestsByRole(Role role, Pageable pageable){
-        Page<RoleUpgrade> reqs = roleRepo.findByRequestedRoleOrderByCreatedAtDesc(role, pageable);
-        return reqs.map(RoleUpgradeResponse::from);
-    }
-
-    // 관리자용: 상태와 역할 모두로 필터링한 역할 승격 요청 조회
-    public Page<RoleUpgradeResponse> getRoleUpgradeRequestsByStatusAndRole(
-            ApprovalStatus status, Role role,Pageable pageable ){
-        Page<RoleUpgrade> reqs = roleRepo.findByStatusAndRequestedRoleOrderByCreatedAtDesc(status, role, pageable);
-        return reqs.map(RoleUpgradeResponse::from);
-    }
-
-    // 관리자용: 역할 승격 요청 상세 조회 (권한 체크 없음)
-    public RoleUpgradeResponse getRoleUpgradeRequestForAdmin(Long id) {
-        RoleUpgrade roleUpgrade = roleRepo.findById(id)
-                .orElseThrow(() -> new GeneralException(ErrorCode.ROLE_UPGRADE_REQUEST_NOT_FOUND));
-
-        return RoleUpgradeResponse.from(roleUpgrade);
-    }
-
-    // 관리자용: 역할 승격 요청 처리 (승인/반려)
-    @Transactional
-    public void processRoleUpgradeRequest(Long id, AdminUpdateRequest req){
-        RoleUpgrade roleUpgrade = roleRepo.findById(id)
-                .orElseThrow(() -> new GeneralException(ErrorCode.ROLE_UPGRADE_REQUEST_NOT_FOUND));
-
-        // 대기중인 요청만 처리 가능
-        validatePendingStatus(roleUpgrade);
-
-        if (req.isApprove()){
-            // 승인 처리
-            roleUpgrade.approve();
-            // 사용자 역할 업데이트
-            User user = userRepo.findByEmail(roleUpgrade.getEmail())
-                    .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND));
-
-            user.updateRole(roleUpgrade.getRequestedRole());
-
-            log.info("역할 승격이 승인되었습니다. ID: {}, Email: {}, New Role: {}",
-                    id, roleUpgrade.getEmail(), roleUpgrade.getRequestedRole());
-        } else {
-            // 반려처리
-            roleUpgrade.reject(req.getRejectReason());
-
-            log.info("역할 승격이 반려되었습니다. ID: {}, Reason: {}", id, req.getRejectReason());
-        }
-    }
-
     // 공통 로직들
     // 이미 대기중인 요청이 있는지 확인
     private void validateNoDuplicateRequest(String email){
@@ -237,6 +167,7 @@ public class RoleUpgradeService {
         }
     }
 
+    // 본인의 요청인지 확인
     private void validateOwnership(RoleUpgrade roleUpgrade, String email){
         if (!roleUpgrade.getEmail().equals(email)){
             throw new GeneralException(ErrorCode.ACCESS_DENIED);
@@ -249,8 +180,8 @@ public class RoleUpgradeService {
                 .orElseThrow(() -> new GeneralException(ErrorCode.ROLE_UPGRADE_REQUEST_NOT_FOUND));
     }
 
-    // // 대기중인 요청에만 문서 첨부 가능
-    private void validatePendingStatus(RoleUpgrade roleUpgrade) {
+    // 대기중인 요청에만 문서 첨부 가능
+    public static void validatePendingStatus(RoleUpgrade roleUpgrade) {
         if (!roleUpgrade.isPending()) {
             throw new GeneralException(ErrorCode.INVALID_REQUEST_STATUS);
         }

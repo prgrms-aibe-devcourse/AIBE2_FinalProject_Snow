@@ -1,139 +1,296 @@
-/* 메인 콘텐츠 여백 */
+/* ===== 공통 ===== */
 .main-content {
-    padding: 0 24px;
+    background: #f9fafb;
+    padding: 0 20px;
 }
 
-/* 제목과 카드 간격 */
+.block {
+    margin-bottom: 24px;
+}
+
+/* ===== 블록 제목 (호스트 페이지와 통일) ===== */
+.block-title {
+    background: #2563eb !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    margin-bottom: 24px !important;
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3) !important;
+    color: white !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    margin: 0 0 24px 0 !important;
+}
+
+/* ===== 헤더 섹션 ===== */
 .page-header {
-    margin-bottom: 20px;
+    padding: 16px 0;
 }
 
-/* 예약 카드 */
+/* ===== 팝업 헤더 (호스트 페이지와 통일) ===== */
+.popup-header {
+    display: flex;
+    align-items: center;
+    background: #2563eb !important;
+    padding: 20px;
+    border-radius: 16px;
+    color: white;
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3) !important;
+}
+
+.popup-icon {
+    font-size: 32px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 12px;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.popup-info {
+    flex: 1;
+}
+
+.popup-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 4px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.popup-subtitle {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+}
+
+/* ===== 통계 섹션 ===== */
+.stats-row {
+    display: flex;
+    gap: 12px;
+}
+
+.stat-card {
+    flex: 1;
+    background: white;
+    padding: 16px 12px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.stat-number {
+    font-size: 20px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* ===== 섹션 타이틀 ===== */
+.section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 16px;
+}
+
+/* ===== 예약 리스트 ===== */
+.reservation-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
 .reservation-card {
-    background: #fff;
+    background: white;
     border-radius: 12px;
     padding: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    margin-bottom: 16px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #e5e7eb;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .reservation-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.reservation-card .header {
+.card-main {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
+    gap: 12px;
     margin-bottom: 12px;
 }
 
-.user-info {
+/* ===== 사용자 아바타 (호스트 페이지와 통일) ===== */
+.user-avatar {
+    width: 44px;
+    height: 44px;
+    background: #2563eb !important;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+}
+
+.card-info {
     flex: 1;
 }
 
 .user-name {
     font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
-
-.user-details {
-    font-size: 13px;
-    color: #666;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.reservation-status {
-    margin-left: 10px;
-}
-
-/* 상태 뱃지 */
-.status-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    font-size: 12px;
-    border-radius: 20px;
     font-weight: 600;
+    color: #111827;
+    margin-bottom: 2px;
 }
 
-.status-badge.pending {
-    background: #fff7ed;
-    color: #d97706;
-}
-.status-badge.completed {
-    background: #ecfdf5;
-    color: #059669;
-}
-.status-badge.cancelled {
-    background: #fee2e2;
-    color: #dc2626;
-}
-
-/* 상세 정보 */
-.reservation-details {
+.user-phone {
     font-size: 13px;
-    color: #444;
+    color: #6b7280;
+}
+
+/* ===== 상태 배지 (호스트 페이지와 통일) ===== */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.status-reserved {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-visited {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.card-details {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 12px;
     margin-bottom: 12px;
 }
 
-.detail-item {
+.detail-row {
     display: flex;
-    margin-bottom: 4px;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+}
+
+.detail-row + .detail-row {
+    margin-top: 8px;
 }
 
 .detail-label {
-    font-weight: 600;
-    min-width: 70px;
-    color: #555;
+    color: #6b7280;
 }
 
 .detail-value {
-    flex: 1;
+    color: #374151;
+    font-weight: 500;
 }
 
-/* 액션 버튼 (팝업 카드 스타일과 동일) */
-.reservation-card .right-actions {
+.card-actions {
     display: flex;
     gap: 8px;
 }
 
-.reservation-card .right-actions button {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: #fff;
+.action-btn {
+    flex: 1;
+    padding: 10px;
     border: none;
-    border-radius: 16px;
-    font-size: 12px;
+    border-radius: 8px;
+    font-size: 14px;
     font-weight: 500;
-    padding: 6px 12px;
     cursor: pointer;
     transition: all 0.2s;
 }
 
-.reservation-card .right-actions button:hover {
-    opacity: 0.9;
-    transform: scale(1.05);
+/* ===== 액션 버튼 (호스트 페이지와 통일) ===== */
+.btn-complete {
+    background: #1e40af !important;
+    color: white;
 }
 
-/* 모바일 대응 */
-@media (max-width: 480px) {
-    .main-content {
-        padding: 0 12px;
+.btn-complete:hover {
+    background: #1e3a8a !important;
+    transform: translateY(-1px);
+}
+
+.btn-cancel {
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+}
+
+.btn-cancel:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+/* ===== 빈 상태 ===== */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #9ca3af;
+}
+
+.empty-state .icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.6;
+}
+
+.empty-state .text {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+/* ===== 기존 호환성 ===== */
+.empty {
+    text-align: center;
+    color: #888;
+    padding: 20px;
+}
+
+/* ===== 반응형 ===== */
+@media (max-width: 360px) {
+    .stats-row {
+        gap: 8px;
     }
-    .reservation-card {
-        padding: 12px;
+
+    .stat-card {
+        padding: 12px 8px;
     }
-    .user-details {
-        font-size: 12px;
+
+    .stat-number {
+        font-size: 18px;
     }
-    .reservation-card .right-actions {
+
+    .card-actions {
         flex-direction: column;
     }
-    .reservation-card .right-actions button {
+
+    .action-btn {
         width: 100%;
     }
 }

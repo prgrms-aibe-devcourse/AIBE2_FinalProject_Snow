@@ -86,73 +86,126 @@ const SpaceDetailPage = {
         const modal = document.getElementById('reserveModal');
         modal.classList.remove('hidden');
 
-        //  내 팝업 목록 불러오기 (수정됨)
+        // 내 팝업 목록 불러오기
         try {
             const popups = await apiService.get('/hosts/popups');
             const select = document.getElementById('popupSelect');
+            select.innerHTML = '<option value="">팝업을 선택하세요</option>';
+
             if (popups.length === 0) {
-                select.innerHTML = `<option value="">등록된 팝업이 없습니다</option>`;
+                select.innerHTML = '<option value="">등록된 팝업이 없습니다</option>';
+                document.getElementById('reserveSubmit').disabled = true;
             } else {
-                select.innerHTML = popups.map(p => `<option value="${p.id}">${p.title}</option>`).join('');
+                popups.forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.id;
+                    option.textContent = p.title;
+                    select.appendChild(option);
+                });
+                document.getElementById('reserveSubmit').disabled = false;
             }
         } catch (e) {
             console.error('팝업 목록 불러오기 실패:', e);
             alert('내 팝업 목록을 불러오지 못했습니다.');
+            modal.classList.add('hidden');
             return;
         }
+
+        // 오늘 날짜를 최소값으로 설정
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('startDate').min = today;
+        document.getElementById('endDate').min = today;
+
+        // 시작일 변경 시 종료일 최소값 업데이트
+        document.getElementById('startDate').addEventListener('change', function() {
+            document.getElementById('endDate').min = this.value;
+        });
 
         // 신청 버튼
         document.getElementById('reserveSubmit').onclick = async () => {
             const popupId = Number(document.getElementById('popupSelect').value);
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
+            const message = document.getElementById('message').value.trim();
 
-            if (!popupId) return alert("팝업을 선택하세요.");
-            if (!startDate) return alert("시작일을 입력하세요.");
-            if (!endDate) return alert("종료일을 입력하세요.");
+            // 유효성 검사
+            if (!popupId) {
+                alert("팝업을 선택하세요.");
+                return;
+            }
+            if (!startDate) {
+                alert("시작일을 입력하세요.");
+                return;
+            }
+            if (!endDate) {
+                alert("종료일을 입력하세요.");
+                return;
+            }
+            if (new Date(startDate) > new Date(endDate)) {
+                alert("종료일은 시작일보다 늦어야 합니다.");
+                return;
+            }
 
             const body = {
                 spaceId: Number(spaceId),
                 popupId,
                 startDate,
                 endDate,
-                message:null,
-                contactPhone:null
+                message: message || null,
+                contactPhone: null // 백엔드에서 자동 처리
             };
+
             console.log('=== 예약 요청 시작 ===');
             console.log('요청 데이터:', body);
+
             try {
                 const result = await apiService.post('/space-reservations', body);
                 console.log('성공 응답:', result);
-                alert(`예약 신청 완료! (ID: ${result.id})`);
+                alert(`예약 신청이 완료되었습니다! (ID: ${result.id})`);
                 modal.classList.add('hidden');
+
+                // 폼 초기화
+                document.getElementById('popupSelect').value = '';
+                document.getElementById('startDate').value = '';
+                document.getElementById('endDate').value = '';
+                document.getElementById('message').value = '';
+
             } catch (error) {
                 console.log('=== 예약 실패 상세 정보 ===');
                 console.error('에러 객체:', error);
 
-                // 응답 정보 상세 출력
-                if (error.response) {
-                    console.log('응답 상태:', error.response.status);
-                    console.log('응답 헤더:', error.response.headers);
-                    console.log('응답 데이터:', error.response.data);
-                } else if (error.request) {
-                    console.log('요청 정보:', error.request);
-                } else {
-                    console.log('에러 메시지:', error.message);
-                }
+                let userMessage = '예약 신청에 실패했습니다.';
 
-                // 사용자에게 표시할 메시지
-                let userMessage = '예약 신청 실패';
-                if (error.response && error.response.data && error.response.data.error) {
-                    userMessage = error.response.data.error;
+                if (error.message && error.message.includes('400')) {
+                    userMessage = '입력 정보를 확인해주세요.';
+                } else if (error.message && error.message.includes('401')) {
+                    userMessage = '로그인이 필요합니다.';
+                } else if (error.message && error.message.includes('409')) {
+                    userMessage = '해당 기간에 이미 예약이 있습니다.';
+                } else if (error.message && error.message.includes('500')) {
+                    userMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
                 }
 
                 alert(userMessage);
             }
         };
+
+        // 취소 버튼
         document.getElementById('reserveCancel').onclick = () => {
             modal.classList.add('hidden');
+            // 폼 초기화
+            document.getElementById('popupSelect').value = '';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('message').value = '';
         };
+
+        // 모달 배경 클릭 시 닫기
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+            }
+        });
     },
 
     getThumbUrl(space) {

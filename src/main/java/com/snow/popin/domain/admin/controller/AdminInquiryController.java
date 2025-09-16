@@ -7,8 +7,7 @@ import com.snow.popin.domain.inquiry.dto.InquiryListResponse;
 import com.snow.popin.domain.inquiry.dto.InquiryStatusUpdateRequest;
 import com.snow.popin.domain.inquiry.entity.InquiryStatus;
 import com.snow.popin.domain.inquiry.entity.TargetType;
-import com.snow.popin.domain.inquiry.service.InquiryAdminService;
-import com.snow.popin.domain.inquiry.service.InquiryService;
+import com.snow.popin.domain.admin.service.AdminInquiryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +21,9 @@ import java.util.Map;
 @RequestMapping("/api/admin/inquiries")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
-public class InquiryAdminController {
+public class AdminInquiryController {
 
-    private final InquiryAdminService inquiryAdminService;
+    private final AdminInquiryService inquiryAdminService;
 
     /**
      * 신고 목록 조회 (관리자)
