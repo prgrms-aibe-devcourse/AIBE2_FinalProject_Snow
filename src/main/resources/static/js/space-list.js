@@ -1,11 +1,7 @@
-// space-list.js 전체 파일 (검색 기능 포함)
-
-// id 추출 (id / spaceId / space_id 호환)
 function pickSpaceId(space) {
     return space?.id ?? space?.spaceId ?? space?.space_id ?? null;
 }
 
-// 이미지 없을 때 쓸 인라인 플레이스홀더 (파일 의존 없음)
 const IMG_PLACEHOLDER =
     'data:image/svg+xml;utf8,' +
     encodeURIComponent(
@@ -16,25 +12,26 @@ const IMG_PLACEHOLDER =
      </svg>`
     );
 
-// 공간 목록 페이지 전용
-const SpaceListPage = {
-    allSpaces: [], // 전체 공간 데이터 저장
-    currentSpaces: [], // 현재 표시되는 공간 데이터
-    isSearchMode: false, // 검색 모드 여부
+class SpaceListManager {
+    constructor() {
+        this.allSpaces = [];
+        this.currentSpaces = [];
+        this.isSearchMode = false;
+    }
 
-    async init() {
+    async initialize() {
         try {
             this.showLoading();
             const spaces = await apiService.listSpaces();
             this.allSpaces = spaces;
             this.currentSpaces = spaces;
             this.renderSpaces(spaces);
-            this.initializeSearch(); // 검색 기능 초기화
+            this.initializeSearch();
         } catch (error) {
             console.error('Space List page initialization failed:', error);
             this.showError('공간 목록을 불러오는데 실패했습니다.');
         }
-    },
+    }
 
     // 검색 기능 초기화
     initializeSearch() {
@@ -45,40 +42,15 @@ const SpaceListPage = {
         const clearSearchBtn = document.getElementById('clearSearch');
         const resetSearchBtn = document.getElementById('resetSearch');
 
-        // 검색 버튼 클릭
-        if (searchBtn) {
-            searchBtn.addEventListener('click', () => this.performSearch());
-        }
-
-        // 엔터키로 검색
-        if (searchInput) {
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.performSearch();
-                }
-            });
-        }
-
-        // 필터 적용
-        if (applyFilterBtn) {
-            applyFilterBtn.addEventListener('click', () => this.performSearch());
-        }
-
-        // 검색/필터 초기화
-        if (resetBtn) {
-            resetBtn.addEventListener('click', () => this.resetFilters());
-        }
-
-        // 전체보기 (검색 해제)
-        if (clearSearchBtn) {
-            clearSearchBtn.addEventListener('click', () => this.clearSearch());
-        }
-
-        // 검색 초기화 (검색 결과 없음 상태에서)
-        if (resetSearchBtn) {
-            resetSearchBtn.addEventListener('click', () => this.clearSearch());
-        }
-    },
+        searchBtn?.addEventListener('click', () => this.performSearch());
+        searchInput?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.performSearch();
+        });
+        applyFilterBtn?.addEventListener('click', () => this.performSearch());
+        resetBtn?.addEventListener('click', () => this.resetFilters());
+        clearSearchBtn?.addEventListener('click', () => this.clearSearch());
+        resetSearchBtn?.addEventListener('click', () => this.clearSearch());
+    }
 
     // 검색 실행
     async performSearch() {
@@ -87,9 +59,7 @@ const SpaceListPage = {
         const minArea = document.getElementById('minArea')?.value;
         const maxArea = document.getElementById('maxArea')?.value;
 
-        // 검색 조건이 하나라도 있는지 확인
         const hasSearchCondition = keyword || location || minArea || maxArea;
-
         if (!hasSearchCondition) {
             alert('검색 조건을 하나 이상 입력해주세요.');
             return;
@@ -98,7 +68,6 @@ const SpaceListPage = {
         try {
             this.showLoading();
 
-            // 검색 API 호출
             const searchParams = new URLSearchParams();
             if (keyword) searchParams.append('keyword', keyword);
             if (location) searchParams.append('location', location);
@@ -106,17 +75,15 @@ const SpaceListPage = {
             if (maxArea) searchParams.append('maxArea', maxArea);
 
             const searchResults = await apiService.get(`/spaces/search?${searchParams.toString()}`);
-
             this.currentSpaces = searchResults;
             this.isSearchMode = true;
             this.renderSpaces(searchResults);
             this.showSearchInfo(searchResults.length);
-
         } catch (error) {
             console.error('검색 실패:', error);
             this.showError('검색 중 오류가 발생했습니다.');
         }
-    },
+    }
 
     // 필터 초기화
     resetFilters() {
@@ -124,7 +91,7 @@ const SpaceListPage = {
         document.getElementById('locationFilter').value = '';
         document.getElementById('minArea').value = '';
         document.getElementById('maxArea').value = '';
-    },
+    }
 
     // 검색 해제 (전체 목록으로 돌아가기)
     clearSearch() {
@@ -133,43 +100,34 @@ const SpaceListPage = {
         this.currentSpaces = this.allSpaces;
         this.renderSpaces(this.allSpaces);
         this.hideSearchInfo();
-    },
+    }
 
     // 검색 정보 표시
     showSearchInfo(count) {
         const searchInfo = document.getElementById('searchInfo');
         const resultCount = document.getElementById('resultCount');
-
         if (searchInfo && resultCount) {
             resultCount.textContent = count;
             searchInfo.style.display = 'flex';
         }
-    },
+    }
 
     // 검색 정보 숨기기
     hideSearchInfo() {
         const searchInfo = document.getElementById('searchInfo');
-        if (searchInfo) {
-            searchInfo.style.display = 'none';
-        }
-    },
+        if (searchInfo) searchInfo.style.display = 'none';
+    }
 
     showLoading() {
-        const loadingEl = document.getElementById('loading');
-        const spaceListEl = document.getElementById('spaceList');
-        const emptyStateEl = document.getElementById('emptyState');
-        const noSearchResultEl = document.getElementById('noSearchResult');
-
-        if (loadingEl) loadingEl.style.display = 'block';
-        if (spaceListEl) spaceListEl.style.display = 'none';
-        if (emptyStateEl) emptyStateEl.style.display = 'none';
-        if (noSearchResultEl) noSearchResultEl.style.display = 'none';
-    },
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('spaceList').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('noSearchResult').style.display = 'none';
+    }
 
     hideLoading() {
-        const loadingEl = document.getElementById('loading');
-        if (loadingEl) loadingEl.style.display = 'none';
-    },
+        document.getElementById('loading').style.display = 'none';
+    }
 
     renderSpaces(spaces) {
         this.hideLoading();
@@ -178,34 +136,30 @@ const SpaceListPage = {
         const emptyStateEl = document.getElementById('emptyState');
         const noSearchResultEl = document.getElementById('noSearchResult');
 
-        // 검색 모드이고 결과가 없는 경우
         if (this.isSearchMode && (!spaces || spaces.length === 0)) {
-            if (spaceListEl) spaceListEl.style.display = 'none';
-            if (emptyStateEl) emptyStateEl.style.display = 'none';
-            if (noSearchResultEl) noSearchResultEl.style.display = 'block';
+            spaceListEl.style.display = 'none';
+            emptyStateEl.style.display = 'none';
+            noSearchResultEl.style.display = 'block';
             return;
         }
 
-        // 전체 목록이 비어있는 경우
         if (!spaces || spaces.length === 0) {
-            if (spaceListEl) spaceListEl.style.display = 'none';
-            if (emptyStateEl) emptyStateEl.style.display = 'block';
-            if (noSearchResultEl) noSearchResultEl.style.display = 'none';
+            spaceListEl.style.display = 'none';
+            emptyStateEl.style.display = 'block';
+            noSearchResultEl.style.display = 'none';
             return;
         }
 
-        // 정상적으로 결과가 있는 경우
-        if (spaceListEl) {
-            spaceListEl.style.display = 'block';
-            spaceListEl.innerHTML = '';
-            spaces.forEach(space => {
-                const spaceCard = this.createSpaceCard(space);
-                spaceListEl.appendChild(spaceCard);
-            });
-        }
-        if (emptyStateEl) emptyStateEl.style.display = 'none';
-        if (noSearchResultEl) noSearchResultEl.style.display = 'none';
-    },
+        spaceListEl.style.display = 'block';
+        spaceListEl.innerHTML = '';
+        spaces.forEach(space => {
+            const spaceCard = this.createSpaceCard(space);
+            spaceListEl.appendChild(spaceCard);
+        });
+
+        emptyStateEl.style.display = 'none';
+        noSearchResultEl.style.display = 'none';
+    }
 
     createSpaceCard(space) {
         const id = pickSpaceId(space);
@@ -244,7 +198,6 @@ const SpaceListPage = {
       </div>
     `;
 
-        // 이미지 실패 시 1회만 플레이스홀더로 대체 (무한 루프 방지)
         const imgEl = card.querySelector('.thumb');
         if (imgEl) {
             imgEl.onerror = function () {
@@ -253,7 +206,6 @@ const SpaceListPage = {
             };
         }
 
-        // 버튼 동작
         card.addEventListener('click', (e) => {
             const btn = e.target.closest('[data-act]');
             if (!btn) return;
@@ -263,10 +215,10 @@ const SpaceListPage = {
 
             switch (act) {
                 case 'detail':
-                    location.assign(`../../templates/pages/space-detail.html?id=${targetId}`);
+                    Pages.spaceDetail(targetId);
                     break;
                 case 'edit':
-                    location.assign(`../../templates/pages/space-edit.html?id=${targetId}`);
+                    Pages.spaceEdit(targetId);
                     break;
                 case 'delete':
                     this.deleteSpace(targetId);
@@ -278,21 +230,17 @@ const SpaceListPage = {
                     this.reportSpace(targetId);
                     break;
             }
+
         });
 
         return card;
-    },
+    }
 
-    // 썸네일 URL 처리 (coverImageUrl → 절대 경로 변환 포함)
     getThumbUrl(space) {
-        if (space.coverImageUrl) {
-            return `${window.location.origin}${space.coverImageUrl}`;
-        }
-        if (space.coverImage) {
-            return `${window.location.origin}${space.coverImage}`;
-        }
+        if (space.coverImageUrl) return `${window.location.origin}${space.coverImageUrl}`;
+        if (space.coverImage) return `${window.location.origin}${space.coverImage}`;
         return IMG_PLACEHOLDER;
-    },
+    }
 
     // API
     async deleteSpace(spaceId) {
@@ -305,7 +253,8 @@ const SpaceListPage = {
             console.error('공간 삭제 실패:', error);
             alert('삭제에 실패했습니다.');
         }
-    },
+    }
+
     async inquireSpace(spaceId) {
         try {
             await apiService.inquireSpace(spaceId);
@@ -313,7 +262,8 @@ const SpaceListPage = {
             console.error('문의 실패:', error);
             alert('문의 중 오류가 발생했습니다.');
         }
-    },
+    }
+
     async reportSpace(spaceId) {
         try {
             await apiService.reportSpace(spaceId);
@@ -321,19 +271,19 @@ const SpaceListPage = {
             console.error('신고 실패:', error);
             alert('신고 중 오류가 발생했습니다.');
         }
-    },
+    }
 
-    // 유틸리티 함수들
+    // 메서드들
     formatDate(dateString) {
         if (!dateString) return '날짜 정보 없음';
         const date = new Date(dateString);
         return date.toLocaleDateString('ko-KR');
-    },
+    }
 
     formatRentalFee(amount) {
         if (!amount && amount !== 0) return '-';
         return `${amount} 만원`;
-    },
+    }
 
     showError(message) {
         this.hideLoading();
@@ -345,6 +295,6 @@ const SpaceListPage = {
         }
         if (emptyStateEl) emptyStateEl.style.display = 'none';
     }
-};
+}
 
-window.SpaceListPage = SpaceListPage;
+window.SpaceListManager = SpaceListManager;

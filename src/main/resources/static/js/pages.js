@@ -54,12 +54,6 @@ const Pages = {
     spaceEdit(spaceId) {
         window.location.href = `/space/edit/${spaceId}`;
     },
-
-
-    // 공간 수정 페이지
-    spaceEdit(spaceId) {
-        location.href = `../templates/pages/space/space-edit.html`;
-    },
     // == 마이페이지 - 호스트 ==
     mypageHost() {
         window.location.href = '/mypage/host';

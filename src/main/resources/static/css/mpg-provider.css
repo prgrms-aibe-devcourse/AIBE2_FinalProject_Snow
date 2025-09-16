@@ -1,19 +1,35 @@
-/* ===== 공통 ===== */
-.main-content {
+/* mpg-provider.css - 마이페이지 공간제공자 전체 스타일 */
+
+/* === 페이지 컨테이너 === */
+.mypage-provider {
+    padding: 0;
     background: #f9fafb;
-    padding: 0 20px;
 }
 
-.block {
-    margin-bottom: 24px;
+/* === 제목 스타일 (블루 헤더) === */
+.section-title {
+    background: #2563eb !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    margin: 20px 16px 24px 16px !important;
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3) !important;
 }
 
-/* ===== 제목 스타일 (블루 헤더) ===== */
-.block-title,
-.section-title,
-h3.block-title,
-h2.block-title,
 .section-title h2 {
+    color: white !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    margin: 0 !important;
+}
+
+/* === 공통 블록 스타일 === */
+.block {
+    margin: 24px 0;
+    padding: 0 16px;
+}
+
+.block-title {
     background: #2563eb !important;
     border-radius: 12px !important;
     padding: 20px !important;
@@ -23,224 +39,192 @@ h2.block-title,
     font-size: 18px !important;
     font-weight: 600 !important;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-    margin: 0 0 24px 0 !important;
 }
 
-/* ===== 카드 공통 ===== */
-.space-card,
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* === 통계 그리드 === */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.stat-card:hover {
+    background: #f3f4f6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.stat-card:active {
+    transform: translateY(0);
+}
+
+.stat-card .stat-label {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.stat-card .stat-number {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111827;
+}
+
+/* 상태별 색상 */
+.stat-card[data-status="PENDING"] {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-color: #fbbf24;
+}
+
+.stat-card[data-status="ACCEPTED"] {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border-color: #34d399;
+}
+
+.stat-card[data-status="REJECTED"] {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border-color: #f87171;
+}
+
+.stat-card[data-status="ALL"] {
+    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+    border-color: #818cf8;
+}
+
+/* === 공간 카드 === */
+.space-card {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 16px;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.space-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: #d1d5db;
+}
+
+.space-card .thumb {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-right: 14px;
+    flex-shrink: 0;
+    background: #f3f4f6;
+    cursor: pointer;
+}
+
+.space-card .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.space-card .info {
+    flex: 1;
+    min-width: 0;
+}
+
+.space-card .info .title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.space-card .info .title.linklike:hover {
+    color: #3b82f6;
+}
+
+.space-card .info .desc {
+    font-size: 14px;
+    color: #6b7280;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    cursor: pointer;
+}
+
+/* === 예약 카드 === */
 .reservation-card {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: white;
-    border-radius: 12px;
+    align-items: flex-start;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
     padding: 16px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    border: 1px solid #e5e7eb;
-    gap: 14px;
-    margin-bottom: 12px;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-.space-card:hover,
 .reservation-card:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: #d1d5db;
 }
 
-/* ===== 썸네일 ===== */
-.space-card .thumb,
 .reservation-card .thumb {
-    flex: 0 0 72px;
-    height: 72px;
-    border-radius: 10px;
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
     overflow: hidden;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    margin-right: 14px;
+    flex-shrink: 0;
+    background: #f3f4f6;
 }
 
-.space-card .thumb img,
 .reservation-card .thumb img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-/* ===== 정보 영역 ===== */
-.space-card .info,
 .reservation-card .info {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 6px;
+    min-width: 0;
 }
 
-.space-card .title,
-.reservation-card .popup-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #111827;
-    margin-bottom: 4px;
-}
-
-.space-card .desc,
-.reservation-card .dates,
-.reservation-card .applicant,
-.reservation-card .contact,
-.reservation-card .space-info {
-    font-size: 13px;
-    color: #6b7280;
-    margin-bottom: 2px;
-}
-
-/* ===== 클릭 가능한 링크 스타일 ===== */
-.linklike {
-    cursor: pointer;
-    transition: color 0.2s;
-}
-
-.linklike:hover {
-    color: #2563eb;
-}
-
-/* ===== 버튼 영역 ===== */
-.space-card .btn-row,
-.reservation-card .btn-row {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: stretch;
-    min-width: 80px;
-}
-
-/* ===== 버튼 스타일 ===== */
-.btn {
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: center;
-    min-width: 60px;
-}
-
-.btn.icon {
-    font-size: 16px;
-    padding: 10px;
-    background: #1e3a8a;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 40px;
-    min-height: 40px;
-}
-
-.btn.icon:hover {
-    background: #1e40af;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
-}
-
-/* ===== 상태별 버튼 ===== */
-.btn-success {
-    background: #61ba8c;
-    color: #065f46;
-    border: 1px solid #a7f3d0;
-}
-
-.btn-success:hover {
-    background: #a7f3d0;
-    transform: translateY(-1px);
-}
-
-.btn-danger {
-    background: #a32727;
-    color: #991b1b;
-    border: 1px solid #fecaca;
-}
-
-.btn-danger:hover {
-    background: #fecaca;
-    transform: translateY(-1px);
-}
-
-.btn-outline {
-    background: #1e40af;
-    color: white;
-    border: none;
-}
-
-.btn-outline:hover {
-    background: #1e3a8a;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
-}
-
-.btn-call {
-    background: #224f8a;
-    color: #1e40af;
-    border: 1px solid #93c5fd;
-}
-
-.btn-call:hover {
-    background: #93c5fd;
-    transform: translateY(-1px);
-}
-
-/* ===== 통계 박스 ===== */
-.stats-grid {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.stat-card {
-    flex: 1;
-    background: white;
-    border-radius: 12px;
-    padding: 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.stat-card:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.stat-label {
-    font-size: 12px;
-    color: #6b7280;
-    margin-bottom: 8px;
-    font-weight: 500;
-}
-
-.stat-number {
-    font-size: 20px;
-    font-weight: 600;
-    color: #111827;
-}
-
-/* ===== 상태 뱃지 ===== */
+/* 상태 뱃지 */
 .status-box {
     display: inline-block;
-    padding: 6px 12px;
-    border-radius: 12px;
+    padding: 4px 12px;
     font-size: 12px;
-    font-weight: 500;
-    margin-bottom: 8px;
-    white-space: nowrap;
+    font-weight: 600;
+    border-radius: 20px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .status-box.pending {
@@ -259,151 +243,233 @@ h2.block-title,
 }
 
 .status-box.cancelled {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+/* 예약 정보 텍스트 */
+.reservation-card .popup-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+.reservation-card .dates {
+    font-size: 14px;
+    color: #374151;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.reservation-card .applicant,
+.reservation-card .contact,
+.reservation-card .space-info {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+/* === 버튼 스타일 === */
+.btn-row {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.space-card .btn-row,
+.reservation-card .btn-row {
+    margin-left: auto;
+}
+
+.btn {
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.btn:active {
     background: #f3f4f6;
-    color: #6b7280;
 }
 
-/* ===== 빈 상태 ===== */
-.empty {
-    text-align: center;
-    padding: 40px 20px;
-    color: #6b7280;
-    font-size: 14px;
-    background: white;
-    border-radius: 12px;
-    border: 1px solid #e5e7eb;
+/* 아이콘 버튼 */
+.btn.icon {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 10px;
 }
 
-/* ===== 에러 상태 ===== */
-.error {
-    text-align: center;
-    padding: 40px 20px;
-    color: #991b1b;
-    font-size: 14px;
-    background: #fee2e2;
-    border-radius: 12px;
-    border: 1px solid #fecaca;
+/* 버튼 타입별 색상 */
+.btn-outline {
+    background: #ffffff;
+    border-color: #d1d5db;
 }
 
-/* ===== 푸터 겹침 방지 ===== */
-.mobile-container {
-    display: flex !important;
-    flex-direction: column !important;
-    min-height: 100vh !important;
+.btn-outline:hover {
+    background: #f9fafb;
 }
 
-.main-content {
-    flex: 1 !important;
-    padding: 0 20px 120px 20px !important;
-    box-sizing: border-box !important;
+.btn-success {
+    background: #10b981;
+    color: white;
+    border-color: #10b981;
 }
 
-#footer-container {
-    position: relative !important;
-    flex-shrink: 0 !important;
+.btn-success:hover {
+    background: #059669;
+    border-color: #059669;
 }
 
-/* ===== SVG 아이콘들 ===== */
+.btn-danger {
+    background: #ef4444;
+    color: white;
+    border-color: #ef4444;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+}
+
+.btn-call {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+.btn-call:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+}
+
+/* === 아이콘 스타일 === */
 .icon-map,
 .icon-delete,
-.icon-phone,
 .icon-detail,
+.icon-phone,
 .icon-check,
 .icon-x {
-    width: 18px;
-    height: 18px;
-    background-size: 18px 18px;
-    background-repeat: no-repeat;
+    width: 20px;
+    height: 20px;
+    background-size: 16px 16px;
     background-position: center;
-    display: inline-block;
+    background-repeat: no-repeat;
 }
 
 .icon-map {
-    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z'/%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15 11a3 3 0 11-6 0 3 3 0 016 0z'/%3E%3C/svg%3E");
 }
 
 .icon-delete {
-    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16'/%3E%3C/svg%3E");
 }
 
-.icon-phone {
-    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z'/%3E%3C/svg%3E");
+.btn-danger .icon-delete {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16'/%3E%3C/svg%3E");
 }
 
 .icon-detail {
-    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
+}
+
+.icon-phone {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z'/%3E%3C/svg%3E");
 }
 
 .icon-check {
-    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M5 13l4 4L19 7'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7'/%3E%3C/svg%3E");
 }
 
 .icon-x {
-    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 18L18 6M6 6l12 12'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'/%3E%3C/svg%3E");
 }
 
-/* ===== 모바일 대응 ===== */
+/* === 빈 상태 === */
+.empty {
+    text-align: center;
+    padding: 48px 20px;
+    color: #9ca3af;
+    font-size: 14px;
+    background: #f9fafb;
+    border-radius: 16px;
+    border: 2px dashed #e5e7eb;
+}
+
+/* === 에러 상태 === */
+.error {
+    text-align: center;
+    padding: 40px 20px;
+    color: #ef4444;
+    font-size: 14px;
+    background: #fef2f2;
+    border-radius: 16px;
+    border: 1px solid #fecaca;
+    margin: 20px 16px;
+}
+
+/* === 모바일 반응형 === */
 @media (max-width: 480px) {
-    .main-content {
-        padding: 0 12px 120px 12px !important;
-    }
-
-    .space-card,
-    .reservation-card {
-        padding: 12px;
-        gap: 10px;
-    }
-
-    .space-card .thumb,
-    .reservation-card .thumb {
-        flex: 0 0 60px;
-        height: 60px;
-    }
-
-    .space-card .title,
-    .reservation-card .popup-title {
-        font-size: 14px;
-    }
-
-    .space-card .desc,
-    .reservation-card .dates,
-    .reservation-card .applicant,
-    .reservation-card .contact,
-    .reservation-card .space-info {
-        font-size: 12px;
-    }
-
-    .space-card .btn-row,
-    .reservation-card .btn-row {
-        flex-direction: row;
-        gap: 6px;
-        min-width: auto;
-    }
-
-    .btn {
-        padding: 6px 8px;
-        font-size: 11px;
-        min-width: 50px;
-    }
-
-    .btn.icon {
-        padding: 4px;
-        font-size: 14px;
-    }
-
     .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
         gap: 8px;
     }
 
-    .stat-card {
-        padding: 12px 8px;
+    .reservation-card {
+        flex-direction: column;
     }
 
-    .stat-number {
-        font-size: 18px;
+    .reservation-card .thumb {
+        width: 100%;
+        height: 160px;
+        margin-right: 0;
+        margin-bottom: 12px;
     }
 
-    .stat-label {
-        font-size: 11px;
+    .reservation-card .btn-row {
+        width: 100%;
+        margin-top: 12px;
+    }
+
+    .reservation-card .btn-row .btn {
+        flex: 1;
+    }
+}
+
+@media (max-width: 360px) {
+    .section-title h2 {
+        font-size: 20px;
+    }
+
+    .space-card {
+        flex-direction: column;
+    }
+
+    .space-card .thumb {
+        width: 100%;
+        height: 140px;
+        margin-right: 0;
+        margin-bottom: 12px;
+    }
+
+    .space-card .btn-row {
+        width: 100%;
+        margin-top: 12px;
     }
 }

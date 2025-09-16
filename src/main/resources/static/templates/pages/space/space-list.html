@@ -19,7 +19,7 @@
         <div class="space-list-container">
             <div class="page-header">
                 <h1 class="page-title">팝업 공간 대여</h1>
-                <a class="register-btn" href="/templates/pages/space-register.html">등록하기</a>
+                <a class="register-btn" href="#">등록하기</a>
             </div>
 
             <!-- 검색 영역 -->
@@ -89,26 +89,22 @@
 <script src="/js/templateLoader.js"></script>
 <script src="/js/api.js"></script>
 <script src="/js/layout.js"></script>
+<script src="/js/pages.js"></script>
 
 <!-- 페이지 JS -->
 <script src="/js/space-list.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
-        await loadComponents();      // header/footer 로드
+        await loadComponents();
         initializeLayout();
 
-        // 상단/빈상태 "등록하기" 버튼 → 독립 페이지로 이동
         document.querySelectorAll('.register-btn').forEach(btn => {
             btn.addEventListener('click', () => Pages.spaceRegister());
         });
 
-        // 페이지 초기화
-        if (window.SpaceListPage?.init) {
-            SpaceListPage.init();
-        } else {
-            document.getElementById('loading').textContent = '목록 스크립트를 찾을 수 없습니다.';
-        }
+        const manager = new SpaceListManager();
+        await manager.initialize();
     });
 </script>
 </body>

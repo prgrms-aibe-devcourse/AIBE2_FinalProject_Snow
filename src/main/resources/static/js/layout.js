@@ -148,7 +148,7 @@ async function goToProfile() {
             window.location.href = '/users/mypage';
         }
         else if (role === 'PROVIDER') {
-            location.assign('../templates/pages/mypage/provider/mpg-provider.html');
+            window.location.href = '/mypage/provider';
         } else if (role === 'HOST') {
             window.location.href = '/mypage/host';
         } else {

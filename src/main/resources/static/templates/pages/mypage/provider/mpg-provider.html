@@ -76,22 +76,19 @@
 <script src="/js/templateLoader.js"></script>
 <script src="/js/api.js"></script>
 <script src="/js/layout.js"></script>
+<script src="/js/pages.js"></script>
 
-<!-- 모듈 -->
+<!-- 페이지 전용 스크립트 -->
 <script src="/js/mpg-provider.js"></script>
 
 <script>
   document.addEventListener('DOMContentLoaded', async function() {
+
     await loadComponents();
     initializeLayout();
 
-    if (window.ProviderPage && ProviderPage.init) {
-      ProviderPage.init();
-    } else {
-      console.error('ProviderPage.init 함수를 찾을 수 없습니다.');
-      document.getElementById('main-content').innerHTML =
-              '<div class="error">페이지 로딩 중 오류가 발생했습니다.</div>';
-    }
+    const manager = new ProviderManager();
+    await manager.initialize();
   });
 </script>
 </body>
