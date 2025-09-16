@@ -1,7 +1,8 @@
-/* 회원가입 페이지 스타일 */
+/* =========================
+   회원가입 페이지 스타일
+   ========================= */
 
-
-/* main-content 스타일 오버라이드 */
+/* 메인 컨테이너 */
 .main-content {
     padding: 0 !important;
     background: #f8f9fa !important;
@@ -11,7 +12,7 @@
     min-height: calc(100vh - 90px - 96px) !important;
 }
 
-/* signup-container가 main-content 내에서 중앙 정렬되도록 */
+/* 회원가입 컨테이너 */
 .signup-container {
     min-height: auto;
     display: flex;
@@ -21,16 +22,6 @@
     padding: 20px 16px;
     box-sizing: border-box;
     width: 100%;
-}
-/* Layout */
-.signup-container {
-    min-height: 100vh;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    background: #ffffff;
-    padding: 20px 16px;
-    box-sizing: border-box;
 }
 
 .signup-card {
@@ -44,114 +35,10 @@
     margin-bottom: 40px;
 }
 
-/* Header */
-.signup-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 32px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #f3f4f6;
-}
+/* =========================
+   폼 기본 스타일
+   ========================= */
 
-.back-btn {
-    width: 40px;
-    height: 40px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #6b7280;
-    border-radius: 8px;
-    transition: all 0.2s;
-}
-
-.back-btn:hover {
-    background: #f3f4f6;
-    color: #374151;
-}
-
-.back-btn svg {
-    width: 20px;
-    height: 20px;
-}
-
-.logo {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-}
-
-.logo-bubble {
-    background: linear-gradient(135deg, #4B5AE4 0%, #8b5cf6 100%);
-    border-radius: 20px;
-    padding: 8px 16px;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-}
-
-.logo-text {
-    color: white;
-    font-weight: bold;
-    font-size: 16px;
-    letter-spacing: 1px;
-}
-
-.header-right {
-    width: 40px;
-    display: flex;
-    gap: 8px;
-}
-
-.header-right svg {
-    width: 20px;
-    height: 20px;
-    color: #6b7280;
-}
-
-/* Alert Styles */
-.alert {
-    display: none;
-    padding: 12px 16px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    font-size: 14px;
-    font-weight: 500;
-    border: 1px solid transparent;
-    animation: slideIn 0.3s ease-out;
-}
-
-.alert-success {
-    background-color: #d1fae5;
-    color: #065f46;
-    border-color: #a7f3d0;
-}
-
-.alert-error {
-    background-color: #fee2e2;
-    color: #991b1b;
-    border-color: #fca5a5;
-}
-
-.alert-info {
-    background-color: #dbeafe;
-    color: #1e40af;
-    border-color: #93c5fd;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Form Styles */
 .form-group {
     margin-bottom: 20px;
 }
@@ -204,13 +91,16 @@
     box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
 }
 
-/* Input with Button */
-.input-with-btn {
+/* =========================
+   입력 그룹 (중복확인 버튼)
+   ========================= */
+
+.input-group {
     display: flex;
     gap: 8px;
 }
 
-.input-with-btn .form-input {
+.input-group .form-input {
     flex: 1;
 }
 
@@ -245,7 +135,10 @@
     background: #059669;
 }
 
-/* Field Messages */
+/* =========================
+   필드 메시지
+   ========================= */
+
 .field-error {
     display: none;
     margin-top: 6px;
@@ -253,10 +146,7 @@
     color: #ef4444;
 }
 
-.field-error.show {
-    display: block !important;
-}
-
+.field-error.show,
 .form-input.error + .field-error {
     display: block;
 }
@@ -268,11 +158,10 @@
     color: #10b981;
 }
 
-.form-input.success ~ .field-success {
+.form-input.success ~ .field-success,
+.field-success.show {
     display: block;
 }
-
-.field-success.show { display: block !important; }
 
 .field-help {
     margin-top: 6px;
@@ -280,7 +169,10 @@
     color: #6b7280;
 }
 
-/* Password Requirements */
+/* =========================
+   비밀번호 요구사항
+   ========================= */
+
 .password-requirements {
     display: flex;
     flex-wrap: wrap;
@@ -302,226 +194,8 @@
     background: #d1fae5;
 }
 
-/* Interest Section */
-.interest-section {
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 16px;
-    background: #f9fafb;
-    margin-bottom: 12px;
-}
-
-.interest-categories {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-}
-
-.category-btn {
-    padding: 8px 16px;
-    background: white;
-    border: 1px solid #d1d5db;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #6b7280;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.category-btn:hover {
-    border-color: #4B5AE4;
-    color: #4B5AE4;
-}
-
-.category-btn.active {
-    background: #4B5AE4;
-    border-color: #4B5AE4;
-    color: white;
-}
-
-.interest-tags {
-    min-height: 60px;
-}
-
-.tag-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.tag-btn {
-    padding: 6px 12px;
-    background: white;
-    border: 1px solid #d1d5db;
-    border-radius: 16px;
-    font-size: 12px;
-    color: #6b7280;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.tag-btn:hover {
-    border-color: #4B5AE4;
-    color: #4B5AE4;
-}
-
-.tag-btn.selected {
-    background: #4B5AE4;
-    border-color: #4B5AE4;
-    color: white;
-}
-
-.selected-interests {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid #e5e7eb;
-}
-
-.selected-label {
-    font-size: 12px;
-    color: #6b7280;
-    margin-bottom: 8px;
-    display: block;
-}
-
-.selected-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    min-height: 24px;
-}
-
-.selected-tag {
-    background: #4B5AE4;
-    color: white;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.selected-tag .remove {
-    cursor: pointer;
-    font-weight: bold;
-    opacity: 0.8;
-}
-
-.selected-tag .remove:hover {
-    opacity: 1;
-}
-
-/* Submit Button */
-.signup-btn {
-    width: 100%;
-    height: 52px;
-    background: #4B5AE4;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 20px 0;
-}
-
-.signup-btn:hover:not(:disabled) {
-    background: #5855eb;
-    transform: translateY(-1px);
-}
-
-.signup-btn:active:not(:disabled) {
-    transform: translateY(0);
-}
-
-.signup-btn:disabled {
-    background: #9ca3af;
-    cursor: not-allowed;
-    transform: none;
-}
-
-/* Loading Spinner */
-.loading {
-    display: none;
-    width: 18px;
-    height: 18px;
-    border: 2px solid transparent;
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-.btn-loading {
-    color: transparent;
-}
-
-.btn-loading .loading {
-    display: inline-block;
-    position: absolute;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* Login Link */
-.login-link {
-    text-align: center;
-    font-size: 14px;
-    color: #6b7280;
-    margin-top: 20px;
-}
-
-.login-link a {
-    color: #4B5AE4;
-    text-decoration: none;
-    font-weight: 600;
-}
-
-.login-link a:hover {
-    text-decoration: underline;
-}
-
-/* Responsive */
-@media (max-width: 480px) {
-    .signup-container {
-        padding: 16px 12px;
-    }
-
-    .signup-card {
-        padding: 20px;
-        max-width: 100%;
-    }
-
-    .interest-categories {
-        gap: 6px;
-    }
-
-    .category-btn {
-        padding: 6px 12px;
-        font-size: 12px;
-    }
-
-    .input-with-btn {
-        flex-direction: column;
-    }
-
-    .check-btn {
-        min-width: 100%;
-        height: 44px;
-    }
-}
-
 /* =========================
-   관심사 선택 관련 스타일
+   관심사 선택 영역
    ========================= */
 
 .interest-section {
@@ -532,11 +206,12 @@
     border: 1px solid #e3e6ea;
 }
 
+/* 카테고리 버튼 영역 */
 .interest-categories {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 0;
     min-height: 40px;
 }
 
@@ -595,61 +270,24 @@
     box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
 }
 
+/* 태그 영역 (숨김 처리) */
 .interest-tags {
-    min-height: 120px;
-    padding: 20px;
-    border: 2px dashed #dee2e6;
-    border-radius: 12px;
-    background: white;
-    transition: border-color 0.3s ease;
-}
-
-.interest-tags:hover {
-    border-color: #007bff;
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
 }
 
 .tag-group {
-    display: none;
-    flex-wrap: wrap;
-    gap: 10px;
-    animation: fadeIn 0.3s ease;
+    display: none !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.tag-btn {
-    padding: 8px 16px;
-    border: 1px solid #dee2e6;
-    background: white;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    color: #495057;
-    position: relative;
-    overflow: hidden;
-}
-
-.tag-btn:hover {
-    border-color: #007bff;
-    background: #e3f2fd;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
-    color: #007bff;
-}
-
-.tag-btn.selected {
-    border-color: #007bff;
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    color: white;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(0, 123, 255, 0.3);
-}
-
+/* 선택된 관심사 표시 영역 */
 .selected-interests {
     margin-top: 20px;
     padding: 20px;
@@ -746,7 +384,88 @@
     transform: scale(1.1);
 }
 
-/* 알림 메시지 스타일 */
+/* =========================
+   가입하기 버튼
+   ========================= */
+
+.signup-btn {
+    width: 100%;
+    height: 52px;
+    background: #4B5AE4;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.signup-btn:hover:not(:disabled) {
+    background: #5855eb;
+    transform: translateY(-1px);
+}
+
+.signup-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.signup-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 로딩 스피너 */
+.loading {
+    display: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid transparent;
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.btn-loading {
+    color: transparent;
+}
+
+.btn-loading .loading {
+    display: inline-block;
+    position: absolute;
+}
+
+/* =========================
+   로그인 링크
+   ========================= */
+
+.login-link {
+    text-align: center;
+    font-size: 14px;
+    color: #6b7280;
+    margin-top: 20px;
+}
+
+.login-link a {
+    color: #4B5AE4;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}
+
+/* =========================
+   알림 메시지
+   ========================= */
+
 .alert-message {
     padding: 14px 18px;
     margin-bottom: 20px;
@@ -756,6 +475,9 @@
     animation: slideDown 0.3s ease;
     position: relative;
     border-left: 4px solid;
+    display: block !important;
+    opacity: 1 !important;
+    z-index: 100;
 }
 
 @keyframes slideDown {
@@ -797,8 +519,20 @@
     border-left-color: #17a2b8;
 }
 
-/* 반응형 스타일 */
+/* =========================
+   반응형 스타일
+   ========================= */
+
 @media (max-width: 768px) {
+    .signup-container {
+        padding: 16px 12px;
+    }
+
+    .signup-card {
+        padding: 20px;
+        max-width: 100%;
+    }
+
     .interest-section {
         padding: 15px;
         margin-top: 10px;
@@ -806,24 +540,11 @@
 
     .interest-categories {
         gap: 8px;
-        margin-bottom: 15px;
     }
 
     .category-btn {
         padding: 8px 14px;
         font-size: 13px;
-        flex: 1;
-        min-width: fit-content;
-    }
-
-    .interest-tags {
-        min-height: 100px;
-        padding: 15px;
-    }
-
-    .tag-btn {
-        padding: 6px 12px;
-        font-size: 12px;
         flex: 1;
         min-width: fit-content;
     }
@@ -840,6 +561,15 @@
 }
 
 @media (max-width: 480px) {
+    .input-group {
+        flex-direction: column;
+    }
+
+    .check-btn {
+        min-width: 100%;
+        height: 44px;
+    }
+
     .interest-categories {
         flex-direction: column;
     }
@@ -849,12 +579,12 @@
         justify-content: center;
     }
 
-    .tag-group {
-        gap: 8px;
+    .password-requirements {
+        gap: 6px;
     }
 
-    .tag-btn {
-        min-width: calc(50% - 4px);
-        text-align: center;
+    .requirement {
+        font-size: 11px;
+        padding: 3px 6px;
     }
 }
