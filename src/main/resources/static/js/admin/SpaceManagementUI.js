@@ -285,7 +285,7 @@ class SpaceManagementUI {
         </div>
     `;
 
-        modal.style.display = 'block';
+        modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
     }
 
@@ -302,7 +302,7 @@ class SpaceManagementUI {
             this.elements.confirmMessage.textContent = message;
         }
         if (this.elements.confirmModal) {
-            this.elements.confirmModal.style.display = 'block';
+            this.elements.confirmModal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }
     }
