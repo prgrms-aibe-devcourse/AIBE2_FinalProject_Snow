@@ -656,6 +656,19 @@ apiService.createReservationNotification = async function(userId) {
 apiService.markNotificationRead = async function(id) {
     return await this.post(`/notifications/${id}/read`);
 };
+
+// === 마이페이지 USER api ===
+apiService.getNotificationSettings = async function() {
+    return await this.get("/notifications/settings/me");
+};
+
+apiService.updateNotificationSetting = async function(type, enabled) {
+    return await this.post("/notifications/settings/update", {
+        type, enabled
+    });
+};
+
+
 // === 마이페이지 HOST api ===
 // 팝업 등록
 apiService.createPopup = async function(data) {
@@ -686,4 +699,3 @@ apiService.deletePopup = async function(popupId) {
 apiService.getMyHostProfile = async function() {
     return await this.get('/hosts/me');
 };
-

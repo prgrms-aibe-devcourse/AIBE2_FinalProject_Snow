@@ -2,6 +2,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     await loadComponents();   // header/footer 로드
     initializeLayout();
 
+    loadNotificationSettings();
+    setupNotificationSettingEvents();
+
 
     try {
         // =============================
@@ -211,9 +214,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             });
         }
 
-
-
-
     } catch (err) {
         console.error(err);
         const mc = document.getElementById('main-content') || document.querySelector('.main-content');
@@ -222,4 +222,38 @@ document.addEventListener('DOMContentLoaded', async function () {
         `;
     }
 });
+
+
+// 알림 설정 불러오기
+async function loadNotificationSettings() {
+    try {
+        const settings = await apiService.getNotificationSettings();
+        // 예: { reservationEnabled: true, systemEnabled: false, eventEnabled: true }
+
+        document.getElementById("reservation-toggle").checked = settings.reservationEnabled;
+        document.getElementById("system-toggle").checked = settings.systemEnabled;
+        document.getElementById("event-toggle").checked = settings.eventEnabled;
+    } catch (err) {
+        console.error("알림 설정 불러오기 실패:", err);
+    }
+}
+
+// 이벤트 등록
+function setupNotificationSettingEvents() {
+    document.getElementById("reservation-toggle").addEventListener("change", (e) => {
+        apiService.updateNotificationSetting("RESERVATION", e.target.checked);
+    });
+    document.getElementById("system-toggle").addEventListener("change", (e) => {
+        apiService.updateNotificationSetting("SYSTEM", e.target.checked);
+    });
+    document.getElementById("event-toggle").addEventListener("change", (e) => {
+        apiService.updateNotificationSetting("EVENT", e.target.checked);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadNotificationSettings();
+    setupNotificationSettingEvents();
+});
+
 

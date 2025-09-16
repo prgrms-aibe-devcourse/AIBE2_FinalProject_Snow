@@ -1,7 +1,7 @@
 package com.snow.popin.domain.notification.service;
 
 import com.snow.popin.domain.notification.controller.NotificationController;
-import com.snow.popin.domain.notification.dto.NotificationResponse;
+import com.snow.popin.domain.notification.dto.NotificationResponseDto;
 import com.snow.popin.domain.notification.entity.Notification;
 import com.snow.popin.domain.notification.entity.NotificationSetting;
 import com.snow.popin.domain.notification.entity.NotificationType;
@@ -65,7 +65,7 @@ public class NotificationService {
         Notification saved = notificationRepository.save(notification);
 
         // SSE 푸시
-        NotificationController.sendToClient(userId, NotificationResponse.from(saved));
+        NotificationController.sendToClient(userId, NotificationResponseDto.from(saved));
 
         return saved;
     }
