@@ -143,9 +143,10 @@ class SignupValidator {
                 valid: password && password.length >= 8,
                 message: '8자 이상'
             },
-            letter: {
-                valid: password && /[a-zA-Z]/.test(password),
-                message: '영문 포함'
+            // HTML ID와 맞춤: req-upper-lower -> upperLower
+            upperLower: {
+                valid: password && /[a-zA-Z]/.test(password) && (/[a-z]/.test(password) && /[A-Z]/.test(password)),
+                message: '대문자, 소문자 포함'
             },
             number: {
                 valid: password && /\d/.test(password),
@@ -239,84 +240,17 @@ class SignupValidator {
         const interestsResult = this.validateInterests(selectedTags);
 
         const errors = {};
-        if (!nameResult.isValid) {
-            errors.name = nameResult.message;
-        }
-        if (!nicknameResult.isValid) {
-            errors.nickname = nicknameResult.message;
-        }
-        if (!emailResult.isValid) {
-            errors.email = emailResult.message;
-        }
-        if (!passwordResult.isValid) {
-            errors.password = passwordResult.message;
-        }
-        if (!passwordConfirmResult.isValid) {
-            errors.passwordConfirm = passwordConfirmResult.message;
-        }
-        if (!phoneResult.isValid) {
-            errors.phone = phoneResult.message;
-        }
-        if (!interestsResult.isValid) {
-            errors.interests = interestsResult.message;
-        }
+        if (!nameResult.isValid) errors.name = nameResult.message;
+        if (!nicknameResult.isValid) errors.nickname = nicknameResult.message;
+        if (!emailResult.isValid) errors.email = emailResult.message;
+        if (!passwordResult.isValid) errors.password = passwordResult.message;
+        if (!passwordConfirmResult.isValid) errors.passwordConfirm = passwordConfirmResult.message;
+        if (!phoneResult.isValid) errors.phone = phoneResult.message;
+        if (!interestsResult.isValid) errors.interests = interestsResult.message;
 
         return {
-            isValid: nameResult.isValid && nicknameResult.isValid && emailResult.isValid &&
-                passwordResult.isValid && passwordConfirmResult.isValid && phoneResult.isValid &&
-                interestsResult.isValid,
-            errors,
-            passwordRequirements: passwordResult.requirements
+            isValid: Object.keys(errors).length === 0,
+            errors
         };
-    }
-
-    /**
-     * 핸드폰 번호 자동 포매팅
-     * @param {string} phone 입력된 핸드폰 번호
-     * @returns {string} 포매팅된 핸드폰 번호
-     */
-    static formatPhone(phone) {
-        // 숫자만 추출
-        const numbers = phone.replace(/\D/g, '');
-
-        // 010으로 시작하지 않으면 그대로 반환
-        if (!numbers.startsWith('010')) {
-            return phone;
-        }
-
-        // 자동 하이픈 추가
-        if (numbers.length <= 3) {
-            return numbers;
-        } else if (numbers.length <= 7) {
-            return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
-        } else if (numbers.length <= 11) {
-            return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
-        } else {
-            // 11자리 초과시 자름
-            return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
-        }
-    }
-
-    /**
-     * 실시간 입력 검증용 - 간단한 체크만
-     * @param {string} fieldName 필드명
-     * @param {string} value 입력값
-     * @returns {Object} { isValid: boolean, message: string }
-     */
-    static validateField(fieldName, value) {
-        switch (fieldName) {
-            case 'name':
-                return this.validateName(value);
-            case 'nickname':
-                return this.validateNickname(value);
-            case 'email':
-                return this.validateEmail(value);
-            case 'password':
-                return this.validatePassword(value);
-            case 'phone':
-                return this.validatePhone(value);
-            default:
-                return { isValid: true, message: '' };
-        }
     }
 }

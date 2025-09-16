@@ -2,6 +2,8 @@ package com.snow.popin.domain.auth.controller;
 
 import com.snow.popin.domain.auth.dto.*;
 import com.snow.popin.domain.auth.service.AuthService;
+import com.snow.popin.domain.category.dto.CategoryResponseDto;
+import com.snow.popin.domain.category.service.CategoryService;
 import com.snow.popin.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -22,6 +25,7 @@ import java.util.Objects;
 public class AuthApiController {
 
     private final AuthService authService;
+    private final CategoryService categoryService;
 
     @PostMapping("/signup")
     public ResponseEntity<SignupResponse> signup(@Valid @RequestBody SignupRequest req){
@@ -69,5 +73,19 @@ public class AuthApiController {
         response.put("exists", exists);
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 전체 카테고리 목록 조회 (회원가입 시 사용)
+     */
+    @GetMapping("/categories")
+    public ResponseEntity<Map<String, Object>> getAllCategories(){
+        List<CategoryResponseDto> categories  = categoryService.getAllCategories();
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("success", true);
+        res.put("data", categories);
+
+        return ResponseEntity.ok(res);
     }
 }

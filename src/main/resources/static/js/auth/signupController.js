@@ -24,12 +24,19 @@ class SignupController {
     /**
      * 초기 상태 설정
      */
-    setupInitialState() {
-        // 첫 번째 카테고리 활성화
-        this.ui.switchCategory('fashion');
+    async setupInitialState() {
+        try {
+            // UI 초기화가 완료될 때까지 대기
+            await this.ui.loadCategories();
 
-        // 제출 버튼 초기 상태
-        this.ui.updateSubmitButton();
+            // 제출 버튼 초기 상태
+            this.ui.updateSubmitButton();
+
+            console.log('회원가입 컨트롤러 초기화 완료');
+        } catch (error) {
+            console.error('회원가입 컨트롤러 초기화 실패:', error);
+            this.ui.showAlert('페이지 초기화 중 오류가 발생했습니다.', 'error');
+        }
     }
 
     /**
@@ -48,6 +55,8 @@ class SignupController {
     async handleSubmit(e) {
         e.preventDefault();
 
+        console.log('회원가입 폼 제출 시작');
+
         // 클라이언트 사이드 검증
         if (!this.ui.validateForm()) {
             this.ui.showAlert('입력 정보를 확인해주세요.', 'error');
@@ -62,8 +71,16 @@ class SignupController {
         const formData = this.ui.getFormData();
         const selectedTags = this.ui.getSelectedTags();
 
+        console.log('선택된 관심사 태그:', selectedTags);
+
         // 회원가입 데이터 준비
         const signupData = this.signupApi.prepareSignupData(formData, selectedTags);
+
+        console.log('회원가입 데이터:', {
+            ...signupData,
+            password: '***', // 보안상 로그에서 제외
+            passwordConfirm: '***'
+        });
 
         // 최종 검증
         if (!this.validateSignupData(signupData)) {
@@ -74,6 +91,8 @@ class SignupController {
 
         try {
             const response = await this.signupApi.signup(signupData);
+
+            console.log('회원가입 응답:', response);
 
             if (response.success) {
                 // 성공 메시지 표시
@@ -168,6 +187,13 @@ class SignupController {
             return false;
         }
 
+        // 관심사 검증 (선택사항이지만 개수 제한)
+        const interestsValidation = SignupValidator.validateInterests(signupData.interests);
+        if (!interestsValidation.isValid) {
+            this.ui.showAlert(interestsValidation.message, 'error');
+            return false;
+        }
+
         return true;
     }
 
@@ -195,84 +221,59 @@ class SignupController {
     handleSignupError(error) {
         let errorMessage = error.message || '회원가입 중 오류가 발생했습니다.';
 
-        // 서버 에러 메시지 파싱
-        if (error.message) {
-            if (error.message.includes('이메일')) {
-                this.ui.showFieldError('email', error.message);
-                this.ui.validationStates.email = false;
-                this.ui.elements.emailInput.focus();
-            } else if (error.message.includes('닉네임')) {
-                this.ui.showFieldError('nickname', error.message);
-                this.ui.validationStates.nickname = false;
-                this.ui.elements.nicknameInput.focus();
-            } else if (error.message.includes('비밀번호')) {
-                this.ui.showFieldError('password', error.message);
-                this.ui.elements.passwordInput.focus();
-            } else if (error.message.includes('핸드폰') || error.message.includes('전화')) {
-                this.ui.showFieldError('phone', error.message);
-                this.ui.elements.phoneInput.focus();
-            }
-        }
-
-        // 일반적인 에러 메시지 처리
-        if (errorMessage.includes('중복')) {
-            errorMessage = '이미 사용 중인 정보입니다. 다른 정보로 시도해주세요.';
-        } else if (errorMessage.includes('네트워크')) {
+        // 특정 에러에 대한 사용자 친화적 메시지
+        if (errorMessage.includes('duplicate') || errorMessage.includes('중복')) {
+            errorMessage = '이미 존재하는 정보입니다. 이메일이나 닉네임을 확인해주세요.';
+        } else if (errorMessage.includes('validation') || errorMessage.includes('형식')) {
+            errorMessage = '입력 정보의 형식을 확인해주세요.';
+        } else if (errorMessage.includes('network') || errorMessage.includes('네트워크')) {
             errorMessage = '네트워크 연결을 확인하고 다시 시도해주세요.';
-        } else if (errorMessage.includes('서버')) {
+        } else if (errorMessage.includes('server') || errorMessage.includes('500')) {
             errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
         }
 
         this.ui.showAlert(errorMessage, 'error');
-        this.ui.updateSubmitButton();
+
+        // 로그에는 원본 에러 기록
+        console.error('회원가입 상세 에러:', error);
     }
 
     /**
-     * 페이지 새로고침 또는 뒤로가기 시 경고
+     * 카테고리 데이터 다시 로드
      */
-    setupBeforeUnloadWarning() {
-        let hasChanges = false;
-
-        // 입력 필드 변경 감지
-        const inputs = this.ui.elements.form.querySelectorAll('input');
-        inputs.forEach(input => {
-            input.addEventListener('input', () => {
-                hasChanges = true;
-            });
-        });
-
-        // 관심사 선택 변경 감지
-        const originalToggleTag = this.ui.toggleTag.bind(this.ui);
-        this.ui.toggleTag = function(tag) {
-            hasChanges = true;
-            return originalToggleTag(tag);
-        };
-
-        // 페이지 이탈 경고
-        window.addEventListener('beforeunload', (e) => {
-            if (hasChanges) {
-                const message = '작성 중인 내용이 사라집니다. 정말 나가시겠습니까?';
-                e.preventDefault();
-                e.returnValue = message;
-                return message;
-            }
-        });
-
-        // 회원가입 완료 시 경고 해제
-        this.ui.elements.form.addEventListener('submit', () => {
-            hasChanges = false;
-        });
+    async reloadCategories() {
+        try {
+            await this.ui.loadCategories();
+            this.ui.showAlert('카테고리 정보를 다시 불러왔습니다.', 'success');
+        } catch (error) {
+            console.error('카테고리 재로드 실패:', error);
+            this.ui.showAlert('카테고리 정보 재로드에 실패했습니다.', 'error');
+        }
     }
 
     /**
-     * 디버깅용 메서드들
+     * 디버깅용 메서드 - 현재 상태 출력
      */
-    debug() {
-        return {
-            formData: this.ui.getFormData(),
-            selectedTags: this.ui.getSelectedTags(),
-            validationStates: this.ui.validationStates,
-            isFormValid: this.ui.validateForm()
-        };
+    debugCurrentState() {
+        const formData = this.ui.getFormData();
+        const selectedTags = this.ui.getSelectedTags();
+        const validationStates = this.ui.validationStates;
+
+        console.log('=== 회원가입 현재 상태 ===');
+        console.log('폼 데이터:', Object.fromEntries(formData));
+        console.log('선택된 태그:', selectedTags);
+        console.log('검증 상태:', validationStates);
+        console.log('카테고리 수:', this.ui.categories.length);
+        console.log('폼 유효성:', this.ui.validateForm());
+        console.log('========================');
     }
 }
+
+// 전역에서 디버깅 메서드 사용 가능하도록 설정
+window.debugSignup = () => {
+    if (window.signupController) {
+        window.signupController.debugCurrentState();
+    } else {
+        console.log('SignupController가 초기화되지 않았습니다.');
+    }
+};

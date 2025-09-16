@@ -1,171 +1,133 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>회원가입 - POPIN</title>
-    <link rel="stylesheet" href="/css/layout.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입 - PopIn</title>
+    <link rel="stylesheet" href="/css/layout.css">
     <link rel="stylesheet" href="/css/signup.css">
-    <style>
-        body { padding-bottom: 64px; }
-    </style>
 </head>
 <body>
+<div class="mobile-container">
+    <!-- 헤더 -->
+    <div id="app-header-mount"></div>
 
-<div id="app-header-mount"></div>
+    <!-- 메인 콘텐츠 -->
+    <main class="main-content">
+        <div class="signup-container">
+            <div class="signup-card">
+                <h2>회원가입</h2>
+                <p class="auth-description">PopIn에 오신 것을 환영합니다</p>
 
-<div class="signup-container">
-    <div class="signup-card">
-        <div id="alert-container" class="alert"></div>
-
-        <form id="signupForm" novalidate>
-            <!-- 이름 -->
-            <div class="form-group">
-                <label class="form-label" for="name">이름</label>
-                <input type="text" id="name" name="name" class="form-input" placeholder="성함을 입력해 주세요" required />
-                <div class="field-error" id="name-error"></div>
-            </div>
-
-            <!-- 닉네임 -->
-            <div class="form-group">
-                <label class="form-label" for="nickname">닉네임</label>
-                <div class="input-with-btn">
-                    <input type="text" id="nickname" name="nickname" class="form-input" placeholder="닉네임을 입력해 주세요" required />
-                    <button type="button" class="check-btn" id="nicknameCheckBtn">중복확인</button>
-                </div>
-                <div class="field-error" id="nickname-error"></div>
-                <div class="field-success" id="nickname-success"></div>
-            </div>
-
-            <!-- 이메일 -->
-            <div class="form-group">
-                <label class="form-label" for="email">이메일</label>
-                <div class="input-with-btn">
-                    <input type="email" id="email" name="email" class="form-input" placeholder="이메일을 입력해 주세요" required />
-                    <button type="button" class="check-btn" id="emailCheckBtn">중복확인</button>
-                </div>
-                <div class="field-error" id="email-error"></div>
-                <div class="field-success" id="email-success"></div>
-            </div>
-
-            <!-- 비밀번호 -->
-            <div class="form-group">
-                <label class="form-label" for="password">비밀번호</label>
-                <input type="password" id="password" name="password" class="form-input" placeholder="비밀번호를 입력해 주세요" required />
-                <div class="field-error" id="password-error"></div>
-                <div class="password-requirements">
-                    <div class="requirement" id="req-length">8자 이상</div>
-                    <div class="requirement" id="req-letter">영문 포함</div>
-                    <div class="requirement" id="req-number">숫자 포함</div>
-                    <div class="requirement" id="req-special">특수문자 포함</div>
-                </div>
-            </div>
-
-            <!-- 비밀번호 확인 -->
-            <div class="form-group">
-                <label class="form-label" for="passwordConfirm">비밀번호 확인</label>
-                <input type="password" id="passwordConfirm" name="passwordConfirm" class="form-input" placeholder="비밀번호를 다시 입력해 주세요" required />
-                <div class="field-error" id="passwordConfirm-error"></div>
-                <div class="field-success" id="passwordConfirm-success"></div>
-            </div>
-
-            <!-- 핸드폰 번호 -->
-            <div class="form-group">
-                <label class="form-label" for="phone">핸드폰 번호</label>
-                <input type="tel" id="phone" name="phone" class="form-input" placeholder="010-0000-0000" required />
-                <div class="field-error" id="phone-error"></div>
-                <div class="field-help">하이픈(-)을 포함하여 입력해 주세요</div>
-            </div>
-
-            <!-- 관심사 골라보기 -->
-            <div class="form-group">
-                <label class="form-label">관심사 골라보기</label>
-                <div class="interest-section">
-                    <div class="interest-categories">
-                        <button type="button" class="category-btn active" data-category="fashion">패션</button>
-                        <button type="button" class="category-btn" data-category="beauty">뷰티</button>
-                        <button type="button" class="category-btn" data-category="art">예술</button>
-                        <button type="button" class="category-btn" data-category="sports">운동/건강</button>
-                        <button type="button" class="category-btn" data-category="culture">문화/엔터</button>
+                <form id="signupForm" class="auth-form">
+                    <!-- 이름 -->
+                    <div class="form-group">
+                        <label class="form-label" for="name">이름</label>
+                        <input type="text" id="name" name="name" class="form-input" placeholder="이름을 입력해주세요" required />
+                        <div class="field-error" id="name-error"></div>
                     </div>
 
-                    <div class="interest-tags">
-                        <!-- 패션 태그들 -->
-                        <div class="tag-group" data-category="fashion">
-                            <button type="button" class="tag-btn" data-tag="의류">의류</button>
-                            <button type="button" class="tag-btn" data-tag="신발">신발</button>
-                            <button type="button" class="tag-btn" data-tag="가방">가방</button>
-                            <button type="button" class="tag-btn" data-tag="액세서리">액세서리</button>
-                            <button type="button" class="tag-btn" data-tag="빈티지">빈티지</button>
+                    <!-- 닉네임 -->
+                    <div class="form-group">
+                        <label class="form-label" for="nickname">닉네임</label>
+                        <div class="input-group">
+                            <input type="text" id="nickname" name="nickname" class="form-input" placeholder="닉네임을 입력해주세요" required />
+                            <button type="button" class="check-btn" id="nicknameCheckBtn">중복확인</button>
                         </div>
+                        <div class="field-error" id="nickname-error"></div>
+                        <div class="field-help">2-20자의 한글, 영문, 숫자만 사용 가능합니다</div>
+                    </div>
 
-                        <!-- 뷰티 태그들 -->
-                        <div class="tag-group" data-category="beauty" style="display: none;">
-                            <button type="button" class="tag-btn" data-tag="화장품">화장품</button>
-                            <button type="button" class="tag-btn" data-tag="스킨케어">스킨케어</button>
-                            <button type="button" class="tag-btn" data-tag="헤어">헤어</button>
-                            <button type="button" class="tag-btn" data-tag="네일">네일</button>
-                            <button type="button" class="tag-btn" data-tag="향수">향수</button>
+                    <!-- 이메일 -->
+                    <div class="form-group">
+                        <label class="form-label" for="email">이메일</label>
+                        <div class="input-group">
+                            <input type="email" id="email" name="email" class="form-input" placeholder="이메일을 입력해주세요" required />
+                            <button type="button" class="check-btn" id="emailCheckBtn">중복확인</button>
                         </div>
+                        <div class="field-error" id="email-error"></div>
+                    </div>
 
-                        <!-- 예술 태그들 -->
-                        <div class="tag-group" data-category="art" style="display: none;">
-                            <button type="button" class="tag-btn" data-tag="전시">전시</button>
-                            <button type="button" class="tag-btn" data-tag="공연">공연</button>
-                            <button type="button" class="tag-btn" data-tag="미술">미술</button>
-                            <button type="button" class="tag-btn" data-tag="사진">사진</button>
-                            <button type="button" class="tag-btn" data-tag="조각">조각</button>
-                        </div>
-
-                        <!-- 운동/건강 태그들 -->
-                        <div class="tag-group" data-category="sports" style="display: none;">
-                            <button type="button" class="tag-btn" data-tag="피트니스">피트니스</button>
-                            <button type="button" class="tag-btn" data-tag="요가">요가</button>
-                            <button type="button" class="tag-btn" data-tag="러닝">러닝</button>
-                            <button type="button" class="tag-btn" data-tag="헬스">헬스</button>
-                            <button type="button" class="tag-btn" data-tag="웰니스">웰니스</button>
-                        </div>
-
-                        <!-- 문화/엔터 태그들 -->
-                        <div class="tag-group" data-category="culture" style="display: none;">
-                            <button type="button" class="tag-btn" data-tag="음악">음악</button>
-                            <button type="button" class="tag-btn" data-tag="영화">영화</button>
-                            <button type="button" class="tag-btn" data-tag="도서">도서</button>
-                            <button type="button" class="tag-btn" data-tag="게임">게임</button>
-                            <button type="button" class="tag-btn" data-tag="카페">카페</button>
+                    <!-- 비밀번호 -->
+                    <div class="form-group">
+                        <label class="form-label" for="password">비밀번호</label>
+                        <input type="password" id="password" name="password" class="form-input" placeholder="비밀번호를 입력해주세요" required />
+                        <div class="field-error" id="password-error"></div>
+                        <div class="password-requirements">
+                            <div class="requirement" id="req-length">✓ 8자 이상</div>
+                            <div class="requirement" id="req-upper-lower">✓ 대문자, 소문자 포함</div>
+                            <div class="requirement" id="req-number">✓ 숫자 포함</div>
+                            <div class="requirement" id="req-special">✓ 특수문자 포함</div>
                         </div>
                     </div>
-                </div>
-                <div class="selected-interests">
-                    <span class="selected-label">선택된 관심사:</span>
-                    <div class="selected-tags" id="selectedTags">
-                        <!-- 선택된 태그들이 여기에 표시됩니다 -->
+
+                    <!-- 비밀번호 확인 -->
+                    <div class="form-group">
+                        <label class="form-label" for="passwordConfirm">비밀번호 확인</label>
+                        <input type="password" id="passwordConfirm" name="passwordConfirm" class="form-input" placeholder="비밀번호를 다시 입력해주세요" required />
+                        <div class="field-error" id="passwordConfirm-error"></div>
                     </div>
-                </div>
+
+                    <!-- 핸드폰 번호 -->
+                    <div class="form-group">
+                        <label class="form-label" for="phone">핸드폰 번호</label>
+                        <input type="tel" id="phone" name="phone" class="form-input" placeholder="010-0000-0000" required />
+                        <div class="field-error" id="phone-error"></div>
+                        <div class="field-help">하이픈(-)을 포함하여 입력해 주세요</div>
+                    </div>
+
+                    <!-- 관심사 선택 -->
+                    <div class="form-group">
+                        <label class="form-label">관심사 선택</label>
+                        <div class="field-help">관심있는 분야의 태그를 선택해주세요 (최대 10개)</div>
+
+                        <div class="interest-section">
+                            <!-- 카테고리 버튼들 (동적으로 생성됨) -->
+                            <div class="interest-categories">
+                                <div class="category-loading">
+                                    <span class="loading-spinner"></span>
+                                    카테고리를 불러오는 중...
+                                </div>
+                            </div>
+
+                            <!-- 태그들 (동적으로 생성됨) -->
+                            <div class="interest-tags">
+                                <!-- 태그 그룹들이 JavaScript로 동적 생성됩니다 -->
+                            </div>
+                        </div>
+
+                        <!-- 선택된 관심사 표시 -->
+                        <div class="selected-interests">
+                            <span class="selected-label">선택된 관심사:</span>
+                            <div class="selected-tags" id="selectedTags">
+                                <span class="no-selection">선택된 관심사가 없습니다.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="signup-btn" id="signupBtn">
+                        <span class="loading"></span>
+                        <span class="btn-text">가입하기</span>
+                    </button>
+                </form>
+
+                <div class="login-link">이미 계정이 있으신가요? <a href="/auth/login">로그인하기</a></div>
             </div>
+        </div>
+    </main>
 
-            <button type="submit" class="signup-btn" id="signupBtn">
-                <span class="loading"></span>
-                <span class="btn-text">가입하기</span>
-            </button>
-        </form>
-
-        <div class="login-link">이미 계정이 있으신가요? <a href="/auth/login">로그인하기</a></div>
-    </div>
+    <!-- 푸터 -->
+    <div id="app-footer-mount"></div>
 </div>
 
-<div id="app-footer-mount"></div>
-
-<!-- JavaScript 파일들 로드 -->
+<!-- 기존 스크립트들 그대로 -->
 <script src="/js/api.js"></script>
 <script src="/js/auth/signupApi.js"></script>
 <script src="/js/auth/signupValidator.js"></script>
 <script src="/js/auth/signupUI.js"></script>
 <script src="/js/auth/signupController.js"></script>
 
-
 <script>
-    /* include header/footer partials */
     async function injectPartial(selector, url) {
         const mount = document.querySelector(selector);
         if (!mount) return;
@@ -177,17 +139,12 @@
             console.warn('Include failed:', url, err);
         }
     }
+
     document.addEventListener('DOMContentLoaded', function () {
-        // from /static/auth/signup.html -> /static/templates/components/*.html
         injectPartial('#app-header-mount', '/templates/components/header.html');
         injectPartial('#app-footer-mount', '/templates/components/footer.html');
-    });
-</script>
 
-<script>
-    // 페이지 로드 완료 후 회원가입 컨트롤러 초기화
-    document.addEventListener('DOMContentLoaded', function() {
-        new SignupController();
+        window.signupController = new SignupController();
     });
 </script>
 </body>

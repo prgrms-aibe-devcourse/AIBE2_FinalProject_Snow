@@ -9,7 +9,6 @@ import javax.validation.constraints.Size;
 import java.util.List;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @Builder
 public class SignupRequest {
@@ -43,13 +42,13 @@ public class SignupRequest {
     private List<Long> interestCategoryIds;
 
     // 선택한 관심사 태그들 (임시로 문자열 리스트로 받기)
-    private List<String> interestTags;
+    private List<String> interests;
 
     // @Builder를 사용할 때 필요한 생성자를 명시적으로 정의
     @Builder
     public SignupRequest(String name, String nickname, String email,
                          String password, String passwordConfirm, String phone,
-                         List<Long> interestCategoryIds, List<String> interestTags) {
+                         List<Long> interestCategoryIds, List<String> interests) {
         this.name = name;
         this.nickname = nickname;
         this.email = email;
@@ -57,7 +56,7 @@ public class SignupRequest {
         this.passwordConfirm = passwordConfirm;
         this.phone = phone;
         this.interestCategoryIds = interestCategoryIds;
-        this.interestTags = interestTags;
+        this.interests = interests;
     }
 
     // 비밀번호 확인 검증
