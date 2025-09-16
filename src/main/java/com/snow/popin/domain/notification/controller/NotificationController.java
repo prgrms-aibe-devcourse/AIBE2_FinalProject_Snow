@@ -1,6 +1,6 @@
 package com.snow.popin.domain.notification.controller;
 
-import com.snow.popin.domain.notification.dto.NotificationResponse;
+import com.snow.popin.domain.notification.dto.NotificationResponseDto;
 import com.snow.popin.domain.notification.entity.Notification;
 import com.snow.popin.domain.notification.entity.NotificationType;
 import com.snow.popin.domain.notification.service.NotificationService;
@@ -30,13 +30,13 @@ public class NotificationController {
 
     /** 내 알림 목록 조회 */
     @GetMapping("/me")
-    public ResponseEntity<List<NotificationResponse>> getMyNotifications() {
+    public ResponseEntity<List<NotificationResponseDto>> getMyNotifications() {
         Long userId = userUtil.getCurrentUserId();
 
         List<Notification> list = notificationService.getUserNotifications(userId);
         return ResponseEntity.ok(
                 list.stream()
-                        .map(NotificationResponse::from)
+                        .map(NotificationResponseDto::from)
                         .collect(Collectors.toList())
         );
     }
@@ -82,14 +82,14 @@ public class NotificationController {
         );
 
         if (n != null) {
-            sendToClient(userId, NotificationResponse.from(n));
+            sendToClient(userId, NotificationResponseDto.from(n));
         }
 
         return ResponseEntity.ok().build();
     }
 
     /** 특정 유저에게 SSE 전송 */
-    public static void sendToClient(Long userId, NotificationResponse dto) {
+    public static void sendToClient(Long userId, NotificationResponseDto dto) {
         SseEmitter emitter = emitters.get(userId);
         if (emitter != null) {
             try {
