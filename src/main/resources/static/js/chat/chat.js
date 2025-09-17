@@ -2,6 +2,7 @@ const ChatPage = {
     stompClient: null,
     reservationId: null,
     userId: null,
+    userNickname: null,
 
     async init() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -26,6 +27,7 @@ const ChatPage = {
         this.bindEvents();
 
         await this.loadCurrentUser();
+        await this.loadChatContext(); // 컨텍스트 정보 로드 추가
         await this.loadMessages();
         this.connectWebSocket();
     },
@@ -57,6 +59,8 @@ const ChatPage = {
         try {
             const me = await apiService.get("/users/me");
             this.userId = me.id;
+            this.userNickname = me.nickname || me.name || me.email?.split('@')[0] || '익명';
+            console.log("현재 사용자:", this.userId, this.userNickname);
         } catch (err) {
             console.error("사용자 정보 로드 실패:", err);
             alert("로그인 정보가 필요합니다.");
@@ -64,13 +68,76 @@ const ChatPage = {
         }
     },
 
+    // 채팅 컨텍스트 정보 로드
+    async loadChatContext() {
+        try {
+            const context = await apiService.getChatContext(this.reservationId);
+            console.log("채팅 컨텍스트:", context);
+            this.updateChatHeader(context);
+        } catch (err) {
+            console.error("채팅 컨텍스트 로드 실패:", err);
+            // 실패해도 기본 제목 유지
+        }
+    },
+
+    // 채팅 헤더 업데이트
+    updateChatHeader(context) {
+        const headerTitle = document.querySelector('.chat-header h3');
+        if (!headerTitle) return;
+
+        let title = "예약 채팅";
+        let subtitle = "";
+
+        // 우선순위: 브랜드명 + 팝업제목 > 공간명
+        if (context.brandName && context.popupTitle) {
+            title = `${context.brandName}`;
+            subtitle = context.popupTitle;
+        } else if (context.popupTitle && context.spaceName) {
+            title = context.popupTitle;
+            subtitle = `공간: ${context.spaceName}`;
+        } else if (context.spaceName) {
+            title = `공간: ${context.spaceName}`;
+            if (context.spaceAddress) {
+                subtitle = context.spaceAddress;
+            }
+        } else if (context.popupTitle) {
+            title = context.popupTitle;
+        }
+
+        // 예약 상태 추가
+        const statusText = this.getStatusText(context.status);
+        if (statusText) {
+            subtitle = subtitle ? `${subtitle} • ${statusText}` : statusText;
+        }
+
+        // 헤더 HTML 업데이트
+        headerTitle.innerHTML = `
+            <div style="text-align: center; line-height: 1.3;">
+                <div style="font-size: 16px; font-weight: 600; margin-bottom: 2px;">${title}</div>
+                ${subtitle ? `<div style="font-size: 12px; opacity: 0.8;">${subtitle}</div>` : ''}
+            </div>
+        `;
+    },
+
+    // 예약 상태 텍스트 변환
+    getStatusText(status) {
+        const statusMap = {
+            'PENDING': '승인 대기',
+            'ACCEPTED': '승인됨',
+            'REJECTED': '거절됨',
+            'CANCELLED': '취소됨'
+        };
+        return statusMap[status] || '';
+    },
+
     async loadMessages() {
         try {
             const messages = await apiService.getChatMessages(this.reservationId);
-            console.log(" 이전 메시지:", messages);
-            messages.forEach(m =>
-                this.addMessage(m.senderId, m.content, m.sentAt, m.senderName)
-            );
+            console.log("이전 메시지:", messages);
+
+            messages.forEach(m => {
+                this.addMessage(m.senderId, m.content, m.sentAt);
+            });
             this.scrollToBottom();
         } catch (err) {
             console.error("메시지 불러오기 실패:", err);
@@ -105,8 +172,7 @@ const ChatPage = {
                             this.addMessage(
                                 payload.senderId,
                                 payload.content,
-                                payload.sentAt,
-                                payload.senderName
+                                payload.sentAt
                             );
                             this.scrollToBottom();
                         }
@@ -123,7 +189,7 @@ const ChatPage = {
         );
 
         this.stompClient.onclose = () => {
-            console.log('⚠WebSocket 연결이 끊어졌습니다.');
+            console.log('WebSocket 연결이 끊어졌습니다.');
         };
     },
 
@@ -149,7 +215,7 @@ const ChatPage = {
 
         const dto = {
             reservationId: this.reservationId,
-            senderId: this.userId,  // 현재 로그인한 사용자 ID 추가
+            senderId: this.userId,
             content: content,
             sentAt: new Date().toISOString()
         };
@@ -159,22 +225,26 @@ const ChatPage = {
         this.el.input.value = "";
     },
 
-    addMessage(senderId, content, sentAt, senderName) {
+    // 닉네임 제거 - 1대1 채팅이므로 메시지 내용과 시간만 표시
+    addMessage(senderId, content, sentAt) {
         const div = document.createElement("div");
         div.className = senderId === this.userId ? "chat-message me" : "chat-message";
 
         const timeText = sentAt ? new Date(sentAt).toLocaleTimeString() : "";
 
         div.innerHTML = `
-            <div class="sender">${senderName || '익명'}</div>
             <div class="content">${content}</div>
             <div class="time">${timeText}</div>
         `;
+
         this.el.messages.appendChild(div);
+        console.log("메시지 추가 완료:", content);
     },
 
     scrollToBottom() {
-        this.el.messages.scrollTop = this.el.messages.scrollHeight;
+        if (this.el.messages) {
+            this.el.messages.scrollTop = this.el.messages.scrollHeight;
+        }
     }
 };
 
