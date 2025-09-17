@@ -248,11 +248,11 @@ public class ReservationService {
                 LocalDateTime slotStart = LocalDateTime.of(date, currentTime);
                 LocalDateTime slotEnd = LocalDateTime.of(date, slotEndTime);
 
-                long reservationCount = reservationRepository.countByPopupAndReservationDateBetween(
+                long totalReservedPeople = reservationRepository.sumPartySizeByPopupAndReservationDateBetween(
                         popup, slotStart, slotEnd
                 );
 
-                int remainingSlots = DEFAULT_MAX_CAPACITY_PER_SLOT - (int) reservationCount;
+                int remainingSlots = DEFAULT_MAX_CAPACITY_PER_SLOT - (int) totalReservedPeople;
                 boolean isAvailable = remainingSlots > 0 && !slotStart.isBefore(LocalDateTime.now());
 
                 TimeSlotDto slot = TimeSlotDto.builder()

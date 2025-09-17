@@ -102,10 +102,15 @@ class PopupReservationManager {
         const popupLocation = document.getElementById('popup-location');
 
         if (popupImage && this.popupData) {
-            popupImage.src = this.popupData.mainImageUrl ||
-                this.popupData.thumbnailUrl ||
-                'https://via.placeholder.com/80x80/4B5AE4/ffffff?text=🎪';
+            const fallbackImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzRCNUFFNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+
+            popupImage.src = this.popupData.mainImageUrl || fallbackImage;
             popupImage.alt = this.popupData.title;
+
+            popupImage.onerror = function() {
+                this.onerror = null; // 무한루프 방지
+                this.src = fallbackImage;
+            };
         }
 
         if (popupName && this.popupData) {
@@ -254,12 +259,22 @@ class PopupReservationManager {
             submitBtn.disabled = true;
             submitBtn.textContent = '예약 중...';
 
+            // 날짜 형식 수정
+            let timeString = this.selectedTimeSlot.startTime;
+
+            // "15:00" 형식이면 ":00" 추가, "15:00:00" 형식이면 그대로 사용
+            if (timeString.length === 5) {
+                timeString += ':00';
+            }
+
+            const reservationDateTime = `${this.selectedDate}T${timeString}`;
+
             // 예약 데이터 구성
             const reservationData = {
                 name: document.getElementById('name').value.trim(),
                 phone: document.getElementById('phone').value.trim(),
                 partySize: parseInt(document.getElementById('party-size').value),
-                reservationDate: `${this.selectedDate}T${this.selectedTimeSlot.startTime}:00`
+                reservationDate: reservationDateTime
             };
 
             // 예약 API 호출
