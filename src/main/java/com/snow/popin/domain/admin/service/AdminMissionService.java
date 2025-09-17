@@ -54,14 +54,6 @@ public class AdminMissionService {
         return MissionSetAdminDto.from(set);
     }
 
-    // 완료 처리
-    public void completeMissionSet(UUID id) {
-        MissionSet set = missionSetRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("MissionSet not found"));
-        set.complete();
-        missionSetRepository.save(set);
-    }
-
     // 삭제
     public void deleteMissionSet(UUID id) {
         missionSetRepository.deleteById(id);

@@ -1,6 +1,7 @@
 package com.snow.popin.domain.mission.dto;
 
 import com.snow.popin.domain.mission.entity.MissionSet;
+import com.snow.popin.domain.mission.entity.MissionSetStatus;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -15,7 +16,7 @@ public class MissionSetAdminDto {
     private UUID id;
     private Long popupId;
     private Integer requiredCount;
-    private String status;
+    private MissionSetStatus status;
     private String rewardPin;
     private LocalDateTime createdAt;
     private List<MissionDto> missions;

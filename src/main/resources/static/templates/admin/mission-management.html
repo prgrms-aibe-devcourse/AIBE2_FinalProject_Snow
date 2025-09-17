@@ -27,29 +27,23 @@
     <div class="page-header">
         <h1>미션 관리</h1>
         <div class="right-actions">
-            <button class="btn btn-primary" id="createMissionSetBtn">미션셋 등록</button>
+            <button class="button button-secondary" id="createMissionSetBtn">미션셋 등록</button>
         </div>
     </div>
     <!-- Filters -->
     <div class="filter-container">
         <div class="filter-group">
-            <label for="statusFilter">상태:</label>
-            <select id="statusFilter">
+            <label for="popupFilter">팝업:</label>
+            <select id="popupFilter">
                 <option value="">전체</option>
-                <option value="ACTIVE">활성</option>
-                <option value="COMPLETED">완료</option>
             </select>
-        </div>
-        <div class="filter-group">
-            <label for="popupIdFilter">팝업 ID:</label>
-            <input type="number" id="popupIdFilter" placeholder="예: 123"/>
         </div>
         <div class="filter-group">
             <label for="searchKeyword">검색:</label>
             <input type="text" id="searchKeyword" placeholder="미션 제목, 설명 검색..."/>
         </div>
-        <button class="btn btn-primary" id="searchBtn">검색</button>
-        <button class="btn btn-secondary" id="resetBtn">초기화</button>
+        <button class="button-primary button" id="searchBtn">검색</button>
+        <button class="button-secondary button" id="resetBtn">초기화</button>
     </div>
 
     <!-- Table -->
@@ -70,10 +64,9 @@
         </div>
         <div class="modal-body" id="modalBody"></div>
         <div class="modal-actions">
-            <button class="btn btn-primary" id="addMissionBtn">미션 추가</button>
-            <button class="btn btn-warning" id="completeSetBtn">완료 처리</button>
-            <button class="btn btn-danger-outline" id="deleteSetBtn">미션셋 삭제</button>
-            <button class="btn btn-secondary" id="closeModalBtn">닫기</button>
+            <button class="button button-primary" id="addMissionBtn">미션 추가</button>
+            <button class="button button-danger-outline" id="deleteSetBtn">미션셋 삭제</button>
+            <button class="button button-secondary" id="closeModalBtn">닫기</button>
         </div>
     </div>
 </div>
@@ -88,8 +81,11 @@
         <div class="modal-body">
             <div class="two-col">
                 <div class="form-group">
-                    <label>팝업 ID</label>
-                    <input type="number" id="createPopupId" placeholder="ex) 123" required />
+                    <label>팝업 선택</label>
+                    <select id="createPopupId" required>
+                        <option value="">로딩 중...</option>
+                    </select>
+                    <small style="color:#666;">선택 시 내부적으로 팝업 ID가 값으로 전달됩니다.</small>
                 </div>
                 <div class="form-group">
                     <label>필요 완료 수(requiredCount)</label>
@@ -102,15 +98,15 @@
                 <div class="form-group">
                     <label>상태</label>
                     <select id="createStatus">
-                        <option value="ACTIVE" selected>ACTIVE</option>
-                        <option value="COMPLETED">COMPLETED</option>
+                        <option value="ENABLED" selected>ENABLED</option>
+                        <option value="DISABLED">DISABLED</option>
                     </select>
                 </div>
             </div>
         </div>
         <div class="modal-actions">
-            <button class="btn btn-primary" id="createSetConfirmBtn">등록</button>
-            <button class="btn btn-secondary" id="createSetCancelBtn">취소</button>
+            <button class="button button-primary" id="createSetConfirmBtn">등록</button>
+            <button class="button button-secondary" id="createSetCancelBtn">취소</button>
         </div>
     </div>
 </div>

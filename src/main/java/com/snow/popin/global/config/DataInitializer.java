@@ -9,6 +9,7 @@ import com.snow.popin.domain.map.entity.Venue;
 import com.snow.popin.domain.map.repository.MapRepository;
 import com.snow.popin.domain.mission.entity.Mission;
 import com.snow.popin.domain.mission.entity.MissionSet;
+import com.snow.popin.domain.mission.entity.MissionSetStatus;
 import com.snow.popin.domain.mission.repository.MissionRepository;
 import com.snow.popin.domain.mission.repository.MissionSetRepository;
 import com.snow.popin.domain.mypage.host.dto.PopupRegisterRequestDto;
@@ -179,7 +180,7 @@ public class DataInitializer implements CommandLineRunner {
         MissionSet missionSet = MissionSet.builder()
                 .popupId(popup.getId()) // Popup의 FK 연결
                 .requiredCount(3)
-                .status("ACTIVE")
+                .status(MissionSetStatus.ENABLED)
                 .rewardPin("1234")
                 .build();
         missionSetRepository.saveAndFlush(missionSet); // FK 보장 위해 flush

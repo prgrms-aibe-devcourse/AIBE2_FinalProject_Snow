@@ -41,13 +41,6 @@ public class AdminMissionSetController {
         return missionAdminService.createMissionSet(request);
     }
 
-    // 미션셋 완료 처리
-    @PostMapping("/{id}/complete")
-    public ResponseEntity<Void> complete(@PathVariable UUID id) {
-        missionAdminService.completeMissionSet(id);
-        return ResponseEntity.ok().build();
-    }
-
     // 미션셋 삭제
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {

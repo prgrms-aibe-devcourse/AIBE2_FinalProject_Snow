@@ -612,11 +612,6 @@ apiService.createMissionSet = async function(data) {
     return await this.post(`/admin/mission-sets`, data);
 };
 
-// 미션셋 완료 처리
-apiService.completeMissionSet = async function(setId) {
-    return await this.post(`/admin/mission-sets/${encodeURIComponent(setId)}/complete`, {});
-};
-
 // 미션셋 삭제
 apiService.deleteMissionSet = async function(setId) {
     return await this.delete(`/admin/mission-sets/${encodeURIComponent(setId)}`);
@@ -629,5 +624,11 @@ apiService.addMission = async function(setId, data) {
 
 // 미션 삭제
 apiService.deleteMission = async function(missionId) {
-    return await this.delete(`/admin/missions/${encodeURIComponent(missionId)}`);
+    return await this.delete(`/admin/mission-sets/missions/${encodeURIComponent(missionId)}`);
 };
+
+apiService.listAdminPopups = async function ({ page = 0, size = 500 } = {}) {
+    const sp = new URLSearchParams({ page, size });
+    return await this.get(`/admin/popups?${sp.toString()}`);
+};
+

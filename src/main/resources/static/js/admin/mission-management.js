@@ -1,3 +1,4 @@
+// /js/admin/mission-management.js
 class MissionManagement {
   constructor() {
     this.currentPage = 1;
@@ -6,12 +7,18 @@ class MissionManagement {
     this.currentFilters = {};
     this.selectedSetId = null; // UUID
 
+    // 팝업 id -> title 캐시
+    this.popupTitleById = {};
+
     this.init();
   }
 
-  init() {
+  async init() {
     this.checkAdminAuth();
     this.bindEvents();
+    await this.ensurePopupMap();
+    await this.ensurePopupMap();
+    await this.populatePopupFilter();
     this.loadMissionSets();
   }
 
@@ -25,39 +32,93 @@ class MissionManagement {
     }
   }
 
+  // 인증 헤더
+  getAuthHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+    };
+  }
+
+  // 공통 응답 체크
+  async assertOk(res, msgOnFail) {
+    if (res.status === 401) {
+      alert('인증이 필요합니다. 다시 로그인 해주세요.');
+      window.location.href = '/templates/auth/login.html';
+      throw new Error('Unauthorized');
+    }
+    if (!res.ok) {
+      const text = await res.text().catch(()=>'');
+      throw new Error(`${msgOnFail} (${res.status}) ${text}`);
+    }
+  }
+
   // 이벤트 바인딩
   bindEvents() {
+    // 검색
     document.getElementById('searchBtn').addEventListener('click', () => this.search());
     document.getElementById('resetBtn').addEventListener('click', () => this.resetFilters());
     document.getElementById('searchKeyword').addEventListener('keypress', e => { if (e.key === 'Enter') this.search(); });
 
+    // 상세 모달 닫기
     document.getElementById('modalCloseBtn').addEventListener('click', () => this.closeDetailModal());
     document.getElementById('closeModalBtn').addEventListener('click', () => this.closeDetailModal());
 
+    // 미션셋 등록 모달
     document.getElementById('createMissionSetBtn').addEventListener('click', () => this.openCreateSetModal());
     document.getElementById('createSetCloseBtn').addEventListener('click', () => this.closeCreateSetModal());
     document.getElementById('createSetCancelBtn').addEventListener('click', () => this.closeCreateSetModal());
     document.getElementById('createSetConfirmBtn').addEventListener('click', () => this.createMissionSet());
 
+    // 미션 추가 모달
     document.getElementById('addMissionBtn').addEventListener('click', () => this.openAddMissionModal());
     document.getElementById('addMissionCloseBtn').addEventListener('click', () => this.closeAddMissionModal());
     document.getElementById('addMissionCancelBtn').addEventListener('click', () => this.closeAddMissionModal());
     document.getElementById('addMissionConfirmBtn').addEventListener('click', () => this.addMission());
 
-    document.getElementById('completeSetBtn').addEventListener('click', () => this.completeSet());
+    // 미션셋 삭제
     document.getElementById('deleteSetBtn').addEventListener('click', () => this.deleteSet());
   }
 
-  // 목록
+  // ===== 팝업 타이틀 맵 =====
+  async ensurePopupMap() {
+    if (Object.keys(this.popupTitleById).length > 0) return;
+    await this.refreshPopupMap();
+  }
+
+  async refreshPopupMap() {
+    try {
+      const url = `/api/admin/popups?page=0&size=1000`; // status 파라미터 넣지 않음
+      const res = await fetch(url, { headers: this.getAuthHeaders() });
+      await this.assertOk(res, '팝업 목록 로딩 실패');
+      const page = await res.json();
+
+      const list = (page && (page.content || page.popups || [])) || [];
+      const map = {};
+      list.forEach(p => {
+        if (p && p.id != null) map[p.id] = p.title || '(무제 팝업)';
+      });
+      this.popupTitleById = map;
+    } catch (e) {
+      console.warn('팝업 타이틀 맵 로드 실패:', e);
+      this.popupTitleById = {};
+    }
+  }
+
+// ===== 목록 =====
   async loadMissionSets() {
     try {
       this.showLoading();
+      await this.ensurePopupMap();
+
       const params = {
         page: this.currentPage - 1,
         size: this.pageSize,
         ...this.currentFilters
       };
+
       const data = await apiService.getMissionSets(params);
+
       this.renderTable(data.content);
       this.renderPagination(data);
     } catch (e) {
@@ -65,6 +126,7 @@ class MissionManagement {
       this.showError('미션셋 목록을 불러오는데 실패했습니다.');
     }
   }
+
 
   showLoading() {
     document.getElementById('tableContainer').innerHTML = '<div class="loading">데이터를 불러오는 중...</div>';
@@ -84,7 +146,7 @@ class MissionManagement {
         <thead>
           <tr>
             <th>미션셋ID</th>
-            <th>팝업ID</th>
+            <th>팝업</th>
             <th>필요완료수</th>
             <th>미션수</th>
             <th>상태</th>
@@ -102,18 +164,21 @@ class MissionManagement {
   renderRow(set) {
     const statusClass = (set.status || '').toLowerCase();
     const missionsCount = Array.isArray(set.missions) ? set.missions.length : (set.totalMissions || 0);
-    const idShort = (set.id || set.missionSetId || '').toString().replace(/-/g,'').slice(0,8);
+    const fullId = (set.id || set.missionSetId || '').toString();
+    const popupId = set.popupId;
+    const popupTitle = popupId != null ? (this.popupTitleById[popupId] || `#${popupId}`) : '-';
+
     return `
       <tr>
-        <td class="mono">${idShort}</td>
-        <td>${set.popupId ?? '-'}</td>
+      <td class="mono small break" title="${fullId}">${fullId}</td>
+        <td title="${popupId ?? ''}">${this.escapeHtml(popupTitle)}</td>
         <td>${set.requiredCount ?? 0}</td>
         <td>${missionsCount}</td>
         <td><span class="status-badge ${statusClass}">${set.status || '-'}</span></td>
         <td>${this.formatDate(set.createdAt)}</td>
         <td>
           <div class="action-buttons">
-            <button class="btn btn-sm btn-primary" onclick="missionManagement.viewDetail('${set.id || set.missionSetId}')">상세</button>
+            <button class="button button-primary" onclick="missionManagement.viewDetail('${set.id || set.missionSetId}')">상세</button>
           </div>
         </td>
       </tr>`;
@@ -132,38 +197,44 @@ class MissionManagement {
     const start = Math.max(0, number - 2);
     const end = Math.min(totalPages - 1, number + 2);
     for (let i = start; i <= end; i++) {
-      h += `<button class="${i===number?'active':''}" onclick="missionManagement.goToPage(${i+1})">${i+1}</button>`;
+      h += `<button class="${i===number? enabled:''}" onclick="missionManagement.goToPage(${i+1})">${i+1}</button>`;
     }
     h += `<button ${last ? 'disabled' : ''} onclick="missionManagement.goToPage(${number+2})">다음</button>`;
     document.getElementById('pagination').innerHTML = h;
   }
   goToPage(page){ this.currentPage = page; this.loadMissionSets(); }
 
-  // 필터
+  // ===== 필터 =====
   search() {
-    const f = {
-      status: document.getElementById('statusFilter').value,
-      popupId: document.getElementById('popupIdFilter').value,
-      keyword: document.getElementById('searchKeyword').value.trim()
-    };
+    const status = document.getElementById('statusFilter')?.value || '';
+    const keyword = (document.getElementById('searchKeyword')?.value || '').trim();
+    const popupEl = document.getElementById('popupFilter') || document.getElementById('popupIdFilter');
+    let popupId = popupEl ? popupEl.value : '';
+    // 숫자 형태로 정규화 (서버가 Long 받는 경우 대비)
+    if (popupId !== '') popupId = String(Number(popupId));
+    const f = { status, keyword };
+    if (popupId !== '' && popupId !== 'NaN') f.popupId = popupId;
     this.currentFilters = Object.fromEntries(Object.entries(f).filter(([,v]) => v !== '' && v != null));
     this.currentPage = 1;
     this.loadMissionSets();
   }
   resetFilters() {
     document.getElementById('statusFilter').value = '';
-    document.getElementById('popupIdFilter').value = '';
+    const popupEl = document.getElementById('popupFilter') || document.getElementById('popupIdFilter');
+    if (popupEl) popupEl.value = '';
     document.getElementById('searchKeyword').value = '';
     this.currentFilters = {};
     this.currentPage = 1;
     this.loadMissionSets();
   }
 
-  // 상세 보기
+// ===== 상세 =====
   async viewDetail(setId) {
     try {
       const set = await apiService.getMissionSetDetail(setId);
       this.selectedSetId = set.id || set.missionSetId;
+
+      await this.ensurePopupMap(); // 타이틀 보장
       this.showDetailModal(set);
     } catch (e) {
       console.error(e);
@@ -171,16 +242,20 @@ class MissionManagement {
     }
   }
 
+
   showDetailModal(set) {
     const missions = Array.isArray(set.missions) ? set.missions : [];
     const idDisp = (set.id || set.missionSetId || '').toString();
+    const popupId = set.popupId;
+    const popupTitle = popupId != null ? (this.popupTitleById[popupId] || `#${popupId}`) : '-';
+
     const modalBody = document.getElementById('modalBody');
     modalBody.innerHTML = `
       <div class="detail-section">
         <h3>기본 정보</h3>
         <div class="detail-grid">
           <div class="detail-item"><span class="detail-label">미션셋 ID</span><span class="detail-value mono small">${idDisp}</span></div>
-          <div class="detail-item"><span class="detail-label">팝업 ID</span><span class="detail-value">${set.popupId ?? '-'}</span></div>
+          <div class="detail-item"><span class="detail-label">팝업</span><span class="detail-value" title="${popupId ?? ''}">${this.escapeHtml(popupTitle)}</span></div>
           <div class="detail-item"><span class="detail-label">필요 완료 수</span><span class="detail-value">${set.requiredCount ?? 0}</span></div>
           <div class="detail-item"><span class="detail-label">상태</span><span class="detail-value"><span class="status-badge ${(set.status||'').toLowerCase()}">${set.status || '-'}</span></span></div>
           <div class="detail-item"><span class="detail-label">리워드 PIN</span><span class="detail-value">${set.rewardPin || '-'}</span></div>
@@ -194,12 +269,12 @@ class MissionManagement {
           ${missions.length === 0 ? '<div class="no-data">등록된 미션이 없습니다.</div>' : missions.map(m => `
             <div class="mission-row">
               <div>
-                <div><strong>${m.title || '(제목없음)'}</strong></div>
+                <div><strong>${this.escapeHtml(m.title || '(제목없음)')}</strong></div>
                 <div class="small mono">${(m.id||'').toString().replace(/-/g,'')}</div>
-                ${m.description ? `<div class="small" style="margin-top:4px;">${m.description}</div>` : ''}
+                ${m.description ? `<div class="small" style="margin-top:4px;">${this.escapeHtml(m.description)}</div>` : ''}
               </div>
               <div class="action-buttons">
-                <button class="btn btn-sm btn-danger-outline" onclick="missionManagement.deleteMission('${m.id}')">삭제</button>
+                <button class="button button-sm button-danger-outline" onclick="missionManagement.deleteMission('${m.id}')">삭제</button>
               </div>
             </div>
           `).join('')}
@@ -214,22 +289,65 @@ class MissionManagement {
     this.selectedSetId = null;
   }
 
-  // 미션셋 등록
-  openCreateSetModal(){ document.getElementById('createSetModal').style.display = 'block'; }
+  // ===== 미션셋 등록 =====
+  async openCreateSetModal() {
+    await this.populatePopupSelect();
+    document.getElementById('createSetModal').style.display = 'block';
+  }
   closeCreateSetModal(){ document.getElementById('createSetModal').style.display = 'none'; }
 
+  async populatePopupSelect() {
+    const sel = document.getElementById('createPopupId');
+    if (!sel) return;
+
+    sel.disabled = true;
+    sel.innerHTML = `<option value="">로딩 중...</option>`;
+
+    // 캐시 있으면 즉시
+    if (Object.keys(this.popupTitleById).length > 0) {
+      this.fillPopupOptions(sel);
+      sel.disabled = false;
+      return;
+    }
+
+    // 없으면 로드 후 채우기
+    try {
+      await this.refreshPopupMap();
+      this.fillPopupOptions(sel);
+    } catch (err) {
+      console.error('팝업 옵션 로드 실패:', err);
+      sel.innerHTML = `<option value="">로딩 실패</option>`;
+    } finally {
+      sel.disabled = false;
+    }
+  }
+
+  fillPopupOptions(selectEl) {
+    const ids = Object.keys(this.popupTitleById);
+    selectEl.innerHTML =
+        `<option value="">팝업을 선택하세요</option>` +
+        ids.sort((a,b)=>Number(a)-Number(b))
+            .map(id => `<option value="${id}">[${id}] ${this.escapeHtml(this.popupTitleById[id])}</option>`)
+            .join('');
+  }
+
+// ===== 미션셋 등록 =====
   async createMissionSet() {
     const popupId = Number(document.getElementById('createPopupId').value);
     const requiredCount = Number(document.getElementById('createRequiredCount').value || 0);
     const rewardPin = (document.getElementById('createRewardPin').value || '').trim();
     const status = document.getElementById('createStatus').value || 'ACTIVE';
 
-    if (!popupId) { alert('팝업 ID는 필수입니다.'); return; }
+    if (!popupId) {
+      alert('팝업 ID는 필수입니다.');
+      return;
+    }
 
     try {
       await apiService.createMissionSet({ popupId, requiredCount, status, rewardPin });
       alert('미션셋이 등록되었습니다.');
       this.closeCreateSetModal();
+      await this.ensurePopupMap(); // 팝업 캐시 최신화
       this.loadMissionSets();
     } catch (e) {
       console.error(e);
@@ -237,7 +355,8 @@ class MissionManagement {
     }
   }
 
-  // 미션 추가
+
+  // ===== 미션 추가/삭제 =====
   openAddMissionModal() {
     if (!this.selectedSetId) return alert('미션셋을 먼저 선택하세요.');
     document.getElementById('missionTitle').value = '';
@@ -247,54 +366,70 @@ class MissionManagement {
   }
   closeAddMissionModal(){ document.getElementById('addMissionModal').style.display = 'none'; }
 
+// ===== 미션 추가 =====
   async addMission() {
     if (!this.selectedSetId) return;
     const title = document.getElementById('missionTitle').value.trim();
     const description = document.getElementById('missionDesc').value.trim();
     const answer = document.getElementById('missionAnswer').value.trim();
 
-    if (!title) { alert('제목은 필수입니다.'); return; }
+    if (!title) {
+      alert('제목은 필수입니다.');
+      return;
+    }
 
     try {
       await apiService.addMission(this.selectedSetId, { title, description, answer });
       alert('미션이 추가되었습니다.');
       this.closeAddMissionModal();
-      this.viewDetail(this.selectedSetId);
+      this.viewDetail(this.selectedSetId); // 상세 재조회
     } catch (e) {
       console.error(e);
       alert('미션 추가에 실패했습니다.');
     }
   }
 
-  // 미션 삭제
+
+  async populatePopupFilter() {
+    const sel = document.getElementById('popupFilter');
+    if (!sel) return;
+    sel.disabled = true;
+    sel.innerHTML = `<option value="">로딩 중...</option>`;
+
+    try {
+      // 캐시가 없다면 맵 갱신
+      if (Object.keys(this.popupTitleById).length === 0) {
+        await this.refreshPopupMap();
+      }
+      // 옵션 채우기
+      const ids = Object.keys(this.popupTitleById);
+      const options =
+          `<option value="">전체</option>` +
+          ids.sort((a,b)=>Number(a)-Number(b))
+              .map(id => `<option value="${id}">[${id}] ${this.escapeHtml(this.popupTitleById[id])}</option>`)
+              .join('');
+      sel.innerHTML = options;
+    } catch (e) {
+      console.error('팝업 필터 옵션 로드 실패:', e);
+      sel.innerHTML = `<option value="">로딩 실패</option>`;
+    } finally {
+      sel.disabled = false;
+    }
+  }
+
+
   async deleteMission(missionId) {
     if (!confirm('이 미션을 삭제하시겠습니까?')) return;
     try {
       await apiService.deleteMission(missionId);
       alert('삭제되었습니다.');
-      this.viewDetail(this.selectedSetId);
+      this.viewDetail(this.selectedSetId); // 상세 다시 불러오기
     } catch (e) {
       console.error(e);
       alert('미션 삭제에 실패했습니다.');
     }
   }
 
-  // 미션셋 완료 처리
-  async completeSet() {
-    if (!this.selectedSetId) return;
-    if (!confirm('이 미션셋을 완료 처리하시겠습니까?')) return;
-    try {
-      await apiService.completeMissionSet(this.selectedSetId);
-      alert('완료 처리되었습니다.');
-      this.closeDetailModal();
-      this.loadMissionSets();
-    } catch (e) {
-      console.error(e);
-      alert('완료 처리에 실패했습니다.');
-    }
-  }
-
-  // 미션셋 삭제
   async deleteSet() {
     if (!this.selectedSetId) return;
     if (!confirm('이 미션셋을 삭제하시겠습니까?')) return;
@@ -308,13 +443,16 @@ class MissionManagement {
       alert('미션셋 삭제에 실패했습니다.');
     }
   }
-
-  // 유틸
+  // ===== 유틸 =====
   formatDate(s) {
     if (!s) return '-';
     const d = new Date(s);
     if (Number.isNaN(d.getTime())) return '-';
     return d.toLocaleDateString('ko-KR', { year:'numeric', month:'2-digit', day:'2-digit' });
+  }
+
+  escapeHtml(s='') {
+    return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   }
 }
 

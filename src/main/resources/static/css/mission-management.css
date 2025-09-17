@@ -56,8 +56,8 @@
     font-weight: bold;
     color: #333;
 }
-.stat-value.pending { color: #f39c12; }
-.stat-value.active { color: #27ae60; }
+.stat-value.disabled { color: #f39c12; }
+.stat-value.enabled { color: #27ae60; }
 
 /* ===== 필터 컨테이너 ===== */
 .filter-container {
@@ -71,12 +71,18 @@
     box-shadow: 0 2px 8px rgba(0,0,0,.1);
     flex-wrap: wrap;
 }
+
 .filter-group {
     display: flex;
-    flex-direction: column;
-    gap: 5px;
+    flex-direction: row;   /* PC에서도 가로 배치 */
+    align-items: center;
+    gap: 8px;
+    margin-left: 10px;
 }
+
 .filter-group label {
+    margin: 0;
+    white-space: nowrap;
     font-size: 14px;
     font-weight: 500;
     color: #333;
@@ -99,7 +105,7 @@
 }
 
 /* ===== 버튼 ===== */
-.btn {
+.button {
     padding: 8px 16px;
     border: none;
     border-radius: 6px;
@@ -113,35 +119,34 @@
     justify-content: center;
     height: 40px;
 }
-.btn:disabled { opacity: .6; cursor: not-allowed; }
+.button:disabled { opacity: .6; cursor: not-allowed; }
 
-.btn-primary { background: #5856eb; color: #fff; }
-.btn-primary:hover { background: #4c4ae0; transform: translateY(-1px); }
+.button-primary { background: #5856eb; color: #fff; }
+.button-primary:hover { background: #4c4ae0; transform: translateY(-1px); }
 
-.btn-secondary { background: #6c757d; color: #fff; }
-.btn-secondary:hover { background: #5a6268; }
+.button-secondary { background: #6c757d; color: #fff; }
+.button-secondary:hover { background: #5a6268; }
 
-.btn-success { background: #28a745; color: #fff; }
-.btn-success:hover { background: #218838; }
+.button-success { background: #28a745; color: #fff; }
+.button-success:hover { background: #218838; }
 
-.btn-danger { background: #dc3545; color: #fff; }
-.btn-danger:hover { background: #c82333; }
+.button-danger { background: #dc3545; color: #fff; }
+.button-danger:hover { background: #c82333; }
 
-.btn-warning { background: #ffc107; color: #212529; }
-.btn-warning:hover { background: #e0a800; }
+.button-warning { background: #ffc107; color: #212529; }
+.button-warning:hover { background: #e0a800; }
 
-.btn-danger-outline {
+.button-danger-outline {
     background: transparent;
     color: #dc3545;
     border: 1px solid #dc3545;
     height: 40px;
 }
-.btn-danger-outline:hover { background: rgba(220,53,69,.08); }
+.button-danger-outline:hover { background: rgba(220,53,69,.08); }
 
-.btn-sm {
+.button-sm {
     padding: 4px 8px;
     font-size: 12px;
-    height: auto;
 }
 
 /* ===== 테이블 ===== */
@@ -169,7 +174,8 @@
     border-bottom: 1px solid #e9ecef;
     font-size: 14px;
     color: #333;
-    vertical-align: top;
+    vertical-align: middle;
+    text-align: center;
 }
 .popup-table tr:hover { background: #f8f9fa; }
 
@@ -434,7 +440,17 @@
         flex-direction: column;
         align-items: stretch;
     }
-    .filter-group { width: 100%; }
+    .filter-group {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .filter-group label {
+        margin: 0;
+        white-space: nowrap;
+    }
+
     .filter-group select,
     .filter-group input {
         min-width: auto;

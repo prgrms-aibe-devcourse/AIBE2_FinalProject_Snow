@@ -1,3 +1,4 @@
+// com/snow/popin/domain/mission/entity/MissionSet.java
 package com.snow.popin.domain.mission.entity;
 
 import com.snow.popin.domain.popup.entity.Popup;
@@ -27,7 +28,6 @@ public class MissionSet extends BaseEntity {
     @Type(type = "org.hibernate.type.UUIDBinaryType")
     private UUID id;
 
-    // popupId 컬럼 + Popup 연관관계 둘 다 유지
     @Column(name = "popup_id", nullable = false)
     private Long popupId;
 
@@ -38,25 +38,32 @@ public class MissionSet extends BaseEntity {
     @Column(name = "required_count")
     private Integer requiredCount;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String status = "ACTIVE"; // 기본값 예시
+    private MissionSetStatus status;
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    @OneToMany(mappedBy = "missionSet", cascade = CascadeType.ALL, orphanRemoval = false)
+    @OneToMany(mappedBy = "missionSet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Mission> missions = new ArrayList<>();
 
     @Column(name = "reward_pin", length = 80)
     private String rewardPin;
 
-    // 생성자
     @Builder
-    public MissionSet(Long popupId, Integer requiredCount, String status, String rewardPin) {
+    public MissionSet(Long popupId, Integer requiredCount, MissionSetStatus status, String rewardPin) {
         this.popupId = popupId;
         this.requiredCount = requiredCount;
-        this.status = status != null ? status : "ACTIVE";
+        this.status = (status != null) ? status : MissionSetStatus.ENABLED; // 기본값 활성화
         this.rewardPin = rewardPin;
+    }
+
+    @PrePersist
+    private void prePersist() {
+        if (this.status == null) {
+            this.status = MissionSetStatus.ENABLED;
+        }
     }
 
     // 비즈니스 메서드
@@ -65,9 +72,23 @@ public class MissionSet extends BaseEntity {
         mission.setMissionSet(this);
     }
 
-    public void complete() {
-        this.status = "COMPLETED";
+    // 상태 전환
+    public void disable() {
+        this.status = MissionSetStatus.DISABLED;
         this.completedAt = LocalDateTime.now();
+    }
+
+    public void enable() {
+        this.status = MissionSetStatus.ENABLED;
+        this.completedAt = null;
+    }
+
+    public boolean isEnabled() {
+        return this.status == MissionSetStatus.ENABLED;
+    }
+
+    public boolean isDisabled() {
+        return this.status == MissionSetStatus.DISABLED;
     }
 
     public boolean isCleared(long successCount) {
@@ -75,7 +96,4 @@ public class MissionSet extends BaseEntity {
         return successCount >= required;
     }
 
-    public boolean isCompleted() {
-        return "COMPLETED".equals(this.status);
-    }
 }
