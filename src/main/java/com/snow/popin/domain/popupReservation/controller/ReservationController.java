@@ -2,14 +2,17 @@ package com.snow.popin.domain.popupReservation.controller;
 
 import com.snow.popin.domain.popupReservation.dto.ReservationRequestDto;
 import com.snow.popin.domain.popupReservation.dto.ReservationResponseDto;
+import com.snow.popin.domain.popupReservation.dto.TimeSlotDto;
 import com.snow.popin.domain.popupReservation.service.ReservationService;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -94,5 +97,22 @@ public class ReservationController {
         reservationService.markAsVisited(reservationId, currentUser);
 
         return ResponseEntity.ok(Map.of("message", "방문 완료로 처리되었습니다."));
+    }
+
+    // 특정 팝업의 예약 가능한 날짜 목록 조회
+    @GetMapping("/popups/{popupId}/available-dates")
+    public ResponseEntity<List<LocalDate>> getAvailableDates(@PathVariable Long popupId) {
+        List<LocalDate> availableDates = reservationService.getAvailableDates(popupId);
+        return ResponseEntity.ok(availableDates);
+    }
+
+    // 특정 팝업의 특정 날짜에 예약 가능한 시간 슬롯 조회
+    @GetMapping("/popups/{popupId}/available-slots")
+    public ResponseEntity<List<TimeSlotDto>> getAvailableTimeSlots(
+            @PathVariable Long popupId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+
+        List<TimeSlotDto> availableSlots = reservationService.getAvailableTimeSlots(popupId, date);
+        return ResponseEntity.ok(availableSlots);
     }
 }

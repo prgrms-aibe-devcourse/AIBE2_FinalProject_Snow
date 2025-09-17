@@ -38,6 +38,9 @@ public class Reservation extends BaseEntity {
     @Column(name = "phone", nullable = false)
     private String phone;
 
+    @Column(name = "party_size", nullable = false)
+    private Integer partySize;
+
     // 예약 희망일자
     @Column(name = "reservation_date")
     private LocalDateTime reservationDate;
@@ -68,15 +71,16 @@ public class Reservation extends BaseEntity {
         this.status = ReservationStatus.VISITED;
     }
 
-    public static Reservation create(Popup popup, User user, String name, String phone, LocalDateTime reservationDate) {
+    public static Reservation create(Popup popup, User user, String name, String phone, Integer partySize, LocalDateTime reservationDate) {
         return Reservation.builder()
                 .popup(popup)
                 .user(user)
                 .name(name)
                 .phone(phone)
+                .partySize(partySize)
                 .reservationDate(reservationDate)
-                .reservedAt(LocalDateTime.now())
                 .status(ReservationStatus.RESERVED)
+                .reservedAt(LocalDateTime.now())
                 .build();
     }
 }

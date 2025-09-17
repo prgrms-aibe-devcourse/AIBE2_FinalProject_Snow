@@ -23,6 +23,7 @@ public class ReservationResponseDto {
     private String venueAddress;
     private String name;
     private String phone;
+    private Integer partySize;
     private LocalDateTime reservationDate;
     private LocalDateTime reservedAt;
     private ReservationStatus status;
@@ -38,6 +39,7 @@ public class ReservationResponseDto {
                 .venueAddress(reservation.getPopup().getVenueAddress())
                 .name(reservation.getName())
                 .phone(reservation.getPhone())
+                .partySize(reservation.getPartySize())
                 .reservationDate(reservation.getReservationDate())
                 .reservedAt(reservation.getReservedAt())
                 .status(reservation.getStatus())
