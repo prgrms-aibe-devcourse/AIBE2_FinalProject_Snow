@@ -28,7 +28,9 @@ public class ReviewService {
     private final PopupRepository popupRepository;
     private final UserRepository userRepository;
 
-    // 리뷰 작성
+    /**
+     * 리뷰 작성
+     */
     @Transactional
     public ReviewResponseDto createReview(Long userId, ReviewCreateRequestDto request) {
         // 팝업 존재 확인
@@ -57,7 +59,9 @@ public class ReviewService {
         return ReviewResponseDto.from(savedReview);
     }
 
-    // 리뷰 수정
+    /**
+     * 리뷰 수정
+     */
     @Transactional
     public ReviewResponseDto updateReview(Long reviewId, Long userId, ReviewUpdateRequestDto request) {
         Review review = reviewRepository.findById(reviewId)
@@ -81,7 +85,9 @@ public class ReviewService {
         return ReviewResponseDto.from(review);
     }
 
-    // 리뷰 삭제
+    /**
+     * 리뷰 삭제
+     */
     @Transactional
     public void deleteReview(Long reviewId, Long userId) {
         Review review = reviewRepository.findById(reviewId)
@@ -100,26 +106,44 @@ public class ReviewService {
         log.info("리뷰 삭제 완료 - 리뷰ID: {}, 사용자ID: {}", reviewId, userId);
     }
 
-    // 팝업의 최근 리뷰 조회 (상세페이지용 - 최대 2개)
+    /**
+     * 팝업의 최근 리뷰 조회 (상세페이지용 - 최대 2개)
+     */
     @Transactional(readOnly = true)
     public List<ReviewListResponseDto> getRecentReviewsByPopup(Long popupId, int limit) {
-        Pageable pageable = PageRequest.of(0, limit);
-        List<Review> reviews = reviewRepository.findTopRecentReviewsByPopupId(popupId, pageable);
+        List<Review> reviews;
+        if (limit <= 10) {
+            // 10개 이하면 findTop10 메서드 사용
+            reviews = reviewRepository.findTop10ByPopupIdAndIsBlockedFalseOrderByCreatedAtDesc(popupId);
+            // 필요한 만큼만 자르기
+            if (reviews.size() > limit) {
+                reviews = reviews.subList(0, limit);
+            }
+        } else {
+            // 10개 초과면 Pageable 사용
+            Pageable pageable = PageRequest.of(0, limit);
+            Page<Review> reviewPage = reviewRepository.findByPopupIdAndIsBlockedFalseOrderByCreatedAtDesc(popupId, pageable);
+            reviews = reviewPage.getContent();
+        }
 
         return reviews.stream()
                 .map(ReviewListResponseDto::from)
                 .collect(Collectors.toList());
     }
 
-    // 팝업의 전체 리뷰 조회 (페이징)
+    /**
+     * 팝업의 전체 리뷰 조회 (페이징)
+     */
     @Transactional(readOnly = true)
     public Page<ReviewListResponseDto> getReviewsByPopup(Long popupId, Pageable pageable) {
-        Page<Review> reviewPage = reviewRepository.findByPopupIdAndNotBlockedOrderByCreatedAtDesc(popupId, pageable);
+        Page<Review> reviewPage = reviewRepository.findByPopupIdAndIsBlockedFalseOrderByCreatedAtDesc(popupId, pageable);
 
         return reviewPage.map(ReviewListResponseDto::from);
     }
 
-    // 사용자 리뷰 목록 조회
+    /**
+     * 사용자 리뷰 목록 조회
+     */
     @Transactional(readOnly = true)
     public Page<ReviewResponseDto> getReviewsByUser(Long userId, Pageable pageable) {
         Page<Review> reviewPage = reviewRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
@@ -127,20 +151,26 @@ public class ReviewService {
         return reviewPage.map(ReviewResponseDto::from);
     }
 
-    // 팝업 리뷰 통계 조회
+    /**
+     * 팝업 리뷰 통계 조회
+     */
     @Transactional(readOnly = true)
     public ReviewStatsDto getReviewStats(Long popupId) {
         Object[] result = reviewRepository.findRatingStatsByPopupId(popupId);
         return ReviewStatsDto.from(result);
     }
 
-    // 사용자가 해당 팝업에 리뷰 작성 여부 확인
+    /**
+     * 사용자가 해당 팝업에 리뷰 작성 여부 확인
+     */
     @Transactional(readOnly = true)
     public boolean hasUserReviewedPopup(Long popupId, Long userId) {
         return reviewRepository.existsByPopupIdAndUserId(popupId, userId);
     }
 
-    // 사용자의 특정 팝업 리뷰 조회
+    /**
+     * 사용자의 특정 팝업 리뷰 조회
+     */
     @Transactional(readOnly = true)
     public ReviewResponseDto getUserReviewForPopup(Long popupId, Long userId) {
         Review review = reviewRepository.findByPopupIdAndUserId(popupId, userId)
@@ -149,7 +179,9 @@ public class ReviewService {
         return ReviewResponseDto.from(review);
     }
 
-    // 리뷰 단건 조회
+    /**
+     * 리뷰 단건 조회
+     */
     @Transactional(readOnly = true)
     public ReviewResponseDto getReview(Long reviewId) {
         Review review = reviewRepository.findById(reviewId)
