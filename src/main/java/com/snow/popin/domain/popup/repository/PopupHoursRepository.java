@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -13,6 +14,7 @@ public interface PopupHoursRepository extends JpaRepository<PopupHours, Long> {
     List<PopupHours> findByPopupId(@Param("popupId") Long popupId);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Transactional
     @Query("DELETE FROM PopupHours ph WHERE ph.popup.id = :popupId")
     int deleteByPopupId(@Param("popupId") Long popupId);
 
