@@ -33,9 +33,8 @@ public class MissionSetService {
         return toViewDto(ms, userId);
     }
 
-    // MissionSet 엔티티를 화면 표시용 DTO (MissionSetViewDto)로 변환
     private MissionSetViewDto toViewDto(MissionSet set, Long userId) {
-        if (set == null) {
+        if (set == null || set.isDisabled()) {
             throw new MissionException.MissionSetNotFound();
         }
 
@@ -69,8 +68,6 @@ public class MissionSetService {
                 }
             }
 
-
-            // userStatus 반영
             missions = missions.stream()
                     .map(ms -> MissionSummaryDto.builder()
                             .id(ms.getId())
@@ -84,7 +81,6 @@ public class MissionSetService {
         int req = (set.getRequiredCount() == null ? 0 : set.getRequiredCount());
         boolean cleared = successCnt >= req;
 
-        // popup 좌표 꺼내오기
         Double latitude = null;
         Double longitude = null;
         if (set.getPopupId() != null) {
@@ -97,6 +93,5 @@ public class MissionSetService {
         }
 
         return MissionSetViewDto.from(set, userId, missions, successCnt, cleared, latitude, longitude);
-
     }
 }
