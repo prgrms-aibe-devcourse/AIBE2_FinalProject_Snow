@@ -48,7 +48,6 @@ class ProviderManager {
     }
 
     setupEventListeners() {
-        // 필터 버튼 이벤트
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', () => this.handleFilter(btn.dataset.status));
         });
@@ -106,10 +105,8 @@ class ProviderManager {
             thumbWrap.appendChild(img);
         }
 
-        // 상세 페이지 이동
         thumbWrap.addEventListener('click', () => this.goToSpaceDetail(space.id));
 
-        // 정보
         const info = document.createElement('div');
         info.className = 'info';
 
@@ -126,7 +123,6 @@ class ProviderManager {
         info.appendChild(title);
         info.appendChild(desc);
 
-        // 액션 버튼
         const actions = document.createElement('div');
         actions.className = 'btn-row';
 
@@ -186,7 +182,6 @@ class ProviderManager {
             thumbWrap.appendChild(img);
         }
 
-        // 정보
         const info = document.createElement('div');
         info.className = 'info';
 
@@ -237,6 +232,15 @@ class ProviderManager {
         actions.appendChild(btnDetail);
         actions.appendChild(btnCall);
 
+        // 채팅 버튼 추가 (토큰 전달 포함)
+        if (reservation.status !== 'REJECTED' && reservation.status !== 'CANCELLED') {
+            const btnChat = document.createElement('button');
+            btnChat.className = 'btn btn-chat';
+            btnChat.textContent = '채팅하기';
+            btnChat.addEventListener('click', () => this.openChat(reservation.id));
+            actions.appendChild(btnChat);
+        }
+
         if (reservation.status === 'PENDING') {
             const btnAccept = document.createElement('button');
             btnAccept.className = 'btn btn-success';
@@ -269,7 +273,28 @@ class ProviderManager {
         return card;
     }
 
-    // === 이벤트 메서드들 ===
+    // 채팅 열기 (토큰을 URL 파라미터로 전달)
+    openChat(reservationId) {
+        if (!reservationId) {
+            alert('예약 정보를 찾을 수 없습니다.');
+            return;
+        }
+
+        // 현재 저장된 토큰 가져오기
+        const token = localStorage.getItem('accessToken') ||
+            localStorage.getItem('authToken') ||
+            sessionStorage.getItem('accessToken') ||
+            sessionStorage.getItem('authToken');
+
+        if (!token) {
+            alert('로그인이 필요합니다.');
+            window.location.href = '/auth/login';
+            return;
+        }
+
+        // 토큰을 URL 파라미터로 전달
+        window.location.href = `/chat/${reservationId}?token=${encodeURIComponent(token)}`;
+    }
 
     handleFilter(status) {
         if (status === 'ALL') {
@@ -281,11 +306,9 @@ class ProviderManager {
     }
 
     goToSpaceDetail(spaceId) {
-        // pages.js의 spaceDetail 함수 사용
         if (window.Pages && window.Pages.spaceDetail) {
             window.Pages.spaceDetail(spaceId);
         } else {
-            // 폴백: 직접 이동
             window.location.href = `/space/detail/${encodeURIComponent(spaceId)}`;
         }
     }
@@ -317,7 +340,6 @@ class ProviderManager {
             alert('공간이 삭제되었습니다.');
             cardElement.remove();
 
-            // 리스트가 비었는지 확인
             const remainingCards = this.elements.spaceList.querySelectorAll('.space-card');
             if (remainingCards.length === 0) {
                 this.elements.spaceList.innerHTML = '<div class="empty" data-empty>아직 등록된 공간이 없습니다.</div>';
@@ -366,7 +388,6 @@ class ProviderManager {
             }
             alert(`예약이 ${actionText}되었습니다.`);
 
-            // 데이터 다시 로드
             await this.loadData();
         } catch (error) {
             console.error(`예약 ${actionText} 실패:`, error);
@@ -378,7 +399,6 @@ class ProviderManager {
         if (!confirm('이 예약을 화면에서 지우시겠습니까?')) return;
         cardElement.remove();
 
-        // 리스트가 비었는지 확인
         const remainingCards = this.elements.reservationList.querySelectorAll('.reservation-card');
         if (remainingCards.length === 0) {
             this.elements.reservationList.innerHTML = '<div class="empty" data-empty>아직 받은 예약 요청이 없습니다.</div>';

@@ -73,6 +73,18 @@ const Pages = {
     reservationManage(popupId) {
         window.location.href = `/mypage/host/popup/${popupId}/reservation`;
     },
+    // 채팅 페이지
+    chat(reservationId) {
+        const token = localStorage.getItem('accessToken') ||
+            localStorage.getItem('authToken') ||
+            sessionStorage.getItem('accessToken') ||
+            sessionStorage.getItem('authToken');
+        if (!token) {
+            window.location.href = '/auth/login';
+            return;
+        }
+        window.location.href = `/chat/${reservationId}?token=${encodeURIComponent(token)}`;
+    },
 };
 
 // 팝업 상세 페이지로 이동

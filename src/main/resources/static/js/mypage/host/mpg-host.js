@@ -106,6 +106,7 @@ const HostPage = {
                             <button class="btn-detail" data-reservation-id="${r.id}" data-space-id="${r.spaceId}">상세보기</button>
                             <button class="btn-map" data-address="${r.spaceAddress || ''}">지도로 보기</button>
                             <button class="btn-cancel" data-reservation-id="${r.id}">예약취소</button>
+                            <button class="btn-chat" data-reservation-id="${r.id}">채팅하기</button>
                         </div>
                     `;
                     this.addReservationCardEventListeners(card, r);
@@ -128,9 +129,8 @@ const HostPage = {
 예약 ID: ${reservation.id}
 공간명: ${reservation.spaceTitle || '공간명 없음'}
 주소: ${reservation.spaceAddress || '주소 없음'}
-예약 기간: ${reservation.startDate || ''} ~ ${reservation.endDate || ''}
-상태: ${translateStatus(reservation.status)}
-                `.trim();
+예약 기간: ${reservation.startDate || ''} ~ ${reservation.endDate || ''}`
+                    + `\n상태: ${translateStatus(reservation.status)}`;
                 alert(info);
             }
         });
@@ -156,6 +156,18 @@ const HostPage = {
                 alert('예약 취소에 실패했습니다.');
             }
         });
+
+        // 채팅 버튼 이벤트 추가
+        const btnChat = card.querySelector('.btn-chat');
+        if (btnChat) {
+            btnChat.addEventListener('click', () => {
+                if (window.Pages && window.Pages.chat) {
+                    window.Pages.chat(reservation.id);
+                } else {
+                    window.location.href = `/chat/${reservation.id}`;
+                }
+            });
+        }
     }
 };
 
