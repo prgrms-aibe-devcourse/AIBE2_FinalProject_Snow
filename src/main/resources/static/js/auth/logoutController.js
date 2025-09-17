@@ -290,6 +290,73 @@ class LogoutController {
             }
         }, 3000);
     }
+    async handleSubmit(e) {
+        e.preventDefault();
+
+        console.log('회원가입 폼 제출 시작');
+
+        // 클라이언트 사이드 검증
+        if (!this.ui.validateForm()) {
+            console.log('폼 검증 실패');
+            this.ui.showAlert('입력 정보를 확인해주세요.', 'error');
+            return;
+        }
+
+        // 중복확인 상태 체크
+        if (!this.validateDuplicateChecks()) {
+            console.log('중복확인 검증 실패');
+            return;
+        }
+
+        const formData = this.ui.getFormData();
+        const selectedTags = this.ui.getSelectedTags();
+
+        console.log('선택된 관심사 태그:', selectedTags);
+
+        // 회원가입 데이터 준비
+        const signupData = this.signupApi.prepareSignupData(formData, selectedTags);
+
+        console.log('회원가입 데이터:', {
+            ...signupData,
+            password: '***', // 보안상 로그에서 제외
+            passwordConfirm: '***'
+        });
+
+        // 최종 검증
+        if (!this.validateSignupData(signupData)) {
+            console.log('최종 검증 실패');
+            return;
+        }
+
+        this.ui.toggleLoading(true);
+
+        try {
+            const response = await this.signupApi.signup(signupData);
+
+            console.log('회원가입 응답:', response);
+
+            if (response.success) {
+                // 성공 메시지 표시
+                console.log('회원가입 성공, 알림 표시 시도');
+                this.ui.showAlert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.', 'success');
+
+                // 폼 리셋
+                this.ui.resetForm();
+
+                // 로그인 페이지로 리다이렉트
+                setTimeout(() => {
+                    window.location.href = '/auth/login?signup=success';
+                }, 2000);
+            } else {
+                throw new Error(response.message || '회원가입에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('회원가입 실패:', error);
+            this.handleSignupError(error);
+        } finally {
+            this.ui.toggleLoading(false);
+        }
+    }
 
     /**
      * 페이지의 로그아웃 버튼들에 이벤트 리스너 추가

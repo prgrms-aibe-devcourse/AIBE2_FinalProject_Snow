@@ -79,4 +79,5 @@ public class User extends BaseEntity {
     public void updateRole(Role newRole){
         this.role = newRole;
     }
+
 }

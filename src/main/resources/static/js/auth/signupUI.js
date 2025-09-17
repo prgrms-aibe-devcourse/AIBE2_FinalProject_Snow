@@ -1,309 +1,248 @@
 /**
- * 회원가입 UI 관리 클래스
- * 폼 상태 관리, 에러 표시, 로딩 상태, 관심사 선택 등 UI 관련 기능을 담당
+ * 회원가입 폼 UI 관리 클래스
  */
 class SignupUI {
     constructor() {
-        this.elements = this.initElements();
+        this.elements = this.initializeElements();
         this.selectedTags = new Set();
+        this.categories = [];
         this.validationStates = {
             email: false,
             nickname: false
         };
-        this.setupEventListeners();
+        this.init();
     }
 
     /**
-     * DOM 요소들 초기화
-     * @returns {Object} DOM 요소들
+     * DOM 요소 초기화
      */
-    initElements() {
+    initializeElements() {
         return {
             form: document.getElementById('signupForm'),
-            button: document.getElementById('signupBtn'),
-            alertContainer: document.getElementById('alert-container'),
-
-            // 입력 필드들
             nameInput: document.getElementById('name'),
             nicknameInput: document.getElementById('nickname'),
             emailInput: document.getElementById('email'),
             passwordInput: document.getElementById('password'),
             passwordConfirmInput: document.getElementById('passwordConfirm'),
             phoneInput: document.getElementById('phone'),
-
-            // 에러 메시지들
-            nameError: document.getElementById('name-error'),
-            nicknameError: document.getElementById('nickname-error'),
-            emailError: document.getElementById('email-error'),
-            passwordError: document.getElementById('password-error'),
-            passwordConfirmError: document.getElementById('passwordConfirm-error'),
-            phoneError: document.getElementById('phone-error'),
-
-            // 성공 메시지들
-            nicknameSuccess: document.getElementById('nickname-success'),
-            emailSuccess: document.getElementById('email-success'),
-            passwordConfirmSuccess: document.getElementById('passwordConfirm-success'),
-
-            // 중복 확인 버튼들
-            emailCheckBtn: document.getElementById('emailCheckBtn'),
             nicknameCheckBtn: document.getElementById('nicknameCheckBtn'),
-
-            // 관심사 관련
-            categoryBtns: document.querySelectorAll('.category-btn'),
-            tagGroups: document.querySelectorAll('.tag-group'),
-            selectedTagsContainer: document.getElementById('selectedTags'),
-
-            // 비밀번호 요구사항
+            emailCheckBtn: document.getElementById('emailCheckBtn'),
+            submitBtn: document.getElementById('signupBtn'),
             requirements: {
                 length: document.getElementById('req-length'),
-                letter: document.getElementById('req-letter'),
+                upperLower: document.getElementById('req-upper-lower'),
                 number: document.getElementById('req-number'),
                 special: document.getElementById('req-special')
-            }
+            },
+            categoryContainer: document.querySelector('.interest-categories'),
+            selectedTagsContainer: document.getElementById('selectedTags')
         };
+    }
+
+    /**
+     * UI 초기화
+     */
+    async init() {
+        this.addAlertAnimations();
+        this.setupEventListeners();
+        await this.loadCategories();
+        this.updateSubmitButton();
+    }
+
+    /**
+     * 알림 애니메이션 CSS 추가
+     */
+    addAlertAnimations() {
+        if (!document.getElementById('alert-animations')) {
+            const style = document.createElement('style');
+            style.id = 'alert-animations';
+            style.textContent = `
+                @keyframes slideDown {
+                    from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+                    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+                }
+                @keyframes slideUp {
+                    from { opacity: 1; transform: translateX(-50%) translateY(0); }
+                    to { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+
+    /**
+     * 카테고리 데이터 로드 및 UI 생성
+     */
+    async loadCategories() {
+        try {
+            const signupApi = new SignupApi();
+            this.categories = await signupApi.getAllCategories();
+
+            if (this.categories?.length > 0) {
+                this.buildCategoryUI();
+            } else {
+                this.setupFallbackCategories();
+                this.showAlert('기본 카테고리를 사용합니다.', 'warning');
+            }
+        } catch (error) {
+            console.error('카테고리 로드 실패:', error);
+            this.setupFallbackCategories();
+            this.showAlert('기본 카테고리를 사용합니다.', 'warning');
+        }
+    }
+
+    /**
+     * 카테고리 UI 동적 생성
+     */
+    buildCategoryUI() {
+        this.elements.categoryContainer.innerHTML = '';
+
+        this.categories.forEach(category => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'category-btn';
+            button.setAttribute('data-category-name', category.name);
+            button.textContent = category.name;
+
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleCategoryClick(category.name, button);
+            });
+
+            this.elements.categoryContainer.appendChild(button);
+        });
+    }
+
+    /**
+     * 카테고리 클릭 처리
+     */
+    handleCategoryClick(categoryName, buttonElement) {
+        if (this.selectedTags.has(categoryName)) {
+            this.selectedTags.delete(categoryName);
+            buttonElement.classList.remove('selected');
+        } else {
+            if (this.selectedTags.size >= 10) {
+                this.showAlert('관심사는 최대 10개까지 선택 가능합니다.', 'warning');
+                return;
+            }
+            this.selectedTags.add(categoryName);
+            buttonElement.classList.add('selected');
+        }
+
+        this.updateSelectedTagsDisplay();
+        this.updateSubmitButton();
+    }
+
+    /**
+     * 폴백 카테고리 설정 (API 실패 시)
+     */
+    setupFallbackCategories() {
+        this.categories = [
+            { name: '패션' }, { name: '반려동물' }, { name: '게임' },
+            { name: '캐릭터/IP' }, { name: '문화/컨텐츠' },
+            { name: '연예' }, { name: '여행/레저/스포츠' }
+        ];
+        this.buildCategoryUI();
     }
 
     /**
      * 이벤트 리스너 설정
      */
     setupEventListeners() {
-        // 폼 필드 검증 이벤트
-        this.setupFieldValidation();
+        // 입력 필드 이벤트
+        this.elements.nameInput?.addEventListener('input', () => this.validateField('name'));
+        this.elements.nicknameInput?.addEventListener('input', () => this.validateField('nickname'));
+        this.elements.emailInput?.addEventListener('input', () => this.validateField('email'));
+        this.elements.passwordInput?.addEventListener('input', () => this.validatePasswordField());
+        this.elements.passwordConfirmInput?.addEventListener('input', () => this.validatePasswordConfirmField());
+        this.elements.phoneInput?.addEventListener('input', () => this.validateField('phone'));
 
-        // 중복 확인 버튼 이벤트
-        this.setupDuplicateCheck();
+        // 중복확인 버튼
+        this.elements.nicknameCheckBtn?.addEventListener('click', () => this.validateField('nickname', true));
+        this.elements.emailCheckBtn?.addEventListener('click', () => this.validateField('email', true));
 
-        // 관심사 선택 이벤트
-        this.setupInterestSelection();
-
-        // 핸드폰 번호 자동 포맷팅
-        this.setupPhoneFormatting();
-
-        // Enter 키 처리
-        this.setupKeyboardEvents();
+        // 폼 제출 방지
+        this.elements.form?.addEventListener('submit', e => e.preventDefault());
     }
 
     /**
-     * 필드 검증 이벤트 설정
+     * 통합된 필드 검증 메서드
      */
-    setupFieldValidation() {
-        // 이름 검증
-        this.elements.nameInput.addEventListener('blur', () => {
-            this.validateNameField();
-        });
-        this.elements.nameInput.addEventListener('input', () => {
-            this.clearFieldError('name');
-        });
+    async validateField(fieldName, checkDuplicate = false) {
+        const input = this.elements[`${fieldName}Input`];
+        if (!input) return false;
 
-        // 닉네임 검증
-        this.elements.nicknameInput.addEventListener('blur', () => {
-            this.validateNicknameField(false); // blur시에는 중복확인 안함
-        });
-        this.elements.nicknameInput.addEventListener('input', () => {
-            this.clearFieldError('nickname');
-            this.clearFieldSuccess('nickname');
-            this.validationStates.nickname = false;
-            this.updateSubmitButton();
-        });
+        const value = input.value.trim();
+        let result;
 
-        // 이메일 검증
-        this.elements.emailInput.addEventListener('blur', () => {
-            this.validateEmailField(false); // blur시에는 중복확인 안함
-        });
-        this.elements.emailInput.addEventListener('input', () => {
-            this.clearFieldError('email');
-            this.clearFieldSuccess('email');
-            this.validationStates.email = false;
-            this.updateSubmitButton();
-        });
+        // 기본 유효성 검사
+        switch (fieldName) {
+            case 'name':
+                result = SignupValidator.validateName(value);
+                break;
+            case 'nickname':
+                result = SignupValidator.validateNickname(value);
+                break;
+            case 'email':
+                result = SignupValidator.validateEmail(value);
+                break;
+            case 'phone':
+                result = SignupValidator.validatePhone(value);
+                break;
+            default:
+                return false;
+        }
 
-        // 비밀번호 검증
-        this.elements.passwordInput.addEventListener('input', () => {
-            this.validatePasswordField();
-            // 비밀번호 확인도 다시 검증
-            if (this.elements.passwordConfirmInput.value) {
-                this.validatePasswordConfirmField();
-            }
-        });
-
-        // 비밀번호 확인 검증
-        this.elements.passwordConfirmInput.addEventListener('input', () => {
-            this.validatePasswordConfirmField();
-        });
-
-        this.elements.passwordConfirmInput.addEventListener('blur', () => {
-            this.validatePasswordConfirmField();
-        });
-
-        // 핸드폰 번호 검증
-        this.elements.phoneInput.addEventListener('blur', () => {
-            this.validatePhoneField();
-        });
-        this.elements.phoneInput.addEventListener('input', () => {
-            this.clearFieldError('phone');
-        });
-    }
-
-    /**
-     * 중복 확인 버튼 이벤트 설정
-     */
-    setupDuplicateCheck() {
-        this.elements.emailCheckBtn.addEventListener('click', () => {
-            this.validateEmailField(true);
-        });
-
-        this.elements.nicknameCheckBtn.addEventListener('click', () => {
-            this.validateNicknameField(true);
-        });
-    }
-
-    /**
-     * 관심사 선택 이벤트 설정
-     */
-    setupInterestSelection() {
-        // 카테고리 버튼 이벤트
-        this.elements.categoryBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.switchCategory(btn.dataset.category);
-            });
-        });
-
-        // 태그 버튼 이벤트 (이벤트 위임 사용)
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('tag-btn')) {
-                e.preventDefault();
-                this.toggleTag(e.target.dataset.tag);
-            }
-        });
-    }
-
-    /**
-     * 핸드폰 번호 자동 포맷팅 설정
-     */
-    setupPhoneFormatting() {
-        this.elements.phoneInput.addEventListener('input', (e) => {
-            const formatted = SignupValidator.formatPhone(e.target.value);
-            if (formatted !== e.target.value) {
-                e.target.value = formatted;
-            }
-        });
-    }
-
-    /**
-     * 키보드 이벤트 설정
-     */
-    setupKeyboardEvents() {
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && this.elements.button.disabled) {
-                e.preventDefault(); // 버튼이 비활성화일 때만 막음
-            }
-        });
-    }
-
-    // ================ 필드별 검증 메서드 ================
-
-    /**
-     * 이름 필드 검증
-     */
-    validateNameField() {
-        const result = SignupValidator.validateName(this.elements.nameInput.value);
+        // 기본 검증 실패 시
         if (!result.isValid) {
-            this.showFieldError('name', result.message);
-            return false;
-        }
-        this.clearFieldError('name');
-        return true;
-    }
-
-    /**
-     * 닉네임 필드 검증
-     * @param {boolean} checkDuplicate 중복 확인 여부
-     */
-    async validateNicknameField(checkDuplicate = false) {
-        const nickname = this.elements.nicknameInput.value.trim();
-
-        // 기본 유효성 검사
-        const basicValidation = SignupValidator.validateNickname(nickname);
-        if (!basicValidation.isValid) {
-            this.showFieldError('nickname', basicValidation.message);
-            this.validationStates.nickname = false;
+            this.showFieldError(fieldName, result.message);
+            if (fieldName === 'nickname' || fieldName === 'email') {
+                this.validationStates[fieldName] = false;
+            }
             this.updateSubmitButton();
             return false;
         }
 
-        // 중복 확인
-        if (checkDuplicate) {
-            this.setButtonLoading('nicknameCheckBtn', true);
-            try {
-                const signupApi = new SignupApi();
-                const result = await signupApi.validateNickname(nickname);
-
-                if (result.isValid) {
-                    this.showFieldSuccess('nickname', result.message);
-                    this.validationStates.nickname = true;
-                } else {
-                    this.showFieldError('nickname', result.message);
-                    this.validationStates.nickname = false;
-                }
-            } catch (error) {
-                this.showFieldError('nickname', error.message);
-                this.validationStates.nickname = false;
-            } finally {
-                this.setButtonLoading('nicknameCheckBtn', false);
-                this.updateSubmitButton();
-            }
-            return this.validationStates.nickname; // 중복확인 결과 반환
+        // 중복 확인이 필요한 경우
+        if (checkDuplicate && (fieldName === 'nickname' || fieldName === 'email')) {
+            return await this.checkDuplicate(fieldName, value);
         }
 
-        // 중복확인이 아닌 경우에만 에러 클리어
-        this.clearFieldError('nickname');
+        // 기본 검증 통과 시 에러 클리어
+        this.clearFieldError(fieldName);
+        this.updateSubmitButton();
         return true;
     }
 
     /**
-     * 이메일 필드 검증
-     * @param {boolean} checkDuplicate 중복 확인 여부
+     * 중복 확인 처리
      */
-    async validateEmailField(checkDuplicate = false) {
-        const email = this.elements.emailInput.value.trim();
+    async checkDuplicate(fieldName, value) {
+        const btnId = `${fieldName}CheckBtn`;
+        this.setButtonLoading(btnId, true);
 
-        // 기본 유효성 검사
-        const basicValidation = SignupValidator.validateEmail(email);
-        if (!basicValidation.isValid) {
-            this.showFieldError('email', basicValidation.message);
-            this.validationStates.email = false;
-            this.updateSubmitButton();
-            return false;
-        }
+        try {
+            const signupApi = new SignupApi();
+            const result = fieldName === 'nickname'
+                ? await signupApi.validateNickname(value)
+                : await signupApi.validateEmail(value);
 
-        // 중복 확인
-        if (checkDuplicate) {
-            this.setButtonLoading('emailCheckBtn', true);
-            try {
-                const signupApi = new SignupApi();
-                const result = await signupApi.validateEmail(email);
-
-                if (result.isValid) {
-                    this.showFieldSuccess('email', result.message);
-                    this.validationStates.email = true;
-                } else {
-                    this.showFieldError('email', result.message);
-                    this.validationStates.email = false;
-                }
-            } catch (error) {
-                this.showFieldError('email', error.message);
-                this.validationStates.email = false;
-            } finally {
-                this.setButtonLoading('emailCheckBtn', false);
-                this.updateSubmitButton();
+            if (result.isValid) {
+                this.showFieldSuccess(fieldName, result.message);
+                this.validationStates[fieldName] = true;
+            } else {
+                this.showFieldError(fieldName, result.message);
+                this.validationStates[fieldName] = false;
             }
-            return this.validationStates.email; // 중복확인 결과 반환
+        } catch (error) {
+            this.showFieldError(fieldName, error.message);
+            this.validationStates[fieldName] = false;
+        } finally {
+            this.setButtonLoading(btnId, false);
+            this.updateSubmitButton();
         }
 
-        // 중복확인이 아닌 경우에만 에러 클리어
-        this.clearFieldError('email');
-        return true;
+        return this.validationStates[fieldName];
     }
 
     /**
@@ -318,22 +257,21 @@ class SignupUI {
             Object.keys(result.requirements).forEach(key => {
                 const element = this.elements.requirements[key];
                 if (element) {
-                    if (result.requirements[key].valid) {
-                        element.classList.add('valid');
-                    } else {
-                        element.classList.remove('valid');
-                    }
+                    element.classList.toggle('valid', result.requirements[key].valid);
+                    element.classList.toggle('invalid', !result.requirements[key].valid);
                 }
             });
         }
 
-        if (!result.isValid && password.length > 0) {
+        if (!result.isValid) {
             this.showFieldError('password', result.message);
-            return false;
         } else {
             this.clearFieldError('password');
-            return result.isValid;
         }
+
+        this.validatePasswordConfirmField();
+        this.updateSubmitButton();
+        return result.isValid;
     }
 
     /**
@@ -342,189 +280,193 @@ class SignupUI {
     validatePasswordConfirmField() {
         const password = this.elements.passwordInput.value;
         const passwordConfirm = this.elements.passwordConfirmInput.value;
-
-        // 먼저 기존 메시지를 모두 제거
-        this.clearFieldError('passwordConfirm');
-        this.clearFieldSuccess('passwordConfirm');
-
         const result = SignupValidator.validatePasswordConfirm(password, passwordConfirm);
 
         if (!result.isValid) {
             this.showFieldError('passwordConfirm', result.message);
-            return false;
         } else {
-            this.showFieldSuccess('passwordConfirm', result.message);
-            return true;
+            this.clearFieldError('passwordConfirm');
         }
+
+        this.updateSubmitButton();
+        return result.isValid;
     }
 
     /**
-     * 핸드폰 번호 필드 검증
+     * 선택된 태그 표시 업데이트
      */
-    validatePhoneField() {
-        const phone = this.elements.phoneInput.value;
-        const result = SignupValidator.validatePhone(phone);
+    updateSelectedTagsDisplay() {
+        if (!this.elements.selectedTagsContainer) return;
 
-        if (!result.isValid) {
-            this.showFieldError('phone', result.message);
-            return false;
-        } else {
-            this.clearFieldError('phone');
-            return true;
+        if (this.selectedTags.size === 0) {
+            this.elements.selectedTagsContainer.innerHTML =
+                '<span class="no-selection">선택된 관심사가 없습니다.</span>';
+            return;
         }
+
+        this.elements.selectedTagsContainer.innerHTML = '';
+        this.selectedTags.forEach(tag => {
+            const tagElement = document.createElement('span');
+            tagElement.className = 'selected-tag';
+            tagElement.innerHTML = `${tag}<button type="button" class="remove-tag" data-tag="${tag}">&times;</button>`;
+
+            tagElement.querySelector('.remove-tag').addEventListener('click', (e) => {
+                e.preventDefault();
+                this.removeSelectedTag(tag);
+            });
+
+            this.elements.selectedTagsContainer.appendChild(tagElement);
+        });
     }
 
-    // ================ UI 상태 관리 메서드 ================
+    /**
+     * 선택된 태그 제거
+     */
+    removeSelectedTag(tag) {
+        this.selectedTags.delete(tag);
+
+        const categoryBtn = this.elements.categoryContainer.querySelector(`[data-category-name="${tag}"]`);
+        categoryBtn?.classList.remove('selected');
+
+        this.updateSelectedTagsDisplay();
+        this.updateSubmitButton();
+    }
 
     /**
      * 필드 에러 표시
-     * @param {string} field 필드명
-     * @param {string} message 에러 메시지
      */
-    showFieldError(field, message) {
-        const input = this.elements[`${field}Input`];
-        const error = this.elements[`${field}Error`];
+    showFieldError(fieldName, message) {
+        const errorElement = document.getElementById(`${fieldName}-error`);
+        const inputElement = document.getElementById(fieldName);
 
-        if (input && error) {
-            // 먼저 기존 상태를 모두 초기화
-            this.clearFieldError(field);
-            this.clearFieldSuccess(field);
+        if (errorElement) {
+            errorElement.textContent = message;
+            errorElement.className = 'field-error show';
+        }
 
-            // 에러 상태 설정
-            input.classList.add('error');
-            input.classList.remove('success');
-            error.textContent = message;
-            error.classList.add('show');
+        if (inputElement) {
+            inputElement.classList.add('error');
+            inputElement.classList.remove('success');
         }
     }
 
     /**
      * 필드 성공 표시
-     * @param {string} field 필드명
-     * @param {string} message 성공 메시지
      */
-    showFieldSuccess(field, message) {
-        const input = this.elements[`${field}Input`];
-        const success = this.elements[`${field}Success`];
+    showFieldSuccess(fieldName, message) {
+        const errorElement = document.getElementById(`${fieldName}-error`);
+        const inputElement = document.getElementById(fieldName);
 
-        if (input && success) {
-            // 먼저 기존 상태를 모두 초기화
-            this.clearFieldError(field);
-            this.clearFieldSuccess(field);
+        if (errorElement) {
+            errorElement.textContent = message;
+            errorElement.className = 'field-error success show';
+        }
 
-            // 성공 상태 설정
-            input.classList.add('success');
-            input.classList.remove('error');
-            success.textContent = message;
-            success.classList.add('show');
+        if (inputElement) {
+            inputElement.classList.add('success');
+            inputElement.classList.remove('error');
         }
     }
 
     /**
-     * 필드 에러 제거
-     * @param {string} field 필드명
+     * 필드 에러 클리어
      */
-    clearFieldError(field) {
-        const input = this.elements[`${field}Input`];
-        const error = this.elements[`${field}Error`];
+    clearFieldError(fieldName) {
+        const errorElement = document.getElementById(`${fieldName}-error`);
+        const inputElement = document.getElementById(fieldName);
 
-        if (input && error) {
-            input.classList.remove('error');
-            error.textContent = '';
-            error.classList.remove('show');
+        if (errorElement) {
+            errorElement.textContent = '';
+            errorElement.className = 'field-error';
         }
-    }
 
-    /**
-     * 필드 성공 제거
-     * @param {string} field 필드명
-     */
-    clearFieldSuccess(field) {
-        const input = this.elements[`${field}Input`];
-        const success = this.elements[`${field}Success`];
-
-        if (input && success) {
-            input.classList.remove('success');
-            success.textContent = '';
-            success.classList.remove('show');
-        }
-    }
-
-    /**
-     * 전체 필드 에러 제거
-     */
-    clearAllErrors() {
-        ['name', 'nickname', 'email', 'password', 'passwordConfirm', 'phone'].forEach(field => {
-            this.clearFieldError(field);
-            this.clearFieldSuccess(field);
-        });
-    }
-
-    /**
-     * 알림 메시지 표시
-     * @param {string} message 메시지 내용
-     * @param {string} type 메시지 타입 (success, error, info)
-     */
-    showAlert(message, type = 'error') {
-        this.elements.alertContainer.className = `alert alert-${type}`;
-        this.elements.alertContainer.textContent = message;
-        this.elements.alertContainer.style.display = 'block';
-
-        const hideDelay = type === 'success' ? 3000 : 5000;
-        setTimeout(() => {
-            this.elements.alertContainer.style.display = 'none';
-        }, hideDelay);
-    }
-
-    /**
-     * 로딩 상태 토글
-     * @param {boolean} loading 로딩 여부
-     */
-    toggleLoading(loading) {
-        if (loading) {
-            this.elements.button.disabled = true;
-            this.elements.button.classList.add('btn-loading');
-            this.elements.button.querySelector('.btn-text').textContent = '가입 중...';
-        } else {
-            this.elements.button.disabled = false;
-            this.elements.button.classList.remove('btn-loading');
-            this.elements.button.querySelector('.btn-text').textContent = '가입하기';
+        if (inputElement) {
+            inputElement.classList.remove('error', 'success');
         }
     }
 
     /**
      * 버튼 로딩 상태 설정
-     * @param {string} buttonId 버튼 ID
-     * @param {boolean} loading 로딩 여부
      */
     setButtonLoading(buttonId, loading) {
-        const button = this.elements[buttonId];
+        const button = document.getElementById(buttonId);
         if (!button) return;
 
         if (loading) {
             button.disabled = true;
-            button.textContent = '확인 중...';
+            button.innerHTML = '<span class="loading"></span>확인 중...';
         } else {
             button.disabled = false;
-            if (!button.classList.contains('success')) {
-                button.textContent = '중복확인';
-            }
+            button.textContent = '중복확인';
         }
     }
 
     /**
-     * 제출 버튼 활성화 상태 업데이트
+     * 알림 메시지 표시
+     */
+    showAlert(message, type = 'info') {
+        // 기존 알림 제거
+        document.querySelector('.alert-fixed')?.remove();
+
+        // 새 알림 생성
+        const alert = document.createElement('div');
+        alert.className = `alert-fixed alert-${type}`;
+        alert.textContent = message;
+
+        // 스타일 설정
+        const colors = {
+            success: { bg: '#d4edda', text: '#155724', border: '#28a745' },
+            error: { bg: '#f8d7da', text: '#721c24', border: '#dc3545' },
+            warning: { bg: '#fff3cd', text: '#856404', border: '#ffc107' },
+            info: { bg: '#d1ecf1', text: '#0c5460', border: '#17a2b8' }
+        };
+
+        const color = colors[type] || colors.info;
+        alert.style.cssText = `
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            max-width: 90%; width: 400px; padding: 14px 18px; border-radius: 8px;
+            font-size: 14px; font-weight: 500; z-index: 9999;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); animation: slideDown 0.3s ease;
+            background-color: ${color.bg}; color: ${color.text}; border-left: 4px solid ${color.border};
+        `;
+
+        document.body.appendChild(alert);
+
+        // 3초 후 자동 제거
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.style.animation = 'slideUp 0.3s ease';
+                setTimeout(() => alert.remove(), 300);
+            }
+        }, 3000);
+    }
+
+    /**
+     * 제출 버튼 상태 업데이트
      */
     updateSubmitButton() {
-        // 이메일과 닉네임 중복확인이 완료되었는지 확인
-        const emailValid = this.validationStates.email;
-        const nicknameValid = this.validationStates.nickname;
+        if (!this.elements.submitBtn) return;
+        this.elements.submitBtn.disabled = !this.validateForm();
+    }
 
-        // 기본 필드 검증
-        const basicFieldsValid = this.validateBasicFields();
+    /**
+     * 폼 전체 검증
+     */
+    validateForm() {
+        const formData = this.getFormData();
+        const selectedTags = Array.from(this.selectedTags);
 
-        // 모든 조건이 만족되면 버튼 활성화
-        this.elements.button.disabled = !(emailValid && nicknameValid && basicFieldsValid);
+        // FormData 검증
+        const formValidation = SignupValidator.validateForm(formData, selectedTags);
+        if (!formValidation.isValid) return false;
+
+        // 중복확인 상태 검증
+        const email = formData.get('email').trim();
+        const nickname = formData.get('nickname').trim();
+
+        return (!email || this.validationStates.email) &&
+            (!nickname || this.validationStates.nickname) &&
+            this.validateBasicFields();
     }
 
     /**
@@ -532,180 +474,86 @@ class SignupUI {
      */
     validateBasicFields() {
         const formData = this.getFormData();
+        const fields = ['name', 'password', 'passwordConfirm', 'phone'];
 
-        const name = formData.get('name').trim();
-        const password = formData.get('password');
-        const passwordConfirm = formData.get('passwordConfirm');
-        const phone = formData.get('phone').trim();
+        return fields.every(field => {
+            const value = field === 'password' || field === 'passwordConfirm'
+                ? formData.get(field)
+                : formData.get(field).trim();
 
-        const nameValid = SignupValidator.validateName(name).isValid;
-        const passwordValid = SignupValidator.validatePassword(password).isValid;
-        const passwordConfirmValid = SignupValidator.validatePasswordConfirm(password, passwordConfirm).isValid;
-        const phoneValid = SignupValidator.validatePhone(phone).isValid;
-
-        return nameValid && passwordValid && passwordConfirmValid && phoneValid;
-    }
-
-    // ================ 관심사 관리 메서드 ================
-
-    /**
-     * 카테고리 전환
-     * @param {string} category 카테고리명
-     */
-    switchCategory(category) {
-        // 모든 카테고리 버튼에서 active 제거
-        this.elements.categoryBtns.forEach(btn => {
-            btn.classList.remove('active');
-        });
-
-        // 선택된 카테고리 버튼에 active 추가
-        const selectedBtn = document.querySelector(`[data-category="${category}"]`);
-        if (selectedBtn) {
-            selectedBtn.classList.add('active');
-        }
-
-        // 모든 태그 그룹 숨기기
-        this.elements.tagGroups.forEach(group => {
-            group.style.display = 'none';
-        });
-
-        // 선택된 카테고리의 태그 그룹 보이기
-        const selectedGroup = document.querySelector(`.tag-group[data-category="${category}"]`);
-        if (selectedGroup) {
-            selectedGroup.style.display = 'flex';
-        }
-    }
-
-    /**
-     * 태그 선택/해제 토글
-     * @param {string} tag 태그명
-     */
-    toggleTag(tag) {
-        if (this.selectedTags.has(tag)) {
-            this.selectedTags.delete(tag);
-        } else {
-            // 최대 10개까지만 선택 가능
-            if (this.selectedTags.size >= 10) {
-                this.showAlert('관심사는 최대 10개까지 선택 가능합니다.', 'error');
-                return;
+            if (field === 'passwordConfirm') {
+                return SignupValidator.validatePasswordConfirm(
+                    formData.get('password'), value
+                ).isValid;
             }
-            this.selectedTags.add(tag);
-        }
 
-        this.updateTagButtons();
-        this.updateSelectedTags();
-    }
-
-    /**
-     * 태그 버튼 상태 업데이트
-     */
-    updateTagButtons() {
-        document.querySelectorAll('.tag-btn').forEach(btn => {
-            const tag = btn.dataset.tag;
-            if (this.selectedTags.has(tag)) {
-                btn.classList.add('selected');
-            } else {
-                btn.classList.remove('selected');
-            }
+            return SignupValidator[`validate${field.charAt(0).toUpperCase() + field.slice(1)}`](value).isValid;
         });
     }
-
-    /**
-     * 선택된 태그 표시 업데이트
-     */
-    updateSelectedTags() {
-        const container = this.elements.selectedTagsContainer;
-        container.innerHTML = '';
-
-        if (this.selectedTags.size === 0) {
-            container.innerHTML = '<span style="color: #9ca3af; font-size: 12px;">선택된 관심사가 없습니다.</span>';
-            return;
-        }
-
-        this.selectedTags.forEach(tag => {
-            const tagElement = document.createElement('span');
-            tagElement.className = 'selected-tag';
-            tagElement.innerHTML = `
-                ${tag}
-                <span class="remove" onclick="signupUI.removeTag('${tag}')">&times;</span>
-            `;
-            container.appendChild(tagElement);
-        });
-    }
-
-    /**
-     * 태그 제거
-     * @param {string} tag 제거할 태그
-     */
-    removeTag(tag) {
-        this.selectedTags.delete(tag);
-        this.updateTagButtons();
-        this.updateSelectedTags();
-    }
-
-    /**
-     * 선택된 태그 배열 반환
-     * @returns {Array} 선택된 태그 배열
-     */
-    getSelectedTags() {
-        return Array.from(this.selectedTags);
-    }
-
-    // ================ 기타 유틸리티 메서드 ================
 
     /**
      * 폼 데이터 가져오기
-     * @returns {FormData} 폼 데이터
      */
     getFormData() {
         return new FormData(this.elements.form);
     }
 
     /**
-     * 폼 리셋
+     * 선택된 태그 배열 반환
      */
-    resetForm() {
-        this.elements.form.reset();
-        this.clearAllErrors();
-        this.selectedTags.clear();
-        this.updateSelectedTags();
-        this.updateTagButtons();
-        this.validationStates.email = false;
-        this.validationStates.nickname = false;
-        this.updateSubmitButton();
-
-        // 비밀번호 요구사항 초기화
-        Object.values(this.elements.requirements).forEach(req => {
-            req.classList.remove('valid');
-        });
+    getSelectedTags() {
+        return Array.from(this.selectedTags);
     }
 
     /**
-     * 폼 유효성 검사 및 UI 업데이트
-     * @returns {boolean} 전체 검증 결과
+     * 로딩 상태 토글
      */
-    validateForm() {
-        const formData = this.getFormData();
-        const selectedTags = this.getSelectedTags();
+    toggleLoading(loading) {
+        if (!this.elements.submitBtn) return;
 
-        const validation = SignupValidator.validateForm(formData, selectedTags);
+        const loadingElement = this.elements.submitBtn.querySelector('.loading');
+        const textElement = this.elements.submitBtn.querySelector('.btn-text');
 
-        // 에러 표시
-        Object.keys(validation.errors).forEach(field => {
-            this.showFieldError(field, validation.errors[field]);
+        if (loading) {
+            this.elements.submitBtn.disabled = true;
+            if (loadingElement) loadingElement.style.display = 'inline-block';
+            if (textElement) textElement.textContent = '가입 중...';
+        } else {
+            this.elements.submitBtn.disabled = false;
+            if (loadingElement) loadingElement.style.display = 'none';
+            if (textElement) textElement.textContent = '가입하기';
+        }
+    }
+
+    /**
+     * 폼 리셋
+     */
+    resetForm() {
+        this.elements.form?.reset();
+
+        // 선택된 태그 초기화
+        this.selectedTags.clear();
+        this.updateSelectedTagsDisplay();
+
+        // 검증 상태 초기화
+        this.validationStates = { email: false, nickname: false };
+
+        // 에러 메시지 클리어
+        document.querySelectorAll('.field-error').forEach(element => {
+            element.textContent = '';
+            element.className = 'field-error';
         });
 
-        // 중복확인 상태 체크
-        if (!this.validationStates.email && formData.get('email').trim()) {
-            this.showFieldError('email', '이메일 중복확인이 필요합니다.');
-            validation.isValid = false;
-        }
+        // 입력 필드 상태 클리어
+        document.querySelectorAll('.form-input').forEach(element => {
+            element.classList.remove('error', 'success');
+        });
 
-        if (!this.validationStates.nickname && formData.get('nickname').trim()) {
-            this.showFieldError('nickname', '닉네임 중복확인이 필요합니다.');
-            validation.isValid = false;
-        }
+        // 비밀번호 요구사항 초기화
+        Object.values(this.elements.requirements).forEach(element => {
+            element?.classList.remove('valid', 'invalid');
+        });
 
-        return validation.isValid;
+        this.updateSubmitButton();
     }
 }

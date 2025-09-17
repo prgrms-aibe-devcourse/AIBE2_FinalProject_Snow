@@ -2,7 +2,11 @@ package com.snow.popin.domain.auth.service;
 
 import com.snow.popin.domain.auth.constant.AuthProvider;
 import com.snow.popin.domain.auth.dto.*;
+import com.snow.popin.domain.category.entity.Category;
+import com.snow.popin.domain.category.repository.CategoryRepository;
+import com.snow.popin.domain.category.repository.UserInterestRepository;
 import com.snow.popin.domain.user.constant.Role;
+import com.snow.popin.domain.category.entity.UserInterest;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.domain.user.repository.UserRepository;
 import com.snow.popin.global.constant.ErrorCode;
@@ -26,6 +30,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -34,118 +41,205 @@ import java.util.Collection;
 public class AuthService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final JwtTokenResolver jwtTokenResolver;
+    private final UserInterestRepository userInterestRepository;
 
-    // ================ 회원가입 관련 ================
-    // 회원가입 처리
+    /**
+     * 회원가입 처리
+     */
     @Transactional
-    public SignupResponse signup(SignupRequest req) {
+    public SignupResponse signup(SignupRequest request) {
+        log.info("회원가입 시도: email={}", request.getEmail());
 
-        log.info("회원가입 시도: {}", req.getEmail());
+        validateSignupRequest(request);
+        checkDuplicates(request);
 
-        try {
-            // 1. 비밀번호 확인 검증
-            if (!req.isPasswordMatching()){
-                throw new GeneralException(ErrorCode.BAD_REQUEST,"비밀번호가 일치하지 않습니다.");
-            }
+        User user = createUser(request);
+        User savedUser = userRepository.save(user);
 
-            // 2. 중복 검증
-            validateDuplicates(req);
+        processUserInterests(savedUser, request.getInterests());
 
-            // 3. 사용자 생성 및 저장
-            User uesr = createUser(req);
-            User savedUser = userRepository.save(uesr);
-
-            // 4. 관심사 처리 (나중에 카테고리 엔티티 완성되면 추가)
-            // processUserInterests(savedUser.getId(), req.getInterestCategoryIds());
-
-            log.info("회원가입 성공: {}", req.getEmail());
-            return SignupResponse.success(savedUser.getEmail(), savedUser.getName(), savedUser.getNickname());
-        } catch (GeneralException e){
-            log.warn("회원가입 실패: {} - {}", req.getEmail(), e.getMessage());
-            throw e;
-        }  catch (Exception e) {
-            log.error("회원가입 처리 중 예상치 못한 오류: {}", e.getMessage(), e);
-            throw new GeneralException(ErrorCode.INTERNAL_ERROR, "회원가입 처리 중 오류가 발생했습니다.");
-        }
-
+        log.info("회원가입 완료: userId={}, email={}", savedUser.getId(), savedUser.getEmail());
+        return SignupResponse.success(savedUser.getEmail(), savedUser.getName(), savedUser.getNickname());
     }
 
-    // 중복 검증
-    private void validateDuplicates(SignupRequest req){
-        if (userRepository.existsByEmail(req.getEmail())){
+    /**
+     * 사용자 로그인 처리
+     */
+    public LoginResponse login(LoginRequest request) {
+        log.info("로그인 시도: email={}", request.getEmail());
+
+        User user = validateUserCredentials(request);
+        String accessToken = generateAccessToken(user);
+
+        log.info("로그인 성공: email={}", user.getEmail());
+        return createLoginResponse(user, accessToken);
+    }
+
+    /**
+     * 사용자 로그아웃 처리
+     */
+    public LogoutResponse logout(LogoutRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        String userEmail = extractUserEmailFromToken(request, httpRequest);
+
+        log.info("로그아웃 요청 처리: email={}", userEmail);
+
+        processLogout(httpResponse);
+
+        log.info("로그아웃 완료: email={}", userEmail);
+        return LogoutResponse.success("로그아웃이 완료되었습니다.");
+    }
+
+    /**
+     * Spring Security UserDetailsService 구현
+     */
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
+
+        return createUserDetails(user);
+    }
+
+    /**
+     * 이메일 중복 확인
+     */
+    public boolean emailExists(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    /**
+     * 닉네임 중복 확인
+     */
+    public boolean nicknameExists(String nickname) {
+        return userRepository.existsByNickname(nickname);
+    }
+
+    /**
+     * 회원가입 요청 검증
+     */
+    private void validateSignupRequest(SignupRequest request) {
+        if (!request.isPasswordMatching()) {
+            throw new GeneralException(ErrorCode.BAD_REQUEST, "비밀번호가 일치하지 않습니다.");
+        }
+    }
+
+    /**
+     * 중복 검증
+     */
+    private void checkDuplicates(SignupRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new GeneralException(ErrorCode.DUPLICATE_EMAIL);
         }
 
-        if (userRepository.existsByNickname(req.getNickname())){
+        if (userRepository.existsByNickname(request.getNickname())) {
             throw new GeneralException(ErrorCode.BAD_REQUEST, "이미 사용 중인 닉네임입니다.");
         }
     }
 
-    // 사용자 엔티티 생성
-    private User createUser(SignupRequest req){
-        String encodedPassword = passwordEncoder.encode(req.getPassword());
-
+    /**
+     * 사용자 엔티티 생성
+     */
+    private User createUser(SignupRequest request) {
         return User.builder()
-                .email(req.getEmail())
-                .password(encodedPassword)
-                .name(req.getName())
-                .nickname(req.getNickname())
-                .phone(req.getPhone())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .name(request.getName())
+                .nickname(request.getNickname())
+                .phone(request.getPhone())
                 .authProvider(AuthProvider.LOCAL)
                 .role(Role.USER)
                 .build();
     }
 
-    // ================ 로그인 관련 ================
-    // 사용자 로그인 처리
-    public LoginResponse login(LoginRequest req) {
-        log.info("로그인 시도: {}", req.getEmail());
+    /**
+     * 사용자 관심사 처리
+     */
+    private void processUserInterests(User user, List<String> interests) {
+        if (interests == null || interests.isEmpty()) {
+            log.debug("관심사가 선택되지 않음");
+            return;
+        }
 
-        try {
-            // 1. 사용자 자격 증명 검증
-            User user = validateUserCredentials(req);
+        log.info("관심사 처리 시작 - 요청된 관심사: {}", interests);
 
-            // 2. JWT 토큰 생성
-            String accessToken = generateAccessToken(user);
+        validateInterests(interests);
 
-            // 3. 로그인 응답 생성
-            LoginResponse response = createLoginResponse(user, accessToken);
+        Set<Category> categories = findCategoriesByNames(interests);
+        log.info("찾은 카테고리 수: {}, 카테고리 이름들: {}",
+                categories.size(),
+                categories.stream().map(Category::getName).collect(Collectors.toList()));
 
-            // 4. 성공 로깅
-            log.info("로그인 성공: {}", user.getEmail());
+        saveUserInterests(user, categories);
 
-            return response;
+        log.info("사용자 관심사 설정 완료: 관심사 개수={}", categories.size());
+    }
 
-        } catch (GeneralException e) {
-            logFailedLogin(req.getEmail(), e);
-            throw e;
-        } catch (Exception e) {
-            log.error("로그인 처리 중 예상치 못한 오류: {}", e.getMessage(), e);
-            throw new GeneralException(ErrorCode.INTERNAL_ERROR, "로그인 처리 중 오류가 발생했습니다.");
+    /**
+     * 관심사 검증
+     */
+    private void validateInterests(List<String> interests) {
+        if (interests.size() > 10) {
+            throw new GeneralException(ErrorCode.BAD_REQUEST, "관심사는 최대 10개까지 선택할 수 있습니다.");
         }
     }
 
+    /**
+     * 카테고리 이름으로 카테고리 조회
+     */
+    private Set<Category> findCategoriesByNames(List<String> interests) {
+        Set<Category> categories = categoryRepository.findByNameIn(interests);
 
-    // 사용자 자격 증명 검증
-    private User validateUserCredentials(LoginRequest req) {
-        User user = userRepository.findByEmail(req.getEmail())
+        if (categories.size() != interests.size()) {
+            List<String> foundNames = categories.stream()
+                    .map(Category::getName)
+                    .collect(Collectors.toList());
+            log.warn("일부 카테고리를 찾을 수 없습니다. 요청: {}, 찾은 카테고리: {}",
+                    interests, foundNames);
+        }
+
+        return categories;
+    }
+
+    /**
+     * 사용자 관심사 DB에 저장
+     */
+    private void saveUserInterests(User user, Set<Category> categories) {
+        log.debug("사용자 관심사 저장 시작 - 카테고리 수: {}", categories.size());
+
+        List<UserInterest> userInterests = categories.stream()
+                .map(category -> new UserInterest(user, category))
+                .collect(Collectors.toList());
+
+        userInterestRepository.saveAll(userInterests);
+
+        log.debug("사용자 관심사 저장 완료: {} 개", userInterests.size());
+    }
+
+    /**
+     * 사용자 자격 증명 검증
+     */
+    private User validateUserCredentials(LoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> {
-                    log.warn("존재하지 않는 이메일로 로그인 시도: {}", req.getEmail());
+                    log.warn("존재하지 않는 이메일로 로그인 시도: {}", request.getEmail());
                     return new GeneralException(ErrorCode.LOGIN_FAILED);
                 });
 
-        if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
-            log.warn("잘못된 비밀번호로 로그인 시도: {}", req.getEmail());
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            log.warn("잘못된 비밀번호로 로그인 시도: {}", request.getEmail());
             throw new GeneralException(ErrorCode.LOGIN_FAILED);
         }
 
         return user;
     }
 
-    // JWT 액세스 토큰 생성
+    /**
+     * JWT 액세스 토큰 생성
+     */
     private String generateAccessToken(User user) {
         try {
             return jwtUtil.createToken(
@@ -160,7 +254,9 @@ public class AuthService implements UserDetailsService {
         }
     }
 
-    // 로그인 응답 객체 생성
+    /**
+     * 로그인 응답 객체 생성
+     */
     private LoginResponse createLoginResponse(User user, String accessToken) {
         return LoginResponse.of(
                 accessToken,
@@ -171,108 +267,76 @@ public class AuthService implements UserDetailsService {
         );
     }
 
-    // 실패한 로그인 후처리
-    private void logFailedLogin(String email, Exception e) {
-        log.warn("로그인 실패: {} - {}", email, e.getMessage());
-    }
-
-    // ================ 로그아웃 관련 ================
-    // 사용자 로그아웃 처리
-    public LogoutResponse logout(LogoutRequest req, HttpServletRequest httpReq, HttpServletResponse httpRes) {
-        String userEmail = "unknown";
-
+    /**
+     * 토큰에서 사용자 이메일 추출
+     */
+    private String extractUserEmailFromToken(LogoutRequest request, HttpServletRequest httpRequest) {
         try {
-            String token = extractToken(req, httpReq);
+            String token = extractToken(request, httpRequest);
 
-            // 토큰에서 사용자 정보 추출 (로깅용)
             if (StringUtils.hasText(token) && jwtUtil.validateToken(token)) {
-                userEmail = jwtUtil.getEmail(token);
+                return jwtUtil.getEmail(token);
             }
-
-            log.info("로그아웃 요청 처리: {}", userEmail);
-
-            // 로그아웃 처리
-            processLogout(token, httpReq, httpRes);
-
-            log.info("로그아웃 완료: {}", userEmail);
-            return LogoutResponse.success("로그아웃이 완료되었습니다.");
-
         } catch (Exception e) {
-            log.error("로그아웃 처리 중 오류 - 사용자: {}, 오류: {}", userEmail, e.getMessage(), e);
-            // 로그아웃은 항상 성공으로 처리 (클라이언트에서 토큰 정리)
-            return LogoutResponse.success("로그아웃이 완료되었습니다.");
+            log.debug("토큰에서 사용자 정보 추출 실패: {}", e.getMessage());
         }
+
+        return "unknown";
     }
 
-    // 실제 로그아웃 처리 로직
-    private void processLogout(String token, HttpServletRequest req, HttpServletResponse res) {
-        try {
-            // 토큰 검증 및 로깅
-            if (StringUtils.hasText(token) && jwtUtil.validateToken(token)) {
-                String userEmail = jwtUtil.getEmail(token);
-                log.info("사용자 로그아웃 처리: {}", userEmail);
-            } else {
-                log.debug("유효하지 않은 토큰으로 로그아웃 시도");
-            }
-
-            // 쿠키 정리
-            clearAuthCookies(res);
-
-            // 캐시 정리 헤더 추가
-            addCacheControlHeaders(res);
-
-        } catch (Exception e) {
-            log.warn("로그아웃 처리 중 오류 발생 (계속 진행): {}", e.getMessage());
-        }
+    /**
+     * 실제 로그아웃 처리
+     */
+    private void processLogout(HttpServletResponse response) {
+        clearAuthCookies(response);
+        addCacheControlHeaders(response);
     }
 
-    // 인증 관련 쿠키들 정리
-    private void clearAuthCookies(HttpServletResponse res) {
-        clearCookie(res, "jwtToken", "/");
-        clearCookie(res, "JSESSIONID", "/");
-        clearCookie(res, "remember-me", "/");
+    /**
+     * 인증 관련 쿠키들 정리
+     */
+    private void clearAuthCookies(HttpServletResponse response) {
+        clearCookie(response, "jwtToken", "/");
+        clearCookie(response, "JSESSIONID", "/");
+        clearCookie(response, "remember-me", "/");
     }
 
-    // 개별 쿠키 정리
-    private void clearCookie(HttpServletResponse res, String name, String path) {
+    /**
+     * 개별 쿠키 정리
+     */
+    private void clearCookie(HttpServletResponse response, String name, String path) {
         Cookie cookie = new Cookie(name, "");
         cookie.setMaxAge(0);
         cookie.setPath(path);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false); // 개발환경: false, 프로덕션: true
-        res.addCookie(cookie);
+        cookie.setSecure(false); // 개발환경용
+        response.addCookie(cookie);
         log.debug("쿠키 삭제: {}", name);
     }
 
-    // 캐시 제어 헤더 추가
-    private void addCacheControlHeaders(HttpServletResponse res) {
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.setHeader("Pragma", "no-cache");
-        res.setHeader("Expires", "0");
+    /**
+     * 캐시 제어 헤더 추가
+     */
+    private void addCacheControlHeaders(HttpServletResponse response) {
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        response.setHeader("Expires", "0");
     }
 
-    // 요청에서 토큰 추출
-    private String extractToken(LogoutRequest req, HttpServletRequest httpReq) {
-        // 1. 요청 바디에서 토큰 확인
-        if (StringUtils.hasText(req.getAccessToken())) {
-            return req.getAccessToken();
+    /**
+     * 요청에서 토큰 추출
+     */
+    private String extractToken(LogoutRequest request, HttpServletRequest httpRequest) {
+        if (StringUtils.hasText(request.getAccessToken())) {
+            return request.getAccessToken();
         }
-
-        // 2. 헤더/쿠키에서 토큰 확인
-        return jwtTokenResolver.resolve(httpReq);
+        return jwtTokenResolver.resolve(httpRequest);
     }
 
-    // ================ Spring Security 연동 ================
-    // Spring Security UserDetailsService 구현
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
 
-        return createUserDetails(user);
-    }
-
-    // Spring Security UserDetails 객체 생성
+    /**
+     * Spring Security UserDetails 객체 생성
+     */
     private UserDetails createUserDetails(User user) {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
 
@@ -291,14 +355,4 @@ public class AuthService implements UserDetailsService {
                 .build();
     }
 
-    // ================ 기타 ================
-    // 이메일 중복 확인
-    public boolean emailExists(String email) {
-        return userRepository.existsByEmail(email);
-    }
-
-    // 닉네임 중복 확인
-    public boolean nicknameExists(String nickname) {
-        return userRepository.existsByNickname(nickname);
-    }
 }
