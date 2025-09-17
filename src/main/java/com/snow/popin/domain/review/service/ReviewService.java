@@ -7,6 +7,7 @@ import com.snow.popin.domain.review.entity.Review;
 import com.snow.popin.domain.review.repository.ReviewRepository;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.domain.user.repository.UserRepository;
+import com.snow.popin.global.exception.ReviewException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,15 +33,15 @@ public class ReviewService {
     public ReviewResponseDto createReview(Long userId, ReviewCreateRequestDto request) {
         // 팝업 존재 확인
         Popup popup = popupRepository.findById(request.getPopupId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 팝업입니다."));
+                .orElseThrow(() -> new ReviewException.PopupNotFound(request.getPopupId()));
 
         // 사용자 존재 확인
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> new ReviewException.UserNotFound(userId));
 
         // 중복 리뷰 확인
         if (reviewRepository.existsByPopupIdAndUserId(request.getPopupId(), userId)) {
-            throw new IllegalArgumentException("이미 해당 팝업에 리뷰를 작성했습니다.");
+            throw new ReviewException.DuplicateReview(request.getPopupId());
         }
 
         // 리뷰 생성 및 저장
@@ -60,11 +61,15 @@ public class ReviewService {
     @Transactional
     public ReviewResponseDto updateReview(Long reviewId, Long userId, ReviewUpdateRequestDto request) {
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리뷰입니다."));
+                .orElseThrow(() -> new ReviewException.ReviewNotFound(reviewId));
 
         // 수정 권한 확인
         if (!review.canEdit(userId)) {
-            throw new IllegalArgumentException("리뷰 수정 권한이 없습니다.");
+            if (review.isBlocked()) {
+                throw new ReviewException.BlockedReview();
+            } else {
+                throw new ReviewException.AccessDenied();
+            }
         }
 
         // 내용 수정
@@ -80,11 +85,15 @@ public class ReviewService {
     @Transactional
     public void deleteReview(Long reviewId, Long userId) {
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리뷰입니다."));
+                .orElseThrow(() -> new ReviewException.ReviewNotFound(reviewId));
 
         // 삭제 권한 확인
         if (!review.canEdit(userId)) {
-            throw new IllegalArgumentException("리뷰 삭제 권한이 없습니다.");
+            if (review.isBlocked()) {
+                throw new ReviewException.BlockedReview();
+            } else {
+                throw new ReviewException.AccessDenied();
+            }
         }
 
         reviewRepository.delete(review);
@@ -135,7 +144,7 @@ public class ReviewService {
     @Transactional(readOnly = true)
     public ReviewResponseDto getUserReviewForPopup(Long popupId, Long userId) {
         Review review = reviewRepository.findByPopupIdAndUserId(popupId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 팝업에 작성한 리뷰가 없습니다."));
+                .orElseThrow(() -> new ReviewException.ReviewNotFound(popupId));
 
         return ReviewResponseDto.from(review);
     }
@@ -144,7 +153,7 @@ public class ReviewService {
     @Transactional(readOnly = true)
     public ReviewResponseDto getReview(Long reviewId) {
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 리뷰입니다."));
+                .orElseThrow(() -> new ReviewException.ReviewNotFound(reviewId));
 
         return ReviewResponseDto.from(review);
     }
