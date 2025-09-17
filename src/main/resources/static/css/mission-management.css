@@ -175,7 +175,7 @@
     font-size: 14px;
     color: #333;
     vertical-align: middle;
-    text-align: center;
+    text-align: left;
 }
 .popup-table tr:hover { background: #f8f9fa; }
 
