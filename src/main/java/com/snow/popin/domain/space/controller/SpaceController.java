@@ -33,7 +33,9 @@ public class SpaceController {
     private final SpaceRepository spaceRepository;
     private final UserRepository userRepository;
 
-    // 모든 공간 목록 조회
+    /**
+     * 모든 공간 목록 조회
+     */
     @GetMapping
     public List<SpaceListResponseDto> listAllSpaces() {
         User me = getCurrentUser();
@@ -41,7 +43,30 @@ public class SpaceController {
         return spaceService.listAll(me);
     }
 
-    //내 등록글 조회
+    /**
+     * 공간 검색
+     * @param keyword 제목, 설명에서 검색할 키워드 (선택)
+     * @param location 주소에서 검색할 위치 (선택)
+     * @param minArea 최소 면적 (선택)
+     * @param maxArea 최대 면적 (선택)
+     * @return 검색 조건에 맞는 공간 목록
+     */
+    @GetMapping("/search")
+    public List<SpaceListResponseDto> searchSpaces(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) Integer minArea,
+            @RequestParam(required = false) Integer maxArea
+    ) {
+        User me = getCurrentUser();
+        log.debug("Searching spaces - keyword: {}, location: {}, minArea: {}, maxArea: {}",
+                keyword, location, minArea, maxArea);
+        return spaceService.searchSpaces(me, keyword, location, minArea, maxArea);
+    }
+
+    /**
+     * 내 등록글 조회
+     */
     @GetMapping("/mine")
     public List<SpaceListResponseDto> listMySpaces() {
         User me = getCurrentUser();
@@ -49,14 +74,18 @@ public class SpaceController {
         return spaceService.listMine(me);
     }
 
-    //공간 상세 조회
+    /**
+     * 공간 상세 조회
+     */
     @GetMapping("/{id}")
     public SpaceResponseDto getDetail(@PathVariable Long id) {
         User me = getCurrentUserOrNull();
         return spaceService.getDetail(me, id);
     }
 
-    //공간 등록
+    /**
+     * 공간 등록
+     */
     @PostMapping
     public ResponseEntity<?> create(@Valid @ModelAttribute SpaceCreateRequestDto dto,
                                     BindingResult br) {
@@ -69,9 +98,9 @@ public class SpaceController {
         return ResponseEntity.ok(Map.of("id", id));
     }
 
-
-
-    //공간 게시글 수정
+    /**
+     * 공간 게시글 수정
+     */
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id,
                                     @Valid @ModelAttribute SpaceUpdateRequestDto dto,
@@ -85,7 +114,9 @@ public class SpaceController {
         return ResponseEntity.ok().build();
     }
 
-    //공간 게시글 삭제
+    /**
+     * 공간 게시글 삭제
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         User me = getCurrentUser();
@@ -94,13 +125,17 @@ public class SpaceController {
         return ResponseEntity.ok().build();
     }
 
-    //문의
+    /**
+     * 문의
+     */
     @PostMapping("/{id}/inquiries")
     public ResponseEntity<?> createInquiry(@PathVariable Long id) {
         return ResponseEntity.accepted().build(); // 202 Accepted
     }
 
-    //신고
+    /**
+     * 신고
+     */
     @PostMapping("/{id}/reports")
     public ResponseEntity<?> report(@PathVariable Long id) {
         User me = getCurrentUser();
@@ -108,7 +143,9 @@ public class SpaceController {
         return ResponseEntity.ok(Map.of("message", "신고가 접수되어 해당 공간이 숨겨졌습니다."));
     }
 
-    // 공간 숨김 처리 (신고 시)
+    /**
+     * 공간 숨김 처리 (신고 시)
+     */
     @Transactional
     public void hideSpace(User reporter, Long spaceId) {
         log.info("Hiding space ID: {} reported by user: {}", spaceId, reporter.getId());
@@ -121,18 +158,22 @@ public class SpaceController {
             throw new IllegalArgumentException("자신의 공간은 신고할 수 없습니다.");
         }
 
-        space.hide(); // Space 엔티티에 hide() 메서드 필요
+        space.hide();
         log.info("Space ID {} hidden successfully", spaceId);
     }
 
-    //공통: 유효성 검증 실패 시 에러 응답 생성
+    /**
+     * 유효성 검증 실패 시 에러 응답 생성
+     */
     private ResponseEntity<Map<String, Object>> badRequest(BindingResult br) {
         Map<String, String> errors = new HashMap<>();
         br.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
         return ResponseEntity.badRequest().body(Map.of("errors", errors));
     }
 
-    //현재 로그인한 User 조회
+    /**
+     * 현재 로그인한 User 조회 (userutil로 삭제 할것 )
+     */
     private User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
@@ -145,7 +186,9 @@ public class SpaceController {
                         new ResponseStatusException(HttpStatus.UNAUTHORIZED, "존재하지 않는 사용자입니다."));
     }
 
-    // 모든 사용자
+    /**
+     * 현재 사용자 조회 (비로그인 허용)
+     */
     private User getCurrentUserOrNull() {
         try {
             return getCurrentUser();

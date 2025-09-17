@@ -57,15 +57,19 @@ public class SecurityConfig {
 
                 .authorizeRequests(authz -> authz
                         // 정적 리소스
-                        .antMatchers("/uploads/**","/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico", "/templates/**", "/*.json").permitAll()
+                        .antMatchers("/uploads/**","/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico", "/templates/**", "/*.json", "/pages/**").permitAll()
 
                         // 공개 페이지
                         .antMatchers("/", "/index.html", "/main", "/error").permitAll()
-                        .antMatchers("/popup/**", "/map", "/users/**", "/missions/**").permitAll()
+                        .antMatchers("/popup/**", "/map", "/users/**", "/mypage/**", "/space/**", "/missions/**").permitAll()
 
 
                         // 인증 관련 페이지궁금
                         .antMatchers("/auth/**").permitAll()
+
+                        // === 채팅 ===
+                        .antMatchers("/chat/**").permitAll()
+                        .antMatchers("/ws/**").permitAll()
 
                         // === 미션 관련 API (조회만 공개) ===
                         .antMatchers(HttpMethod.GET, "/api/mission-sets/**").permitAll()

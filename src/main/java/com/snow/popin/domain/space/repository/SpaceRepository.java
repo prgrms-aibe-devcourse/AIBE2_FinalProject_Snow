@@ -35,4 +35,24 @@ public interface SpaceRepository extends JpaRepository<Space, Long>, JpaSpecific
     // N+1 문제 방지를 위한 fetch join 쿼리 (필요시 사용)
     @Query("SELECT s FROM Space s JOIN FETCH s.owner WHERE s.id = :id")
     Optional<Space> findByIdWithOwner(@Param("id") Long id);
+
+    //검색용 쿼리
+    @Query("SELECT s FROM Space s WHERE " +
+            "s.isPublic = true AND s.isHidden = false AND " +
+            "(:keyword IS NULL OR :keyword = '' OR " +
+            " LOWER(s.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            " LOWER(s.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+            "(:location IS NULL OR :location = '' OR " +
+            " LOWER(s.address) LIKE LOWER(CONCAT('%', :location, '%')) OR " +
+            " (s.venue IS NOT NULL AND (" +
+            "  LOWER(s.venue.roadAddress) LIKE LOWER(CONCAT('%', :location, '%')) OR " +
+            "  LOWER(s.venue.jibunAddress) LIKE LOWER(CONCAT('%', :location, '%')) OR " +
+            "  LOWER(s.venue.detailAddress) LIKE LOWER(CONCAT('%', :location, '%'))))) AND " +
+            "(:minArea IS NULL OR s.areaSize >= :minArea) AND " +
+            "(:maxArea IS NULL OR s.areaSize <= :maxArea) " +
+            "ORDER BY s.createdAt DESC")
+    List<Space> searchSpaces(@Param("keyword") String keyword,
+                             @Param("location") String location,
+                             @Param("minArea") Integer minArea,
+                             @Param("maxArea") Integer maxArea);
 }

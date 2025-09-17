@@ -584,3 +584,12 @@ apiService.deletePopup = async function(popupId) {
 apiService.getMyHostProfile = async function() {
     return await this.get('/hosts/me');
 };
+// === 채팅 api ===
+apiService.getChatMessages = async function(reservationId) {
+    return await this.get(`/chat/${encodeURIComponent(reservationId)}/messages`);
+};
+
+// 채팅자 정보 조회 함수 추가
+apiService.getChatContext = async function(reservationId) {
+    return await this.get(`/chat/${encodeURIComponent(reservationId)}/context`);
+};
