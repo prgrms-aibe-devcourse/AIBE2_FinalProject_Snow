@@ -4,6 +4,12 @@ class PopupDetailManager {
         this.popupId = popupId;
         this.popupData = null;
         this.isBookmarked = false;
+
+        this.fallbackImages = {
+            main: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNEI1QUU0Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+UG9wdXAgSW1hZ2U8L3RleHQ+PC9zdmc+',
+            card: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNEI1QUU0Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+',
+            avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiM4YjVjZjYiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1zaXplPSIxNCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5VPC90ZXh0Pjwvc3ZnPg=='
+        };
     }
 
     // 페이지 초기화
@@ -93,8 +99,12 @@ class PopupDetailManager {
         // 메인 이미지
         const mainImg = document.getElementById('popup-main-img');
         if (mainImg) {
-            mainImg.src = this.popupData.thumbnailUrl || 'https://via.placeholder.com/600x300/4B5AE4/ffffff?text=🎪';
+            mainImg.src = this.popupData.thumbnailUrl || this.fallbackImages.main;
             mainImg.alt = this.popupData.title;
+            mainImg.onerror = function() {
+                this.onerror = null; // 무한루프 방지
+                this.src = this.fallbackImages.main;
+            }.bind(mainImg);
         }
 
         // 제목
@@ -246,9 +256,9 @@ class PopupDetailManager {
 
         const cardsHTML = popups.map(popup => `
             <div class="similar-popup-card" data-id="${popup.id}">
-                <img src="${popup.mainImageUrl || popup.thumbnailUrl || 'https://via.placeholder.com/150x150/4B5AE4/ffffff?text=🎪'}" 
+                <img src="${popup.mainImageUrl || popup.thumbnailUrl || this.fallbackImages.card}" 
                      alt="${esc(popup.title)}" class="similar-card-image"
-                     onerror="this.src='https://via.placeholder.com/150x150/4B5AE4/ffffff?text=🎪'">
+                     onerror="this.onerror=null; this.src='${this.fallbackImages.card}'">
                 <div class="similar-card-content">
                     <h3 class="similar-card-title">${esc(popup.title)}</h3>
                     <p class="similar-card-info">${esc(popup.region)}</p>
@@ -300,11 +310,14 @@ class PopupDetailManager {
             return;
         }
 
-        // TODO: 예약 페이지로 이동 또는 예약 모달 표시
-        if (this.popupData.reservationLink) {
+        if (this.popupData.reservationAvailable) {
+            window.location.href = `/popup/${this.popupId}/reservation`;
+        } else if (this.popupData.waitlistAvailable) {
+            // 대기열 등록 기능 (추후 구현)
+            alert('대기열 등록 기능은 준비 중입니다.');
+        } else if (this.popupData.reservationLink) {
+            // 외부 예약 링크가 있는 경우
             window.open(this.popupData.reservationLink, '_blank');
-        } else {
-            alert('예약 기능은 준비 중입니다.');
         }
     }
 

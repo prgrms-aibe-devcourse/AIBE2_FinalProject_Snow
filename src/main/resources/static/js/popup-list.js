@@ -109,20 +109,22 @@ class PopupListManager {
 
     // 팝업 카드 HTML 생성
     createPopupCard(popup) {
+        const fallbackImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNjY3ZWVhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+';
+
         return `
-            <div class="popup-card" data-id="${popup.id}">
-                <div class="card-image-wrapper">
-                    <img src="${popup.thumbnailUrl || 'https://via.placeholder.com/150x150/667eea/ffffff?text=🎪'}" 
-                         alt="${popup.title}" class="card-image" 
-                         onerror="this.src='https://via.placeholder.com/150x150/667eea/ffffff?text=🎪'">
-                </div>
-                <div class="card-content">
-                    <h3 class="card-title">${popup.title}</h3>
-                    <p class="card-info">${popup.startDate.replaceAll('-', '.')} ~ ${popup.endDate.replaceAll('-', '.')}</p>
-                    <p class="card-info location">${popup.region || popup.location}</p>
-                </div>
+        <div class="popup-card" data-id="${popup.id}">
+            <div class="card-image-wrapper">
+                <img src="${popup.mainImageUrl || fallbackImage}" 
+                     alt="${popup.title}" class="card-image" 
+                     onerror="this.onerror=null; this.src='${fallbackImage}'">
             </div>
-        `;
+            <div class="card-content">
+                <h3 class="card-title">${popup.title}</h3>
+                <p class="card-info">${popup.period}</p>
+                <p class="card-info location">${popup.region || '장소 미정'}</p>
+            </div>
+        </div>
+    `;
     }
 
     // 초기 데이터 로드
@@ -146,7 +148,7 @@ class PopupListManager {
         await this.fetchAndDisplayPopups(false);
     }
 
-    // 데이터 가져오기 및 표시
+    // 데이터 가져오기 및 표시 (수정된 부분)
     async fetchAndDisplayPopups(isLoadMore = false) {
         if (this.isFetching || !this.hasMore) return;
 
@@ -169,6 +171,7 @@ class PopupListManager {
 
             const response = await apiService.getPopups(params);
 
+            // API 응답 구조에 맞게 'popups' 필드 사용
             if (response.popups && response.popups.length > 0) {
                 this.renderPopups(response.popups);
                 this.currentPage++;

@@ -1,4 +1,4 @@
-// 팝업 예약하기 페이지 매니저 - popup-detail.js 구조 참고
+// 팝업 예약하기 페이지 매니저
 class PopupReservationManager {
     constructor(popupId) {
         this.popupId = popupId;
@@ -254,7 +254,7 @@ class PopupReservationManager {
             submitBtn.disabled = true;
             submitBtn.textContent = '예약 중...';
 
-            // 예약 데이터 구성 - 백엔드 ReservationRequestDto와 맞춤
+            // 예약 데이터 구성
             const reservationData = {
                 name: document.getElementById('name').value.trim(),
                 phone: document.getElementById('phone').value.trim(),
@@ -450,7 +450,7 @@ class PopupReservationManager {
         }
     }
 
-    // 상태 관리 메서드들 (popup-detail.js와 동일한 패턴)
+    // 상태 관리 메서드들
     showLoading() {
         document.getElementById('reservation-loading').style.display = 'flex';
         document.getElementById('reservation-content').style.display = 'none';
@@ -471,11 +471,10 @@ class PopupReservationManager {
 
     // 컴포넌트 정리
     cleanup() {
-        // 현재는 특별한 정리 작업 없음
     }
 }
 
-// 모달 버튼 이벤트 (전역 함수)
+// 모달 버튼 이벤트
 function goToPopupDetail() {
     const pathParts = window.location.pathname.split('/');
     const popupId = pathParts[2];
@@ -486,7 +485,7 @@ function goToMyPage() {
     window.location.href = '/mypage/reservations';
 }
 
-// 전역 등록 (popup-detail.js와 동일한 패턴)
+// 전역 등록
 window.PopupReservationManager = PopupReservationManager;
 window.goToPopupDetail = goToPopupDetail;
 window.goToMyPage = goToMyPage;
