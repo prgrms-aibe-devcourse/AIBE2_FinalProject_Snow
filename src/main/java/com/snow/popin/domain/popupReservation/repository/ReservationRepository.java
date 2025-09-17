@@ -49,7 +49,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     // 특정 팝업의 특정 시간대 예약 개수 조회
     @Query("SELECT COUNT(r) FROM Reservation r WHERE r.popup = :popup " +
             "AND r.reservationDate >= :startTime AND r.reservationDate < :endTime " +
-            "AND r.status != 'CANCELLED'")
+            "AND r.status <> com.snow.popin.domain.popupReservation.entity.ReservationStatus.CANCELLED")
     long countByPopupAndReservationDateBetween(@Param("popup") Popup popup,
                                                @Param("startTime") LocalDateTime startTime,
                                                @Param("endTime") LocalDateTime endTime);
@@ -62,7 +62,9 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
                                                     @Param("date") LocalDateTime date);
 
     // 특정 팝업의 특정 시간대 예약 인원 수 조회 (파티 사이즈 합계)
-    @Query("SELECT COALESCE(SUM(r.partySize), 0) FROM Reservation r WHERE r.popup = :popup AND r.reservationDate >= :startTime AND r.reservationDate < :endTime AND r.status != 'CANCELLED'")
+    @Query("SELECT COALESCE(SUM(r.partySize), 0) FROM Reservation r WHERE r.popup = :popup " +
+            "AND r.reservationDate >= :startTime AND r.reservationDate < :endTime " +
+            "AND r.status <> com.snow.popin.domain.popupReservation.entity.ReservationStatus.CANCELLED")
     long sumPartySizeByPopupAndReservationDateBetween(@Param("popup") Popup popup,
                                                       @Param("startTime") LocalDateTime startTime,
                                                       @Param("endTime") LocalDateTime endTime);

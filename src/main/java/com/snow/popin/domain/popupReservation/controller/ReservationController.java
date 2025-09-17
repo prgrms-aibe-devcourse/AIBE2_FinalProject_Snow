@@ -9,9 +9,12 @@ import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.FutureOrPresent;
+import javax.validation.constraints.Positive;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +32,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/reservations")
 @RequiredArgsConstructor
+@Validated
 public class ReservationController {
 
     private final ReservationService reservationService;
@@ -101,7 +105,7 @@ public class ReservationController {
 
     // 특정 팝업의 예약 가능한 날짜 목록 조회
     @GetMapping("/popups/{popupId}/available-dates")
-    public ResponseEntity<List<LocalDate>> getAvailableDates(@PathVariable Long popupId) {
+    public ResponseEntity<List<LocalDate>> getAvailableDates(@PathVariable @Positive Long popupId) {
         List<LocalDate> availableDates = reservationService.getAvailableDates(popupId);
         return ResponseEntity.ok(availableDates);
     }
@@ -109,8 +113,8 @@ public class ReservationController {
     // 특정 팝업의 특정 날짜에 예약 가능한 시간 슬롯 조회
     @GetMapping("/popups/{popupId}/available-slots")
     public ResponseEntity<List<TimeSlotDto>> getAvailableTimeSlots(
-            @PathVariable Long popupId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+            @PathVariable @Positive Long popupId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @FutureOrPresent LocalDate date) {
 
         List<TimeSlotDto> availableSlots = reservationService.getAvailableTimeSlots(popupId, date);
         return ResponseEntity.ok(availableSlots);

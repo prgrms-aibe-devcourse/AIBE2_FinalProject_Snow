@@ -99,12 +99,12 @@ class PopupDetailManager {
         // 메인 이미지
         const mainImg = document.getElementById('popup-main-img');
         if (mainImg) {
-            mainImg.src = this.popupData.thumbnailUrl || this.fallbackImages.main;
+            mainImg.src = this.popupData.mainImageUrl || this.popupData.thumbnailUrl || this.fallbackImages.main;
             mainImg.alt = this.popupData.title;
-            mainImg.onerror = function() {
-                this.onerror = null; // 무한루프 방지
-                this.src = this.fallbackImages.main;
-            }.bind(mainImg);
+            mainImg.onerror = () => {
+                mainImg.onerror = null; // 무한루프 방지
+                mainImg.src = this.fallbackImages.main;
+            };
         }
 
         // 제목

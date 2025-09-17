@@ -110,18 +110,19 @@ class PopupListManager {
     // 팝업 카드 HTML 생성
     createPopupCard(popup) {
         const fallbackImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNjY3ZWVhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+';
+        const safeSrc = isSafeUrl(popup.mainImageUrl) ? popup.mainImageUrl : fallbackImage;
 
         return `
         <div class="popup-card" data-id="${popup.id}">
             <div class="card-image-wrapper">
-                <img src="${popup.mainImageUrl || fallbackImage}" 
-                     alt="${popup.title}" class="card-image" 
+                <img src="${safeSrc}" 
+                     alt="${esc(popup.title)}" class="card-image" loading="lazy" decoding="async"
                      onerror="this.onerror=null; this.src='${fallbackImage}'">
             </div>
             <div class="card-content">
-                <h3 class="card-title">${popup.title}</h3>
-                <p class="card-info">${popup.period}</p>
-                <p class="card-info location">${popup.region || '장소 미정'}</p>
+                <h3 class="card-title">${esc(popup.title)}</h3>
+                <p class="card-info">${esc(popup.period)}</p>
+                <p class="card-info location">${esc(popup.region || '장소 미정')}</p>
             </div>
         </div>
     `;
@@ -226,6 +227,13 @@ class PopupListManager {
             this._onScroll = null;
         }
     }
+}
+
+function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function isSafeUrl(url) {
+    try { const u = new URL(url, window.location.origin); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; }
 }
 
 // 전역 인스턴스

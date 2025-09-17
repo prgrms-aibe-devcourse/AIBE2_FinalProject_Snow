@@ -10,11 +10,11 @@ import java.util.List;
 
 public interface PopupHoursRepository extends JpaRepository<PopupHours, Long> {
     @Query("SELECT ph FROM PopupHours ph WHERE ph.popup.id = :popupId")
-    List<PopupHours> findByPopupId(Long popupId);
+    List<PopupHours> findByPopupId(@Param("popupId") Long popupId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM PopupHours ph WHERE ph.popup.id = :popupId")
-    void deleteByPopupId(Long popupId);
+    int deleteByPopupId(@Param("popupId") Long popupId);
 
     // 특정 팝업의 특정 요일에 대한 운영시간 조회
     List<PopupHours> findByPopupIdAndDayOfWeek(Long popupId, Integer dayOfWeek);

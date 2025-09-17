@@ -122,6 +122,15 @@ class PopupSearchManager {
                 }
             });
         }
+
+        if (this.searchResults) {
+            this.searchResults.addEventListener('click', (e) => {
+                const card = e.target.closest('.popup-card');
+                if (!card) return;
+                const popupId = card.dataset.popupId;
+                if (popupId) goToPopupDetail(popupId);
+            });
+        }
     }
 
     // 입력 처리를 위한 디바운싱 핸들러
@@ -262,19 +271,25 @@ class PopupSearchManager {
         this.showSearchResults();
     }
 
-    // 검색 결과 카드 생성 (수정된 부분)
+    // 검색 결과 카드 생성
     createSearchResultCard(popup) {
+        const safeTitle = this.escapeHtml(popup?.title ?? '');
+        const safeRegion = this.escapeHtml(popup?.region ?? '장소 미정');
+        const safePeriod = this.escapeHtml(popup?.period ?? '');
+        const imgSrc = this.escapeHtml(popup?.mainImageUrl || 'https://via.placeholder.com/150');
+        const popupId = encodeURIComponent(String(popup?.id ?? ''));
+
         return `
-            <div class="popup-card" onclick="goToPopupDetail('${popup.id}')">
+            <div class="popup-card" data-popup-id="${popupId}">
                 <div class="card-image-wrapper">
-                    <img src="${popup.mainImageUrl || 'https://via.placeholder.com/150'}" 
-                         alt="${popup.title}" class="card-image" 
-                         onerror="this.src='https://via.placeholder.com/150'">
+                    <img src="${imgSrc}" 
+                        alt="${safeTitle}" class="card-image" 
+                        onerror="this.src='https://via.placeholder.com/150'">
                 </div>
                 <div class="card-content">
-                    <h3 class="card-title">${popup.title}</h3>
-                    <p class="card-info">${popup.period}</p>
-                    <p class="card-info location">${popup.region || '장소 미정'}</p>
+                    <h3 class="card-title">${safeTitle}</h3>
+                    <p class="card-info">${safePeriod}</p>
+                    <p class="card-info location">${safeRegion}</p>
                 </div>
             </div>`;
     }

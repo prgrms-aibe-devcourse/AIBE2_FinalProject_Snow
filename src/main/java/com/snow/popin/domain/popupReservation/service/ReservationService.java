@@ -76,17 +76,27 @@ public class ReservationService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 예약한 팝업입니다.");
         }
 
-        // 예약 가능한 시간인지 확인
+        if (dto.getReservationDate() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "예약 일시를 선택해 주세요.");
+        }
+        if (dto.getPartySize() == null || dto.getPartySize() < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "예약 인원을 1명 이상 입력해 주세요.");
+        }
+
         LocalDate reservationDate = dto.getReservationDate().toLocalDate();
         LocalTime reservationTime = dto.getReservationDate().toLocalTime();
 
         List<TimeSlotDto> availableSlots = getAvailableTimeSlots(popupId, reservationDate);
+        TimeSlotDto matchedSlot = availableSlots.stream()
+                .filter(slot -> slot.getStartTime().equals(reservationTime))
+                .findFirst()
+                .orElse(null);
 
-        boolean isTimeAvailable = availableSlots.stream()
-                .anyMatch(slot -> slot.getStartTime().equals(reservationTime) && slot.isAvailable());
-
-        if (!isTimeAvailable) {
+        if (matchedSlot == null || !matchedSlot.isAvailable()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "선택한 시간은 예약이 불가능합니다.");
+        }
+        if (dto.getPartySize() > matchedSlot.getRemainingSlots()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "잔여 인원보다 많은 인원은 예약할 수 없습니다.");
         }
 
         Reservation reservation = Reservation.create(
