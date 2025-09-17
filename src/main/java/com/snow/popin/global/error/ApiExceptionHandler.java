@@ -4,6 +4,7 @@ import com.snow.popin.global.constant.ErrorCode;
 import com.snow.popin.global.exception.GeneralException;
 import com.snow.popin.global.exception.PopupNotFoundException;
 
+import com.snow.popin.global.exception.ReviewException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -40,6 +41,18 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(errorResponse);
+    }
+
+    @ExceptionHandler(ReviewException.ReviewNotFound.class)
+    public ResponseEntity<Object> handleReviewNotFound(ReviewException.ReviewNotFound e, WebRequest request) {
+        ApiErrorResponse errorResponse = ApiErrorResponse.of(ErrorCode.NOT_FOUND, e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    @ExceptionHandler(ReviewException.AccessDenied.class)
+    public ResponseEntity<Object> handleReviewAccessDenied(ReviewException.AccessDenied e, WebRequest request) {
+        ApiErrorResponse errorResponse = ApiErrorResponse.of(ErrorCode.ACCESS_DENIED, e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 
     @Override

@@ -21,7 +21,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/reviews")
 @RequiredArgsConstructor
-class ReviewController {
+public class ReviewController {
 
     private final ReviewService reviewService;
     private final UserUtil userUtil;

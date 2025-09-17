@@ -28,6 +28,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     // 사용자의 특정 팝업 리뷰 조회
     Optional<Review> findByPopupIdAndUserId(Long popupId, Long userId);
 
+    long countByPopupIdAndIsBlockedFalse(Long popupId);
+
     // 특정 팝업의 평점 통계
     @Query("SELECT AVG(r.rating), COUNT(r) FROM Review r " +
             "WHERE r.popupId = :popupId AND r.isBlocked = false")

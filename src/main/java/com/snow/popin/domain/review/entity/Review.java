@@ -12,6 +12,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(
+    name = "reviews",
     indexes = {
             @Index(name = "idx_review_popup_created", columnList = "popup_id, created_at DESC"),
             @Index(name = "idx_review_user", columnList = "user_id"),
