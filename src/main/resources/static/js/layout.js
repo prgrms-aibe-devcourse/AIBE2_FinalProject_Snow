@@ -346,8 +346,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 로그인된 사용자면 알림 상태 초기화
         const userInfo = getUserInfo();
         if (userInfo?.userId) {
-            subscribeNotifications(userInfo.userId);
-
             try {
                 // 초기 알림 목록 조회 → 뱃지 상태 업데이트
                 const notifications = await apiService.getNotifications();
@@ -476,3 +474,4 @@ function updateNotificationBadge(show) {
         if (badge) badge.remove();
     }
 }
+
