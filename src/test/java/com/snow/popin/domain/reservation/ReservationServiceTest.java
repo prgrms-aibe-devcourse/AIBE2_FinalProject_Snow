@@ -22,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -63,25 +64,32 @@ public class ReservationServiceTest {
     void createReservation_Success() {
         // given
         User user = createTestUser(1L);
-        Popup popup = createTestPopup(true); // 예약 가능하도록 설정
-        Reservation testReservation = createTestReservation(user, popup);
-        ReflectionTestUtils.setField(testReservation, "id", 1L); // ID 설정
+        Popup popup = createTestPopup(true);
 
         ReservationRequestDto dto = new ReservationRequestDto();
-        // 예약 시간을 유효한 시간대인 오후 2시로 설정
         dto.setReservationDate(LocalDate.now().plusDays(1).atTime(14, 0));
+        dto.setName(user.getName());
+        dto.setPhone("010-1234-5678");
+        dto.setPartySize(2);
 
         when(popupRepository.findById(anyLong())).thenReturn(Optional.of(popup));
         when(reservationRepository.existsByPopupAndUser(any(Popup.class), any(User.class))).thenReturn(false);
         when(popupHoursRepository.findByPopupIdAndDayOfWeek(anyLong(), any(Integer.class))).thenReturn(List.of(createTestPopupHours(popup)));
         when(reservationRepository.countByPopupAndReservationDateBetween(any(Popup.class), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(0L);
-        when(reservationRepository.save(any(Reservation.class))).thenReturn(testReservation);
+
+        // thenAnswer를 사용하여 save 메소드가 호출될 때 동적으로 ID를 설정
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer((Answer<Reservation>) invocation -> {
+            Reservation reservation = invocation.getArgument(0);
+            ReflectionTestUtils.setField(reservation, "id", 1L); // 전달된 객체에 ID 설정
+            return reservation; // ID가 설정된 객체를 반환
+        });
 
         // when
         Long reservationId = reservationService.createReservation(user, 1L, dto);
 
         // then
         assertThat(reservationId).isNotNull();
+        assertThat(reservationId).isEqualTo(1L);
     }
 
     @Test
