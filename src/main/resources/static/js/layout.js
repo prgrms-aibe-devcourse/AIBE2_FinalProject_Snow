@@ -360,36 +360,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// === 알림 SSE 구독 ===
-function subscribeNotifications(userId) {
-    if (!userId) return;
-
-    const eventSource = new EventSource(`/api/notifications/subscribe?userId=${userId}`);
-
-    eventSource.onmessage = (event) => {
-        try {
-            const notification = JSON.parse(event.data);
-            console.log("새 알림:", notification);
-
-            // 뱃지 표시
-            updateNotificationBadge(true);
-
-            // 드롭다운 열려 있으면 즉시 추가
-            const listEl = document.getElementById("notificationList");
-            if (listEl && !document.getElementById("notificationDropdown").classList.contains("hidden")) {
-                const li = buildNotificationItem(notification);
-                listEl.prepend(li);
-            }
-        } catch (err) {
-            console.error("알림 처리 오류:", err);
-        }
-    };
-
-    eventSource.onerror = (err) => {
-        console.error("SSE 연결 오류:", err);
-        eventSource.close();
-    };
-}
 
 // === 알림 목록 불러오기 ===
 async function showNotifications() {

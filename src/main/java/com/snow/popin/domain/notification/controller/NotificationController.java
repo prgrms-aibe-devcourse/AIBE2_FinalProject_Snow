@@ -48,28 +48,6 @@ public class NotificationController {
         return ResponseEntity.ok().build();
     }
 
-    /** SSE 구독 엔드포인트 */
-    @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribe() {
-        Long userId = userUtil.getCurrentUserId();
-        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-
-        // 종료/타임아웃 시 제거
-        emitter.onCompletion(() -> emitters.remove(userId));
-        emitter.onTimeout(() -> emitters.remove(userId));
-
-        emitters.put(userId, emitter);
-
-        // 연결 확인용 더미 이벤트
-        try {
-            emitter.send(SseEmitter.event().name("INIT").data("connected"));
-        } catch (IOException e) {
-            emitters.remove(userId);
-        }
-
-        return emitter;
-    }
-
     /** 예약 확정 시 알림 (테스트용 엔드포인트) */
     @PostMapping("/reservation")
     public ResponseEntity<Void> sendReservationNotification(@RequestParam Long userId) {
