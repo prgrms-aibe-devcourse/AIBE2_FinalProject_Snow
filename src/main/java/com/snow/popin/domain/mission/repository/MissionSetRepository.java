@@ -1,6 +1,7 @@
 package com.snow.popin.domain.mission.repository;
 
 import com.snow.popin.domain.mission.entity.MissionSet;
+import com.snow.popin.domain.mission.entity.MissionSetStatus;
 import com.snow.popin.domain.mission.entity.UserMission;
 import com.snow.popin.domain.user.entity.User;
 import org.springframework.data.domain.Page;
@@ -13,7 +14,7 @@ import java.util.UUID;
 
 public interface MissionSetRepository extends JpaRepository<MissionSet, UUID> {
     Page<MissionSet> findByPopupId(Long popupId, Pageable pageable);
-    Page<MissionSet> findByStatus(String status, Pageable pageable);
+    Page<MissionSet> findByStatus(MissionSetStatus status, Pageable pageable);
 
 
     @Query("select um from UserMission um " +

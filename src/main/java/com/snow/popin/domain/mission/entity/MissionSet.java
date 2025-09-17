@@ -1,4 +1,3 @@
-// com/snow/popin/domain/mission/entity/MissionSet.java
 package com.snow.popin.domain.mission.entity;
 
 import com.snow.popin.domain.popup.entity.Popup;
@@ -94,6 +93,18 @@ public class MissionSet extends BaseEntity {
     public boolean isCleared(long successCount) {
         int required = this.requiredCount != null ? this.requiredCount : 0;
         return successCount >= required;
+    }
+
+    public void setRequiredCount(Integer requiredCount) {
+        this.requiredCount = requiredCount;
+    }
+
+    public void setStatus(MissionSetStatus status) {
+        this.status = status;
+    }
+
+    public void setRewardPin(String rewardPin) {
+        this.rewardPin = rewardPin;
     }
 
 }

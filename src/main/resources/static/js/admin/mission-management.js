@@ -197,7 +197,7 @@ class MissionManagement {
     const start = Math.max(0, number - 2);
     const end = Math.min(totalPages - 1, number + 2);
     for (let i = start; i <= end; i++) {
-      h += `<button class="${i===number? enabled:''}" onclick="missionManagement.goToPage(${i+1})">${i+1}</button>`;
+      h += `<button class="${i===number ? 'active' : ''}" onclick="missionManagement.goToPage(${i+1})">${i+1}</button>`;
     }
     h += `<button ${last ? 'disabled' : ''} onclick="missionManagement.goToPage(${number+2})">다음</button>`;
     document.getElementById('pagination').innerHTML = h;
@@ -251,17 +251,20 @@ class MissionManagement {
 
     const modalBody = document.getElementById('modalBody');
     modalBody.innerHTML = `
-      <div class="detail-section">
-        <h3>기본 정보</h3>
-        <div class="detail-grid">
-          <div class="detail-item"><span class="detail-label">미션셋 ID</span><span class="detail-value mono small">${idDisp}</span></div>
-          <div class="detail-item"><span class="detail-label">팝업</span><span class="detail-value" title="${popupId ?? ''}">${this.escapeHtml(popupTitle)}</span></div>
-          <div class="detail-item"><span class="detail-label">필요 완료 수</span><span class="detail-value">${set.requiredCount ?? 0}</span></div>
-          <div class="detail-item"><span class="detail-label">상태</span><span class="detail-value"><span class="status-badge ${(set.status||'').toLowerCase()}">${set.status || '-'}</span></span></div>
-          <div class="detail-item"><span class="detail-label">리워드 PIN</span><span class="detail-value">${set.rewardPin || '-'}</span></div>
-          <div class="detail-item"><span class="detail-label">생성일</span><span class="detail-value">${this.formatDate(set.createdAt)}</span></div>
+      <div class="detail-section" id="missionSetInfo">
+          <h3>기본 정보</h3>
+          <div class="detail-grid" id="missionSetInfoFields">
+            <div class="detail-item"><span class="detail-label">미션셋 ID</span><span class="detail-value mono small">${idDisp}</span></div>
+            <div class="detail-item"><span class="detail-label">팝업</span><span class="detail-value" title="${popupId ?? ''}">${this.escapeHtml(popupTitle)}</span></div>
+            <div class="detail-item"><span class="detail-label">필요 완료 수</span><span class="detail-value" id="dispRequiredCount">${set.requiredCount ?? 0}</span></div>
+            <div class="detail-item"><span class="detail-label">상태</span><span class="detail-value"><span class="status-badge ${(set.status||'').toLowerCase()}" id="dispStatus">${set.status || '-'}</span></span></div>
+            <div class="detail-item"><span class="detail-label">리워드 PIN</span><span class="detail-value" id="dispRewardPin">${set.rewardPin || '-'}</span></div>
+            <div class="detail-item"><span class="detail-label">생성일</span><span class="detail-value">${this.formatDate(set.createdAt)}</span></div>
+          </div>
+          <div style="margin-top:12px">
+            <button class="button button-primary" id="editBtn">수정</button>
+          </div>
         </div>
-      </div>
 
       <div class="detail-section">
         <h3>미션 목록</h3>
@@ -282,6 +285,7 @@ class MissionManagement {
       </div>
     `;
     document.getElementById('detailModal').style.display = 'block';
+    document.getElementById('editBtn').addEventListener('click', () => this.enableEditMode(set));
   }
 
   closeDetailModal() {
@@ -355,6 +359,26 @@ class MissionManagement {
     }
   }
 
+  async saveMissionSet() {
+    if (!this.selectedSetId) return;
+
+    const requiredCount = Number(document.getElementById('editRequiredCount')?.value || 0);
+    let status = (document.getElementById('editStatus')?.value || 'ENABLED').toUpperCase();
+    // 혹시 예전 값이 들어오면 매핑
+    if (status === 'ACTIVE') status = 'ENABLED';
+    if (status === 'COMPLETED') status = 'DISABLED';
+    const rewardPin = (document.getElementById('editRewardPin')?.value || '').trim();
+
+    try {
+      await apiService.updateMissionSet(this.selectedSetId, { requiredCount, status, rewardPin });
+      alert('저장했습니다.');
+      await this.viewDetail(this.selectedSetId); // 상세 갱신
+      this.loadMissionSets();                     // 목록 갱신
+    } catch (e) {
+      console.error(e);
+      alert('저장에 실패했습니다.');
+    }
+  }
 
   // ===== 미션 추가/삭제 =====
   openAddMissionModal() {
@@ -429,6 +453,42 @@ class MissionManagement {
       alert('미션 삭제에 실패했습니다.');
     }
   }
+
+
+  enableEditMode(set) {
+    const fields = document.getElementById('missionSetInfoFields');
+    fields.classList.add('edit-mode');
+    fields.innerHTML = `
+    <div class="detail-item">
+      <span class="detail-label">필요 완료 수</span>
+      <input type="number" id="editRequiredCount" value="${set.requiredCount ?? 0}" min="0"/>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">상태</span>
+      <select id="editStatus">
+        <option value="ENABLED" ${set.status==='ENABLED'?'selected':''}>ENABLED</option>
+        <option value="DISABLED" ${set.status==='DISABLED'?'selected':''}>DISABLED</option>
+      </select>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">리워드 PIN</span>
+      <input type="text" id="editRewardPin" value="${set.rewardPin || ''}" maxlength="80"/>
+    </div>
+  `;
+
+    // 버튼 영역 교체
+    const btnArea = document.querySelector('#missionSetInfo > div:last-child');
+    btnArea.innerHTML = `
+    <button class="button button-primary" onclick="missionManagement.saveMissionSet()">저장</button>
+    <button class="button button-secondary" onclick="missionManagement.cancelEdit()">취소</button>
+  `;
+  }
+
+  cancelEdit() {
+    // 다시 상세를 로드해서 원래 표시 모드로 돌려놓기
+    this.viewDetail(this.selectedSetId);
+  }
+
 
   async deleteSet() {
     if (!this.selectedSetId) return;

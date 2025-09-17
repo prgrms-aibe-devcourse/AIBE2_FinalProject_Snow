@@ -632,3 +632,7 @@ apiService.listAdminPopups = async function ({ page = 0, size = 500 } = {}) {
     return await this.get(`/admin/popups?${sp.toString()}`);
 };
 
+apiService.updateMissionSet = async function(setId, data) {
+    return await this.put(`/admin/mission-sets/${encodeURIComponent(setId)}`, data);
+};
+

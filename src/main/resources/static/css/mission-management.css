@@ -470,3 +470,23 @@
     .modal-actions { flex-direction: column; }
     .action-buttons { flex-direction: column; }
 }
+
+.edit-mode input[type="text"],
+.edit-mode input[type="number"],
+.edit-mode select {
+    width: 100%;
+    padding: 6px 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    color: #222;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.edit-mode input:focus,
+.edit-mode select:focus {
+    border-color: #007bff;
+    outline: none;
+}
