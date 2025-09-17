@@ -22,9 +22,13 @@ public class MissionSetViewDto {
     private final Long successCount;
     private final Boolean cleared;
 
+    private final Double latitude;
+    private final Double longitude;
+
     public static MissionSetViewDto from(MissionSet set, Long userId,
                                          List<MissionSummaryDto> missions,
-                                         Long successCount, boolean cleared) {
+                                         Long successCount, boolean cleared,
+                                         Double latitude, Double longitude) {
         List<MissionSummaryDto> safeMissions =
                 (missions == null) ? Collections.emptyList() : missions;
         int totalMissions = safeMissions.size();
@@ -38,6 +42,8 @@ public class MissionSetViewDto {
                 .userId(userId)
                 .successCount(successCount)
                 .cleared(cleared)
+                .latitude(latitude)
+                .longitude(longitude)
                 .build();
     }
 }

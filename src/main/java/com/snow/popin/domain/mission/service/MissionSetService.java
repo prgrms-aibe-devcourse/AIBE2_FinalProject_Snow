@@ -7,23 +7,24 @@ import com.snow.popin.domain.mission.entity.UserMission;
 import com.snow.popin.domain.mission.entity.UserMissionStatus;
 import com.snow.popin.domain.mission.repository.MissionSetRepository;
 import com.snow.popin.domain.mission.repository.UserMissionRepository;
+import com.snow.popin.domain.popup.entity.Popup;
+import com.snow.popin.domain.popup.repository.PopupRepository;
 import com.snow.popin.global.exception.MissionException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class MissionSetService {
 
     private final MissionSetRepository missionSetRepository;
     private final UserMissionRepository userMissionRepository;
-
-    public MissionSetService(MissionSetRepository missionSetRepository,
-                             UserMissionRepository userMissionRepository) {
-        this.missionSetRepository = missionSetRepository;
-        this.userMissionRepository = userMissionRepository;
-    }
+    private final PopupRepository popupRepository;
 
     public MissionSetViewDto getOne(UUID missionSetId, Long userId) {
         MissionSet ms = missionSetRepository.findById(missionSetId)
@@ -83,7 +84,19 @@ public class MissionSetService {
         int req = (set.getRequiredCount() == null ? 0 : set.getRequiredCount());
         boolean cleared = successCnt >= req;
 
-        return MissionSetViewDto.from(set, userId, missions, successCnt, cleared);
+        // popup 좌표 꺼내오기
+        Double latitude = null;
+        Double longitude = null;
+        if (set.getPopupId() != null) {
+            Popup popup = popupRepository.findById(set.getPopupId())
+                    .orElse(null);
+            if (popup != null && popup.getVenue() != null) {
+                latitude = popup.getVenue().getLatitude();
+                longitude = popup.getVenue().getLongitude();
+            }
+        }
+
+        return MissionSetViewDto.from(set, userId, missions, successCnt, cleared, latitude, longitude);
 
     }
 }

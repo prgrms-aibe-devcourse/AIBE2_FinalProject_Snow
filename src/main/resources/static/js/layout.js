@@ -346,8 +346,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 로그인된 사용자면 알림 상태 초기화
         const userInfo = getUserInfo();
         if (userInfo?.userId) {
-            subscribeNotifications(userInfo.userId);
-
             try {
                 // 초기 알림 목록 조회 → 뱃지 상태 업데이트
                 const notifications = await apiService.getNotifications();
@@ -360,36 +358,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// === 알림 SSE 구독 ===
-function subscribeNotifications(userId) {
-    if (!userId) return;
-
-    const eventSource = new EventSource(`/api/notifications/subscribe?userId=${userId}`);
-
-    eventSource.onmessage = (event) => {
-        try {
-            const notification = JSON.parse(event.data);
-            console.log("새 알림:", notification);
-
-            // 뱃지 표시
-            updateNotificationBadge(true);
-
-            // 드롭다운 열려 있으면 즉시 추가
-            const listEl = document.getElementById("notificationList");
-            if (listEl && !document.getElementById("notificationDropdown").classList.contains("hidden")) {
-                const li = buildNotificationItem(notification);
-                listEl.prepend(li);
-            }
-        } catch (err) {
-            console.error("알림 처리 오류:", err);
-        }
-    };
-
-    eventSource.onerror = (err) => {
-        console.error("SSE 연결 오류:", err);
-        eventSource.close();
-    };
-}
 
 // === 알림 목록 불러오기 ===
 async function showNotifications() {
@@ -506,3 +474,4 @@ function updateNotificationBadge(show) {
         if (badge) badge.remove();
     }
 }
+
