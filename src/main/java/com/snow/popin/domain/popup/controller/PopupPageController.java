@@ -29,4 +29,11 @@ public class PopupPageController {
         log.info("지도 페이지 요청");
         return "forward:/templates/pages/popup/map.html";
     }
+
+    // 팝업 예약하기 페이지
+    @GetMapping("/popup/{id:\\d+}/reservation")
+    public String popupReservation(@PathVariable Long id) {
+        log.info("팝업 예약하기 페이지 요청 - ID: {}", id);
+        return "forward:/templates/pages/popup/popup-reservation.html";
+    }
 }

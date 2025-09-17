@@ -23,7 +23,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
      * @return 예약 목록
      */
     List<Reservation> findByUser(User currentUser);
-
     /**
      * 특정 팝업의 예약 목록 조회
      *
@@ -47,4 +46,26 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
      */
     boolean existsByPopupAndUser(Popup popup, User currentUser);
 
+    // 특정 팝업의 특정 시간대 예약 개수 조회
+    @Query("SELECT COUNT(r) FROM Reservation r WHERE r.popup = :popup " +
+            "AND r.reservationDate >= :startTime AND r.reservationDate < :endTime " +
+            "AND r.status <> com.snow.popin.domain.popupReservation.entity.ReservationStatus.CANCELLED")
+    long countByPopupAndReservationDateBetween(@Param("popup") Popup popup,
+                                               @Param("startTime") LocalDateTime startTime,
+                                               @Param("endTime") LocalDateTime endTime);
+
+    // 특정 팝업의 특정 날짜 예약 목록 조회
+    @Query("SELECT r FROM Reservation r WHERE r.popup = :popup " +
+            "AND DATE(r.reservationDate) = DATE(:date) " +
+            "ORDER BY r.reservationDate")
+    List<Reservation> findByPopupAndReservationDate(@Param("popup") Popup popup,
+                                                    @Param("date") LocalDateTime date);
+
+    // 특정 팝업의 특정 시간대 예약 인원 수 조회 (파티 사이즈 합계)
+    @Query("SELECT COALESCE(SUM(r.partySize), 0) FROM Reservation r WHERE r.popup = :popup " +
+            "AND r.reservationDate >= :startTime AND r.reservationDate < :endTime " +
+            "AND r.status <> com.snow.popin.domain.popupReservation.entity.ReservationStatus.CANCELLED")
+    long sumPartySizeByPopupAndReservationDateBetween(@Param("popup") Popup popup,
+                                                      @Param("startTime") LocalDateTime startTime,
+                                                      @Param("endTime") LocalDateTime endTime);
 }

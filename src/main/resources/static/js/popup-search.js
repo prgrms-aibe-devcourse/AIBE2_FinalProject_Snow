@@ -1,4 +1,4 @@
-// 팝업 검색 페이지 전용 모듈 (수정된 버전)
+// 팝업 검색 페이지 전용 모듈
 class PopupSearchManager {
     constructor() {
         this.searchInput = null;
@@ -23,7 +23,6 @@ class PopupSearchManager {
             }
 
             this.setupElements();
-            this.loadSuggestionData();
             this.setupEventListeners();
             this.hideAllResults();
         } catch (error) {
@@ -39,7 +38,7 @@ class PopupSearchManager {
         return searchInput && searchContainer;
     }
 
-    // HTML 렌더링 (필요할 때만)
+    // HTML 렌더링
     async renderHTML() {
         try {
             const html = await TemplateLoader.load('pages/popup-search');
@@ -82,18 +81,6 @@ class PopupSearchManager {
         }
     }
 
-    // 검색 제안 데이터 로드
-    loadSuggestionData() {
-        // TODO: 추후 API를 통해 동적으로 가져올 수 있도록 수정
-        this.allSuggestions = [
-            '브런치 팝업', '브런치 카페', '브런치 스토어', '캐릭터 굿즈', '캐릭터 팝업스토어',
-            '크레용신짱', '크레용신짱 팝업', '체험형 팝업', '체험 이벤트', '한정판 상품',
-            '한정판 굿즈', '케이팝 팝업', 'K-POP 스토어', 'BTS 팝업', '포켓몬 센터',
-            '포켓몬 굿즈', '디즈니 팝업', '디즈니 프린세스', '지브리 카페', '토토로 팝업',
-            '마블 히어로즈', '아이언맨 팝업', '카카오프렌즈', '라이언 팝업', '팝업스토어'
-        ];
-    }
-
     // 이벤트 리스너 설정
     setupEventListeners() {
         this.searchButton.addEventListener('click', () => this.performSearch());
@@ -103,9 +90,19 @@ class PopupSearchManager {
         this.searchInput.addEventListener('input', this.handleInput.bind(this));
 
         this.searchInput.addEventListener('focus', () => {
-            if (this.searchInput.value.trim().length > 0) {
+            const query = this.searchInput.value.trim();
+            if (query.length > 0) {
                 this.showAutocomplete();
             }
+        });
+
+        this.searchInput.addEventListener('blur', (e) => {
+            // 자동완성 항목 클릭을 위해 약간의 지연 추가
+            setTimeout(() => {
+                if (!e.relatedTarget || !e.relatedTarget.closest('.related-searches')) {
+                    this.hideAutocomplete();
+                }
+            }, 150);
         });
 
         document.addEventListener('click', (e) => {
@@ -114,13 +111,24 @@ class PopupSearchManager {
             }
         });
 
+        // 자동완성 클릭 이벤트
         if (this.relatedSearches) {
             this.relatedSearches.addEventListener('click', (e) => {
                 const item = e.target.closest('.autocomplete-item');
                 if (item) {
                     this.searchInput.value = item.textContent.trim();
+                    this.hideAutocomplete();
                     this.performSearch();
                 }
+            });
+        }
+
+        if (this.searchResults) {
+            this.searchResults.addEventListener('click', (e) => {
+                const card = e.target.closest('.popup-card');
+                if (!card) return;
+                const popupId = card.dataset.popupId;
+                if (popupId) goToPopupDetail(popupId);
             });
         }
     }
@@ -132,9 +140,9 @@ class PopupSearchManager {
             const query = this.searchInput.value.trim();
             if (query) {
                 this.showAutocomplete();
-                this.hideSearchResults();
             } else {
                 this.hideAutocomplete();
+                this.hideSearchResults();
             }
         }, 300); // 300ms 지연
     }
@@ -245,10 +253,11 @@ class PopupSearchManager {
         }
     }
 
-    // 검색 결과 표시
+    // 검색 결과 표시 (수정된 부분)
     displaySearchResults(response) {
         if (!this.searchResults) return;
 
+        // API 응답 구조에 맞게 'popups' 필드 사용
         if (!response || !response.popups || response.popups.length === 0) {
             this.showNoResults();
             return;
@@ -264,19 +273,23 @@ class PopupSearchManager {
 
     // 검색 결과 카드 생성
     createSearchResultCard(popup) {
-        const startDate = popup.startDate?.replaceAll('-', '.') || '미정';
-        const endDate = popup.endDate?.replaceAll('-', '.') || '미정';
+        const safeTitle = this.escapeHtml(popup?.title ?? '');
+        const safeRegion = this.escapeHtml(popup?.region ?? '장소 미정');
+        const safePeriod = this.escapeHtml(popup?.period ?? '');
+        const imgSrc = this.escapeHtml(popup?.mainImageUrl || 'https://via.placeholder.com/150');
+        const popupId = encodeURIComponent(String(popup?.id ?? ''));
+
         return `
-            <div class="popup-card" onclick="goToPopupDetail('${popup.id}')">
+            <div class="popup-card" data-popup-id="${popupId}">
                 <div class="card-image-wrapper">
-                    <img src="${popup.thumbnailUrl || 'https://via.placeholder.com/150'}" 
-                         alt="${popup.title}" class="card-image" 
-                         onerror="this.src='https://via.placeholder.com/150'">
+                    <img src="${imgSrc}" 
+                        alt="${safeTitle}" class="card-image" 
+                        onerror="this.src='https://via.placeholder.com/150'">
                 </div>
                 <div class="card-content">
-                    <h3 class="card-title">${popup.title}</h3>
-                    <p class="card-info">${startDate} ~ ${endDate}</p>
-                    <p class="card-info location">${popup.region || popup.location || '장소 미정'}</p>
+                    <h3 class="card-title">${safeTitle}</h3>
+                    <p class="card-info">${safePeriod}</p>
+                    <p class="card-info location">${safeRegion}</p>
                 </div>
             </div>`;
     }
@@ -351,6 +364,17 @@ class PopupSearchManager {
             mainContent.innerHTML = '';
             mainContent.appendChild(div);
         }
+    }
+
+    escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, (m) => map[m]);
     }
 }
 

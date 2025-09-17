@@ -63,7 +63,7 @@ class PopupListManager {
             if (this.isFetching || !this.hasMore) return;
             this.handlePageScroll();
         };
-        window.addEventListener('scroll', this._onScroll, { passive: true });
+        window.addEventListener('scroll', this._onScroll, {passive: true});
 
         // 카드 클릭 위임
         this.grid.addEventListener('click', (e) => {
@@ -72,8 +72,15 @@ class PopupListManager {
                 goToPopupDetail(card.dataset.id);
             }
         });
-    }
 
+        this.grid.addEventListener('error', (e) => {
+            const img = e.target;
+            if (img && img.matches('.card-image')) {
+                img.onerror = null;
+                img.src = img.dataset.fallbackSrc;
+            }
+        }, true);
+    }
     // 필터 클릭 처리
     handleFilterClick(e) {
         const selectedTab = e.target.closest('.tab-item');
@@ -109,17 +116,24 @@ class PopupListManager {
 
     // 팝업 카드 HTML 생성
     createPopupCard(popup) {
+        const fallbackImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNjY3ZWVhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+';
+        const safeSrc = isSafeUrl(popup.mainImageUrl) ? popup.mainImageUrl : fallbackImage;
+        const popupId = encodeURIComponent(String(popup?.id ?? ''));
+
         return `
-            <div class="popup-card" data-id="${popup.id}">
+            <div class="popup-card" data-id="${popupId}">
                 <div class="card-image-wrapper">
-                    <img src="${popup.thumbnailUrl || 'https://via.placeholder.com/150x150/667eea/ffffff?text=🎪'}" 
-                         alt="${popup.title}" class="card-image" 
-                         onerror="this.src='https://via.placeholder.com/150x150/667eea/ffffff?text=🎪'">
+                    <img src="${safeSrc}"
+                         data-fallback-src="${fallbackImage}"
+                         alt="${esc(popup.title)}"
+                         class="card-image"
+                         loading="lazy"
+                         decoding="async">
                 </div>
                 <div class="card-content">
-                    <h3 class="card-title">${popup.title}</h3>
-                    <p class="card-info">${popup.startDate.replaceAll('-', '.')} ~ ${popup.endDate.replaceAll('-', '.')}</p>
-                    <p class="card-info location">${popup.region || popup.location}</p>
+                    <h3 class="card-title">${esc(popup.title)}</h3>
+                    <p class="card-info">${esc(popup.period)}</p>
+                    <p class="card-info location">${esc(popup.region || '장소 미정')}</p>
                 </div>
             </div>
         `;
@@ -146,7 +160,7 @@ class PopupListManager {
         await this.fetchAndDisplayPopups(false);
     }
 
-    // 데이터 가져오기 및 표시
+    // 데이터 가져오기 및 표시 (수정된 부분)
     async fetchAndDisplayPopups(isLoadMore = false) {
         if (this.isFetching || !this.hasMore) return;
 
@@ -169,6 +183,7 @@ class PopupListManager {
 
             const response = await apiService.getPopups(params);
 
+            // API 응답 구조에 맞게 'popups' 필드 사용
             if (response.popups && response.popups.length > 0) {
                 this.renderPopups(response.popups);
                 this.currentPage++;
@@ -223,6 +238,13 @@ class PopupListManager {
             this._onScroll = null;
         }
     }
+}
+
+function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function isSafeUrl(url) {
+    try { const u = new URL(url, window.location.origin); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; }
 }
 
 // 전역 인스턴스
