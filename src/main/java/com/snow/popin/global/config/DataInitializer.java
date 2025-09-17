@@ -279,7 +279,7 @@ public class DataInitializer implements CommandLineRunner {
             popupRepository.save(popup1);
 
             Reservation r1 = Reservation.create(
-                    popup1, reservation1, "예약자1", "010-3333-3333", LocalDateTime.now().plusDays(1)
+                    popup1, reservation1, "예약자1", "010-3333-3333", 20, LocalDateTime.now().plusDays(1)
             );
             reservationRepository.save(r1);
         }
@@ -289,7 +289,7 @@ public class DataInitializer implements CommandLineRunner {
             popupRepository.save(popup2);
 
             Reservation r2 = Reservation.create(
-                    popup2, reservation1, "예약자1", "010-3333-3333", LocalDateTime.now().minusDays(1)
+                    popup2, reservation1, "예약자1", "010-3333-3333", 10, LocalDateTime.now().minusDays(1)
             );
             r2.markAsVisited();
             reservationRepository.save(r2);
@@ -300,7 +300,7 @@ public class DataInitializer implements CommandLineRunner {
             popupRepository.save(popup3);
 
             Reservation r3 = Reservation.create(
-                    popup3, reservation1, "예약자1", "010-3333-3333", LocalDateTime.now().plusDays(2)
+                    popup3, reservation1, "예약자1", "010-3333-3333", 15, LocalDateTime.now().plusDays(2)
             );
             r3.cancel();
             reservationRepository.save(r3);
