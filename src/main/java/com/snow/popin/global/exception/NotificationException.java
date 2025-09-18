@@ -2,7 +2,7 @@ package com.snow.popin.global.exception;
 
 import com.snow.popin.global.constant.ErrorCode;
 
-public class NotificationException {
+public class NotificationException extends RuntimeException {
 
     public static class InvalidNotificationType extends GeneralException {
         public InvalidNotificationType(String type) {
