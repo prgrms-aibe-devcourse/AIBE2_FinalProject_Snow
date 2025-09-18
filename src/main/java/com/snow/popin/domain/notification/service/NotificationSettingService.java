@@ -6,6 +6,7 @@ import com.snow.popin.domain.notification.entity.NotificationType;
 import com.snow.popin.domain.notification.repository.NotificationSettingRepository;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.domain.user.repository.UserRepository;
+import com.snow.popin.global.exception.NotificationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +30,13 @@ public class NotificationSettingService {
         NotificationSetting notificationSetting = settingRepository.findByUserId(userId)
                 .orElseGet(() -> createDefaultSetting(userId));
 
-        NotificationType nType = NotificationType.valueOf(type.toUpperCase());
+        NotificationType nType;
+        try {
+            nType = NotificationType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new NotificationException.InvalidNotificationType(type);
+        }
+
 
         switch (nType) {
             case RESERVATION:
