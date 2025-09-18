@@ -85,6 +85,11 @@ const Pages = {
         }
         window.location.href = `/chat/${reservationId}?token=${encodeURIComponent(token)}`;
     },
+    //팝업 통계 페이지
+    popupStats(popupId) {
+        window.location.href = `/mypage/host/popup/${popupId}/stats`;
+    },
+
 };
 
 // 팝업 상세 페이지로 이동

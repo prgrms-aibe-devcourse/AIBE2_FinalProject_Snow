@@ -33,4 +33,9 @@ public class HostPageController {
     public String reservationManage(@PathVariable Long id) {
         return "forward:/templates/pages/mypage/host/reservation-manage.html";
     }
+
+    @GetMapping("/mypage/host/popup/{id}/stats")
+    public String popupStatsPage(@PathVariable Long id) {
+        return "forward:/templates/pages/mypage/host/popup-stats.html";
+    }
 }
