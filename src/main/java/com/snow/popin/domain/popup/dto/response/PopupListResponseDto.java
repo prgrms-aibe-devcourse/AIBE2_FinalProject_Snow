@@ -3,7 +3,10 @@ package com.snow.popin.domain.popup.dto.response;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
+import java.util.Collections;
 import java.util.List;
 
 @Getter
@@ -26,6 +29,19 @@ public class PopupListResponseDto {
                 .size(page.getSize())
                 .hasNext(page.hasNext())
                 .hasPrevious(page.hasPrevious())
+                .build();
+    }
+
+    // 페이지 정보와 함께 빈 응답을 생성
+    public static PopupListResponseDto empty(int page, int size) {
+        return PopupListResponseDto.builder()
+                .popups(Collections.emptyList())
+                .totalPages(0)
+                .totalElements(0)
+                .currentPage(page)
+                .size(size)
+                .hasNext(false)
+                .hasPrevious(false)
                 .build();
     }
 }
