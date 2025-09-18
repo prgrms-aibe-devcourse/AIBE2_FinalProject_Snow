@@ -569,3 +569,35 @@
         font-size: 48px;
     }
 }
+
+@media (max-width: 768px) {
+    .filter-buttons {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .filter-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+        min-width: auto;
+        flex: 1;
+        text-align: center;
+    }
+
+    .filter-section {
+        padding: 12px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .filter-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .filter-btn {
+        padding: 10px 8px;
+        font-size: 12px;
+    }
+}
