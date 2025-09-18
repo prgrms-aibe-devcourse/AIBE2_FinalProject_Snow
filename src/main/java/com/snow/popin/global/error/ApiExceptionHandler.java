@@ -4,6 +4,7 @@ import com.snow.popin.global.constant.ErrorCode;
 import com.snow.popin.global.exception.GeneralException;
 import com.snow.popin.global.exception.PopupNotFoundException;
 
+import com.snow.popin.global.exception.ReviewException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -40,6 +41,33 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(errorResponse);
+    }
+
+    /**
+     * 중복 리뷰 예외 처리 (409 Conflict)
+     */
+    @ExceptionHandler(ReviewException.DuplicateReview.class)
+    public ResponseEntity<Object> handleDuplicateReview(ReviewException.DuplicateReview e) {
+        ApiErrorResponse errorResponse = ApiErrorResponse.of(ErrorCode.CONFLICT, e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    /**
+     * 리뷰 관련 리소스(팝업, 사용자)를 찾을 수 없는 예외 처리 (404 Not Found)
+     */
+    @ExceptionHandler({ReviewException.PopupNotFound.class, ReviewException.UserNotFound.class})
+    public ResponseEntity<Object> handleReviewResourceNotFound(RuntimeException e) {
+        ApiErrorResponse errorResponse = ApiErrorResponse.of(ErrorCode.NOT_FOUND, e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    /**
+     * 차단된 리뷰 접근 예외 처리 (403 Forbidden)
+     */
+    @ExceptionHandler(ReviewException.BlockedReview.class)
+    public ResponseEntity<Object> handleBlockedReview(ReviewException.BlockedReview e) {
+        ApiErrorResponse errorResponse = ApiErrorResponse.of(ErrorCode.ACCESS_DENIED, e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 
     @Override

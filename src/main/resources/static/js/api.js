@@ -593,6 +593,155 @@ apiService.getChatMessages = async function(reservationId) {
 apiService.getChatContext = async function(reservationId) {
     return await this.get(`/chat/${encodeURIComponent(reservationId)}/context`);
 };
+
+// === 리뷰 관련 API ===
+
+// 리뷰 작성
+apiService.createReview = async function(reviewData) {
+    return await this.post('/reviews', reviewData);
+};
+
+// 리뷰 수정
+apiService.updateReview = async function(reviewId, reviewData) {
+    return await this.put(`/reviews/${encodeURIComponent(reviewId)}`, reviewData);
+};
+
+// 리뷰 삭제
+apiService.deleteReview = async function(reviewId) {
+    return await this.delete(`/reviews/${encodeURIComponent(reviewId)}`);
+};
+
+// 특정 팝업의 최근 리뷰 조회
+apiService.getRecentReviews = async function(popupId, limit = 2) {
+    return await this.get(`/reviews/popup/${encodeURIComponent(popupId)}/recent?limit=${limit}`);
+};
+
+// 특정 팝업의 전체 리뷰 조회 (페이징)
+apiService.getReviewsByPopup = async function(popupId, page = 0, size = 10, sort = 'createdAt,desc') {
+    const params = new URLSearchParams({ page, size, sort });
+    return await this.get(`/reviews/popup/${encodeURIComponent(popupId)}?${params}`);
+};
+
+// 팝업 리뷰 통계 조회
+apiService.getReviewStats = async function(popupId) {
+    return await this.get(`/reviews/popup/${encodeURIComponent(popupId)}/stats`);
+};
+
+// 내 리뷰 목록 조회
+apiService.getMyReviews = async function(page = 0, size = 10, sort = 'createdAt,desc') {
+    const params = new URLSearchParams({ page, size, sort });
+    return await this.get(`/reviews/me?${params}`);
+};
+
+// 리뷰 단건 조회
+apiService.getReview = async function(reviewId) {
+    return await this.get(`/reviews/${encodeURIComponent(reviewId)}`);
+};
+
+// 사용자가 특정 팝업에 리뷰 작성 여부 확인
+apiService.checkUserReview = async function(popupId) {
+    return await this.get(`/reviews/popup/${encodeURIComponent(popupId)}/check`);
+};
+
+// 사용자의 특정 팝업 리뷰 조회
+apiService.getUserReviewForPopup = async function(popupId) {
+    return await this.get(`/reviews/popup/${encodeURIComponent(popupId)}/me`);
+};
+
+// 팝업별 리뷰 통계와 최근 리뷰 통합 조회
+apiService.getPopupReviewSummary = async function(popupId) {
+    return await this.get(`/reviews/popup/${encodeURIComponent(popupId)}/summary`);
+};
+
+// === 북마크 관련 API ===
+
+// 북마크 추가
+apiService.addBookmark = async function(popupId) {
+    return await this.post('/bookmarks', { popupId });
+};
+
+// 북마크 제거
+apiService.removeBookmark = async function(popupId) {
+    return await this.delete(`/bookmarks/${encodeURIComponent(popupId)}`);
+};
+
+// 북마크 상태 확인
+apiService.checkBookmark = async function(popupId) {
+    try {
+        return await this.get(`/bookmarks/${encodeURIComponent(popupId)}/check`);
+    } catch (error) {
+        return { isBookmarked: false };
+    }
+};
+
+// 내 북마크 목록 조회
+apiService.getMyBookmarks = async function(page = 0, size = 10) {
+    const params = new URLSearchParams({ page, size });
+    return await this.get(`/bookmarks/me?${params}`);
+};
+
+// === 유사한 팝업 조회 API (필요한 경우) ===
+
+// 유사한 팝업 조회
+apiService.getSimilarPopups = async function(popupId, limit = 6) {
+    try {
+        return await this.get(`/popups/${encodeURIComponent(popupId)}/similar?limit=${limit}`);
+    } catch (error) {
+        // 유사한 팝업이 없어도 에러가 아님
+        return [];
+    }
+};
+
+// === 유틸리티 메서드 ===
+
+// 현재 사용자 ID 가져오기
+apiService.getCurrentUserId = function() {
+    try {
+        const userId = localStorage.getItem('userId') ||
+            sessionStorage.getItem('userId');
+        return userId ? parseInt(userId) : null;
+    } catch (error) {
+        return null;
+    }
+};
+
+// 로그인 상태 확인
+apiService.isLoggedIn = function() {
+    const token = this.getStoredToken();
+    const userId = this.getCurrentUserId();
+    return !!(token && userId);
+};
+
+// 에러 핸들링 (기존 메서드가 없다면 추가)
+apiService.handleApiError = function(error) {
+    console.error('API Error:', error);
+
+    if (error.message.includes('401') || error.message.includes('인증이 필요합니다')) {
+        this.removeToken();
+        alert('로그인이 필요합니다.');
+        window.location.href = '/login';
+        return;
+    }
+
+    if (error.message.includes('403')) {
+        alert('접근 권한이 없습니다.');
+        return;
+    }
+
+    if (error.message.includes('404')) {
+        alert('요청하신 정보를 찾을 수 없습니다.');
+        return;
+    }
+
+    if (error.message.includes('500')) {
+        alert('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+        return;
+    }
+
+    // 기타 오류
+    alert(error.message || '알 수 없는 오류가 발생했습니다.');
+};
+
 // === 관리자용 미션셋 / 미션 API ===
 
 // 미션셋 목록 (페이지네이션 지원)
@@ -635,4 +784,3 @@ apiService.listAdminPopups = async function ({ page = 0, size = 500 } = {}) {
 apiService.updateMissionSet = async function(setId, data) {
     return await this.put(`/admin/mission-sets/${encodeURIComponent(setId)}`, data);
 };
-

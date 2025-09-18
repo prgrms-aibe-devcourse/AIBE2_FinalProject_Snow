@@ -61,7 +61,7 @@ public class SecurityConfig {
 
                         // 공개 페이지
                         .antMatchers("/", "/index.html", "/main", "/error").permitAll()
-                        .antMatchers("/popup/**", "/map", "/users/**", "/mypage/**", "/space/**", "/missions/**").permitAll()
+                        .antMatchers("/popup/**", "/map", "/users/**", "/mypage/**", "/space/**", "/missions/**" ,"/reviews/**").permitAll()
 
 
                         // 인증 관련 페이지궁금
