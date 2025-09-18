@@ -20,6 +20,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -179,6 +180,71 @@ class PopupRepositoryTest {
         // then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getIsFeatured()).isTrue();
+    }
+
+    @Test
+    @DisplayName("상태 업데이트 대상 조회 - PLANNED에서 ONGOING으로")
+    void findPopupsToUpdateToOngoing_테스트() {
+        // given
+        Venue venue = PopupTestDataBuilder.createVenue("강남구");
+        entityManager.persistAndFlush(venue);
+
+        LocalDate today = LocalDate.now();
+        // 대상: 오늘 시작, 어제 시작
+        Popup popupToStartToday = PopupTestDataBuilder.createPopupWithDates("오늘 시작", today, today.plusDays(5), venue);
+        popupToStartToday.setStatusForTest(PopupStatus.PLANNED);
+        Popup popupStartedYesterday = PopupTestDataBuilder.createPopupWithDates("어제 시작", today.minusDays(1), today.plusDays(5), venue);
+        popupStartedYesterday.setStatusForTest(PopupStatus.PLANNED);
+
+        // 비대상: 내일 시작, 이미 ONGOING 상태
+        Popup popupStartsTomorrow = PopupTestDataBuilder.createPopupWithDates("내일 시작", today.plusDays(1), today.plusDays(5), venue);
+        popupStartsTomorrow.setStatusForTest(PopupStatus.PLANNED);
+        Popup ongoingPopup = PopupTestDataBuilder.createPopupWithDates("진행중", today, today.plusDays(5), venue);
+        ongoingPopup.setStatusForTest(PopupStatus.ONGOING);
+
+        entityManager.persist(popupToStartToday);
+        entityManager.persist(popupStartedYesterday);
+        entityManager.persist(popupStartsTomorrow);
+        entityManager.persist(ongoingPopup);
+        entityManager.flush();
+
+        // when
+        List<Popup> result = popupRepository.findPopupsToUpdateToOngoing(today);
+
+        // then
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting("title").containsExactlyInAnyOrder("오늘 시작", "어제 시작");
+    }
+
+    @Test
+    @DisplayName("상태 업데이트 대상 조회 - ONGOING에서 ENDED로")
+    void findPopupsToUpdateToEnded_테스트() {
+        // given
+        Venue venue = PopupTestDataBuilder.createVenue("종로구");
+        entityManager.persistAndFlush(venue);
+
+        LocalDate today = LocalDate.now();
+        // 대상: 어제 종료
+        Popup popupEndedYesterday = PopupTestDataBuilder.createPopupWithDates("어제 종료", today.minusDays(10), today.minusDays(1), venue);
+        popupEndedYesterday.setStatusForTest(PopupStatus.ONGOING);
+
+        // 비대상: 오늘 종료, 이미 ENDED 상태
+        Popup popupEndsToday = PopupTestDataBuilder.createPopupWithDates("오늘 종료", today.minusDays(10), today, venue);
+        popupEndsToday.setStatusForTest(PopupStatus.ONGOING);
+        Popup endedPopup = PopupTestDataBuilder.createPopupWithDates("이미 종료", today.minusDays(10), today.minusDays(1), venue);
+        endedPopup.setStatusForTest(PopupStatus.ENDED);
+
+        entityManager.persist(popupEndedYesterday);
+        entityManager.persist(popupEndsToday);
+        entityManager.persist(endedPopup);
+        entityManager.flush();
+
+        // when
+        List<Popup> result = popupRepository.findPopupsToUpdateToEnded(today);
+
+        // then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getTitle()).isEqualTo("어제 종료");
     }
 
     @TestConfiguration

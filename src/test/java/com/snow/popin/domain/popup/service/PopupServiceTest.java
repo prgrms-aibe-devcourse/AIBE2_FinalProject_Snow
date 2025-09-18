@@ -241,6 +241,24 @@ class PopupServiceTest {
         ));
     }
 
+    @Test
+    @DisplayName("팝업 상세 조회 - 실시간 상태 업데이트 (PLANNED -> ONGOING)")
+    void getPopupDetail_실시간_상태업데이트() {
+        // given
+        Long popupId = 1L;
+        Popup popup = Popup.createForTestWithDates("상태 업데이트 팝업", LocalDate.now().minusDays(1), LocalDate.now().plusDays(5), null);
+        popup.setStatusForTest(PopupStatus.PLANNED);
+
+        when(popupRepository.findByIdWithDetails(popupId)).thenReturn(Optional.of(popup));
+
+        // when
+        popupService.getPopupDetail(popupId);
+
+        // then
+        assertThat(popup.getStatus()).isEqualTo(PopupStatus.ONGOING);
+        verify(popupRepository, times(1)).save(popup);
+    }
+
     private PopupListRequestDto createListRequest() {
         PopupListRequestDto request = new PopupListRequestDto();
         request.setPage(0);

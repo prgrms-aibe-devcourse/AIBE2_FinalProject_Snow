@@ -1,23 +1,24 @@
-package com.snow.popin.domain.popup.service
+package com.snow.popin.domain.popup.service;
 
-import com.snow.popin.domain.popup.entity.Popup
-import com.snow.popin.domain.popup.repository.PopupRepository
-import lombok.RequiredArgsConstructor
-import lombok.extern.slf4j.Slf4j
-import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
+import com.snow.popin.domain.popup.entity.Popup;
+import com.snow.popin.domain.popup.repository.PopupRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate
+import java.time.LocalDate;
+import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-class PopupBatchService {
+public class PopupBatchService {
 
     private final PopupRepository popupRepository;
 
-    // 매일 자정, 팝업의 상태를 자동으로 업데이트
+    //매일 자정, 팝업의 상태를 자동으로 업데이트합니다.
     @Transactional
     @Scheduled(cron = "0 0 0 * * *")
     public void updatePopupStatuses() {
