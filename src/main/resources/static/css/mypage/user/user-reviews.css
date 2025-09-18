@@ -5,37 +5,29 @@
     padding: 16px;
 }
 
-/* 별점 */
+/* 리뷰 카드 */
 .review-rating {
     color: #5a7fdd;
     font-size: 30px;
     margin-bottom: 20px;
 }
-
-/* 본문 */
 .review-content {
     font-weight: 500;
     font-size: 16px;
     color: #444;
     margin-bottom: 10px;
 }
-
-/* 날짜 */
 .review-date {
     font-size: 12px;
     color: #888;
     margin-bottom: 10px;
 }
-
-/* 버튼 */
 .review-actions {
     margin-top: 12px;
     display: flex;
     gap: 8px;
 }
-
-
-.review-btn {
+.review-button {
     padding: 8px 16px;
     font-size: 14px;
     font-weight: 600;
@@ -47,71 +39,203 @@
     transition: all 0.2s ease;
     white-space: nowrap;
 }
-
-.review-btn:hover {
+.review-button:hover {
     background-color: #4B5AE4;
     color: white;
     box-shadow: 0 2px 8px rgba(75, 90, 228, 0.3);
 }
 
-/* 모달 */
+/* === 별점 공통 (작성폼 + 수정모달) === */
+.rating-input {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    justify-content: center;
+}
+.rating-star {
+    font-size: 36px;
+    color: #E5E7EB;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    padding: 4px;
+}
+.rating-star.active,
+.rating-star:hover {
+    color: #FFD700;
+    transform: scale(1.1);
+}
+.rating-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding: 0 8px;
+}
+.rating-label {
+    font-size: 12px;
+    color: #6B7280;
+    opacity: 0.7;
+    transition: all 0.2s;
+    text-align: center;
+    flex: 1;
+}
+.rating-label.active {
+    opacity: 1;
+    color: #6366F1;
+    font-weight: 600;
+    transform: scale(1.05);
+}
+
+/* === textarea 공통 === */
+.review-textarea,
+.modal-input {
+    width: 100%;
+    min-height: 120px;
+    padding: 14px;
+    border: 2px solid #E5E7EB;
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: inherit;
+    resize: vertical;
+    line-height: 1.5;
+    background: #FAFBFC;
+    margin-bottom: 20px;
+    transition: border-color 0.2s;
+}
+.review-textarea:focus,
+.modal-input:focus {
+    outline: none;
+    border-color: #6366F1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    background: #fff;
+}
+
+/* === 버튼 공통 === */
+.button {
+    flex: 1;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.button-secondary {
+    background: #F3F4F6;
+    color: #374151;
+    border: 1px solid #D1D5DB;
+}
+.button-secondary:hover {
+    background: #E5E7EB;
+    border-color: #9CA3AF;
+}
+.button-primary {
+    background: #6366F1;
+    color: white;
+    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+}
+.button-primary:hover {
+    background: #4B5AE4;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+}
+.button-primary:disabled {
+    background: #D1D5DB;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    color: #9CA3AF;
+}
+
+/* === 모달 === */
 .modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.4);
+    background: rgba(0,0,0,0.5);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    backdrop-filter: blur(4px);
 }
-
 .modal {
     background: #fff;
-    border-radius: 8px;
-    padding: 20px;
-    width: 300px;
+    border-radius: 12px;
+    padding: 24px;
+    width: 400px;
     max-width: 90%;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
 }
-
 .modal-title {
+    font-size: 20px;
     font-weight: 700;
-    font-size: 18px;
-    margin-bottom: 15px;
+    margin: 0 0 20px 0;
+    text-align: center;
+    color: #1F2937;
 }
-
-.modal-desc {
-    color: #666;
-    font-size: 14px;
-    margin-bottom: 16px;
-}
-
-.modal-label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 6px;
-}
-
-.modal-input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    margin-bottom: 16px;
-    box-shadow: 0 1px 4px rgba(177, 177, 177, 0.3);
-}
-
-/* 별점 (모달) */
-.modal-stars {
-    font-size: 30px;
-    margin-bottom: 15px;
-    margin-left: 5px;
-    color: #5a7fdd;
-    cursor: pointer;
-}
-
-/* 버튼 영역 */
 .modal-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
+    gap: 12px;
+    flex-wrap: nowrap;
+}
+
+.modal-actions .button {
+    flex: 1 1 0;
+    min-width: 0;
+    white-space: nowrap;
+}
+/* 글자 수 카운터 */
+.char-count {
+    text-align: right;
+    font-size: 14px;
+    color: #6B7280;
+    margin-top: 8px;
+    font-weight: 500;
+}
+
+.char-count.over-limit {
+    color: #EF4444;
+    font-weight: 600;
+}
+
+.input-hint {
+    font-size: 14px;
+    color: #6B7280;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.input-hint::before {
+    content: "💡";
+    font-size: 12px;
+}
+
+.rating-display {
+    pointer-events: none;
+    justify-content: left;
+    margin-bottom: 12px;
+}
+.rating-display .rating-star {
+    cursor: default;
+}
+.rating-display .rating-star:hover {
+    transform: none;
+}
+
+/* 카드에서는 별 크기를 약간 줄이고 싶을 때 (선택) */
+.card .rating-display .rating-star {
+    font-size: 30px; /* 필요 시 28px 등으로 조정 */
+}
+@media (max-width: 480px) {
+    .card .rating-display .rating-star {
+        font-size: 26px;
+    }
 }
