@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import java.util.List;
 import java.util.Map;
 
@@ -57,7 +58,7 @@ public class ReviewController {
     @GetMapping("/popup/{popupId}/recent")
     public ResponseEntity<List<ReviewListResponseDto>> getRecentReviews(
             @PathVariable Long popupId,
-            @RequestParam(defaultValue = "2") int limit) {
+            @RequestParam(defaultValue = "2")  @Min(1)  int limit) {
         List<ReviewListResponseDto> reviews = reviewService.getRecentReviewsByPopup(popupId, limit);
         return ResponseEntity.ok(reviews);
     }

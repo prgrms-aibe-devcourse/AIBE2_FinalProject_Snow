@@ -42,14 +42,14 @@ public class ReviewService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ReviewException.UserNotFound(userId));
 
-        // 중복 리뷰 확인
-        if (reviewRepository.existsByPopupIdAndUserId(request.getPopupId(), userId)) {
+        // 리뷰 생성 및 저장 (DB 유니크로 보강)
+        Review review = request.toEntity(userId);
+        Review savedReview;
+        try {
+            savedReview = reviewRepository.save(review);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
             throw new ReviewException.DuplicateReview(request.getPopupId());
         }
-
-        // 리뷰 생성 및 저장
-        Review review = request.toEntity(userId);
-        Review savedReview = reviewRepository.save(review);
 
         // 연관관계 설정 (조회용)
         savedReview = reviewRepository.findById(savedReview.getId()).orElseThrow();
@@ -112,6 +112,13 @@ public class ReviewService {
      */
     @Transactional(readOnly = true)
     public List<ReviewListResponseDto> getRecentReviewsByPopup(Long popupId, int limit) {
+        if (limit < 1) {
+            throw new IllegalArgumentException("limit must be >= 1");
+        }
+        if (limit > 100) { // hard cap
+            limit = 100;
+        }
+
         List<Review> reviews;
         if (limit <= 10) {
             // 10개 이하면 findTop10 메서드 사용

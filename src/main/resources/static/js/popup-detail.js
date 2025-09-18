@@ -126,10 +126,15 @@ class PopupDetailManager {
 
         // 태그
         const tagsEl = document.getElementById('popup-tags');
-        if (tagsEl && this.popupData.tags) {
-            tagsEl.innerHTML = this.popupData.tags.map(tag =>
-                `<span class="tag" onclick="searchByTag('${tag}')">#${tag}</span>`
-            ).join('');
+        if (tagsEl && Array.isArray(this.popupData.tags)) {
+            tagsEl.innerHTML = '';
+            this.popupData.tags.forEach(tag => {
+                const span = document.createElement('span');
+                span.className = 'tag';
+                span.textContent = `#${tag}`;
+                span.addEventListener('click', () => searchByTag(String(tag)));
+                tagsEl.appendChild(span);
+            });
         }
     }
 
@@ -153,16 +158,20 @@ class PopupDetailManager {
         const gridEl = document.getElementById('similar-popups-grid');
         if (!gridEl || !popups || popups.length === 0) return;
 
-        gridEl.innerHTML = popups.map(popup => `
-            <div class="similar-popup-card" data-id="${popup.id}">
-                <img src="${popup.thumbnailUrl || 'https://via.placeholder.com/200x150/4B5AE4/ffffff?text=🎪'}" 
-                     alt="${popup.title}" class="similar-popup-image">
+        gridEl.innerHTML = popups.map(popup => {
+            const title = this.escapeHtml(popup.title ?? '');
+            const thumb = (popup.thumbnailUrl && /^https?:/i.test(popup.thumbnailUrl))
+              ? popup.thumbnailUrl
+                : 'https://via.placeholder.com/200x150/4B5AE4/ffffff?text=%F0%9F%8E%AA';
+            return `
+              <div class="similar-popup-card" data-id="${popup.id}">
+                <img src="${thumb}" alt="${title}" class="similar-popup-image">
                 <div class="similar-popup-info">
-                    <h3 class="similar-popup-title">${popup.title}</h3>
-                    <p class="similar-popup-period">${this.formatDateRange(popup.startDate, popup.endDate)}</p>
+                  <h3 class="similar-popup-title">${title}</h3>
+                  <p class="similar-popup-period">${this.formatDateRange(popup.startDate, popup.endDate)}</p>
                 </div>
-            </div>
-        `).join('');
+              </div>`;
+        }).join('');
     }
 
     // 날짜 범위 포맷
@@ -248,9 +257,9 @@ class PopupDetailManager {
     }
 
     // 리뷰 작성 처리
-    handleWriteReview() {
+    async handleWriteReview() {
         // 사용자 로그인 체크
-        const userId = this.getCurrentUserId();
+        const userId = await this.getOrFetchUserId();
         if (!userId) {
             alert('로그인이 필요한 서비스입니다.');
             window.location.href = '/login';
@@ -267,47 +276,29 @@ class PopupDetailManager {
         window.location.href = `/reviews/popup/${this.popupId}`;
     }
 
-    // 현재 사용자 ID 가져오기
-    getCurrentUserId() {
-        // 캐시된 userId 확인
+    // 사용자 ID 확보
+    async getOrFetchUserId() {
         try {
-            const cachedUserId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
-            if (cachedUserId && cachedUserId !== 'null') {
-                return parseInt(cachedUserId);
-            }
-        } catch (error) {
-            console.warn('캐시된 userId 확인 실패:', error);
+            const cached = localStorage.getItem('userId') || sessionStorage.getItem('userId');
+            const parsed = cached ? parseInt(cached, 10) : NaN;
+            if (!Number.isNaN(parsed)) return parsed;
+        } catch (e) {
+            console.warn('userId 캐시 확인 실패:', e);
         }
 
-        // 토큰이 있는지 확인
-        if (!apiService.getStoredToken()) {
-            return null;
-        }
-
-        this.refreshUserIdAsync();
-
-        return null; // 첫 번째 호출에서는 null 반환, 이후 캐시된 값 사용
-    }
-
-    // 비동기로 사용자 ID 새로고침
-    async refreshUserIdAsync() {
+        if (!apiService.getStoredToken()) return null;
         try {
             const userInfo = await apiService.getCurrentUser();
             if (userInfo && userInfo.id) {
-                // 사용자 ID를 캐시에 저장
-                try {
-                    localStorage.setItem('userId', userInfo.id.toString());
-                } catch {
-                    sessionStorage.setItem('userId', userInfo.id.toString());
-                }
+                try { localStorage.setItem('userId', String(userInfo.id)); }
+                catch { sessionStorage.setItem('userId', String(userInfo.id)); }
+                return userInfo.id;
             }
-        } catch (error) {
-            console.warn('사용자 정보 가져오기 실패:', error);
-            // 토큰이 만료된 경우 정리
-            if (error.message.includes('401') || error.message.includes('인증')) {
-                this.clearUserData();
-            }
+        } catch (e) {
+            console.warn('사용자 정보 가져오기 실패:', e);
         }
+
+        return null;
     }
 
     // 로딩 표시
@@ -524,6 +515,12 @@ class ReviewManager {
     escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
+        return div.innerHTML;
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = String(text ?? '');
         return div.innerHTML;
     }
 

@@ -12,7 +12,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
-@ControllerAdvice(assignableTypes = {Controller.class, RestController.class})
+@ControllerAdvice(assignableTypes = {Controller.class})
 public class BaseExceptionHandler {
 
     @ExceptionHandler(GeneralException.class)

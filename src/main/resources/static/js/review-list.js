@@ -144,7 +144,7 @@ class ReviewListManager {
 
         headerEl.innerHTML = `
         <div class="popup-header-content">
-            <img src="${this.popupData.thumbnailUrl || defaultImage}" 
+            <img src="${this.escapeAttr(this.popupData.thumbnailUrl || defaultImage)}" 
                  alt="${this.popupData.title}" 
                  class="popup-thumbnail">
             <div class="popup-info">
@@ -268,11 +268,25 @@ class ReviewListManager {
     }
 
     // 리뷰 작성 처리
-    handleWriteReview() {
+    async handleWriteReview() {
         // 사용자 로그인 체크
+        const token = apiService.getStoredToken && apiService.getStoredToken();
         const userId = this.getCurrentUserId();
-        if (!userId) {
+        if (!token) {
             alert('로그인이 필요한 서비스입니다.');
+            window.location.href = '/login';
+            return;
+        }
+
+        // userId 미캐시 시 한 번 갱신 시도
+        if (!userId) {
+            try { await this.refreshUserIdAsync(); } catch {}
+        }
+
+        const cached = (localStorage.getItem('userId') || sessionStorage.getItem('userId'));
+        if (!cached) {
+            alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+            this.clearUserData();
             window.location.href = '/login';
             return;
         }
@@ -405,11 +419,34 @@ class ReviewListManager {
         }
     }
 
+    // 인증 정보 초기화
+    clearUserData() {
+        try {
+            localStorage.removeItem('userId');
+            sessionStorage.removeItem('userId');
+        } catch {}
+
+        if (apiService.clearStoredToken) {
+            try { apiService.clearStoredToken(); } catch {}
+        }
+    }
+
+
     // HTML 이스케이프
     escapeHtml(text) {
         const div = document.createElement('div');
-        div.textContent = text;
+        div.textContent = text == null ? '' : String(text);
         return div.innerHTML;
+    }
+
+    // Attribute 이스케이프
+    escapeAttr(value) {
+        const s = value == null ? '' : String(value);
+        return s
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
     }
 }
 

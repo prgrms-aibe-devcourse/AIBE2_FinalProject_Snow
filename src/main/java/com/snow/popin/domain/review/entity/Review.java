@@ -13,10 +13,14 @@ import javax.persistence.*;
 @Entity
 @Table(
     name = "reviews",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_review_popup_user", columnNames = {"popup_id","user_id"})
+    },
     indexes = {
-            @Index(name = "idx_review_popup_created", columnList = "popup_id, created_at DESC"),
-            @Index(name = "idx_review_user", columnList = "user_id"),
-            @Index(name = "idx_review_blocked", columnList = "is_blocked")
+        @Index(name = "idx_review_popup_created", columnList = "popup_id, created_at"),
+        @Index(name = "idx_review_user", columnList = "user_id"),
+        @Index(name = "idx_review_blocked", columnList = "is_blocked"),
+        @Index(name = "idx_review_popup_rating", columnList = "popup_id, rating")
     }
 )
 @Getter

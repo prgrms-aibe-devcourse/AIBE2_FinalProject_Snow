@@ -43,14 +43,29 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(errorResponse);
     }
 
-    @ExceptionHandler(ReviewException.ReviewNotFound.class)
-    public ResponseEntity<Object> handleReviewNotFound(ReviewException.ReviewNotFound e, WebRequest request) {
+    /**
+     * 중복 리뷰 예외 처리 (409 Conflict)
+     */
+    @ExceptionHandler(ReviewException.DuplicateReview.class)
+    public ResponseEntity<Object> handleDuplicateReview(ReviewException.DuplicateReview e) {
+        ApiErrorResponse errorResponse = ApiErrorResponse.of(ErrorCode.CONFLICT, e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    /**
+     * 리뷰 관련 리소스(팝업, 사용자)를 찾을 수 없는 예외 처리 (404 Not Found)
+     */
+    @ExceptionHandler({ReviewException.PopupNotFound.class, ReviewException.UserNotFound.class})
+    public ResponseEntity<Object> handleReviewResourceNotFound(RuntimeException e) {
         ApiErrorResponse errorResponse = ApiErrorResponse.of(ErrorCode.NOT_FOUND, e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
-    @ExceptionHandler(ReviewException.AccessDenied.class)
-    public ResponseEntity<Object> handleReviewAccessDenied(ReviewException.AccessDenied e, WebRequest request) {
+    /**
+     * 차단된 리뷰 접근 예외 처리 (403 Forbidden)
+     */
+    @ExceptionHandler(ReviewException.BlockedReview.class)
+    public ResponseEntity<Object> handleBlockedReview(ReviewException.BlockedReview e) {
         ApiErrorResponse errorResponse = ApiErrorResponse.of(ErrorCode.ACCESS_DENIED, e.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
