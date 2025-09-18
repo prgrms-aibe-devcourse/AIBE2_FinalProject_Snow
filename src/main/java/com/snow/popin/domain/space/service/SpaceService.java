@@ -18,6 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * SpaceService
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -28,7 +31,13 @@ public class SpaceService {
     private final FileStorageService fileStorageService;
     private final MapRepository venueRepository;
 
-    //공간 등록
+    /**
+     * 공간 등록
+     *
+     * @param owner 공간 등록자 (User)
+     * @param dto   공간 등록 요청 DTO
+     * @return 생성된 공간 ID
+     */
     @Transactional
     public Long create(User owner, SpaceCreateRequestDto dto) {
         log.info("Creating new space for owner: {}", owner.getId());
@@ -63,7 +72,13 @@ public class SpaceService {
         log.info("Space created successfully with ID: {}", saved.getId());
         return saved.getId();
     }
-    //모든 공간 목록 조회
+
+    /**
+     * 모든 공개 공간 목록 조회
+     *
+     * @param me 현재 사용자
+     * @return 공개된 공간 리스트
+     */
     @Transactional(readOnly = true)
     public List<SpaceListResponseDto> listAll(User me) {
         return spaceRepository.findByIsPublicTrueAndIsHiddenFalseOrderByCreatedAtDesc()
@@ -71,7 +86,14 @@ public class SpaceService {
                 .map(space -> SpaceListResponseDto.from(space, me))
                 .collect(Collectors.toList());
     }
-    //공간 상세보기
+
+    /**
+     * 공간 상세 조회
+     *
+     * @param me 현재 사용자 (비로그인 허용)
+     * @param id 공간 ID
+     * @return 공간 상세 응답 DTO
+     */
     @Transactional(readOnly = true)
     public SpaceResponseDto getDetail(User me, Long id) {
         Space space = spaceRepository.findById(id)
@@ -83,19 +105,25 @@ public class SpaceService {
         }
         return SpaceResponseDto.from(space);
     }
-    //공간 게시글 수정
+
+    /**
+     * 공간 게시글 수정
+     *
+     * @param owner   수정 요청 사용자
+     * @param spaceId 공간 ID
+     * @param dto     수정 요청 DTO
+     */
     @Transactional
     public void update(User owner, Long spaceId, SpaceUpdateRequestDto dto) {
         log.info("Updating space ID {} by user: {}", spaceId, owner.getId());
 
-        // 1) 기존 Space 조회 및 소유자 검증
         Space space = spaceRepository.findById(spaceId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 공간이 존재하지 않습니다."));
 
         if (!space.isOwner(owner)) {
             throw new AccessDeniedException("해당 공간에 대한 수정 권한이 없습니다.");
         }
-        // 2) Venue 수정 또는 새로 생성
+
         Venue venue = space.getVenue();
         if (venue == null) {
             venue = Venue.of(
@@ -124,6 +152,7 @@ public class SpaceService {
         if (dto.getImage() != null && !dto.getImage().isEmpty()) {
             imageUrl = fileStorageService.save(dto.getImage());
         }
+
         space.updateSpaceInfo(
                 dto.getTitle(),
                 dto.getDescription(),
@@ -138,7 +167,13 @@ public class SpaceService {
 
         log.info("Space ID {} updated successfully", spaceId);
     }
-    //공간 게시글 삭제
+
+    /**
+     * 공간 게시글 삭제
+     *
+     * @param owner 삭제 요청 사용자
+     * @param id    공간 ID
+     */
     public void delete(User owner, Long id) {
         log.info("Deleting space ID: {} by owner: {}", id, owner.getId());
 
@@ -149,7 +184,12 @@ public class SpaceService {
         log.info("Space deleted successfully: {}", id);
     }
 
-    //내가 등록한 공간 목록 조회
+    /**
+     * 내가 등록한 공간 목록 조회
+     *
+     * @param owner 사용자
+     * @return 내 공간 리스트
+     */
     @Transactional(readOnly = true)
     public List<SpaceListResponseDto> listMine(User owner) {
         log.debug("Fetching spaces for owner: {}", owner.getId());
@@ -159,7 +199,13 @@ public class SpaceService {
                 .map(space -> SpaceListResponseDto.from(space, owner))
                 .collect(Collectors.toList());
     }
-    // 공간 숨김 처리 (신고 시)
+
+    /**
+     * 공간 숨김 처리 (신고 시)
+     *
+     * @param reporter 신고자
+     * @param spaceId  공간 ID
+     */
     @Transactional
     public void hideSpace(User reporter, Long spaceId) {
         log.info("Hiding space ID: {} reported by user: {}", spaceId, reporter.getId());
@@ -174,7 +220,17 @@ public class SpaceService {
         space.hide();
         log.info("Space ID {} hidden successfully", spaceId);
     }
-    //검색
+
+    /**
+     * 공간 검색
+     *
+     * @param me       현재 사용자
+     * @param keyword  검색 키워드 (선택)
+     * @param location 위치 (선택)
+     * @param minArea  최소 면적 (선택)
+     * @param maxArea  최대 면적 (선택)
+     * @return 검색 조건에 맞는 공간 리스트
+     */
     @Transactional(readOnly = true)
     public List<SpaceListResponseDto> searchSpaces(User me, String keyword, String location,
                                                    Integer minArea, Integer maxArea) {

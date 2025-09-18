@@ -2,26 +2,33 @@ package com.snow.popin.domain.mypage.provider.controller;
 
 import com.snow.popin.domain.space.entity.Space;
 import com.snow.popin.domain.mypage.provider.service.ProviderService;
+import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
+/**
+ * ProviderApiController
+ * 공간 제공자(Provider) 관련 REST API 컨트롤러.
+ * - 마이페이지에서 내가 등록한 공간 목록 조회 기능을 제공한다.
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/provider")
 public class ProviderApiController {
 
     private final ProviderService service;
+    private final UserUtil userUtil;
 
-    // 내 등록 공간 리스트 (마이페이지 내 등록 공간 카드) && 카드 상세는 space에 구현
+    /**
+     * 내가 등록한 공간 리스트 조회
+     *
+     * @return 내가 등록한 공간 리스트
+     */
     @GetMapping("/spaces")
-    public ResponseEntity<List<Space>> loadMySpaceInProfile(Principal principal) {
-        String email = principal.getName();
-        return ResponseEntity.ok(service.findMySpaces(email));
+    public ResponseEntity<List<Space>> loadMySpaceInProfile() {
+        return ResponseEntity.ok(service.findMySpaces());
     }
-
-    // 예약 통계 추가
 }
