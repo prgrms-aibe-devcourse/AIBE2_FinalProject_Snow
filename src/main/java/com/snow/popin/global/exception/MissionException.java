@@ -39,4 +39,11 @@ public class MissionException extends RuntimeException {
       super(ErrorCode.VALIDATION_ERROR, "필수 미션을 완료하지 않았습니다.");
     }
   }
+
+  // 종료된 미션셋
+  public static class MissionSetDisabled extends GeneralException {
+    public MissionSetDisabled() {
+      super(ErrorCode.NOT_FOUND, "종료된 미션은 이용하실수 없습니다.");
+    }
+  }
 }

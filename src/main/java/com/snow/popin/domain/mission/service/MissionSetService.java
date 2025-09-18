@@ -34,9 +34,13 @@ public class MissionSetService {
     }
 
     private MissionSetViewDto toViewDto(MissionSet set, Long userId) {
-        if (set == null || set.isDisabled()) {
+        if (set == null) {
             throw new MissionException.MissionSetNotFound();
         }
+        if (set.isDisabled()) {
+            throw new MissionException.MissionSetDisabled();
+        }
+
 
         List<MissionSummaryDto> missions =
                 Optional.ofNullable(set.getMissions()).orElse(Collections.emptyList())
