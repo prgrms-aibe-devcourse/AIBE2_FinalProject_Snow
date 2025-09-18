@@ -248,14 +248,15 @@ class ReviewListManager {
         const newSort = e.target.dataset.sort;
         if (newSort === this.currentSort) return;
 
-        // 버튼 상태 업데이트
+        // 버튼 UI 업데이트
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.classList.remove('active');
         });
         e.target.classList.add('active');
 
+        // 상태 업데이트 및 데이터 다시 로드
         this.currentSort = newSort;
-        this.loadReviews(true); // 첫 페이지부터 다시 로드
+        this.loadReviews(true);
     }
 
     // 더보기 처리

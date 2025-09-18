@@ -123,7 +123,7 @@ public class ReviewService {
         } else {
             // 10개 초과면 Pageable 사용
             Pageable pageable = PageRequest.of(0, limit);
-            Page<Review> reviewPage = reviewRepository.findByPopupIdAndIsBlockedFalseOrderByCreatedAtDesc(popupId, pageable);
+            Page<Review> reviewPage = reviewRepository.findByPopupIdAndIsBlockedFalse(popupId, pageable);
             reviews = reviewPage.getContent();
         }
 
@@ -137,7 +137,7 @@ public class ReviewService {
      */
     @Transactional(readOnly = true)
     public Page<ReviewListResponseDto> getReviewsByPopup(Long popupId, Pageable pageable) {
-        Page<Review> reviewPage = reviewRepository.findByPopupIdAndIsBlockedFalseOrderByCreatedAtDesc(popupId, pageable);
+        Page<Review> reviewPage = reviewRepository.findByPopupIdAndIsBlockedFalse(popupId, pageable);
 
         return reviewPage.map(ReviewListResponseDto::from);
     }

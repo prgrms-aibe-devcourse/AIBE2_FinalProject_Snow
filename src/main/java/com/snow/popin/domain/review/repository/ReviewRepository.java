@@ -14,8 +14,8 @@ import java.util.Optional;
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
-    // 특정 팝업의 차단되지 않은 리뷰 조회 (최신순, 페이징)
-    Page<Review> findByPopupIdAndIsBlockedFalseOrderByCreatedAtDesc(Long popupId, Pageable pageable);
+    // 특정 팝업의 차단되지 않은 리뷰 조회 (동적 정렬 및 페이징)
+    Page<Review> findByPopupIdAndIsBlockedFalse(Long popupId, Pageable pageable);
 
     // 사용자별 리뷰 조회
     Page<Review> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);

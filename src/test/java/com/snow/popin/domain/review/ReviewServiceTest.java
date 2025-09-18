@@ -264,7 +264,7 @@ class ReviewServiceTest {
         );
         Page<Review> mockPage = new PageImpl<>(mockReviews, pageable, 2);
 
-        given(reviewRepository.findByPopupIdAndIsBlockedFalseOrderByCreatedAtDesc(popupId, pageable))
+        given(reviewRepository.findByPopupIdAndIsBlockedFalse(popupId, pageable))
                 .willReturn(mockPage);
 
         // when
