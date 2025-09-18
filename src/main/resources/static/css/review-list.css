@@ -241,10 +241,6 @@
     border-bottom: none;
 }
 
-.review-item:hover {
-    background: #FAFBFC;
-}
-
 .review-item::before {
     content: '';
     position: absolute;
@@ -255,10 +251,6 @@
     background: linear-gradient(to bottom, #6366F1, #8B5CF6);
     opacity: 0;
     transition: opacity 0.2s;
-}
-
-.review-item:hover::before {
-    opacity: 1;
 }
 
 .review-header {
