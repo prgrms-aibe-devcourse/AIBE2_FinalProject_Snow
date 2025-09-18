@@ -76,7 +76,7 @@ const HostPage = {
             window.location.href = `/mypage/host/popup/${popup.id}/reservation`;
         });
         card.querySelector('.btn-stats').addEventListener('click', () => {
-            alert('통계는 준비중입니다.');
+            Pages.popupStats(popup.id);
         });
     },
 
