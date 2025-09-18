@@ -584,6 +584,13 @@ apiService.deletePopup = async function(popupId) {
 apiService.getMyHostProfile = async function() {
     return await this.get('/hosts/me');
 };
+// 팝업 통계
+apiService.getPopupStats = async function(popupId, params = {}) {
+    const sp = new URLSearchParams(params);
+    const query = sp.toString() ? `?${sp.toString()}` : '';
+    return await this.get(`/host/popups/${encodeURIComponent(popupId)}/stats${query}`);
+};
+
 // === 채팅 api ===
 apiService.getChatMessages = async function(reservationId) {
     return await this.get(`/chat/${encodeURIComponent(reservationId)}/messages`);
