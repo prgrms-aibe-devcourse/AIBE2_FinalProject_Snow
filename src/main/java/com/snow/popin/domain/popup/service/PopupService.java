@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,15 +63,69 @@ public class PopupService {
     public PopupListResponseDto getSimilarPopups(String categoryName, Long excludePopupId, int page, int size) {
         log.info("유사한 팝업 조회 - 카테고리: {}, 제외 ID: {}", categoryName, excludePopupId);
 
-        Pageable pageable = createPageable(page, size);
-        Page<Popup> popupPage = popupRepository.findSimilarPopups(categoryName, excludePopupId, pageable);
+        if (categoryName == null || categoryName.trim().isEmpty()) {
+            log.warn("카테고리명이 없어서 빈 결과를 반환합니다.");
+            return PopupListResponseDto.empty();
+        }
 
-        List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
-                .stream()
-                .map(PopupSummaryResponseDto::from)
-                .collect(Collectors.toList());
+        try {
+            Pageable pageable = createPageable(page, size);
+            Page<Popup> popupPage = popupRepository.findSimilarPopups(categoryName, excludePopupId, pageable);
 
-        return PopupListResponseDto.of(popupPage, popupDtos);
+            List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
+                    .stream()
+                    .map(PopupSummaryResponseDto::from)
+                    .collect(Collectors.toList());
+
+            log.info("유사한 팝업 조회 완료 - 총 {}개", popupPage.getTotalElements());
+            return PopupListResponseDto.of(popupPage, popupDtos);
+
+        } catch (Exception e) {
+            log.error("유사한 팝업 조회 실패 - 카테고리: {}, 오류: {}", categoryName, e.getMessage());
+            return PopupListResponseDto.empty();
+        }
+    }
+
+    // 카테고리별 팝업 조회
+    public PopupListResponseDto getPopupsByCategory(String categoryName, int page, int size) {
+        log.info("카테고리별 팝업 조회 - 카테고리: {}", categoryName);
+
+        try {
+            Pageable pageable = createPageable(page, size);
+            Page<Popup> popupPage = popupRepository.findByCategoryName(categoryName, pageable);
+
+            List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
+                    .stream()
+                    .map(PopupSummaryResponseDto::from)
+                    .collect(Collectors.toList());
+
+            log.info("카테고리별 팝업 조회 완료 - 총 {}개", popupPage.getTotalElements());
+            return PopupListResponseDto.of(popupPage, popupDtos);
+
+        } catch (Exception e) {
+            log.error("카테고리별 팝업 조회 실패 - 카테고리: {}, 오류: {}", categoryName, e.getMessage());
+            return PopupListResponseDto.empty();
+        }
+    }
+
+    // 지역별 팝업 조회
+    public List<PopupSummaryResponseDto> getPopupsByRegion(String region) {
+        log.info("지역별 팝업 조회 - 지역: {}", region);
+
+        try {
+            List<Popup> popups = popupRepository.findByRegion(region);
+
+            List<PopupSummaryResponseDto> result = popups.stream()
+                    .map(PopupSummaryResponseDto::from)
+                    .collect(Collectors.toList());
+
+            log.info("지역별 팝업 조회 완료 - 총 {}개", result.size());
+            return result;
+
+        } catch (Exception e) {
+            log.error("지역별 팝업 조회 실패 - 지역: {}, 오류: {}", region, e.getMessage());
+            return Collections.emptyList();
+        }
     }
 
     // 인기 팝업 조회 (isFeatured = true)

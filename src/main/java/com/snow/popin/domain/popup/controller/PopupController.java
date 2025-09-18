@@ -4,8 +4,10 @@ import com.snow.popin.domain.popup.dto.request.PopupListRequestDto;
 import com.snow.popin.domain.popup.dto.request.PopupSearchRequestDto;
 import com.snow.popin.domain.popup.dto.response.PopupDetailResponseDto;
 import com.snow.popin.domain.popup.dto.response.PopupListResponseDto;
+import com.snow.popin.domain.popup.dto.response.PopupSummaryResponseDto;
 import com.snow.popin.domain.popup.service.PopupService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +15,7 @@ import javax.validation.Valid;
 import javax.validation.Validator;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/popups")
 @RequiredArgsConstructor
@@ -55,6 +58,26 @@ public class PopupController {
         } catch (Exception e) {
             return ResponseEntity.ok(PopupListResponseDto.empty(page, size));
         }
+    }
+
+    // 카테고리별 팝업 조회
+    @GetMapping("/category/{categoryName}")
+    public ResponseEntity<PopupListResponseDto> getPopupsByCategory(
+            @PathVariable String categoryName,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        log.info("카테고리별 팝업 조회 API 호출 - 카테고리: {}, 페이지: {}, 크기: {}", categoryName, page, size);
+        PopupListResponseDto response = popupService.getPopupsByCategory(categoryName, page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    // 지역별 팝업 조회
+    @GetMapping("/region/{region}")
+    public ResponseEntity<List<PopupSummaryResponseDto>> getPopupsByRegion(@PathVariable String region) {
+        log.info("지역별 팝업 조회 API 호출 - 지역: {}", region);
+        List<PopupSummaryResponseDto> popups = popupService.getPopupsByRegion(region);
+        return ResponseEntity.ok(popups);
     }
 
     // 인기 팝업 조회 (isFeatured = true)
