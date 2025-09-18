@@ -764,22 +764,24 @@ class ShareModal {
 
                     <div class="share-options">
                         <button class="share-option" data-share-type="kakaotalk">
-                            <div class="share-option-icon kakaotalk">💬</div>
+                            <div class="share-option-icon kakaotalk">
+                                <img src="/images/icon_kakotalk.png" alt="카카오톡">
+                            </div>
                             <p class="share-option-label">카카오톡</p>
                         </button>
-
+            
                         <button class="share-option" data-share-type="twitter">
-                            <div class="share-option-icon twitter">🐦</div>
+                            <div class="share-option-icon twitter">
+                                <img src="/images/icon-x.png" alt="X">
+                            </div>
                             <p class="share-option-label">X</p>
                         </button>
-
+            
                         <button class="share-option" data-share-type="url">
                             <div class="share-option-icon url">🔗</div>
                             <p class="share-option-label">URL 복사</p>
                         </button>
                     </div>
-
-                    <button class="share-cancel-btn" id="share-cancel-btn">취소</button>
                 </div>
             </div>
         `;
@@ -791,11 +793,6 @@ class ShareModal {
     setupEventListeners() {
         // 모달 닫기 버튼
         document.getElementById('share-modal-close').addEventListener('click', () => {
-            this.hide();
-        });
-
-        // 취소 버튼
-        document.getElementById('share-cancel-btn').addEventListener('click', () => {
             this.hide();
         });
 

@@ -1,3 +1,4 @@
+/* 모달 오버레이 */
 .share-modal-overlay {
     position: fixed;
     top: 0;
@@ -22,14 +23,16 @@
 /* 모달 컨테이너 */
 .share-modal {
     background: white;
-    width: 100%;
-    max-width: 480px;
+    width: calc(100% - 40px);
+    max-width: 600px;
+    margin: 0 20px;
     border-radius: 20px 20px 0 0;
-    padding: 20px;
+    padding: 24px;
     transform: translateY(100%);
     transition: transform 0.3s ease;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
 }
+
 
 .share-modal-overlay.show .share-modal {
     transform: translateY(0);
@@ -75,10 +78,11 @@
 /* 공유 옵션들 */
 .share-options {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
     margin-bottom: 20px;
-    padding: 10px 0;
+    padding: 20px 10px;
+    justify-items: center;
 }
 
 .share-option {
@@ -95,7 +99,6 @@
 }
 
 .share-option:hover {
-    background-color: #f8f9fa;
     transform: translateY(-2px);
 }
 
@@ -104,65 +107,61 @@
 }
 
 .share-option-icon {
-    width: 50px;
-    height: 50px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-size: 20px;
+    position: relative;
     transition: transform 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
 }
 
 .share-option:hover .share-option-icon {
     transform: scale(1.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* 아이콘 이미지 */
+.share-option-icon img {
+    object-fit: contain;
+    z-index: 2;
+    position: relative;
 }
 
 /* 각 SNS별 아이콘 스타일 */
 .share-option-icon.kakaotalk {
-    background: #fee500;
-    color: #3c1e1e;
+    background: #FFEB00;
+}
+
+.share-option-icon.kakaotalk img {
+    width: 40px;
+    height: 40px;
 }
 
 .share-option-icon.twitter {
-    background: #1da1f2;
+    background: #212121;
+}
+
+.share-option-icon.twitter img {
+    width: 40px;
+    height: 40px;
 }
 
 .share-option-icon.url {
     background: #6b7280;
+    color: white;
+    font-size: 28px;
 }
 
 .share-option-label {
-    font-size: 12px;
+    font-size: 13px;
     color: #374151;
     text-align: center;
     margin: 0;
     font-weight: 500;
-}
-
-/* 취소 버튼 */
-.share-cancel-btn {
-    width: 100%;
-    padding: 15px;
-    border: 1px solid #d1d5db;
-    background: white;
-    color: #374151;
-    font-size: 16px;
-    font-weight: 500;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.share-cancel-btn:hover {
-    background-color: #f9fafb;
-    border-color: #9ca3af;
-}
-
-.share-cancel-btn:active {
-    background-color: #f3f4f6;
 }
 
 /* 공유 토스트 메시지 */
@@ -193,30 +192,37 @@
 /* 반응형 디자인 */
 @media (max-width: 480px) {
     .share-modal {
+        width: calc(100% - 20px);
         margin: 0 10px;
         border-radius: 20px;
+        padding: 20px;
     }
 
     .share-options {
-        gap: 10px;
+        gap: 25px;
+        padding: 15px 5px;
     }
 
     .share-option {
-        padding: 10px 5px;
+        padding: 12px 8px;
     }
 
     .share-option-icon {
-        width: 45px;
-        height: 45px;
-        font-size: 18px;
+        width: 52px;
+        height: 52px;
+    }
+
+    .share-option-icon img {
+        width: 26px;
+        height: 26px;
     }
 
     .share-option-label {
-        font-size: 11px;
+        font-size: 12px;
     }
 }
 
-/* 다크 모드 대응 (필요시) */
+/* 다크 모드 대응 */
 @media (prefers-color-scheme: dark) {
     .share-modal {
         background: #1f2937;
@@ -253,18 +259,6 @@
     .share-cancel-btn:hover {
         background-color: #4b5563;
         border-color: #6b7280;
-    }
-}
-
-/* 애니메이션 키프레임 */
-@keyframes slideUp {
-    from {
-        transform: translateY(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
     }
 }
 
