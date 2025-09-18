@@ -376,7 +376,7 @@ apiService.getReservationStats = async function() {
 
 // === 팝업 관련 API ===
 
-// 팝업 목록 조회 - 실제 API 호출
+// 팝업 목록 조회
 apiService.getPopups = async function(params = {}) {
     const sp = new URLSearchParams();
 

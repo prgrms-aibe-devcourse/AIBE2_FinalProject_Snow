@@ -179,7 +179,9 @@ class PopupDetailManager {
         }
 
         if (hasLocation) {
-            this.initializeLocationMap();
+            setTimeout(() => {
+                this.initializeLocationMap();
+            }, 0);
         } else {
             const mapContainer = document.querySelector('.map-container');
             if (mapContainer) {
@@ -231,6 +233,9 @@ class PopupDetailManager {
             console.log('[지도 초기화] 지도 생성 시작');
 
             this.locationMap = new kakao.maps.Map(mapContainer, mapOption);
+
+            this.locationMap.relayout();
+            this.locationMap.setCenter(mapOption.center);
 
             const mapCreateEnd = performance.now();
             console.log(`[지도 초기화] 지도 생성 완료 (소요시간: ${mapCreateEnd - mapCreateStart}ms)`);
