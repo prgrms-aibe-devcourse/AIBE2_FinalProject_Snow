@@ -29,7 +29,6 @@ public class ReservationReminderScheduler {
      * 매 분 0초마다 예약 임박 사용자에게 알림 발송
      */
     @Scheduled(cron = "0 * * * * *") // 매 분 0초 실행
-    @Transactional
     public void sendReservationReminders() {
         LocalDateTime now = LocalDateTime.now();
 
