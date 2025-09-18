@@ -1,0 +1,51 @@
+package com.snow.popin.domain.popup.service
+
+import com.snow.popin.domain.popup.entity.Popup
+import com.snow.popin.domain.popup.repository.PopupRepository
+import lombok.RequiredArgsConstructor
+import lombok.extern.slf4j.Slf4j
+import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+
+import java.time.LocalDate
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+class PopupBatchService {
+
+    private final PopupRepository popupRepository;
+
+    // 매일 자정, 팝업의 상태를 자동으로 업데이트
+    @Transactional
+    @Scheduled(cron = "0 0 0 * * *")
+    public void updatePopupStatuses() {
+        log.info("팝업 상태 업데이트 스케줄러 시작");
+        LocalDate today = LocalDate.now();
+        int updatedCount = 0;
+
+        // PLANNED -> ONGOING 업데이트
+        List<Popup> popupsToStart = popupRepository.findPopupsToUpdateToOngoing(today);
+        for (Popup popup : popupsToStart) {
+            if (popup.updateStatus()) {
+                updatedCount++;
+            }
+        }
+
+        // ONGOING -> ENDED 업데이트
+        List<Popup> popupsToEnd = popupRepository.findPopupsToUpdateToEnded(today);
+        for (Popup popup : popupsToEnd) {
+            if (popup.updateStatus()) {
+                updatedCount++;
+            }
+        }
+
+        if (updatedCount > 0) {
+            log.info("총 {}개의 팝업 상태가 업데이트되었습니다.", updatedCount);
+        } else {
+            log.info("상태를 업데이트할 팝업이 없습니다.");
+        }
+        log.info("팝업 상태 업데이트 스케줄러 종료");
+    }
+}

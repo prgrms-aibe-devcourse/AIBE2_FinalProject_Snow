@@ -168,5 +168,11 @@ public interface PopupRepository extends JpaRepository<Popup, Long>, JpaSpecific
      */
     long countByStatus(PopupStatus status);
 
+    // ONGOING 상태로 변경되어야 할 PLANNED 상태의 팝업 목록을 조회
+    @Query("SELECT p FROM Popup p WHERE p.status = com.snow.popin.domain.popup.entity.PopupStatus.PLANNED AND p.startDate <= :today")
+    List<Popup> findPopupsToUpdateToOngoing(@Param("today") LocalDate today);
 
+    // ENDED 상태로 변경되어야 할 ONGOING 상태의 팝업 목록을 조회
+    @Query("SELECT p FROM Popup p WHERE p.status = com.snow.popin.domain.popup.entity.PopupStatus.ONGOING AND p.endDate < :today")
+    List<Popup> findPopupsToUpdateToEnded(@Param("today") LocalDate today);
 }

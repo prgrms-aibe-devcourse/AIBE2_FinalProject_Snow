@@ -168,6 +168,28 @@ public class Popup extends BaseEntity {
         return ChronoUnit.DAYS.between(now, endDate);
     }
 
+    // 현재 날짜를 기준으로 팝업의 상태를 업데이트
+    public boolean updateStatus() {
+        LocalDate now = LocalDate.now();
+        PopupStatus newStatus = determineStatus(now);
+
+        if (this.status != newStatus) {
+            this.status = newStatus;
+            return true;
+        }
+        return false;
+    }
+
+    private PopupStatus determineStatus(LocalDate now) {
+        if (startDate != null && now.isBefore(startDate)) {
+            return PopupStatus.PLANNED;
+        } else if (endDate != null && now.isAfter(endDate)) {
+            return PopupStatus.ENDED;
+        } else {
+            return PopupStatus.ONGOING;
+        }
+    }
+
     // 테스트용 메서드
     public static Popup createForTest(String title, PopupStatus status, Venue venue) {
         Popup popup = new Popup();
