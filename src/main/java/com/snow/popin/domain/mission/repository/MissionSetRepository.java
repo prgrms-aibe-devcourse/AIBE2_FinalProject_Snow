@@ -1,7 +1,7 @@
 package com.snow.popin.domain.mission.repository;
 
 import com.snow.popin.domain.mission.entity.MissionSet;
-import com.snow.popin.domain.mission.entity.MissionSetStatus;
+import com.snow.popin.domain.mission.constant.MissionSetStatus;
 import com.snow.popin.domain.mission.entity.UserMission;
 import com.snow.popin.domain.user.entity.User;
 import org.springframework.data.domain.Page;

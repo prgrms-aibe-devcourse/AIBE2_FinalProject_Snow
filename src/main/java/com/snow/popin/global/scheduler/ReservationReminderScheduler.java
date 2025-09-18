@@ -1,6 +1,6 @@
 package com.snow.popin.global.scheduler;
 
-import com.snow.popin.domain.notification.entity.NotificationType;
+import com.snow.popin.domain.notification.constant.NotificationType;
 import com.snow.popin.domain.notification.service.NotificationService;
 import com.snow.popin.domain.popupReservation.entity.Reservation;
 import com.snow.popin.domain.popupReservation.entity.ReservationStatus;
@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

@@ -1,4 +1,4 @@
-package com.snow.popin.domain.mission.dto;
+package com.snow.popin.domain.mission.dto.response;
 
 import com.snow.popin.domain.mission.entity.Mission;
 import lombok.Builder;

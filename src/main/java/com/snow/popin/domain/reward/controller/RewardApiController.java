@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/rewards")
 @RequiredArgsConstructor
 @Validated
-public class RewardController {
+public class RewardApiController {
 
     private final RewardService rewardService;
     private final UserUtil userUtil;

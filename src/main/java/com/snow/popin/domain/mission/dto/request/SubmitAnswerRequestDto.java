@@ -1,10 +1,9 @@
-package com.snow.popin.domain.mission.dto;
+package com.snow.popin.domain.mission.dto.request;
 
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotBlank;
 import java.util.UUID;
 
 @Getter

@@ -1,6 +1,6 @@
-package com.snow.popin.domain.mission.dto;
+package com.snow.popin.domain.mission.dto.request;
 
-import com.snow.popin.domain.mission.entity.MissionSetStatus;
+import com.snow.popin.domain.mission.constant.MissionSetStatus;
 import lombok.Getter;
 
 @Getter

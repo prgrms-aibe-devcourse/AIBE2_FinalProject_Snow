@@ -1,5 +1,6 @@
 package com.snow.popin.domain.reward.entity;
 
+import com.snow.popin.domain.reward.constant.UserRewardStatus;
 import com.snow.popin.global.common.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Builder;

@@ -1,6 +1,6 @@
 package com.snow.popin.domain.mission.controller;
 
-import com.snow.popin.domain.mission.dto.MissionSetViewDto;
+import com.snow.popin.domain.mission.dto.response.MissionSetViewDto;
 import com.snow.popin.domain.mission.service.MissionSetService;
 import com.snow.popin.global.exception.MissionException;
 import com.snow.popin.global.util.UserUtil;

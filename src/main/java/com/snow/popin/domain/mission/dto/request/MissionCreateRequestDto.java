@@ -1,4 +1,4 @@
-package com.snow.popin.domain.mission.dto;
+package com.snow.popin.domain.mission.dto.request;
 
 import lombok.Getter;
 

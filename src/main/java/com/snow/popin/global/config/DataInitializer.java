@@ -9,7 +9,7 @@ import com.snow.popin.domain.map.entity.Venue;
 import com.snow.popin.domain.map.repository.MapRepository;
 import com.snow.popin.domain.mission.entity.Mission;
 import com.snow.popin.domain.mission.entity.MissionSet;
-import com.snow.popin.domain.mission.entity.MissionSetStatus;
+import com.snow.popin.domain.mission.constant.MissionSetStatus;
 import com.snow.popin.domain.mission.repository.MissionRepository;
 import com.snow.popin.domain.mission.repository.MissionSetRepository;
 import com.snow.popin.domain.mypage.host.dto.PopupRegisterRequestDto;

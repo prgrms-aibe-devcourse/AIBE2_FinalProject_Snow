@@ -1,7 +1,7 @@
 package com.snow.popin.domain.notification.controller;
 
-import com.snow.popin.domain.notification.dto.NotificationSettingRequestDto;
-import com.snow.popin.domain.notification.dto.NotificationSettingResponseDto;
+import com.snow.popin.domain.notification.dto.request.NotificationSettingRequestDto;
+import com.snow.popin.domain.notification.dto.response.NotificationSettingResponseDto;
 import com.snow.popin.domain.notification.service.NotificationSettingService;
 import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/notifications/settings")
 @RequiredArgsConstructor
-public class NotificationSettingController {
+public class NotificationSettingApiController {
 
     private final NotificationSettingService settingService;
     private final UserUtil userUtil;

@@ -1,14 +1,12 @@
 package com.snow.popin.domain.reward.service;
 
 import com.snow.popin.domain.mission.entity.MissionSet;
-import com.snow.popin.domain.mission.entity.UserMissionStatus;
+import com.snow.popin.domain.mission.constant.UserMissionStatus;
 import com.snow.popin.domain.mission.repository.MissionSetRepository;
 import com.snow.popin.domain.mission.repository.UserMissionRepository;
-import com.snow.popin.domain.reward.entity.*;
-import com.snow.popin.domain.reward.repository.*;
 import com.snow.popin.domain.reward.entity.RewardOption;
 import com.snow.popin.domain.reward.entity.UserReward;
-import com.snow.popin.domain.reward.entity.UserRewardStatus;
+import com.snow.popin.domain.reward.constant.UserRewardStatus;
 import com.snow.popin.domain.reward.repository.RewardOptionRepository;
 import com.snow.popin.domain.reward.repository.UserRewardRepository;
 import com.snow.popin.global.exception.RewardException;
@@ -33,7 +31,13 @@ public class RewardService {
         return optionRepository.findByMissionSetId(missionSetId);
     }
 
-    // 발급: 유저당 1회 / 미션 조건 충족 / 옵션 재고 차감
+    /**
+     * 발급: 유저당 1회 / 미션 조건 충족 / 옵션 재고 차감
+     * @param missionSetId
+     * @param optionId
+     * @param userId
+     * @return
+     */
     @Transactional
     public UserReward claim(UUID missionSetId, Long optionId, Long userId) {
         // 이미 발급된 게 있으면 그대로 반환 (idempotent)
@@ -71,6 +75,13 @@ public class RewardService {
         return rewardRepository.save(userReward);
     }
 
+    /**
+     * 리워드 수령
+     * @param missionSetId
+     * @param userId
+     * @param staffPinPlain
+     * @return
+     */
     @Transactional
     public UserReward redeem(UUID missionSetId, Long userId, String staffPinPlain) {
         UserReward userReward = rewardRepository.findByUserIdAndMissionSetIdAndStatus(

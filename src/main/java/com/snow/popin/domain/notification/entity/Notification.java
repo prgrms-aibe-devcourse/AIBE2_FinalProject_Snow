@@ -1,5 +1,6 @@
 package com.snow.popin.domain.notification.entity;
 
+import com.snow.popin.domain.notification.constant.NotificationType;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.global.common.BaseEntity;
 import lombok.Builder;

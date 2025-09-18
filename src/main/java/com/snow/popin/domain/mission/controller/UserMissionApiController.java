@@ -1,12 +1,11 @@
 package com.snow.popin.domain.mission.controller;
 
-import com.snow.popin.domain.mission.dto.ActiveMissionSetResponseDto;
+import com.snow.popin.domain.mission.dto.response.ActiveMissionSetResponseDto;
 import com.snow.popin.domain.mission.entity.UserMission;
 import com.snow.popin.domain.mission.service.UserMissionService;
-import com.snow.popin.domain.popup.dto.response.ActiveMissionPopupResponseDto;
 import com.snow.popin.domain.user.service.UserService;
-import com.snow.popin.domain.mission.dto.SubmitAnswerRequestDto;
-import com.snow.popin.domain.mission.dto.SubmitAnswerResponseDto;
+import com.snow.popin.domain.mission.dto.request.SubmitAnswerRequestDto;
+import com.snow.popin.domain.mission.dto.response.SubmitAnswerResponseDto;
 import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

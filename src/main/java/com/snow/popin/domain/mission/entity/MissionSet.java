@@ -1,5 +1,6 @@
 package com.snow.popin.domain.mission.entity;
 
+import com.snow.popin.domain.mission.constant.MissionSetStatus;
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.global.common.BaseEntity;
 import lombok.AccessLevel;
