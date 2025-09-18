@@ -4,7 +4,7 @@ import com.snow.popin.domain.mypage.host.entity.Brand;
 import com.snow.popin.domain.mypage.host.entity.Host;
 import com.snow.popin.domain.mypage.host.repository.BrandRepository;
 import com.snow.popin.domain.mypage.host.repository.HostRepository;
-import com.snow.popin.domain.popup.dto.response.PopupManagementResponse;
+import com.snow.popin.domain.popup.dto.response.PopupAdminResponse;
 import com.snow.popin.domain.popup.dto.response.PopupStatsResponse;
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.entity.PopupStatus;
@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -24,6 +23,9 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
+
 /**
  * 관리자 팝업 관리 서비스
  */
@@ -55,27 +57,40 @@ public class AdminPopupService {
     /**
      * 관리자용 팝업 목록 조회 (필터링 및 검색 지원)
      */
-    public Page<PopupManagementResponse> getPopupsForAdmin(
+    public Page<PopupAdminResponse> getPopupsForAdmin(
             Pageable pageable, PopupStatus status, String category, String keyword){
         log.debug("관리자용 팝업 목록 조회 - 상태: {}, 카테고리: {}, 키워드: {}", status, category, keyword);
 
         Specification<Popup> spec = createPopupSpecification(status, category, keyword);
         Page<Popup> popups = popupRepo.findAll(spec, pageable);
 
-        return popups.map(PopupManagementResponse::from);
+        // 각 팝업에 대해 브랜드와 주최자 정보를 포함하여 변환
+        return popups.map(popup -> {
+            // 브랜드 정보 조회
+            Brand brand = null;
+            if (popup.getBrandId() != null){
+                try {
+                    brand = brandRepo.findById(popup.getBrandId()).orElse(null);
+                } catch (Exception e){
+                    log.warn("브랜드 정보 조회 실패: brandID={}", popup.getBrandId());
+                }
+            }
+
+            return PopupAdminResponse.fromWithBrand(popup, brand);
+        });
     }
 
     /**
      * 팝업 관리 정보 조회 (브랜드 + 주최자 정보 포함)
      */
-    public PopupManagementResponse getPopupForAdmin(Long popupId){
+    public PopupAdminResponse getPopupForAdmin(Long popupId){
         Popup popup = popupRepo.findById(popupId)
                 .orElseThrow(() -> new GeneralException(ErrorCode.POPUP_NOT_FOUND));
 
         // 브랜드 정보 조회
         Brand brand = brandRepo.getReferenceById(popup.getBrandId());
 
-        return PopupManagementResponse.fromWithBrand(popup,brand);
+        return PopupAdminResponse.fromWithBrand(popup,brand);
     }
 
     /**
@@ -92,16 +107,27 @@ public class AdminPopupService {
 
             // 카테고리 필터
             if (StringUtils.hasText(category)) {
-                predicates.add(criteriaBuilder.equal(root.get("category"), category));
+                predicates.add(criteriaBuilder.equal(root.get("category").get("name"), category));
             }
 
-            // 키워드 검색 (팝업명 또는 주최자명)
+            // 키워드 검색 (팝업명 + 주최자명)
             if (StringUtils.hasText(keyword)) {
                 String searchKeyword = "%" + keyword.toLowerCase() + "%";
+
+                // 팝업명으로 검색
                 Predicate titlePredicate = criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("title")), searchKeyword);
-                Predicate hostNamePredicate = criteriaBuilder.like(
-                        criteriaBuilder.lower(root.get("user").get("name")), searchKeyword);
+
+                // 주최자명으로 검색 (복잡한 JOIN 필요)
+                // Popup -> Brand -> Host -> User 경로
+                Subquery<Long> hostSubquery = query.subquery(Long.class);
+                Root<Host> hostRoot = hostSubquery.from(Host.class);
+                hostSubquery.select(hostRoot.get("brand").get("id"))
+                        .where(criteriaBuilder.like(
+                                criteriaBuilder.lower(hostRoot.get("user").get("name")),
+                                searchKeyword));
+
+                Predicate hostNamePredicate = criteriaBuilder.in(root.get("brandId")).value(hostSubquery);
 
                 predicates.add(criteriaBuilder.or(titlePredicate, hostNamePredicate));
             }

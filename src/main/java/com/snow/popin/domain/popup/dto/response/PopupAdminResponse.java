@@ -1,18 +1,14 @@
 package com.snow.popin.domain.popup.dto.response;
 
-import com.snow.popin.domain.category.entity.Category;
 import com.snow.popin.domain.mypage.host.entity.Brand;
 import com.snow.popin.domain.popup.entity.Popup;
-import com.snow.popin.domain.popup.entity.PopupImage;
 import com.snow.popin.domain.popup.entity.PopupStatus;
 import com.snow.popin.domain.user.entity.User;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,7 +17,7 @@ import java.util.stream.Collectors;
  */
 @Getter
 @Builder
-public class PopupManagementResponse {
+public class PopupAdminResponse {
     private final Long id;
     private final String title;
     private final String summary;
@@ -69,8 +65,8 @@ public class PopupManagementResponse {
     /**
      * 기본 PopupManagementResponse 생성
      */
-    public static PopupManagementResponse from(Popup popup) {
-        return PopupManagementResponse.builder()
+    public static PopupAdminResponse from(Popup popup) {
+        return PopupAdminResponse.builder()
                 .id(popup.getId())
                 .title(popup.getTitle())
                 .summary(popup.getSummary())
@@ -91,7 +87,7 @@ public class PopupManagementResponse {
                 .venueAddress(popup.getVenueAddress())
                 .region(popup.getRegion())
                 .categoryId(popup.getCategory() != null ? popup.getCategory().getId() : null)
-                .categoryName(popup.getCategoryName())
+                .categoryName(popup.getCategory() != null ? popup.getCategory().getName() : null)
                 .images(popup.getImages() != null ? popup.getImages().stream()
                         .map(PopupImageResponseDto::from)
                         .collect(Collectors.toList()) : null)
@@ -105,8 +101,8 @@ public class PopupManagementResponse {
     /**
      * 브랜드 정보와 함께 PopupManagementResponse 생성
      */
-    public static PopupManagementResponse fromWithBrand(Popup popup, Brand brand) {
-        return PopupManagementResponse.builder()
+    public static PopupAdminResponse fromWithBrand(Popup popup, Brand brand) {
+        return PopupAdminResponse.builder()
                 .id(popup.getId())
                 .title(popup.getTitle())
                 .summary(popup.getSummary())
@@ -127,7 +123,7 @@ public class PopupManagementResponse {
                 .venueAddress(popup.getVenueAddress())
                 .region(popup.getRegion())
                 .categoryId(popup.getCategory() != null ? popup.getCategory().getId() : null)
-                .categoryName(popup.getCategoryName())
+                .categoryName(popup.getCategory() != null ? popup.getCategory().getName() : null)
                 .images(popup.getImages().stream()
                         .map(PopupImageResponseDto::from)
                         .collect(Collectors.toList()))
@@ -146,8 +142,8 @@ public class PopupManagementResponse {
     /**
      * 브랜드와 호스트 정보를 함께 포함한 PopupManagementResponse 생성
      */
-    public static PopupManagementResponse fromWithBrandAndHost(Popup popup, Brand brand, User hostUser) {
-        return PopupManagementResponse.builder()
+    public static PopupAdminResponse fromWithBrandAndHost(Popup popup, Brand brand, User hostUser) {
+        return PopupAdminResponse.builder()
                 .id(popup.getId())
                 .title(popup.getTitle())
                 .summary(popup.getSummary())
@@ -168,7 +164,7 @@ public class PopupManagementResponse {
                 .venueAddress(popup.getVenueAddress())
                 .region(popup.getRegion())
                 .categoryId(popup.getCategory() != null ? popup.getCategory().getId() : null)
-                .categoryName(popup.getCategoryName())
+                .categoryName(popup.getCategory() != null ? popup.getCategory().getName() : null)
                 .images(popup.getImages() != null ? popup.getImages().stream()
                         .map(PopupImageResponseDto::from)
                         .collect(Collectors.toList()) : null)

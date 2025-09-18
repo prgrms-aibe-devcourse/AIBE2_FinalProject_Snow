@@ -1,7 +1,7 @@
 package com.snow.popin.domain.admin.controller;
 
 import com.snow.popin.domain.admin.service.AdminPopupService;
-import com.snow.popin.domain.popup.dto.response.PopupManagementResponse;
+import com.snow.popin.domain.popup.dto.response.PopupAdminResponse;
 import com.snow.popin.domain.popup.dto.response.PopupStatsResponse;
 import com.snow.popin.domain.popup.entity.PopupStatus;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -41,7 +40,7 @@ public class AdminPopupController {
      * 관리자용 팝업 목록 조회 (필터링 및 검색 지원)
      */
     @GetMapping
-    public ResponseEntity<Page<PopupManagementResponse>> getPopups(
+    public ResponseEntity<Page<PopupAdminResponse>> getPopups(
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC)Pageable pageable,
             @RequestParam(required = false) PopupStatus status,
             @RequestParam(required = false) String category,
@@ -49,7 +48,7 @@ public class AdminPopupController {
         log.info("관리자 팝업 목록 조회 요청 - 페이지: {}, 상태: {}, 카테고리: {}, 키워드: {}",
                 pageable.getPageNumber(), status, category, keyword);
 
-        Page<PopupManagementResponse> popups = adminPopupService.getPopupsForAdmin(
+        Page<PopupAdminResponse> popups = adminPopupService.getPopupsForAdmin(
                 pageable,status,category,keyword
         );
 
@@ -60,8 +59,8 @@ public class AdminPopupController {
      * 관리자용 팝업 상세 조회
      */
     @GetMapping("/{popupId}")
-    public ResponseEntity<PopupManagementResponse> getPopupDetail(@PathVariable Long popupId){
-        PopupManagementResponse res = adminPopupService.getPopupForAdmin(popupId);
+    public ResponseEntity<PopupAdminResponse> getPopupDetail(@PathVariable Long popupId){
+        PopupAdminResponse res = adminPopupService.getPopupForAdmin(popupId);
         return ResponseEntity.ok(res);
     }
 
