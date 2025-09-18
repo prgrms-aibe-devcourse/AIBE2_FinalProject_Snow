@@ -121,10 +121,6 @@
 }
 
 /* 각 SNS별 아이콘 스타일 */
-.share-option-icon.instagram {
-    background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-}
-
 .share-option-icon.kakaotalk {
     background: #fee500;
     color: #3c1e1e;

@@ -763,11 +763,6 @@ class ShareModal {
                     </div>
 
                     <div class="share-options">
-                        <button class="share-option" data-share-type="instagram">
-                            <div class="share-option-icon instagram">📷</div>
-                            <p class="share-option-label">인스타그램</p>
-                        </button>
-
                         <button class="share-option" data-share-type="kakaotalk">
                             <div class="share-option-icon kakaotalk">💬</div>
                             <p class="share-option-label">카카오톡</p>
@@ -835,9 +830,6 @@ class ShareModal {
 
         try {
             switch (shareType) {
-                case 'instagram':
-                    this.shareToInstagram(shareData);
-                    break;
                 case 'kakaotalk':
                     this.shareToKakaoTalk(shareData);
                     break;
@@ -854,23 +846,6 @@ class ShareModal {
         }
 
         this.hide();
-    }
-
-    shareToInstagram(data) {
-        const text = `${data.description}\n\n${data.url}`;
-
-        if (this.isMobile()) {
-            this.copyToClipboard(text).then(() => {
-                this.showToast('텍스트가 복사되었습니다. 인스타그램에서 붙여넣기하세요.');
-                setTimeout(() => {
-                    window.location.href = 'instagram://camera';
-                }, 1000);
-            });
-        } else {
-            this.copyToClipboard(text);
-            this.showToast('텍스트가 복사되었습니다.');
-            window.open('https://www.instagram.com/', '_blank');
-        }
     }
 
     shareToKakaoTalk(data) {
