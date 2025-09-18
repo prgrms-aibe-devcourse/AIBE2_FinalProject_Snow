@@ -868,12 +868,12 @@ apiService.deleteMissionSet = async function(setId) {
 
 // 특정 미션셋에 미션 추가
 apiService.addMission = async function(setId, data) {
-    return await this.post(`/admin/mission-sets/${encodeURIComponent(setId)}/missions`, data);
+    return await this.post(`/admin/mission/${encodeURIComponent(setId)}`, data);
 };
 
 // 미션 삭제
 apiService.deleteMission = async function(missionId) {
-    return await this.delete(`/admin/mission-sets/missions/${encodeURIComponent(missionId)}`);
+    return await this.delete(`/admin/mission/${encodeURIComponent(missionId)}`);
 };
 
 apiService.listAdminPopups = async function ({ page = 0, size = 500 } = {}) {

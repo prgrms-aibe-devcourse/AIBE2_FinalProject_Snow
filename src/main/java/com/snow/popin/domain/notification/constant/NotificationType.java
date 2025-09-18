@@ -1,4 +1,4 @@
-package com.snow.popin.domain.notification.entity;
+package com.snow.popin.domain.notification.constant;
 
 public enum NotificationType {
     RESERVATION,

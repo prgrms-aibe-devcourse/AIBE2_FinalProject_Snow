@@ -1,12 +1,11 @@
 package com.snow.popin.domain.notification.controller;
 
-import com.snow.popin.domain.notification.dto.NotificationResponseDto;
+import com.snow.popin.domain.notification.dto.response.NotificationResponseDto;
 import com.snow.popin.domain.notification.entity.Notification;
-import com.snow.popin.domain.notification.entity.NotificationType;
+import com.snow.popin.domain.notification.constant.NotificationType;
 import com.snow.popin.domain.notification.service.NotificationService;
 import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -20,7 +19,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
-public class NotificationController {
+public class NotificationApiController {
 
     private final NotificationService notificationService;
     private final UserUtil userUtil;

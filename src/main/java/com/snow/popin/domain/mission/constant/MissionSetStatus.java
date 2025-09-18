@@ -1,4 +1,4 @@
-package com.snow.popin.domain.mission.entity;
+package com.snow.popin.domain.mission.constant;
 
 public enum MissionSetStatus {
     ENABLED,   // 활성화

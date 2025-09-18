@@ -1,7 +1,6 @@
 package com.snow.popin.domain.popup.dto.response;
 
 import com.snow.popin.domain.mission.entity.MissionSet;
-import com.snow.popin.domain.mission.entity.UserMissionStatus;
 import com.snow.popin.domain.popup.entity.Popup;
 import lombok.Builder;
 import lombok.Getter;

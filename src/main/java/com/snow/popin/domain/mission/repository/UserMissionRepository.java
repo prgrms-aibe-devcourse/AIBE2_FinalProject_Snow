@@ -1,7 +1,7 @@
 package com.snow.popin.domain.mission.repository;
 
 import com.snow.popin.domain.mission.entity.UserMission;
-import com.snow.popin.domain.mission.entity.UserMissionStatus;
+import com.snow.popin.domain.mission.constant.UserMissionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

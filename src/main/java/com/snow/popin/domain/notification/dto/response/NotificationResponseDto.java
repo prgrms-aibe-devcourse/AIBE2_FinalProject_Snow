@@ -1,4 +1,4 @@
-package com.snow.popin.domain.notification.dto;
+package com.snow.popin.domain.notification.dto.response;
 
 import com.snow.popin.domain.notification.entity.Notification;
 import lombok.Builder;

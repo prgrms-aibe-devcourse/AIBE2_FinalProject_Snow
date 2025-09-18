@@ -1,8 +1,8 @@
 package com.snow.popin.domain.notification.service;
 
-import com.snow.popin.domain.notification.dto.NotificationSettingResponseDto;
+import com.snow.popin.domain.notification.dto.response.NotificationSettingResponseDto;
 import com.snow.popin.domain.notification.entity.NotificationSetting;
-import com.snow.popin.domain.notification.entity.NotificationType;
+import com.snow.popin.domain.notification.constant.NotificationType;
 import com.snow.popin.domain.notification.repository.NotificationSettingRepository;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.domain.user.repository.UserRepository;

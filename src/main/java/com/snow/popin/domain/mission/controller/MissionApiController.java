@@ -1,7 +1,7 @@
 package com.snow.popin.domain.mission.controller;
 
 import com.snow.popin.domain.mission.entity.Mission;
-import com.snow.popin.domain.mission.dto.MissionDto;
+import com.snow.popin.domain.mission.dto.response.MissionDto;
 import com.snow.popin.domain.mission.service.MissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

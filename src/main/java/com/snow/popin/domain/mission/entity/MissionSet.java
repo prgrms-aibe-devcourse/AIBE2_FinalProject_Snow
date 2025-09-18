@@ -1,5 +1,6 @@
 package com.snow.popin.domain.mission.entity;
 
+import com.snow.popin.domain.mission.constant.MissionSetStatus;
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.global.common.BaseEntity;
 import lombok.AccessLevel;
@@ -49,6 +50,10 @@ public class MissionSet extends BaseEntity {
 
     @Column(name = "reward_pin", length = 80)
     private String rewardPin;
+
+    @Column(name = "qr_image_url", length = 255)
+    private String qrImageUrl;
+
 
     @Builder
     public MissionSet(Long popupId, Integer requiredCount, MissionSetStatus status, String rewardPin) {
@@ -111,4 +116,7 @@ public class MissionSet extends BaseEntity {
         this.rewardPin = rewardPin;
     }
 
+    public void setQrImageUrl(String qrImageUrl) {
+        this.qrImageUrl = qrImageUrl;
+    }
 }

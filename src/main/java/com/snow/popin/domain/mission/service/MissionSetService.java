@@ -1,10 +1,10 @@
 package com.snow.popin.domain.mission.service;
 
-import com.snow.popin.domain.mission.dto.MissionSetViewDto;
-import com.snow.popin.domain.mission.dto.MissionSummaryDto;
+import com.snow.popin.domain.mission.dto.response.MissionSetViewDto;
+import com.snow.popin.domain.mission.dto.response.MissionSummaryDto;
 import com.snow.popin.domain.mission.entity.MissionSet;
 import com.snow.popin.domain.mission.entity.UserMission;
-import com.snow.popin.domain.mission.entity.UserMissionStatus;
+import com.snow.popin.domain.mission.constant.UserMissionStatus;
 import com.snow.popin.domain.mission.repository.MissionSetRepository;
 import com.snow.popin.domain.mission.repository.UserMissionRepository;
 import com.snow.popin.domain.popup.entity.Popup;
