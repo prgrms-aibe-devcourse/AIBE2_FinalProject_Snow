@@ -65,13 +65,17 @@ public class MissionSet extends BaseEntity {
         }
     }
 
-    // 비즈니스 메서드
+    /**
+     *비즈니스 메서드
+     */
     public void addMission(Mission mission) {
         this.missions.add(mission);
         mission.setMissionSet(this);
     }
 
-    // 상태 전환
+    /**
+     * 상태 전환
+     */
     public void disable() {
         this.status = MissionSetStatus.DISABLED;
         this.completedAt = LocalDateTime.now();

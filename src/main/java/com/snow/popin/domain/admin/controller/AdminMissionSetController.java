@@ -27,25 +27,43 @@ public class AdminMissionSetController {
         return adminMissionService.getMissionSets(pageable, popupId, status);
     }
 
-    // 미션셋 상세
+    /**
+     * 미션셋 상세
+     * @param id
+     * @return
+     */
     @GetMapping("/{id}")
     public MissionSetAdminDto detail(@PathVariable UUID id) {
         return adminMissionService.getMissionSetDetail(id);
     }
 
-    // 미션셋 생성
+    /**
+     * 미션셋 생성
+     * @param request
+     * @return
+     */
     @PostMapping
     public MissionSetAdminDto create(@RequestBody MissionSetCreateRequestDto request) {
         return adminMissionService.createMissionSet(request);
     }
 
-    // 미션셋 삭제
+    /**
+     * 미션셋 삭제
+     * @param id
+     * @return
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         adminMissionService.deleteMissionSet(id);
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * 미션셋 수정
+     * @param id
+     * @param request
+     * @return
+     */
     @PutMapping("/{id}")
     public MissionSetAdminDto updateMissionSet(
             @PathVariable UUID id,
@@ -55,13 +73,22 @@ public class AdminMissionSetController {
     }
 
 
-    // 미션 추가
+    /**
+     * 미션 추가
+     * @param id
+     * @param request
+     * @return
+     */
     @PostMapping("/{id}/missions")
     public MissionDto addMission(@PathVariable UUID id, @RequestBody MissionCreateRequestDto request) {
         return adminMissionService.addMission(id, request);
     }
 
-    // 미션 삭제
+    /**
+     * 미션 삭제
+     * @param missionId
+     * @return
+     */
     @DeleteMapping("/missions/{missionId}")
     public ResponseEntity<Void> deleteMission(@PathVariable UUID missionId) {
         adminMissionService.deleteMission(missionId);

@@ -6,7 +6,6 @@ import com.snow.popin.domain.mission.entity.MissionSet;
 import com.snow.popin.domain.mission.entity.MissionSetStatus;
 import com.snow.popin.domain.mission.repository.MissionRepository;
 import com.snow.popin.domain.mission.repository.MissionSetRepository;
-import com.snow.popin.global.exception.MissionException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +21,13 @@ public class AdminMissionService {
     private final MissionSetRepository missionSetRepository;
     private final MissionRepository missionRepository;
 
-    // 목록 조회
+    /**
+     * 목록 조회
+     * @param pageable
+     * @param popupId
+     * @param status
+     * @return
+     */
     public Page<MissionSetAdminDto> getMissionSets(Pageable pageable, Long popupId, MissionSetStatus status) {
         Page<MissionSet> sets;
         if (popupId != null) {
@@ -35,14 +40,22 @@ public class AdminMissionService {
         return sets.map(MissionSetAdminDto::from);
     }
 
-    // 상세 조회
+    /**
+     * 상세 조회
+     * @param id
+     * @return
+     */
     public MissionSetAdminDto getMissionSetDetail(UUID id) {
         MissionSet set = missionSetRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("MissionSet not found"));
         return MissionSetAdminDto.from(set);
     }
 
-    // 생성
+    /**
+     * 생성
+     * @param req
+     * @return
+     */
     public MissionSetAdminDto createMissionSet(MissionSetCreateRequestDto req) {
         MissionSet set = MissionSet.builder()
                 .popupId(req.getPopupId())
@@ -54,12 +67,20 @@ public class AdminMissionService {
         return MissionSetAdminDto.from(set);
     }
 
-    // 삭제
+    /**
+     * 삭제
+     * @param id
+     */
     public void deleteMissionSet(UUID id) {
         missionSetRepository.deleteById(id);
     }
 
-    // 미션 추가
+    /**
+     * 미션 추가
+     * @param setId
+     * @param req
+     * @return
+     */
     public MissionDto addMission(UUID setId, MissionCreateRequestDto req) {
         MissionSet set = missionSetRepository.findById(setId)
                 .orElseThrow(() -> new IllegalArgumentException("MissionSet not found"));
@@ -73,11 +94,20 @@ public class AdminMissionService {
         return MissionDto.from(mission);
     }
 
-    // 미션 삭제
+    /**
+     * 미션 삭제
+     * @param missionId
+     */
     public void deleteMission(UUID missionId) {
         missionRepository.deleteById(missionId);
     }
 
+    /**
+     * 미션 셋 수정
+     * @param id
+     * @param request
+     * @return
+     */
     @Transactional
     public MissionSetAdminDto updateMissionSet(UUID id, MissionSetUpdateRequestDto request) {
         MissionSet set = missionSetRepository.findById(id)

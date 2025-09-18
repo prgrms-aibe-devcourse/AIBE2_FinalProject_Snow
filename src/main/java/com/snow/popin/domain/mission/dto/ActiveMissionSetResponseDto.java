@@ -14,7 +14,7 @@ public class ActiveMissionSetResponseDto {
     private final UUID missionSetId;
     private final boolean cleared;
 
-    private final PopupBasicResponseDto popup; // ✅ 팝업 기본 정보 포함
+    private final PopupBasicResponseDto popup;
 
     public static ActiveMissionSetResponseDto from(MissionSet set, boolean cleared) {
         if (set.getPopup() == null) {

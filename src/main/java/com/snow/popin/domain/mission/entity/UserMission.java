@@ -42,7 +42,6 @@ public class UserMission extends BaseEntity {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    // 생성자
     public UserMission(User user, Mission mission) {
         this.user = user;
         this.mission = mission;
@@ -65,7 +64,9 @@ public class UserMission extends BaseEntity {
         this.completedAt = completedAt;
     }
 
-    // 비즈니스 메서드
+    /**
+     *  비즈니스 메서드
+     */
     public void markCompleted() {
         this.status = UserMissionStatus.COMPLETED;
         this.completedAt = LocalDateTime.now();
