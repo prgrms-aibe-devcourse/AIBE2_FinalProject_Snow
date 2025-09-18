@@ -1,0 +1,35 @@
+package com.snow.popin.domain.mission.dto;
+
+import com.snow.popin.domain.mission.entity.MissionSet;
+import com.snow.popin.domain.mission.entity.MissionSetStatus;
+import lombok.Builder;
+import lombok.Getter;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Getter
+@Builder
+public class MissionSetAdminDto {
+    private UUID id;
+    private Long popupId;
+    private Integer requiredCount;
+    private MissionSetStatus status;
+    private String rewardPin;
+    private LocalDateTime createdAt;
+    private List<MissionDto> missions;
+
+    public static MissionSetAdminDto from(MissionSet set) {
+        return MissionSetAdminDto.builder()
+                .id(set.getId())
+                .popupId(set.getPopupId())
+                .requiredCount(set.getRequiredCount())
+                .status(set.getStatus())
+                .rewardPin(set.getRewardPin())
+                .createdAt(set.getCreatedAt())
+                .missions(set.getMissions().stream().map(MissionDto::from).collect(Collectors.toList()))
+                .build();
+    }
+}

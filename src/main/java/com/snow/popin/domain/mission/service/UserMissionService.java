@@ -34,7 +34,9 @@ public class UserMissionService {
         this.userRepository = userRepository;
     }
 
-    // 유저 미션 상태 생성
+    /**
+     * 유저 미션 상태 생성
+     */
     @Transactional
     public UserMission create(Long userId, UUID missionId) {
         User user = userRepository.findById(userId)
@@ -45,12 +47,17 @@ public class UserMissionService {
         return userMissionRepository.save(new UserMission(user, mission));
     }
 
-    // 유저 미션 단건 조회
+    /**
+     * 유저 미션 단건 조회
+     */
     public Optional<UserMission> findById(Long id) {
         return userMissionRepository.findById(id);
     }
 
-    // 정답 제출
+
+    /**
+     * 정답 제출
+     */
     @Transactional
     public SubmitAnswerResponseDto submitAnswer(UUID missionId, Long userId, String answer) {
         Mission mission = missionRepository.findById(missionId)
@@ -102,7 +109,9 @@ public class UserMissionService {
         return s == null ? "" : s.trim().replaceAll("\\s+", " ").toLowerCase();
     }
 
-    // 진행 중/완료 상태인 미션셋 조회
+    /**
+     * 진행 중/완료 상태인 미션셋 조회
+     */
     @Transactional(readOnly = true)
     public List<ActiveMissionSetResponseDto> getMyMissionPopups(Long userId) {
         User user = userRepository.findById(userId)

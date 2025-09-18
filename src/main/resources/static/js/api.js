@@ -593,3 +593,46 @@ apiService.getChatMessages = async function(reservationId) {
 apiService.getChatContext = async function(reservationId) {
     return await this.get(`/chat/${encodeURIComponent(reservationId)}/context`);
 };
+// === 관리자용 미션셋 / 미션 API ===
+
+// 미션셋 목록 (페이지네이션 지원)
+apiService.getMissionSets = async function(params = {}) {
+    const sp = new URLSearchParams(params);
+    const query = sp.toString() ? `?${sp.toString()}` : '';
+    return await this.get(`/admin/mission-sets${query}`);
+};
+
+// 미션셋 상세
+apiService.getMissionSetDetail = async function(setId) {
+    return await this.get(`/admin/mission-sets/${encodeURIComponent(setId)}`);
+};
+
+// 미션셋 생성
+apiService.createMissionSet = async function(data) {
+    return await this.post(`/admin/mission-sets`, data);
+};
+
+// 미션셋 삭제
+apiService.deleteMissionSet = async function(setId) {
+    return await this.delete(`/admin/mission-sets/${encodeURIComponent(setId)}`);
+};
+
+// 특정 미션셋에 미션 추가
+apiService.addMission = async function(setId, data) {
+    return await this.post(`/admin/mission-sets/${encodeURIComponent(setId)}/missions`, data);
+};
+
+// 미션 삭제
+apiService.deleteMission = async function(missionId) {
+    return await this.delete(`/admin/mission-sets/missions/${encodeURIComponent(missionId)}`);
+};
+
+apiService.listAdminPopups = async function ({ page = 0, size = 500 } = {}) {
+    const sp = new URLSearchParams({ page, size });
+    return await this.get(`/admin/popups?${sp.toString()}`);
+};
+
+apiService.updateMissionSet = async function(setId, data) {
+    return await this.put(`/admin/mission-sets/${encodeURIComponent(setId)}`, data);
+};
+
