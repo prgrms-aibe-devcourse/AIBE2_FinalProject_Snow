@@ -221,10 +221,13 @@ class PopupDetailManager {
 
         try {
             // 지도 옵션 설정
-            const mapOption = {
-                center: new kakao.maps.LatLng(this.popupData.latitude, this.popupData.longitude),
-                level: 3
-            };
+            const lat = Number(this.popupData.latitude);
+            const lng = Number(this.popupData.longitude);
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+                this.handleMapLoadError(mapContainer, '올바르지 않은 좌표값입니다.');
+                return;
+            }
+            const mapOption = { center: new kakao.maps.LatLng(lat, lng), level: 3 };
 
             console.log('[지도 초기화] 지도 옵션:', mapOption);
 
@@ -241,9 +244,7 @@ class PopupDetailManager {
             const markerCreateStart = performance.now();
             console.log('[지도 초기화] 마커 생성 시작');
 
-            const marker = new kakao.maps.Marker({
-                position: new kakao.maps.LatLng(this.popupData.latitude, this.popupData.longitude)
-            });
+            const marker = new kakao.maps.Marker({ position: new kakao.maps.LatLng(lat, lng) });
 
             marker.setMap(this.locationMap);
 
@@ -262,6 +263,13 @@ class PopupDetailManager {
             console.error('[지도 초기화] 오류 발생:', error);
             this.handleMapLoadError(mapContainer, `지도 생성 중 오류: ${error.message}`);
         }
+    }
+
+    // 지도 로드 실패 처리
+    handleMapLoadError(container, message) {
+        console.warn('[지도 초기화] fallback:', message);
+        if (container) container.style.display = 'none';
+        this.showToast(message);
     }
 
     // 주소 복사

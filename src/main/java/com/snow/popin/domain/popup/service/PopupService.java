@@ -65,7 +65,7 @@ public class PopupService {
 
         if (categoryName == null || categoryName.trim().isEmpty()) {
             log.warn("카테고리명이 없어서 빈 결과를 반환합니다.");
-            return PopupListResponseDto.empty();
+            return PopupListResponseDto.empty(0, 20);
         }
 
         try {
@@ -81,8 +81,8 @@ public class PopupService {
             return PopupListResponseDto.of(popupPage, popupDtos);
 
         } catch (Exception e) {
-            log.error("유사한 팝업 조회 실패 - 카테고리: {}, 오류: {}", categoryName, e.getMessage());
-            return PopupListResponseDto.empty();
+            log.error("유사한 팝업 조회 실패 - 카테고리: {}", categoryName, e);
+            return PopupListResponseDto.empty(page, size);
         }
     }
 
@@ -103,8 +103,8 @@ public class PopupService {
             return PopupListResponseDto.of(popupPage, popupDtos);
 
         } catch (Exception e) {
-            log.error("카테고리별 팝업 조회 실패 - 카테고리: {}, 오류: {}", categoryName, e.getMessage());
-            return PopupListResponseDto.empty();
+            log.error("카테고리별 팝업 조회 실패 - 카테고리: {}", categoryName, e);
+            return PopupListResponseDto.empty(page, size);
         }
     }
 

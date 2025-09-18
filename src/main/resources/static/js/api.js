@@ -401,7 +401,7 @@ apiService.getPopup = async function(popupId) {
 
 // 추천 팝업 조회
 apiService.getFeaturedPopups = async function(page = 0, size = 20) {
-    return await this.get(`/popups/featured?page=${page}&size=${size}`);
+    return await this.get(`/popups/popular?page=${page}&size=${size}`);
 };
 
 // 팝업 검색

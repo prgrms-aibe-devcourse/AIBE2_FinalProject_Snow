@@ -32,27 +32,16 @@ public class PopupListResponseDto {
                 .build();
     }
 
-    // 빈 응답을 생성
-    public static PopupListResponseDto empty() {
-        return empty(0, 20); // 기본 페이지 크기
-    }
-
     // 페이지 정보와 함께 빈 응답을 생성
     public static PopupListResponseDto empty(int page, int size) {
-        Page<PopupSummaryResponseDto> emptyPage = new PageImpl<>(
-                Collections.emptyList(),
-                PageRequest.of(page, size),
-                0
-        );
-
-        return new PopupListResponseDto(
-                Collections.emptyList(),
-                0,  // totalPages
-                0,  // totalElements
-                page,
-                size,
-                false,  // hasNext
-                false   // hasPrevious
-        );
+        return PopupListResponseDto.builder()
+                .popups(Collections.emptyList())
+                .totalPages(0)
+                .totalElements(0)
+                .currentPage(page)
+                .size(size)
+                .hasNext(false)
+                .hasPrevious(false)
+                .build();
     }
 }
