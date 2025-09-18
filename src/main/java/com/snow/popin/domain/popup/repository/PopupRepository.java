@@ -53,8 +53,30 @@ public interface PopupRepository extends JpaRepository<Popup, Long>, JpaSpecific
 
     // 팝업 상세 조회
     @EntityGraph(attributePaths = {"images", "hours", "venue", "tags", "category"})
-    @Query("SELECT p FROM Popup p WHERE p.id = :id")
+    @Query("SELECT p FROM Popup p " +
+            "LEFT JOIN FETCH p.venue v " +
+            "LEFT JOIN FETCH p.category c " +
+            "WHERE p.id = :id")
     Optional<Popup> findByIdWithDetails(@Param("id") Long id);
+
+    // 유사한 팝업 조회
+    @Query(value = "SELECT p FROM Popup p " +
+            "LEFT JOIN FETCH p.venue v " +
+            "LEFT JOIN FETCH p.category c " +
+            "WHERE c.name = :categoryName " +
+            "AND p.id != :excludeId " +
+            "AND (p.status = com.snow.popin.domain.popup.entity.PopupStatus.ONGOING OR " +
+            "     p.status = com.snow.popin.domain.popup.entity.PopupStatus.PLANNED) " +
+            "ORDER BY p.createdAt DESC",
+            countQuery = "SELECT count(p) FROM Popup p " +
+                    "LEFT JOIN p.category c " +
+                    "WHERE c.name = :categoryName " +
+                    "AND p.id != :excludeId " +
+                    "AND (p.status = com.snow.popin.domain.popup.entity.PopupStatus.ONGOING OR " +
+                    "     p.status = com.snow.popin.domain.popup.entity.PopupStatus.PLANNED)")
+    Page<Popup> findSimilarPopups(@Param("categoryName") String categoryName,
+                                  @Param("excludeId") Long excludeId,
+                                  Pageable pageable);
 
     // 인기 팝업 조회 (isFeatured = true)
     @Query(value = "SELECT p FROM Popup p LEFT JOIN FETCH p.venue v LEFT JOIN FETCH p.category c " +
@@ -175,4 +197,40 @@ public interface PopupRepository extends JpaRepository<Popup, Long>, JpaSpecific
     // ENDED 상태로 변경되어야 할 ONGOING 상태의 팝업 목록을 조회
     @Query("SELECT p FROM Popup p WHERE p.status = com.snow.popin.domain.popup.entity.PopupStatus.ONGOING AND p.endDate < :today")
     List<Popup> findPopupsToUpdateToEnded(@Param("today") LocalDate today);
+
+    // 카테고리별 팝업 조회 (API에서 사용)
+    @Query(value = "SELECT p FROM Popup p " +
+            "LEFT JOIN FETCH p.venue v " +
+            "LEFT JOIN FETCH p.category c " +
+            "WHERE (:categoryName IS NULL OR c.name = :categoryName) " +
+            "AND (p.status = com.snow.popin.domain.popup.entity.PopupStatus.ONGOING OR " +
+            "     p.status = com.snow.popin.domain.popup.entity.PopupStatus.PLANNED) " +
+            "ORDER BY p.createdAt DESC",
+            countQuery = "SELECT count(p) FROM Popup p " +
+                    "LEFT JOIN p.category c " +
+                    "WHERE (:categoryName IS NULL OR c.name = :categoryName) " +
+                    "AND (p.status = com.snow.popin.domain.popup.entity.PopupStatus.ONGOING OR " +
+                    "     p.status = com.snow.popin.domain.popup.entity.PopupStatus.PLANNED)")
+    Page<Popup> findByCategoryName(@Param("categoryName") String categoryName, Pageable pageable);
+
+    // 위치 정보가 있는 팝업만 조회 (지도용)
+    @Query("SELECT p FROM Popup p " +
+            "LEFT JOIN FETCH p.venue v " +
+            "LEFT JOIN FETCH p.category c " +
+            "WHERE v.latitude IS NOT NULL " +
+            "AND v.longitude IS NOT NULL " +
+            "AND (p.status = com.snow.popin.domain.popup.entity.PopupStatus.ONGOING OR " +
+            "     p.status = com.snow.popin.domain.popup.entity.PopupStatus.PLANNED) " +
+            "ORDER BY p.createdAt DESC")
+    List<Popup> findPopupsWithLocation();
+
+    // 특정 지역의 팝업 조회
+    @Query("SELECT p FROM Popup p " +
+            "LEFT JOIN FETCH p.venue v " +
+            "LEFT JOIN FETCH p.category c " +
+            "WHERE v.region = :region " +
+            "AND (p.status = com.snow.popin.domain.popup.entity.PopupStatus.ONGOING OR " +
+            "     p.status = com.snow.popin.domain.popup.entity.PopupStatus.PLANNED) " +
+            "ORDER BY p.createdAt DESC")
+    List<Popup> findByRegion(@Param("region") String region);
 }
