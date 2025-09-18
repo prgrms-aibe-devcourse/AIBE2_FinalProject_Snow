@@ -1,5 +1,7 @@
 package com.snow.popin.domain.popup.service;
 
+import com.snow.popin.domain.mission.repository.MissionRepository;
+import com.snow.popin.domain.mission.repository.MissionSetRepository;
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.repository.PopupRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -17,6 +20,7 @@ import java.util.List;
 public class PopupBatchService {
 
     private final PopupRepository popupRepository;
+    private final MissionSetRepository missionSetRepository;
 
     //매일 자정, 팝업의 상태를 자동으로 업데이트합니다.
     @Transactional
@@ -33,6 +37,11 @@ public class PopupBatchService {
                 updatedCount++;
             }
         }
+        if (!popupsToStart.isEmpty()) {
+            var ids = popupsToStart.stream().map(Popup::getId).collect(Collectors.toSet());
+            int enabled = missionSetRepository.bulkEnableByPopupIds(ids);
+            log.info("ONGOING 전환된 팝업 {}건에 대해 미션셋 {}건 ENABLE(벌크) 처리", popupsToStart.size(), enabled);
+        }
 
         // ONGOING -> ENDED 업데이트
         List<Popup> popupsToEnd = popupRepository.findPopupsToUpdateToEnded(today);
@@ -40,6 +49,11 @@ public class PopupBatchService {
             if (popup.updateStatus()) {
                 updatedCount++;
             }
+        }
+        if (!popupsToEnd.isEmpty()) {
+            var ids = popupsToEnd.stream().map(Popup::getId).collect(Collectors.toSet());
+            int disabled = missionSetRepository.bulkDisableByPopupIds(ids);
+            log.info("ENDED 전환된 팝업 {}건에 대해 미션셋 {}건 DISABLE(벌크) 처리", popupsToEnd.size(), disabled);
         }
 
         if (updatedCount > 0) {

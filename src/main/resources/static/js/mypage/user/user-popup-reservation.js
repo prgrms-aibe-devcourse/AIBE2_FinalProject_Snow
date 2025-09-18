@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     listEl.addEventListener('click', async (e) => {
         const goBtn = e.target.closest('.js-go-popup');
         if (goBtn) {
-            location.href = `/popups/${goBtn.dataset.popupId}`;
+            location.href = `/popup/${goBtn.dataset.popupId}`;
             return;
         }
 

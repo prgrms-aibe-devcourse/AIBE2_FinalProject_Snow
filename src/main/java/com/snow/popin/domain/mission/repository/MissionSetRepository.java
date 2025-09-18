@@ -7,8 +7,11 @@ import com.snow.popin.domain.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,4 +26,13 @@ public interface MissionSetRepository extends JpaRepository<MissionSet, UUID> {
             "where um.user = :user")
     List<UserMission> findAllByUserWithMissionSet(User user);
 
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update MissionSet ms set ms.status = 'ENABLED', ms.completedAt = null " +
+            "where ms.popupId in :popupIds")
+    int bulkEnableByPopupIds(@Param("popupIds") Collection<Long> popupIds);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update MissionSet ms set ms.status = 'DISABLED', ms.completedAt = CURRENT_TIMESTAMP " +
+            "where ms.popupId in :popupIds")
+    int bulkDisableByPopupIds(@Param("popupIds") Collection<Long> popupIds);
 }
