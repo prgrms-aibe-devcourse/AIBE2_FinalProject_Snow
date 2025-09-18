@@ -71,73 +71,25 @@
             <div class="reviews-section">
                 <div class="section-header">
                     <h2>Reviews</h2>
-                    <button class="write-review-btn">+ 리뷰 작성</button>
+                    <button class="write-review-btn" id="writeReviewBtn">+ 리뷰 작성</button>
                 </div>
 
-                <!-- 평점 요약 -->
-                <div class="rating-summary">
-                    <div class="stars-container">
-                        <div class="stars">
-                            <span class="star filled">★</span>
-                            <span class="star filled">★</span>
-                            <span class="star filled">★</span>
-                            <span class="star filled">★</span>
-                            <span class="star">★</span>
-                        </div>
-                        <span class="review-count">(4)</span>
+                <!-- 리뷰 통계 -->
+                <div class="review-stats" id="reviewStats">
+                    <div class="stats-loading">
+                        <div class="loading-spinner"></div>
                     </div>
                 </div>
 
-                <!-- 리뷰 목록 -->
-                <div class="reviews-list">
-                    <div class="review-item">
-                        <div class="review-rating">
-                            <div class="stars">
-                                <span class="star filled">★</span>
-                                <span class="star filled">★</span>
-                                <span class="star filled">★</span>
-                                <span class="star filled">★</span>
-                                <span class="star filled">★</span>
-                            </div>
-                            <span class="review-date">신고 ></span>
-                        </div>
-                        <h3 class="review-title">정말 재미있는 팝업이었어요!</h3>
-                        <p class="review-body">요아정 팝업 정말 귀엽고 예뻤어요. 포토존도 많고 굿즈도 다양해서 만족스러웠습니다.</p>
-                        <div class="reviewer-info">
-                            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiM4YjVjZjYiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1zaXplPSIxNCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5VPC90ZXh0Pjwvc3ZnPg=="
-                                 alt="리뷰어" class="reviewer-avatar"
-                                 onerror="this.onerror=null;">
-                            <div class="reviewer-details">
-                                <span class="reviewer-name">김민지</span>
-                                <span class="review-date">2025.08.15</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="review-item">
-                        <div class="review-rating">
-                            <div class="stars">
-                                <span class="star filled">★</span>
-                                <span class="star filled">★</span>
-                                <span class="star filled">★</span>
-                                <span class="star filled">★</span>
-                                <span class="star">★</span>
-                            </div>
-                            <span class="review-date">신고 ></span>
-                        </div>
-                        <h3 class="review-title">귀여운 굿즈들이 많아요</h3>
-                        <p class="review-body">특히 인형이랑 키링이 너무 귀여워서 다 사고 싶었어요. 다음에 또 가고 싶습니다!</p>
-                        <div class="reviewer-info">
-                            <img src="https://via.placeholder.com/40x40/8b5cf6/ffffff?text=👤" alt="리뷰어" class="reviewer-avatar">
-                            <div class="reviewer-details">
-                                <span class="reviewer-name">이서연</span>
-                                <span class="review-date">2025.08.10</span>
-                            </div>
-                        </div>
+                <!-- 리뷰 목록 (최신 2개) -->
+                <div class="reviews-list" id="reviewsList">
+                    <div class="reviews-loading" id="reviewsLoading">
+                        <div class="loading-spinner"></div>
                     </div>
                 </div>
 
-                <button class="load-more-btn">+ 더보기</button>
+                <!-- 더보기 버튼 -->
+                <button class="load-more-btn" id="loadMoreBtn" style="display: none;">+ 더보기</button>
             </div>
 
             <!-- 유사한 팝업 스토어 섹션 -->

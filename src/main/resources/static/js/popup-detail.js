@@ -1,15 +1,10 @@
-// 팝업 상세 페이지 매니저
+// 팝업 상세 페이지 매니저 (리뷰 기능 통합)
 class PopupDetailManager {
     constructor(popupId) {
         this.popupId = popupId;
         this.popupData = null;
         this.isBookmarked = false;
-
-        this.fallbackImages = {
-            main: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNEI1QUU0Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+UG9wdXAgSW1hZ2U8L3RleHQ+PC9zdmc+',
-            card: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNEI1QUU0Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+',
-            avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiM4YjVjZjYiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1zaXplPSIxNCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5VPC90ZXh0Pjwvc3ZnPg=='
-        };
+        this.reviewManager = null;
     }
 
     // 페이지 초기화
@@ -20,6 +15,10 @@ class PopupDetailManager {
             }
             this.setupEventListeners();
             await this.loadPopupData();
+
+            // 리뷰 매니저 초기화
+            this.reviewManager = new ReviewManager(this.popupId);
+            await this.reviewManager.initialize();
         } catch (error) {
             console.error('팝업 상세 페이지 초기화 실패:', error);
             this.showError();
@@ -99,12 +98,10 @@ class PopupDetailManager {
         // 메인 이미지
         const mainImg = document.getElementById('popup-main-img');
         if (mainImg) {
-            mainImg.src = this.popupData.mainImageUrl || this.popupData.thumbnailUrl || this.fallbackImages.main;
+            const defaultImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDYwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjNEI1QUU0Ii8+Cjx0ZXh0IHg9IjMwMCIgeT0iMTUwIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSI0OCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIj7wn46qPC90ZXh0Pgo8L3N2Zz4=';
+
+            mainImg.src = this.popupData.thumbnailUrl || defaultImage;
             mainImg.alt = this.popupData.title;
-            mainImg.onerror = () => {
-                mainImg.onerror = null; // 무한루프 방지
-                mainImg.src = this.fallbackImages.main;
-            };
         }
 
         // 제목
@@ -116,247 +113,412 @@ class PopupDetailManager {
         // 기간
         const periodEl = document.getElementById('popup-period');
         if (periodEl) {
-            periodEl.textContent = this.popupData.period || this.formatPeriod(this.popupData.startDate, this.popupData.endDate);
+            const startDate = new Date(this.popupData.startDate).toLocaleDateString('ko-KR');
+            const endDate = new Date(this.popupData.endDate).toLocaleDateString('ko-KR');
+            periodEl.textContent = `${startDate} ~ ${endDate}`;
         }
 
         // 운영시간
         const hoursEl = document.getElementById('popup-hours');
-        if (hoursEl && this.popupData.hours) {
-            hoursEl.innerHTML = this.formatHours(this.popupData.hours);
+        if (hoursEl && this.popupData.operatingHours) {
+            hoursEl.textContent = this.popupData.operatingHours;
         }
 
         // 태그
-        this.renderTags();
-
-        // 예약 버튼 상태
-        this.updateReservationButton();
-    }
-
-    // 태그 렌더링
-    renderTags() {
-        const tagsContainer = document.getElementById('popup-tags');
-        if (!tagsContainer) return;
-
-        const tags = [];
-
-        // 카테고리 태그
-        if (this.popupData.categoryName) {
-            tags.push(`#${this.popupData.categoryName}`);
-        }
-
-        // 지역 태그
-        if (this.popupData.region) {
-            tags.push(`#${this.popupData.region}`);
-        }
-
-        // 더미 태그 (나중에 실제 태그 데이터로 교체)
-        if (this.popupData.title.includes('요아정')) {
-            tags.push('#요아정', '#롯데월드몰');
-        }
-
-        const tagsHTML = tags.map(tag =>
-            `<button class="popup-tag" onclick="searchByTag('${tag}')">${tag}</button>`
-        ).join('');
-
-        tagsContainer.innerHTML = tagsHTML;
-    }
-
-    // 기간 포맷팅
-    formatPeriod(startDate, endDate) {
-        if (!startDate && !endDate) return '기간 미정';
-
-        const formatDate = (date) => {
-            if (!date) return '';
-            return date.replace(/-/g, '.');
-        };
-
-        if (startDate && endDate) {
-            return `${formatDate(startDate)} - ${formatDate(endDate)}`;
-        } else if (startDate) {
-            return `${formatDate(startDate)} -`;
-        } else {
-            return `- ${formatDate(endDate)}`;
-        }
-    }
-
-    // 운영시간 포맷팅
-    formatHours(hours) {
-        if (!hours || hours.length === 0) {
-            return '운영시간 미정';
-        }
-
-        const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
-        const groupedHours = {};
-
-        // 요일별로 그룹화
-        hours.forEach(hour => {
-            const timeRange = `${hour.openTime || '미정'} ~ ${hour.closeTime || '미정'}`;
-            if (!groupedHours[timeRange]) {
-                groupedHours[timeRange] = [];
-            }
-            groupedHours[timeRange].push(dayNames[hour.dayOfWeek]);
-        });
-
-        // 포맷팅
-        return Object.entries(groupedHours)
-            .map(([timeRange, days]) => `${days.join(', ')} ${timeRange}`)
-            .join('<br>');
-    }
-
-    // 예약 버튼 상태 업데이트
-    updateReservationButton() {
-        const reservationBtn = document.getElementById('reservation-btn');
-        if (!reservationBtn) return;
-
-        if (this.popupData.reservationAvailable) {
-            reservationBtn.textContent = '예약하기';
-            reservationBtn.disabled = false;
-        } else if (this.popupData.waitlistAvailable) {
-            reservationBtn.textContent = '대기열 등록';
-            reservationBtn.disabled = false;
-        } else {
-            reservationBtn.textContent = '예약 불가';
-            reservationBtn.disabled = true;
+        const tagsEl = document.getElementById('popup-tags');
+        if (tagsEl && this.popupData.tags) {
+            tagsEl.innerHTML = this.popupData.tags.map(tag =>
+                `<span class="tag" onclick="searchByTag('${tag}')">#${tag}</span>`
+            ).join('');
         }
     }
 
     // 유사한 팝업 로드
     async loadSimilarPopups() {
         try {
-            if (!this.popupData.categoryId) {
-                console.warn('카테고리 ID가 없어 유사한 팝업을 로드할 수 없습니다.');
-                return;
-            }
-
-            const response = await apiService.getPopups({
-                page: 0,
-                size: 6,
-                categoryIds: [this.popupData.categoryId]
-            });
-
-            // 현재 팝업 제외
-            const similarPopups = response.popups.filter(p => p.id !== this.popupData.id);
-            this.renderSimilarPopups(similarPopups.slice(0, 4)); // 최대 4개만 표시
+            const similarPopups = await apiService.getSimilarPopups(this.popupId);
+            this.renderSimilarPopups(similarPopups);
         } catch (error) {
-            console.error('유사한 팝업 로드 실패:', error);
+            console.warn('유사한 팝업 로드 실패:', error);
+            // 에러가 발생해도 계속 진행하도록 수정
+            const gridEl = document.getElementById('similar-popups-grid');
+            if (gridEl) {
+                gridEl.innerHTML = '<p style="text-align: center; color: #6B7280; padding: 20px;">유사한 팝업을 불러올 수 없습니다.</p>';
+            }
         }
     }
 
     // 유사한 팝업 렌더링
     renderSimilarPopups(popups) {
-        const grid = document.getElementById('similar-popups-grid');
-        if (!grid) return;
+        const gridEl = document.getElementById('similar-popups-grid');
+        if (!gridEl || !popups || popups.length === 0) return;
 
-        if (!popups || popups.length === 0) {
-            grid.innerHTML = '<p class="alert alert-info" style="grid-column: 1 / -1; text-align: center;">유사한 팝업이 없습니다.</p>';
-            return;
-        }
-
-        const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
-        const cardsHTML = popups.map(popup => `
+        gridEl.innerHTML = popups.map(popup => `
             <div class="similar-popup-card" data-id="${popup.id}">
-                <img src="${popup.mainImageUrl || popup.thumbnailUrl || this.fallbackImages.card}" 
-                     alt="${esc(popup.title)}" class="similar-card-image"
-                     onerror="this.onerror=null; this.src='${this.fallbackImages.card}'">
-                <div class="similar-card-content">
-                    <h3 class="similar-card-title">${esc(popup.title)}</h3>
-                    <p class="similar-card-info">${esc(popup.region)}</p>
+                <img src="${popup.thumbnailUrl || 'https://via.placeholder.com/200x150/4B5AE4/ffffff?text=🎪'}" 
+                     alt="${popup.title}" class="similar-popup-image">
+                <div class="similar-popup-info">
+                    <h3 class="similar-popup-title">${popup.title}</h3>
+                    <p class="similar-popup-period">${this.formatDateRange(popup.startDate, popup.endDate)}</p>
                 </div>
             </div>
         `).join('');
+    }
 
-        grid.innerHTML = cardsHTML;
+    // 날짜 범위 포맷
+    formatDateRange(startDate, endDate) {
+        const start = new Date(startDate).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+        const end = new Date(endDate).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+        return `${start} ~ ${end}`;
     }
 
     // 공유 처리
-    handleShare() {
+    async handleShare() {
+        const shareData = {
+            title: this.popupData?.title || '팝업 스토어',
+            text: `${this.popupData?.title} - POPIN에서 확인하세요!`,
+            url: window.location.href
+        };
+
         if (navigator.share) {
-            navigator.share({
-                title: this.popupData?.title || '팝업 스토어',
-                text: this.popupData?.summary || '흥미로운 팝업 스토어를 확인해보세요!',
-                url: window.location.href
-            }).catch(console.error);
+            try {
+                await navigator.share(shareData);
+            } catch (error) {
+                console.log('공유 취소됨');
+            }
         } else {
-            // 폴백: 클립보드에 복사
-            navigator.clipboard.writeText(window.location.href).then(() => {
-                alert('링크가 클립보드에 복사되었습니다!');
-            }).catch(() => {
+            // Web Share API 미지원 시 클립보드에 복사
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+                alert('링크가 클립보드에 복사되었습니다.');
+            } catch (error) {
+                console.error('클립보드 복사 실패:', error);
                 alert('링크 복사에 실패했습니다.');
-            });
+            }
         }
     }
 
     // 북마크 처리
-    handleBookmark() {
-        this.isBookmarked = !this.isBookmarked;
-        const bookmarkBtn = document.getElementById('bookmark-btn');
-
-        if (this.isBookmarked) {
-            bookmarkBtn.classList.add('bookmarked');
-            alert('북마크에 추가되었습니다!');
-        } else {
-            bookmarkBtn.classList.remove('bookmarked');
-            alert('북마크에서 제거되었습니다!');
+    async handleBookmark() {
+        try {
+            if (this.isBookmarked) {
+                await apiService.removeBookmark(this.popupId);
+                this.isBookmarked = false;
+                this.updateBookmarkButton();
+                alert('북마크가 해제되었습니다.');
+            } else {
+                await apiService.addBookmark(this.popupId);
+                this.isBookmarked = true;
+                this.updateBookmarkButton();
+                alert('북마크에 추가되었습니다.');
+            }
+        } catch (error) {
+            console.error('북마크 처리 실패:', error);
+            alert('북마크 처리 중 오류가 발생했습니다.');
         }
-
-        // TODO: 실제 북마크 API 호출
     }
 
-    // 예약 처리
+    // 북마크 버튼 업데이트
+    updateBookmarkButton() {
+        const bookmarkBtn = document.getElementById('bookmark-btn');
+        if (bookmarkBtn) {
+            const svg = bookmarkBtn.querySelector('svg');
+            if (this.isBookmarked) {
+                svg.setAttribute('fill', 'currentColor');
+                bookmarkBtn.style.color = '#6366F1';
+            } else {
+                svg.setAttribute('fill', 'none');
+                bookmarkBtn.style.color = '';
+            }
+        }
+    }
+
+    // 예약하기 처리
     handleReservation() {
-        if (!this.popupData.reservationAvailable && !this.popupData.waitlistAvailable) {
-            alert('현재 예약이 불가능합니다.');
+        if (!this.popupData) {
+            alert('팝업 정보를 불러오는 중입니다.');
             return;
         }
 
-        if (this.popupData.reservationAvailable) {
-            window.location.href = `/popup/${this.popupId}/reservation`;
-        } else if (this.popupData.waitlistAvailable) {
-            // 대기열 등록 기능 (추후 구현)
-            alert('대기열 등록 기능은 준비 중입니다.');
-        } else if (this.popupData.reservationLink) {
-            // 외부 예약 링크가 있는 경우
+        if (this.popupData.reservationLink) {
             window.open(this.popupData.reservationLink, '_blank');
+        } else {
+            alert('예약 기능은 준비 중입니다.');
         }
     }
 
     // 리뷰 작성 처리
     handleWriteReview() {
-        alert('리뷰 작성 기능은 준비 중입니다.');
-        // TODO: 리뷰 작성 모달 또는 페이지로 이동
+        // 사용자 로그인 체크
+        const userId = this.getCurrentUserId();
+        if (!userId) {
+            alert('로그인이 필요한 서비스입니다.');
+            window.location.href = '/login';
+            return;
+        }
+
+        // 리뷰 작성 페이지로 이동
+        window.location.href = `/reviews/popup/${this.popupId}/create`;
     }
 
     // 더 많은 리뷰 로드
     handleLoadMoreReviews() {
-        alert('더 많은 리뷰 로드 기능은 준비 중입니다.');
-        // TODO: 추가 리뷰 로드 API 호출
+        // 전체 리뷰 목록 페이지로 이동
+        window.location.href = `/reviews/popup/${this.popupId}`;
+    }
+
+    // 현재 사용자 ID 가져오기
+    getCurrentUserId() {
+        // 캐시된 userId 확인
+        try {
+            const cachedUserId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
+            if (cachedUserId && cachedUserId !== 'null') {
+                return parseInt(cachedUserId);
+            }
+        } catch (error) {
+            console.warn('캐시된 userId 확인 실패:', error);
+        }
+
+        // 토큰이 있는지 확인
+        if (!apiService.getStoredToken()) {
+            return null;
+        }
+
+        this.refreshUserIdAsync();
+
+        return null; // 첫 번째 호출에서는 null 반환, 이후 캐시된 값 사용
+    }
+
+    // 비동기로 사용자 ID 새로고침
+    async refreshUserIdAsync() {
+        try {
+            const userInfo = await apiService.getCurrentUser();
+            if (userInfo && userInfo.id) {
+                // 사용자 ID를 캐시에 저장
+                try {
+                    localStorage.setItem('userId', userInfo.id.toString());
+                } catch {
+                    sessionStorage.setItem('userId', userInfo.id.toString());
+                }
+            }
+        } catch (error) {
+            console.warn('사용자 정보 가져오기 실패:', error);
+            // 토큰이 만료된 경우 정리
+            if (error.message.includes('401') || error.message.includes('인증')) {
+                this.clearUserData();
+            }
+        }
     }
 
     // 로딩 표시
     showLoading() {
         document.getElementById('popup-detail-loading').style.display = 'flex';
         document.getElementById('popup-detail-content').style.display = 'none';
-        document.getElementById('popup-detail-error').style.display = 'none';
+        if (document.getElementById('popup-detail-error')) {
+            document.getElementById('popup-detail-error').style.display = 'none';
+        }
     }
 
     // 콘텐츠 표시
     showContent() {
         document.getElementById('popup-detail-loading').style.display = 'none';
         document.getElementById('popup-detail-content').style.display = 'block';
-        document.getElementById('popup-detail-error').style.display = 'none';
+        if (document.getElementById('popup-detail-error')) {
+            document.getElementById('popup-detail-error').style.display = 'none';
+        }
     }
 
     // 에러 표시
     showError() {
         document.getElementById('popup-detail-loading').style.display = 'none';
         document.getElementById('popup-detail-content').style.display = 'none';
-        document.getElementById('popup-detail-error').style.display = 'flex';
+        if (document.getElementById('popup-detail-error')) {
+            document.getElementById('popup-detail-error').style.display = 'flex';
+        }
     }
 
     // 컴포넌트 정리
     cleanup() {
-        // 현재는 특별한 정리 작업 없음
+        if (this.reviewManager) {
+            this.reviewManager.cleanup();
+        }
+    }
+}
+
+// 리뷰 관리 클래스
+class ReviewManager {
+    constructor(popupId) {
+        this.popupId = popupId;
+        this.currentRating = 0;
+        this.currentPage = 0;
+        this.hasMore = true;
+    }
+
+    // 초기화
+    async initialize() {
+        this.setupEventListeners();
+        await this.loadReviewStats();
+        await this.loadRecentReviews();
+    }
+
+    // 이벤트 리스너 설정
+    setupEventListeners() {
+        // 리뷰 작성 버튼은 PopupDetailManager에서 처리
+        // 기타 리뷰 관련 이벤트만 처리
+    }
+
+    // 리뷰 통계 로드
+    async loadReviewStats() {
+        try {
+            const response = await fetch(`/api/reviews/popup/${this.popupId}/stats`);
+            if (!response.ok) throw new Error('Failed to load review stats');
+
+            const stats = await response.json();
+            this.renderReviewStats(stats);
+        } catch (error) {
+            console.error('리뷰 통계 로드 실패:', error);
+            // 기본값으로 설정
+            this.renderReviewStats({ averageRating: 0, totalReviews: 0 });
+        } finally {
+            // 로딩 스피너 강제 숨김
+            this.hideStatsLoading();
+        }
+    }
+
+    // 최근 리뷰 로드 (최대 2개)
+    async loadRecentReviews() {
+        try {
+            const response = await fetch(`/api/reviews/popup/${this.popupId}/recent?limit=2`);
+            if (!response.ok) throw new Error('Failed to load reviews');
+
+            const reviews = await response.json();
+            this.renderRecentReviews(reviews);
+
+            // 더보기 버튼 표시 여부 결정
+            const statsResponse = await fetch(`/api/reviews/popup/${this.popupId}/stats`);
+            if (statsResponse.ok) {
+                const stats = await statsResponse.json();
+                const loadMoreBtn = document.getElementById('loadMoreBtn') || document.querySelector('.load-more-btn');
+                if (loadMoreBtn && stats.totalReviews > 2) {
+                    loadMoreBtn.style.display = 'block';
+                }
+            }
+        } catch (error) {
+            console.error('리뷰 로드 실패:', error);
+            this.renderNoReviews();
+        } finally {
+            // 로딩 스피너 강제 숨김
+            this.hideReviewsLoading();
+        }
+    }
+
+    hideStatsLoading() {
+        const statsLoading = document.querySelector('.stats-loading');
+        if (statsLoading) {
+            statsLoading.style.display = 'none';
+        }
+    }
+
+    hideReviewsLoading() {
+        const reviewsLoading = document.getElementById('reviewsLoading') || document.querySelector('.reviews-loading');
+        if (reviewsLoading) {
+            reviewsLoading.style.display = 'none';
+        }
+    }
+
+    // 리뷰 통계 렌더링
+    renderReviewStats(stats) {
+        const avgStarsEl = document.getElementById('avgStars') || document.querySelector('.stars');
+        const avgRatingEl = document.getElementById('avgRating') || document.querySelector('.rating-text');
+        const reviewCountEl = document.getElementById('reviewCount') || document.querySelector('.review-count');
+
+        if (avgStarsEl) {
+            avgStarsEl.innerHTML = this.renderStars(stats.averageRating || 0);
+        }
+        if (avgRatingEl) {
+            avgRatingEl.textContent = (stats.averageRating || 0).toFixed(1);
+        }
+        if (reviewCountEl) {
+            reviewCountEl.textContent = `(${stats.totalReviews || 0})`;
+        }
+    }
+
+    // 최근 리뷰 렌더링
+    renderRecentReviews(reviews) {
+        const listEl = document.getElementById('reviewsList') || document.querySelector('.reviews-list');
+        const loadingEl = document.getElementById('reviewsLoading') || document.querySelector('.loading-spinner');
+
+        if (loadingEl) {
+            loadingEl.style.display = 'none';
+        }
+
+        if (!reviews || reviews.length === 0) {
+            this.renderNoReviews();
+            return;
+        }
+
+        if (listEl) {
+            listEl.innerHTML = reviews.map(review => this.renderReviewItem(review)).join('');
+        }
+    }
+
+    // 리뷰 아이템 렌더링
+    renderReviewItem(review) {
+        const createdDate = new Date(review.createdAt).toLocaleDateString('ko-KR');
+
+        return `
+            <div class="review-item">
+                <div class="review-header">
+                    <div class="review-stars">
+                        ${this.renderStars(review.rating)}
+                    </div>
+                    <span class="review-date">${createdDate}</span>
+                </div>
+                <p class="review-content">${this.escapeHtml(review.content)}</p>
+                <div class="reviewer-info">
+                    <img src="https://via.placeholder.com/32x32/6366F1/ffffff?text=${encodeURIComponent((review.userName || '익명').charAt(0))}" 
+                         alt="리뷰어" class="reviewer-avatar">
+                    <span class="reviewer-name">${this.escapeHtml(review.userName || '익명')}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    // 별점 렌더링
+    renderStars(rating) {
+        let stars = '';
+        for (let i = 1; i <= 5; i++) {
+            if (i <= rating) {
+                stars += '<span class="star">★</span>';
+            } else {
+                stars += '<span class="star empty">★</span>';
+            }
+        }
+        return stars;
+    }
+
+    // 리뷰 없을 때 렌더링
+    renderNoReviews() {
+        const listEl = document.getElementById('reviewsList') || document.querySelector('.reviews-list');
+        if (listEl) {
+            listEl.innerHTML = `
+                <div class="no-reviews">
+                    <div class="no-reviews-icon">📝</div>
+                    <p>아직 작성된 리뷰가 없습니다.<br>첫 번째 리뷰를 작성해보세요!</p>
+                </div>
+            `;
+        }
+    }
+
+    // HTML 이스케이프
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // 정리
+    cleanup() {
     }
 }
 
@@ -372,4 +534,5 @@ function searchByTag(tag) {
 
 // 전역 등록
 window.PopupDetailManager = PopupDetailManager;
+window.ReviewManager = ReviewManager;
 window.searchByTag = searchByTag;
