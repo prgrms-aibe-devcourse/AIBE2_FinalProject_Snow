@@ -17,7 +17,7 @@ public class ReviewPageController {
     public String reviewList(@PathVariable Long popupId, Model model) {
         log.info("팝업 리뷰 목록 페이지 요청 - 팝업ID: {}", popupId);
         model.addAttribute("popupId", popupId);
-        return "forward:/templates/pages/review/review-list.html";
+        return "forward:/templates/pages/popup/review-list.html";
     }
 
     // 리뷰 작성 폼 페이지
@@ -25,7 +25,7 @@ public class ReviewPageController {
     public String reviewCreateForm(@PathVariable Long popupId, Model model) {
         log.info("리뷰 작성 폼 페이지 요청 - 팝업ID: {}", popupId);
         model.addAttribute("popupId", popupId);
-        return "forward:/templates/pages/review/review-create.html";
+        return "forward:/templates/pages/popup/review-create.html";
     }
 
     // TODO: 마이페이지에서 구현 예정

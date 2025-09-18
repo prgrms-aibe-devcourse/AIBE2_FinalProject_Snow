@@ -428,19 +428,31 @@ class ReviewManager {
 
     // 리뷰 통계 렌더링
     renderReviewStats(stats) {
-        const avgStarsEl = document.getElementById('avgStars') || document.querySelector('.stars');
-        const avgRatingEl = document.getElementById('avgRating') || document.querySelector('.rating-text');
-        const reviewCountEl = document.getElementById('reviewCount') || document.querySelector('.review-count');
+        const statsContainer = document.getElementById('reviewStats');
+        if (!statsContainer) {
+            console.warn('reviewStats 요소를 찾을 수 없습니다.');
+            return;
+        }
 
-        if (avgStarsEl) {
-            avgStarsEl.innerHTML = this.renderStars(stats.averageRating || 0);
+        // 로딩 숨김
+        const loadingEl = statsContainer.querySelector('.stats-loading');
+        if (loadingEl) {
+            loadingEl.style.display = 'none';
         }
-        if (avgRatingEl) {
-            avgRatingEl.textContent = (stats.averageRating || 0).toFixed(1);
-        }
-        if (reviewCountEl) {
-            reviewCountEl.textContent = `(${stats.totalReviews || 0})`;
-        }
+
+        // 통계 HTML 생성
+        const rating = stats.averageRating || 0;
+        const count = stats.totalReviews || 0;
+
+        statsContainer.innerHTML = `
+        <div class="rating-display">
+            <div class="stars">
+                ${this.renderStars(rating)}
+            </div>
+            <span class="rating-text">${rating.toFixed(1)}</span>
+        </div>
+        <span class="review-count">(${count})</span>
+    `;
     }
 
     // 최근 리뷰 렌더링
@@ -476,8 +488,6 @@ class ReviewManager {
                 </div>
                 <p class="review-content">${this.escapeHtml(review.content)}</p>
                 <div class="reviewer-info">
-                    <img src="https://via.placeholder.com/32x32/6366F1/ffffff?text=${encodeURIComponent((review.userName || '익명').charAt(0))}" 
-                         alt="리뷰어" class="reviewer-avatar">
                     <span class="reviewer-name">${this.escapeHtml(review.userName || '익명')}</span>
                 </div>
             </div>

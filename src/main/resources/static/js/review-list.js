@@ -139,21 +139,23 @@ class ReviewListManager {
         const endDateTime = new Date(this.popupData.endDate);
         const isActive = now <= endDateTime;
 
+        // 안전한 기본 이미지 사용
+        const defaultImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiByeD0iMTIiIGZpbGw9IiM2MzY2RjEiLz4KPHRleHQgeD0iNDAiIHk9IjUwIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIj7wn46qPC90ZXh0Pgo8L3N2Zz4=';
+
         headerEl.innerHTML = `
-            <div class="popup-header-content">
-                <img src="${this.popupData.thumbnailUrl || '/images/popup-placeholder.jpg'}" 
-                     alt="${this.popupData.title}" 
-                     class="popup-thumbnail"
-                     onerror="this.src='/images/popup-placeholder.jpg'">
-                <div class="popup-info">
-                    <h1>${this.escapeHtml(this.popupData.title)}</h1>
-                    <p class="popup-period">${startDate} ~ ${endDate}</p>
-                    <span class="popup-status ${isActive ? 'active' : 'ended'}">
-                        ${isActive ? '운영중' : '종료'}
-                    </span>
-                </div>
+        <div class="popup-header-content">
+            <img src="${this.popupData.thumbnailUrl || defaultImage}" 
+                 alt="${this.popupData.title}" 
+                 class="popup-thumbnail">
+            <div class="popup-info">
+                <h1>${this.escapeHtml(this.popupData.title)}</h1>
+                <p class="popup-period">${startDate} ~ ${endDate}</p>
+                <span class="popup-status ${isActive ? 'active' : 'ended'}">
+                    ${isActive ? '운영중' : '종료'}
+                </span>
             </div>
-        `;
+        </div>
+    `;
     }
 
     // 리뷰 통계 렌더링
@@ -207,12 +209,8 @@ class ReviewListManager {
                 </div>
                 <p class="review-content">${this.escapeHtml(review.content)}</p>
                 <div class="reviewer-info">
-                    <img src="https://via.placeholder.com/40x40/6366F1/ffffff?text=${encodeURIComponent((review.userName || '익명').charAt(0))}" 
-                         alt="리뷰어" 
-                         class="reviewer-avatar">
                     <div class="reviewer-details">
                         <p class="reviewer-name">${this.escapeHtml(review.userName || '익명')}</p>
-                        <p class="reviewer-badge">인증된 방문자</p>
                     </div>
                 </div>
             </div>

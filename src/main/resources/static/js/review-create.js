@@ -64,18 +64,11 @@ class ReviewCreateManager {
     // 기존 리뷰 체크
     async checkExistingReview() {
         try {
-            const response = await fetch(`/api/reviews/popup/${this.popupId}/check`);
-            if (response.ok) {
-                const result = await response.json();
-                if (result.hasReviewed) {
-                    const confirm = window.confirm('이미 이 팝업에 리뷰를 작성하셨습니다. 기존 리뷰를 수정하시겠습니까?');
-                    if (confirm) {
-                        window.location.href = `/popup/${this.popupId}`;
-                    } else {
-                        window.history.back();
-                    }
-                    return;
-                }
+            const response = await apiService.checkUserReview(this.popupId);
+            if (response.hasReviewed) {
+                alert('이미 이 팝업에 리뷰를 작성하셨습니다.');
+                window.location.href = `/popup/${this.popupId}`;
+                return;
             }
         } catch (error) {
             console.warn('리뷰 중복 체크 실패:', error);
@@ -227,11 +220,13 @@ class ReviewCreateManager {
             this.hideLoading();
             console.error('리뷰 제출 실패:', error);
 
-            if (error.message.includes('401') || error.message.includes('인증')) {
+            if (error.message.includes('500')) {
+                alert('서버 오류가 발생했습니다. 이미 리뷰를 작성하셨거나 일시적인 문제일 수 있습니다.');
+            } else if (error.message.includes('401')) {
                 alert('로그인이 필요합니다.');
                 window.location.href = '/login';
             } else {
-                alert(error.message || '리뷰 등록 중 오류가 발생했습니다. 다시 시도해주세요.');
+                alert(error.message || '리뷰 등록 중 오류가 발생했습니다.');
             }
         }
     }

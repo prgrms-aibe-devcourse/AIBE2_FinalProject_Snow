@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -156,10 +157,29 @@ public class ReviewService {
      */
     @Transactional(readOnly = true)
     public ReviewStatsDto getReviewStats(Long popupId) {
-        Object[] result = reviewRepository.findRatingStatsByPopupId(popupId);
-        return ReviewStatsDto.from(result);
-    }
+        log.info("리뷰 통계 조회 - 팝업ID: {}", popupId);
 
+        long actualCount = reviewRepository.countByPopupIdAndIsBlockedFalse(popupId);
+        log.info("실제 리뷰 개수: {}", actualCount);
+
+        Object[] result = reviewRepository.findRatingStatsByPopupId(popupId);
+
+        // 상세 디버깅
+        log.info("result == null? {}", result == null);
+        if (result != null) {
+            log.info("[리뷰] result.length: {}", result.length);
+            for (int i = 0; i < result.length; i++) {
+                log.info("[리뷰]  result[{}]: {} (type: {})", i, result[i],
+                        result[i] != null ? result[i].getClass().getSimpleName() : "null");
+            }
+        }
+
+        ReviewStatsDto statsDto = ReviewStatsDto.from(result);
+        log.info("최종 DTO: averageRating={}, totalReviews={}",
+                statsDto.getAverageRating(), statsDto.getTotalReviews());
+
+        return statsDto;
+    }
     /**
      * 사용자가 해당 팝업에 리뷰 작성 여부 확인
      */
