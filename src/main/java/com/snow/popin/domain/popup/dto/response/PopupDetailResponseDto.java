@@ -36,6 +36,8 @@ public class PopupDetailResponseDto {
     private final String venueName;
     private final String venueAddress;
     private final String region;
+    private Double latitude;
+    private Double longitude;
     private final Boolean parkingAvailable;
 
     private final Long categoryId;
@@ -67,6 +69,8 @@ public class PopupDetailResponseDto {
                 .venueName(popup.getVenueName())
                 .venueAddress(popup.getVenueAddress())
                 .region(popup.getRegion())
+                .latitude(popup.getLatitude())
+                .longitude(popup.getLongitude())
                 .parkingAvailable(popup.getParkingAvailable())
                 .categoryId(popup.getCategory() != null ? popup.getCategory().getId() : null)
                 .categoryName(popup.getCategoryName())

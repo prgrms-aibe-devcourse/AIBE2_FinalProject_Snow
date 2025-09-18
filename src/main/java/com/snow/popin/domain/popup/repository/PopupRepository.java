@@ -53,8 +53,24 @@ public interface PopupRepository extends JpaRepository<Popup, Long>, JpaSpecific
 
     // 팝업 상세 조회
     @EntityGraph(attributePaths = {"images", "hours", "venue", "tags", "category"})
-    @Query("SELECT p FROM Popup p WHERE p.id = :id")
+    @Query("SELECT p FROM Popup p " +
+            "LEFT JOIN FETCH p.venue v " +
+            "LEFT JOIN FETCH p.category c " +
+            "WHERE p.id = :id")
     Optional<Popup> findByIdWithDetails(@Param("id") Long id);
+
+    // 유사한 팝업 조회
+    @Query("SELECT p FROM Popup p " +
+            "LEFT JOIN FETCH p.venue v " +
+            "LEFT JOIN FETCH p.category c " +
+            "WHERE c.name = :categoryName " +
+            "AND p.id != :excludeId " +
+            "AND (p.status = com.snow.popin.domain.popup.entity.PopupStatus.ONGOING OR " +
+            "     p.status = com.snow.popin.domain.popup.entity.PopupStatus.PLANNED) " +
+            "ORDER BY p.createdAt DESC")
+    Page<Popup> findSimilarPopups(@Param("categoryName") String categoryName,
+                                  @Param("excludeId") Long excludeId,
+                                  Pageable pageable);
 
     // 인기 팝업 조회 (isFeatured = true)
     @Query(value = "SELECT p FROM Popup p LEFT JOIN FETCH p.venue v LEFT JOIN FETCH p.category c " +

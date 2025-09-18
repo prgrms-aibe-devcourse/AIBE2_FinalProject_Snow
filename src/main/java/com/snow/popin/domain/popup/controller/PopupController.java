@@ -34,6 +34,29 @@ public class PopupController {
         return ResponseEntity.ok(response);
     }
 
+    // 유사한 팝업 조회
+    @GetMapping("/{popupId}/similar")
+    public ResponseEntity<PopupListResponseDto> getSimilarPopups(
+            @PathVariable Long popupId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "4") int size) {
+
+        try {
+            PopupDetailResponseDto currentPopup = popupService.getPopupDetail(popupId);
+
+            if (currentPopup.getCategoryName() == null) {
+                return ResponseEntity.ok(PopupListResponseDto.empty(page, size));
+            }
+
+            PopupListResponseDto response = popupService.getSimilarPopups(
+                    currentPopup.getCategoryName(), popupId, page, size);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.ok(PopupListResponseDto.empty(page, size));
+        }
+    }
+
     // 인기 팝업 조회 (isFeatured = true)
     @GetMapping("/popular")
     public ResponseEntity<PopupListResponseDto> getPopularPopups(

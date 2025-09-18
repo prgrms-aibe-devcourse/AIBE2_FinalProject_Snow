@@ -58,6 +58,21 @@ public class PopupService {
         return PopupDetailResponseDto.from(popup);
     }
 
+    // 유사한 팝업 조회
+    public PopupListResponseDto getSimilarPopups(String categoryName, Long excludePopupId, int page, int size) {
+        log.info("유사한 팝업 조회 - 카테고리: {}, 제외 ID: {}", categoryName, excludePopupId);
+
+        Pageable pageable = createPageable(page, size);
+        Page<Popup> popupPage = popupRepository.findSimilarPopups(categoryName, excludePopupId, pageable);
+
+        List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
+                .stream()
+                .map(PopupSummaryResponseDto::from)
+                .collect(Collectors.toList());
+
+        return PopupListResponseDto.of(popupPage, popupDtos);
+    }
+
     // 인기 팝업 조회 (isFeatured = true)
     public PopupListResponseDto getPopularPopups(int page, int size) {
         log.info("인기 팝업 조회 시작 - page: {}, size: {}", page, size);
