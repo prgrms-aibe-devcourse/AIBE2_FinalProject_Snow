@@ -6,7 +6,9 @@ import com.snow.popin.domain.mission.entity.MissionSet;
 import com.snow.popin.domain.mission.entity.MissionSetStatus;
 import com.snow.popin.domain.mission.repository.MissionRepository;
 import com.snow.popin.domain.mission.repository.MissionSetRepository;
+import com.snow.popin.domain.mission.service.MissionService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,10 +18,12 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AdminMissionService {
 
     private final MissionSetRepository missionSetRepository;
     private final MissionRepository missionRepository;
+    private final QrCodeService qrCodeService;
 
     /**
      * 목록 조회
@@ -52,10 +56,11 @@ public class AdminMissionService {
     }
 
     /**
-     * 생성
+     * 미션셋 생성
      * @param req
      * @return
      */
+    @Transactional
     public MissionSetAdminDto createMissionSet(MissionSetCreateRequestDto req) {
         MissionSet set = MissionSet.builder()
                 .popupId(req.getPopupId())
@@ -63,7 +68,18 @@ public class AdminMissionService {
                 .status(req.getStatus())
                 .rewardPin(req.getRewardPin())
                 .build();
-        missionSetRepository.save(set);
+
+        missionSetRepository.save(set); // INSERT 발생
+
+        try {
+            String qrUrl = qrCodeService.generateMissionSetQr(set.getId());
+            set.setQrImageUrl(qrUrl); // 영속 상태라 더티체킹으로 UPDATE 됨
+            log.info("[AdminMissionService] QR 생성 성공 - setId={}, qrUrl={}", set.getId(), qrUrl);
+        } catch (Exception ex) {
+            log.error("[AdminMissionService] QR 생성 실패 - setId={}, msg={}", set.getId(), ex.getMessage(), ex);
+        }
+
+        log.info("[AdminMissionService] 미션셋 생성 완료 - setId={}, popupId={}", set.getId(), set.getPopupId());
         return MissionSetAdminDto.from(set);
     }
 

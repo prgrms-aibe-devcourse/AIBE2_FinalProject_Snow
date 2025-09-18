@@ -20,6 +20,7 @@ public class MissionSetAdminDto {
     private String rewardPin;
     private LocalDateTime createdAt;
     private List<MissionDto> missions;
+    private String qrImageUrl;
 
     public static MissionSetAdminDto from(MissionSet set) {
         return MissionSetAdminDto.builder()
@@ -30,6 +31,7 @@ public class MissionSetAdminDto {
                 .rewardPin(set.getRewardPin())
                 .createdAt(set.getCreatedAt())
                 .missions(set.getMissions().stream().map(MissionDto::from).collect(Collectors.toList()))
+                .qrImageUrl(set.getQrImageUrl())
                 .build();
     }
 }

@@ -242,7 +242,6 @@ class MissionManagement {
     }
   }
 
-
   showDetailModal(set) {
     const missions = Array.isArray(set.missions) ? set.missions : [];
     const idDisp = (set.id || set.missionSetId || '').toString();
@@ -251,39 +250,47 @@ class MissionManagement {
 
     const modalBody = document.getElementById('modalBody');
     modalBody.innerHTML = `
-      <div class="detail-section" id="missionSetInfo">
-          <h3>기본 정보</h3>
-          <div class="detail-grid" id="missionSetInfoFields">
-            <div class="detail-item"><span class="detail-label">미션셋 ID</span><span class="detail-value mono small">${idDisp}</span></div>
-            <div class="detail-item"><span class="detail-label">팝업</span><span class="detail-value" title="${popupId ?? ''}">${this.escapeHtml(popupTitle)}</span></div>
-            <div class="detail-item"><span class="detail-label">필요 완료 수</span><span class="detail-value" id="dispRequiredCount">${set.requiredCount ?? 0}</span></div>
-            <div class="detail-item"><span class="detail-label">상태</span><span class="detail-value"><span class="status-badge ${(set.status||'').toLowerCase()}" id="dispStatus">${set.status || '-'}</span></span></div>
-            <div class="detail-item"><span class="detail-label">리워드 PIN</span><span class="detail-value" id="dispRewardPin">${set.rewardPin || '-'}</span></div>
-            <div class="detail-item"><span class="detail-label">생성일</span><span class="detail-value">${this.formatDate(set.createdAt)}</span></div>
-          </div>
-          <div style="margin-top:12px">
-            <button class="button button-primary" id="editBtn">수정</button>
-          </div>
-        </div>
-
-      <div class="detail-section">
-        <h3>미션 목록</h3>
-        <div class="mission-list">
-          ${missions.length === 0 ? '<div class="no-data">등록된 미션이 없습니다.</div>' : missions.map(m => `
-            <div class="mission-row">
-              <div>
-                <div><strong>${this.escapeHtml(m.title || '(제목없음)')}</strong></div>
-                <div class="small mono">${(m.id||'').toString().replace(/-/g,'')}</div>
-                ${m.description ? `<div class="small" style="margin-top:4px;">${this.escapeHtml(m.description)}</div>` : ''}
-              </div>
-              <div class="action-buttons">
-                <button class="button button-sm button-danger-outline" onclick="missionManagement.deleteMission('${m.id}')">삭제</button>
-              </div>
+    <div class="detail-section" id="missionSetInfo">
+        <h3>기본 정보</h3>
+        <div class="detail-grid" id="missionSetInfoFields">
+          <div class="detail-item"><span class="detail-label">미션셋 ID</span><span class="detail-value mono small">${idDisp}</span></div>
+          <div class="detail-item"><span class="detail-label">팝업</span><span class="detail-value" title="${popupId ?? ''}">${this.escapeHtml(popupTitle)}</span></div>
+                    ${set.qrImageUrl ? `
+            <div class="detail-item">
+              <span class="detail-label">QR 코드</span>
+              <span class="detail-value">
+                <a href="${set.qrImageUrl}" download="missionset-${idDisp}.png" class="qr-download">QR 다운로드</a>
+              </span>
             </div>
-          `).join('')}
+          ` : ''}
+          <div class="detail-item"><span class="detail-label">필요 완료 수</span><span class="detail-value" id="dispRequiredCount">${set.requiredCount ?? 0}</span></div>
+          <div class="detail-item"><span class="detail-label">상태</span><span class="detail-value"><span class="status-badge ${(set.status||'').toLowerCase()}" id="dispStatus">${set.status || '-'}</span></span></div>
+          <div class="detail-item"><span class="detail-label">리워드 PIN</span><span class="detail-value" id="dispRewardPin">${set.rewardPin || '-'}</span></div>
+          <div class="detail-item"><span class="detail-label">생성일</span><span class="detail-value">${this.formatDate(set.createdAt)}</span></div>
+        </div>
+        <div style="margin-top:12px">
+          <button class="button button-primary" id="editBtn">수정</button>
         </div>
       </div>
-    `;
+
+    <div class="detail-section">
+      <h3>미션 목록</h3>
+      <div class="mission-list">
+        ${missions.length === 0 ? '<div class="no-data">등록된 미션이 없습니다.</div>' : missions.map(m => `
+          <div class="mission-row">
+            <div>
+              <div><strong>${this.escapeHtml(m.title || '(제목없음)')}</strong></div>
+              <div class="small mono">${(m.id||'').toString().replace(/-/g,'')}</div>
+              ${m.description ? `<div class="small" style="margin-top:4px;">${this.escapeHtml(m.description)}</div>` : ''}
+            </div>
+            <div class="action-buttons">
+              <button class="button button-sm button-danger-outline" onclick="missionManagement.deleteMission('${m.id}')">삭제</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
     document.getElementById('detailModal').style.display = 'block';
     document.getElementById('editBtn').addEventListener('click', () => this.enableEditMode(set));
   }

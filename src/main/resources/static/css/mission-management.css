@@ -490,3 +490,11 @@
     border-color: #007bff;
     outline: none;
 }
+
+a.qr-download {
+    color: #5a5a5a;
+}
+
+a.qr-download:visited {
+    color: #5a5a5a; /* 방문 여부 무시 */
+}
