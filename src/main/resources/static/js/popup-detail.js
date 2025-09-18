@@ -100,6 +100,7 @@ class PopupDetailManager {
             this.renderPopupInfo();
             this.renderLocationInfo();
             await this.loadSimilarPopups();
+            this.updateMetaTags();
             this.showContent();
         } catch (error) {
             console.error('팝업 데이터 로드 실패:', error);
@@ -388,6 +389,133 @@ class PopupDetailManager {
             hashtags: ['POPIN', '팝업스토어', ...(this.popupData.tags || [])],
             image: this.popupData.thumbnailUrl || 'https://via.placeholder.com/300x200/4B5AE4/ffffff?text=POPIN'
         };
+    }
+
+    // 메타 태그 업데이트
+    updateMetaTags() {
+        if (!this.popupData) return;
+
+        // 기본 title 업데이트
+        document.title = `${this.popupData.title} - POPIN`;
+
+        // Open Graph 메타 태그 업데이트
+        this.updateMetaTag('og:title', `${this.popupData.title} - POPIN`);
+        this.updateMetaTag('og:description', this.createMetaDescription());
+        this.updateMetaTag('og:image', this.getPopupImageUrl());
+        this.updateMetaTag('og:url', window.location.href);
+
+        // Twitter 카드 업데이트
+        this.updateMetaTag('twitter:title', `${this.popupData.title} - POPIN`);
+        this.updateMetaTag('twitter:description', this.createMetaDescription());
+        this.updateMetaTag('twitter:image', this.getPopupImageUrl());
+
+        console.log('메타 태그 업데이트 완료');
+    }
+
+    // 메타 태그 업데이트 헬퍼
+    updateMetaTag(property, content) {
+        // property 속성으로 찾기 (og:* 태그용)
+        let meta = document.querySelector(`meta[property="${property}"]`);
+
+        // name 속성으로 찾기 (twitter:* 태그용)
+        if (!meta) {
+            meta = document.querySelector(`meta[name="${property}"]`);
+        }
+
+        if (meta) {
+            meta.setAttribute('content', content);
+        } else {
+            // 메타 태그가 없으면 생성
+            meta = document.createElement('meta');
+            if (property.startsWith('og:')) {
+                meta.setAttribute('property', property);
+            } else {
+                meta.setAttribute('name', property);
+            }
+            meta.setAttribute('content', content);
+            document.head.appendChild(meta);
+        }
+    }
+
+    // 메타 설명 생성
+    createMetaDescription() {
+        if (!this.popupData) return 'POPIN에서 다양한 팝업스토어 정보를 확인하세요!';
+
+        let description = '';
+
+        // 요약이 있으면 요약 사용
+        if (this.popupData.summary && this.popupData.summary.trim()) {
+            description = this.popupData.summary.trim();
+        } else {
+            // 요약이 없으면 기본 정보로 구성
+            description = `${this.popupData.title}`;
+
+            // 기간 정보 추가
+            const period = this.popupData.periodText || this.createPeriodText();
+            if (period && period !== '기간 미정') {
+                description += ` | ${period}`;
+            }
+
+            // 장소 정보 추가
+            const address = this.popupData.venueAddress;
+            if (address && address.trim()) {
+                // 주소가 너무 길면 첫 부분만 사용
+                const shortAddress = address.length > 30 ? address.substring(0, 30) + '...' : address;
+                description += ` | ${shortAddress}`;
+            }
+        }
+
+        description += ' | POPIN에서 확인하세요!';
+
+        // 메타 설명은 160자 이하로 제한
+        if (description.length > 160) {
+            description = description.substring(0, 157) + '...';
+        }
+
+        return description;
+    }
+
+    // 기간 텍스트 생성 (popupData에 periodText가 없는 경우)
+    createPeriodText() {
+        if (!this.popupData.startDate && !this.popupData.endDate) {
+            return '기간 미정';
+        }
+
+        const formatDate = (dateStr) => {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).replace(/\. /g, '.').replace(/\.$/, '');
+        };
+
+        if (this.popupData.startDate && this.popupData.endDate) {
+            if (this.popupData.startDate === this.popupData.endDate) {
+                return formatDate(this.popupData.startDate);
+            }
+            return `${formatDate(this.popupData.startDate)} - ${formatDate(this.popupData.endDate)}`;
+        } else if (this.popupData.startDate) {
+            return `${formatDate(this.popupData.startDate)} -`;
+        } else {
+            return `- ${formatDate(this.popupData.endDate)}`;
+        }
+    }
+
+    // 팝업 이미지 URL 가져오기
+    getPopupImageUrl() {
+        if (this.popupData.mainImageUrl && this.popupData.mainImageUrl.trim()) {
+            // 절대 URL인지 확인
+            if (this.popupData.mainImageUrl.startsWith('http')) {
+                return this.popupData.mainImageUrl;
+            } else {
+                // 상대 URL인 경우 절대 URL로 변환
+                return window.location.origin + this.popupData.mainImageUrl;
+            }
+        }
+
+        // 기본 이미지
+        return window.location.origin + '/images/default-popup.png';
     }
 
     // 북마크 처리
