@@ -234,9 +234,6 @@ class PopupDetailManager {
 
             this.locationMap = new kakao.maps.Map(mapContainer, mapOption);
 
-            this.locationMap.relayout();
-            this.locationMap.setCenter(mapOption.center);
-
             const mapCreateEnd = performance.now();
             console.log(`[지도 초기화] 지도 생성 완료 (소요시간: ${mapCreateEnd - mapCreateStart}ms)`);
 
@@ -480,6 +477,13 @@ class PopupDetailManager {
         document.getElementById('popup-detail-content').style.display = 'block';
         if (document.getElementById('popup-detail-error')) {
             document.getElementById('popup-detail-error').style.display = 'none';
+        }
+
+        if (this.locationMap) {
+            this.locationMap.relayout();
+
+            const correctPosition = new kakao.maps.LatLng(this.popupData.latitude, this.popupData.longitude);
+            this.locationMap.setCenter(correctPosition);
         }
     }
 
