@@ -374,7 +374,7 @@ apiService.getReservationStats = async function() {
     }
 };
 
-// === 팝업 관련 API - 실제 백엔드 연결 ===
+// === 팝업 관련 API ===
 
 // 팝업 목록 조회 - 실제 API 호출
 apiService.getPopups = async function(params = {}) {
@@ -394,17 +394,17 @@ apiService.getPopups = async function(params = {}) {
     return await this.get(`/popups${query}`);
 };
 
-// 팝업 상세 조회 - 실제 API 호출
+// 팝업 상세 조회
 apiService.getPopup = async function(popupId) {
     return await this.get(`/popups/${encodeURIComponent(popupId)}`);
 };
 
-// 추천 팝업 조회 - 실제 API 호출
+// 추천 팝업 조회
 apiService.getFeaturedPopups = async function(page = 0, size = 20) {
     return await this.get(`/popups/featured?page=${page}&size=${size}`);
 };
 
-// 팝업 검색 - 실제 API 호출
+// 팝업 검색
 apiService.searchPopups = async function(params = {}) {
     const sp = new URLSearchParams(params);
     const query = sp.toString() ? `?${sp.toString()}` : '';
@@ -426,6 +426,33 @@ apiService.getMapPopups = async function(params = {}) {
     const sp = new URLSearchParams(params);
     const query = sp.toString() ? `?${sp.toString()}` : '';
     return await this.get(`/map/popups${query}`);
+};
+
+// 위치 기반 유틸리티 메서드
+apiService.getCurrentPosition = function() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error('Geolocation이 지원되지 않습니다.'));
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                resolve({
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude
+                });
+            },
+            (error) => {
+                reject(new Error('위치 정보를 가져올 수 없습니다.'));
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 300000 // 5분
+            }
+        );
+    });
 };
 
 // 특정 범위 내 팝업 조회
@@ -465,6 +492,84 @@ apiService.searchMapPopups = async function(params = {}) {
     const sp = new URLSearchParams(params);
     const query = sp.toString() ? `?${sp.toString()}` : '';
     return await this.get(`/map/popups/search${query}`);
+};
+
+// 유사한 팝업 조회
+apiService.getSimilarPopups = async function(popupId, page = 0, size = 4) {
+    try {
+        const params = new URLSearchParams({
+            page: page.toString(),
+            size: size.toString()
+        });
+        return await this.get(`/popups/${encodeURIComponent(popupId)}/similar?${params}`);
+    } catch (error) {
+        console.error('유사한 팝업 조회 실패:', error);
+        // 유사한 팝업이 없어도 에러가 아님
+        return {
+            popups: [],
+            totalElements: 0,
+            totalPages: 0,
+            currentPage: 0,
+            empty: true
+        };
+    }
+};
+
+// 카테고리별 팝업 조회 메서드 추가
+apiService.getPopupsByCategory = async function(categoryName, page = 0, size = 20) {
+    try {
+        const params = new URLSearchParams({
+            page: page.toString(),
+            size: size.toString()
+        });
+        return await this.get(`/popups/category/${encodeURIComponent(categoryName)}?${params}`);
+    } catch (error) {
+        console.error('카테고리별 팝업 조회 실패:', error);
+        return {
+            popups: [],
+            totalElements: 0,
+            totalPages: 0,
+            currentPage: 0,
+            empty: true
+        };
+    }
+};
+
+// 지역별 팝업 조회 메서드 추가
+apiService.getPopupsByRegion = async function(region) {
+    try {
+        return await this.get(`/popups/region/${encodeURIComponent(region)}`);
+    } catch (error) {
+        console.error('지역별 팝업 조회 실패:', error);
+        return [];
+    }
+};
+
+// 주소 복사 유틸리티 메서드 추가
+apiService.copyToClipboard = async function(text) {
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            // Clipboard API 사용 (HTTPS 환경)
+            await navigator.clipboard.writeText(text);
+            return true;
+        } else {
+            // 폴백: 구형 브라우저나 HTTP 환경
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            const success = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            return success;
+        }
+    } catch (error) {
+        console.error('클립보드 복사 실패:', error);
+        return false;
+    }
 };
 
 // === 팝업 제보 API ===
@@ -678,18 +783,6 @@ apiService.checkBookmark = async function(popupId) {
 apiService.getMyBookmarks = async function(page = 0, size = 10) {
     const params = new URLSearchParams({ page, size });
     return await this.get(`/bookmarks/me?${params}`);
-};
-
-// === 유사한 팝업 조회 API (필요한 경우) ===
-
-// 유사한 팝업 조회
-apiService.getSimilarPopups = async function(popupId, limit = 6) {
-    try {
-        return await this.get(`/popups/${encodeURIComponent(popupId)}/similar?limit=${limit}`);
-    } catch (error) {
-        // 유사한 팝업이 없어도 에러가 아님
-        return [];
-    }
 };
 
 // === 유틸리티 메서드 ===

@@ -52,6 +52,12 @@ class PopupDetailManager {
             reservationBtn.addEventListener('click', () => this.handleReservation());
         }
 
+        // 주소 복사 버튼
+        const copyAddressBtn = document.getElementById('copy-address-btn');
+        if (copyAddressBtn) {
+            copyAddressBtn.addEventListener('click', () => this.handleCopyAddress());
+        }
+
         // 리뷰 작성 버튼
         const writeReviewBtn = document.querySelector('.write-review-btn');
         if (writeReviewBtn) {
@@ -83,6 +89,7 @@ class PopupDetailManager {
         try {
             this.popupData = await apiService.getPopup(this.popupId);
             this.renderPopupInfo();
+            this.renderLocationInfo();
             await this.loadSimilarPopups();
             this.showContent();
         } catch (error) {
@@ -136,6 +143,158 @@ class PopupDetailManager {
                 tagsEl.appendChild(span);
             });
         }
+    }
+
+    // 위치 정보 렌더링 메서드
+    renderLocationInfo() {
+        if (!this.popupData) return;
+
+        const hasLocation = this.popupData.latitude && this.popupData.longitude;
+        const hasVenue = this.popupData.venueName || this.popupData.venueAddress;
+
+        if (!hasLocation && !hasVenue) return;
+
+        const locationSection = document.getElementById('location-section');
+        if (locationSection) {
+            locationSection.style.display = 'block';
+        }
+
+        const venueNameEl = document.getElementById('venue-name');
+        if (venueNameEl) {
+            venueNameEl.textContent = this.popupData.venueName || '장소 정보 없음';
+        }
+
+        const venueAddressEl = document.getElementById('venue-address');
+        if (venueAddressEl) {
+            venueAddressEl.textContent = this.popupData.venueAddress || '주소 정보 없음';
+        }
+
+        // 주차 정보
+        const parkingInfoEl = document.getElementById('parking-info');
+        const parkingTextEl = document.getElementById('parking-text');
+        if (parkingInfoEl && parkingTextEl && this.popupData.parkingAvailable !== undefined) {
+            parkingInfoEl.style.display = 'flex';
+            parkingTextEl.textContent = this.popupData.parkingAvailable ? '주차 가능' : '주차 불가';
+            parkingInfoEl.className = this.popupData.parkingAvailable ? 'parking-info parking-available' : 'parking-info parking-unavailable';
+        }
+
+        if (hasLocation) {
+            this.initializeLocationMap();
+        } else {
+            const mapContainer = document.querySelector('.map-container');
+            if (mapContainer) {
+                mapContainer.style.display = 'none';
+            }
+        }
+    }
+
+    // 지도 초기화
+    initializeLocationMap() {
+        console.log('[지도 초기화] 시작');
+        const startTime = performance.now();
+
+        const mapContainer = document.getElementById('popup-location-map');
+        if (!mapContainer) {
+            console.error('[지도 초기화] 맵 컨테이너를 찾을 수 없음');
+            return;
+        }
+
+        console.log('[지도 초기화] 맵 컨테이너 발견:', mapContainer);
+
+        // 카카오맵 API 로드 확인
+        if (typeof kakao === 'undefined') {
+            console.error('[지도 초기화] kakao 객체가 정의되지 않음');
+            this.handleMapLoadError(mapContainer, '카카오맵 스크립트가 로드되지 않았습니다.');
+            return;
+        }
+
+        if (!kakao.maps) {
+            console.error('[지도 초기화] kakao.maps 객체가 정의되지 않음');
+            this.handleMapLoadError(mapContainer, '카카오맵 API가 제대로 로드되지 않았습니다.');
+            return;
+        }
+
+        console.log('[지도 초기화] 카카오맵 API 로드 확인됨');
+        console.log('[지도 초기화] 좌표:', this.popupData.latitude, this.popupData.longitude);
+
+        try {
+            // 지도 옵션 설정
+            const mapOption = {
+                center: new kakao.maps.LatLng(this.popupData.latitude, this.popupData.longitude),
+                level: 3
+            };
+
+            console.log('[지도 초기화] 지도 옵션:', mapOption);
+
+            // 지도 생성 시작
+            const mapCreateStart = performance.now();
+            console.log('[지도 초기화] 지도 생성 시작');
+
+            this.locationMap = new kakao.maps.Map(mapContainer, mapOption);
+
+            const mapCreateEnd = performance.now();
+            console.log(`[지도 초기화] 지도 생성 완료 (소요시간: ${mapCreateEnd - mapCreateStart}ms)`);
+
+            // 마커 생성
+            const markerCreateStart = performance.now();
+            console.log('[지도 초기화] 마커 생성 시작');
+
+            const marker = new kakao.maps.Marker({
+                position: new kakao.maps.LatLng(this.popupData.latitude, this.popupData.longitude)
+            });
+
+            marker.setMap(this.locationMap);
+
+            const markerCreateEnd = performance.now();
+            console.log(`[지도 초기화] 마커 생성 완료 (소요시간: ${markerCreateEnd - markerCreateStart}ms)`);
+
+            const totalTime = performance.now() - startTime;
+            console.log(`[지도 초기화] 전체 완료 (총 소요시간: ${totalTime}ms)`);
+
+            // 성능 임계치 확인
+            if (totalTime > 3000) {
+                console.warn(`[지도 초기화] 성능 주의: ${totalTime}ms 소요됨 (권장: 3초 미만)`);
+            }
+
+        } catch (error) {
+            console.error('[지도 초기화] 오류 발생:', error);
+            this.handleMapLoadError(mapContainer, `지도 생성 중 오류: ${error.message}`);
+        }
+    }
+
+    // 주소 복사
+    async handleCopyAddress() {
+        if (!this.popupData.venueAddress) {
+            this.showToast('복사할 주소가 없습니다.');
+            return;
+        }
+
+        const success = await apiService.copyToClipboard(this.popupData.venueAddress);
+
+        if (success) {
+            this.showToast('주소가 클립보드에 복사되었습니다.');
+
+            const copyBtn = document.getElementById('copy-address-btn');
+            if (copyBtn) {
+                copyBtn.classList.add('copied');
+                setTimeout(() => copyBtn.classList.remove('copied'), 2000);
+            }
+        } else {
+            this.showToast('주소 복사에 실패했습니다.');
+        }
+    }
+
+    showToast(message) {
+        let toast = document.getElementById('toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'toast';
+            toast.className = 'toast';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
     // 유사한 팝업 로드
@@ -354,8 +513,6 @@ class ReviewManager {
 
     // 이벤트 리스너 설정
     setupEventListeners() {
-        // 리뷰 작성 버튼은 PopupDetailManager에서 처리
-        // 기타 리뷰 관련 이벤트만 처리
     }
 
     // 리뷰 통계 로드

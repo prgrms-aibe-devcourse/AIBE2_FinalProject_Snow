@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="page-title">POPIN - 팝업 상세</title>
 
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=eaef006c7d0c88e0935a7d8745e99144"></script>
+
     <!-- 공통 레이아웃 CSS -->
     <link rel="stylesheet" href="/css/layout.css">
     <link rel="stylesheet" href="/css/popup-detail.css">
@@ -65,6 +67,33 @@
                 <button id="reservation-btn" class="reservation-btn">
                     예약하기
                 </button>
+            </div>
+
+            <!-- 지도 섹션 -->
+            <div class="location-section" id="location-section" style="display: none;">
+                <div class="location-header">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                    </svg>
+                    <h2 class="location-title">위치</h2>
+                </div>
+
+                <div class="venue-info">
+                    <div id="venue-name" class="venue-name"></div>
+                </div>
+
+                <!-- 지도 -->
+                <div class="map-container">
+                    <div id="popup-location-map"></div>
+                </div>
+
+                <!-- 주소 복사 버튼 -->
+                <div class="address-row">
+                    <div id="venue-address" class="venue-address-inline"></div>
+                    <button id="copy-address-btn" class="copy-btn-inline">
+                        주소복사
+                    </button>
+                </div>
             </div>
 
             <!-- 리뷰 섹션 -->
