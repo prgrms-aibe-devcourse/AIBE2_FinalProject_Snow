@@ -41,9 +41,17 @@ public class PopupService {
         return PopupListResponseDto.of(popupPage, popupDtos);
     }
 
+    @Transactional
     public PopupDetailResponseDto getPopupDetail(Long popupId) {
         Popup popup = popupRepository.findByIdWithDetails(popupId)
                 .orElseThrow(() -> new PopupNotFoundException(popupId));
+
+        // 실시간으로 상태 업데이트 확인
+        boolean statusChanged = popup.updateStatus();
+        if (statusChanged) {
+            log.info("팝업 ID {}의 상태가 실시간으로 업데이트되었습니다: {}", popup.getId(), popup.getStatus());
+            popupRepository.save(popup); // 변경된 경우 저장
+        }
 
         log.info("팝업 상세 조회 완료 - ID: {}, 제목: {}", popup.getId(), popup.getTitle());
 
