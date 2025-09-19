@@ -4,9 +4,15 @@ class PopupListManager {
         this.currentPage = 0;
         this.isFetching = false;
         this.hasMore = true;
-        this.currentSortBy = 'latest';
+
+        // 필터 상태 관리
+        this.currentFilterMode = 'latest'; // 'latest', 'featured', 'popularity', 'deadline', 'region-date'
+        this.currentRegion = 'All';
+        this.currentDateFilter = 'All'; // 'All', 'today', '7days', '14days'
+
         this.grid = null;
         this.loadingIndicator = null;
+        this.regionDateFilterContainer = null;
     }
 
     // 페이지 초기화
@@ -31,11 +37,35 @@ class PopupListManager {
             </div>
 
             <div class="filter-tabs">
-                <button class="tab-item active" data-sort="latest">All</button>
-                <button class="tab-item" data-sort="featured">추천</button>
-                <button class="tab-item" data-sort="popularity">인기 팝업</button>
-                <button class="tab-item" data-sort="deadline">마감임박</button>
-                <button class="tab-item" data-filter="region">지역/날짜</button>
+                <button class="tab-item active" data-mode="latest">All</button>
+                <button class="tab-item" data-mode="featured">추천</button>
+                <button class="tab-item" data-mode="popularity">인기 팝업</button>
+                <button class="tab-item" data-mode="deadline">마감임박</button>
+                <button class="tab-item" data-mode="region-date">지역/날짜</button>
+            </div>
+
+            <div id="region-date-filters" class="region-date-filters" style="display: none;">
+                <div class="sub-filter-section">
+                    <h4 class="sub-filter-title">지역</h4>
+                    <div class="sub-filter-tabs" id="region-filter-tabs">
+                        <button class="sub-tab-item active" data-region="All">All</button>
+                        <button class="sub-tab-item" data-region="서울">서울</button>
+                        <button class="sub-tab-item" data-region="경기">경기</button>
+                        <button class="sub-tab-item" data-region="인천">인천</button>
+                        <button class="sub-tab-item" data-region="부산">부산</button>
+                        <button class="sub-tab-item" data-region="대전">대전</button>
+                    </div>
+                </div>
+                <div class="sub-filter-section">
+                    <h4 class="sub-filter-title">날짜</h4>
+                     <div class="sub-filter-tabs" id="date-filter-tabs">
+                        <button class="sub-tab-item active" data-date="All">All</button>
+                        <button class="sub-tab-item" data-date="today">오늘</button>
+                        <button class="sub-tab-item" data-date="7days">+7</button>
+                        <button class="sub-tab-item" data-date="14days">+14</button>
+                        <button class="sub-tab-item" data-date="custom">직접입력</button>
+                    </div>
+                </div>
             </div>
 
             <div id="popup-grid" class="popup-grid"></div>
@@ -50,15 +80,22 @@ class PopupListManager {
     setupElements() {
         this.grid = document.getElementById('popup-grid');
         this.loadingIndicator = document.getElementById('loading-indicator');
+        this.regionDateFilterContainer = document.getElementById('region-date-filters');
     }
 
     // 이벤트 리스너 설정
     setupEventListeners() {
-        // 필터 탭 이벤트
+        // 메인 필터 탭 이벤트
         document.querySelector('.filter-tabs').addEventListener('click', (e) => {
             this.handleFilterClick(e);
         });
 
+        // 지역/날짜 서브 필터 이벤트
+        this.regionDateFilterContainer.addEventListener('click', (e) => {
+            this.handleSubFilterClick(e);
+        });
+
+        // 무한 스크롤 이벤트
         this._onScroll = () => {
             if (this.isFetching || !this.hasMore) return;
             this.handlePageScroll();
@@ -73,6 +110,7 @@ class PopupListManager {
             }
         });
 
+        // 이미지 로딩 실패 처리
         this.grid.addEventListener('error', (e) => {
             const img = e.target;
             if (img && img.matches('.card-image')) {
@@ -81,35 +119,67 @@ class PopupListManager {
             }
         }, true);
     }
-    // 필터 클릭 처리
+
+    // 메인 필터 클릭 처리
     handleFilterClick(e) {
         const selectedTab = e.target.closest('.tab-item');
         if (!selectedTab || this.isFetching) return;
 
-        if (selectedTab.dataset.filter === 'region') {
-            alert('지역/날짜 필터 기능은 준비 중입니다.');
-            return;
-        }
+        const newMode = selectedTab.dataset.mode;
+        if (this.currentFilterMode === newMode && newMode !== 'region-date') return;
 
-        // 활성 탭 변경
+        // 활성 탭 UI 변경
         document.querySelectorAll('.filter-tabs .tab-item').forEach(tab =>
             tab.classList.remove('active')
         );
         selectedTab.classList.add('active');
 
-        // 필터 변경 및 새로 로드
-        this.currentSortBy = selectedTab.dataset.sort || 'latest';
+        this.currentFilterMode = newMode;
+
+        if (newMode === 'region-date') {
+            // 지역/날짜 필터 섹션 토글
+            const isVisible = this.regionDateFilterContainer.style.display === 'block';
+            this.regionDateFilterContainer.style.display = isVisible ? 'none' : 'block';
+        } else {
+            // 다른 탭 선택 시 지역/날짜 필터 숨김
+            this.regionDateFilterContainer.style.display = 'none';
+            this.resetAndLoad();
+        }
+    }
+
+    // 서브 필터 클릭 처리 (지역, 날짜)
+    handleSubFilterClick(e) {
+        const selectedSubTab = e.target.closest('.sub-tab-item');
+        if (!selectedSubTab || this.isFetching) return;
+
+        const region = selectedSubTab.dataset.region;
+        const date = selectedSubTab.dataset.date;
+
+        if (region) {
+            this.currentRegion = region;
+            document.querySelectorAll('#region-filter-tabs .sub-tab-item').forEach(tab =>
+                tab.classList.toggle('active', tab.dataset.region === region)
+            );
+        }
+
+        if (date) {
+            if (date === 'custom') {
+                alert('직접 입력 기능은 준비 중입니다.');
+                return;
+            }
+            this.currentDateFilter = date;
+            document.querySelectorAll('#date-filter-tabs .sub-tab-item').forEach(tab =>
+                tab.classList.toggle('active', tab.dataset.date === date)
+            );
+        }
+
         this.resetAndLoad();
     }
 
     // 전체 페이지 스크롤 처리 (무한 스크롤)
     handlePageScroll() {
-        // 페이지 하단에서 200px 이내일 때 다음 페이지 로드
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        const windowHeight = window.innerHeight;
-        const documentHeight = document.documentElement.scrollHeight;
-
-        if (documentHeight - scrollTop - windowHeight < 200) {
+        const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+        if (scrollHeight - scrollTop - clientHeight < 200) {
             this.loadMore();
         }
     }
@@ -153,14 +223,11 @@ class PopupListManager {
     async resetAndLoad() {
         this.currentPage = 0;
         this.hasMore = true;
-
-        // 맨 위로 스크롤
         window.scrollTo({ top: 0, behavior: 'smooth' });
-
         await this.fetchAndDisplayPopups(false);
     }
 
-    // 데이터 가져오기 및 표시 (수정된 부분)
+    // 데이터 가져오기 및 표시
     async fetchAndDisplayPopups(isLoadMore = false) {
         if (this.isFetching || !this.hasMore) return;
 
@@ -177,13 +244,37 @@ class PopupListManager {
         try {
             const params = {
                 page: this.currentPage,
-                size: 10,
-                sortBy: this.currentSortBy
+                size: 10
             };
+            let response;
 
-            const response = await apiService.getPopups(params);
+            switch (this.currentFilterMode) {
+                case 'latest':
+                    response = await apiService.getPopups(params);
+                    break;
+                case 'featured': // 백엔드에서 AI 추천이 인기팝업으로 연결되어 있음
+                    response = await apiService.getAIRecommendedPopups({ ...params, status: 'ONGOING' });
+                    break;
+                case 'popularity':
+                    response = await apiService.getPopularPopups(params);
+                    break;
+                case 'deadline':
+                    response = await apiService.getDeadlineSoonPopups(params);
+                    break;
+                case 'region-date':
+                    const regionDateParams = { ...params };
+                    if (this.currentRegion !== 'All') {
+                        regionDateParams.region = this.currentRegion;
+                    }
+                    if (this.currentDateFilter !== 'All') {
+                        regionDateParams.dateFilter = this.currentDateFilter;
+                    }
+                    response = await apiService.getPopupsByRegionAndDate(regionDateParams);
+                    break;
+                default:
+                    response = await apiService.getPopups(params);
+            }
 
-            // API 응답 구조에 맞게 'popups' 필드 사용
             if (response.popups && response.popups.length > 0) {
                 this.renderPopups(response.popups);
                 this.currentPage++;
@@ -211,25 +302,10 @@ class PopupListManager {
         this.grid.insertAdjacentHTML('beforeend', cardsHTML);
     }
 
-    // 로딩 표시
-    showLoading() {
-        this.loadingIndicator.style.display = 'flex';
-    }
-
-    // 로딩 숨기기
-    hideLoading() {
-        this.loadingIndicator.style.display = 'none';
-    }
-
-    // 결과 없음 표시
-    showNoResults() {
-        this.grid.innerHTML = '<p class="alert alert-info" style="grid-column: 1 / -1; text-align: center;">표시할 팝업이 없습니다.</p>';
-    }
-
-    // 에러 표시
-    showError(message) {
-        this.grid.innerHTML = `<p class="alert alert-error" style="grid-column: 1 / -1; text-align: center;">${message}</p>`;
-    }
+    showLoading() { this.loadingIndicator.style.display = 'flex'; }
+    hideLoading() { this.loadingIndicator.style.display = 'none'; }
+    showNoResults() { this.grid.innerHTML = '<p class="alert alert-info" style="grid-column: 1 / -1; text-align: center;">표시할 팝업이 없습니다.</p>'; }
+    showError(message) { this.grid.innerHTML = `<p class="alert alert-error" style="grid-column: 1 / -1; text-align: center;">${message}</p>`; }
 
     // 컴포넌트 정리 (페이지 전환 시 호출)
     cleanup() {
@@ -240,12 +316,7 @@ class PopupListManager {
     }
 }
 
-function esc(s) {
-    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-function isSafeUrl(url) {
-    try { const u = new URL(url, window.location.origin); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; }
-}
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function isSafeUrl(url) { try { const u = new URL(url, window.location.origin); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; } }
 
-// 전역 인스턴스
 window.PopupListManager = PopupListManager;

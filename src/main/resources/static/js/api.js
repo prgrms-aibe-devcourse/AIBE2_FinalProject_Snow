@@ -384,24 +384,44 @@ apiService.getReservationStats = async function() {
     }
 };
 
-// === 팝업 관련 API ===
+// === 팝업 관련 API (수정됨) ===
 
-// 팝업 목록 조회
+// 헬퍼 함수
+const createQueryString = (params) => {
+    // null이나 undefined 값을 제외하고 URLSearchParams 생성
+    const filteredParams = Object.entries(params).reduce((acc, [key, value]) => {
+        if (value !== null && value !== undefined) {
+            acc[key] = value;
+        }
+        return acc;
+    }, {});
+
+    const sp = new URLSearchParams(filteredParams);
+    return sp.toString() ? `?${sp.toString()}` : '';
+};
+
+// 전체 팝업 목록 조회 (최신순)
 apiService.getPopups = async function(params = {}) {
-    const sp = new URLSearchParams();
-
-    // 파라미터 정리
-    if (params.page !== undefined) sp.set('page', params.page);
-    if (params.size !== undefined) sp.set('size', params.size);
-    if (params.sortBy !== undefined) sp.set('sortBy', params.sortBy);
-    if (params.categoryIds && params.categoryIds.length > 0) {
-        params.categoryIds.forEach(id => sp.append('categoryIds', id));
-    }
-    if (params.region) sp.set('region', params.region);
-    if (params.status) sp.set('status', params.status);
-
-    const query = sp.toString() ? `?${sp.toString()}` : '';
+    const query = createQueryString(params);
     return await this.get(`/popups${query}`);
+};
+
+// 인기 팝업 조회
+apiService.getPopularPopups = async function(params = {}) {
+    const query = createQueryString(params);
+    return await this.get(`/popups/popular${query}`);
+};
+
+// 마감임박 팝업 조회
+apiService.getDeadlineSoonPopups = async function(params = {}) {
+    const query = createQueryString(params);
+    return await this.get(`/popups/deadline${query}`);
+};
+
+// 지역/날짜별 팝업 조회
+apiService.getPopupsByRegionAndDate = async function(params = {}) {
+    const query = createQueryString(params);
+    return await this.get(`/popups/region-date${query}`);
 };
 
 // 팝업 상세 조회
@@ -409,9 +429,10 @@ apiService.getPopup = async function(popupId) {
     return await this.get(`/popups/${encodeURIComponent(popupId)}`);
 };
 
-// 추천 팝업 조회
-apiService.getFeaturedPopups = async function(page = 0, size = 20) {
-    return await this.get(`/popups/popular?page=${page}&size=${size}`);
+// 추천 팝업 조회 (현재는 인기 팝업으로 대체)
+apiService.getAIRecommendedPopups = async function(params = {}) {
+    const query = createQueryString(params);
+    return await this.get(`/popups/ai-recommended${query}`);
 };
 
 // 팝업 검색

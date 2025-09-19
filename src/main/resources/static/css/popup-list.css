@@ -134,6 +134,58 @@
     grid-column: 1 / -1;
 }
 
+/* 지역/날짜 필터 컨테이너 */
+.region-date-filters {
+    padding: 0 16px 20px 16px;
+    background-color: #f9fafb; /* 약간의 배경색 */
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.sub-filter-section {
+    padding: 12px 0;
+}
+
+.sub-filter-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin: 0 0 10px 4px;
+}
+
+/* 서브 필터 탭 (지역, 날짜) */
+.sub-filter-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    white-space: nowrap;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.sub-filter-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.sub-tab-item {
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid #d1d5db;
+    background-color: #ffffff;
+    color: #4b5563;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.sub-tab-item.active {
+    border-color: #4B5AE4;
+    background-color: #eef2ff;
+    color: #4338ca;
+    font-weight: 700;
+}
+
 /* 반응형 - 작은 화면에서 더 컴팩트하게 */
 @media (max-width: 375px) {
     .popup-grid {
