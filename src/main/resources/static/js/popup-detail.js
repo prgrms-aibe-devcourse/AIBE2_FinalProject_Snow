@@ -99,6 +99,7 @@ class PopupDetailManager {
 
         try {
             this.popupData = await apiService.getPopup(this.popupId);
+            await this.checkBookmarkStatus();
             this.renderPopupInfo();
             this.renderOperatingHours();
             this.renderLocationInfo();
@@ -109,6 +110,18 @@ class PopupDetailManager {
         } catch (error) {
             console.error('팝업 데이터 로드 실패:', error);
             this.showError();
+        }
+    }
+
+    // 북마크 상태 확인 함수 추가
+    async checkBookmarkStatus() {
+        try {
+            const result = await apiService.checkBookmark(this.popupId);
+            this.isBookmarked = result.bookmarked || false;
+            this.updateBookmarkButton();
+        } catch (error) {
+            console.warn('북마크 상태 확인 실패:', error);
+            this.isBookmarked = false; // 기본값으로 설정
         }
     }
 

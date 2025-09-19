@@ -35,8 +35,7 @@ const Pages = {
 
     // 북마크 페이지
     bookmark() {
-        alert('북마크 기능은 준비 중입니다.');
-        // TODO: 북마크 페이지 구현
+        window.location.href = '/bookmarks';
     },
     // == 마이페이지 - 공간제공자 (현재 비어있음) ===
 
