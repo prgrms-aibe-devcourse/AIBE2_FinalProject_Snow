@@ -100,6 +100,7 @@ class PopupDetailManager {
         try {
             this.popupData = await apiService.getPopup(this.popupId);
             this.renderPopupInfo();
+            this.renderOperatingHours();
             this.renderLocationInfo();
             this.renderDescriptionInfo();
             await this.loadSimilarPopups();
@@ -171,51 +172,46 @@ class PopupDetailManager {
                 periodEl.textContent = `${startDate} ~ ${endDate}`;
             }
         }
-
-        // 운영 요일 및 시간 표시
-        if (this.popupData.hours && this.popupData.hours.length > 0) {
-            this.renderOperatingHours();
-        }
     }
 
-    // 운영 시간 렌더링
+    // 운영시간 렌더링
     renderOperatingHours() {
-        const hours = this.popupData.hours;
-
-        // 운영 요일 표시
-        const daysEl = document.getElementById('popup-days');
-        if (daysEl) {
-            daysEl.style.display = 'none';
+        if (!this.popupData || !this.popupData.hours || this.popupData.hours.length === 0) {
+            return;
         }
 
-        // 운영시간 표시를 상세 버전으로 변경
+        const operatingHoursSection = document.getElementById('operating-hours-section');
         const hoursEl = document.getElementById('popup-hours');
 
-        if (hoursEl && hours.length > 0) {
-            hoursEl.style.display = 'block';
+        if (!operatingHoursSection || !hoursEl) return;
 
-            // 요일별 운영시간 상세 표시
-            const detailedHours = hours.map(hour => {
-                const dayText = hour.dayOfWeekText;
-                const timeText = hour.timeRangeText.replace(' - ', ' - ');
+        // 운영시간 섹션 표시
+        operatingHoursSection.style.display = 'block';
 
-                // 특별 운영시간이나 휴무일 체크
-                let timeDisplay = timeText;
-                if (hour.note) {
-                    timeDisplay += ` (${hour.note})`;
-                }
+        const hours = this.popupData.hours;
 
-                return `${dayText} : ${timeDisplay}`;
-            }).join('\n');
+        // 요일별 운영시간 상세 표시
+        const detailedHours = hours.map(hour => {
+            const dayText = hour.dayOfWeekText;
+            const timeText = hour.timeRangeText.replace(' - ', ' - ');
 
-            // 운영시간 제목과 상세 내용을 함께 표시
-            hoursEl.innerHTML = `
-                <div class="operating-hours-title">운영 시간</div>
-                <div class="operating-hours-details">${detailedHours.split('\n').map(line =>
-                `<div class="hours-line">${line}</div>`
-            ).join('')}</div>
-            `;
-        }
+            // 특별 운영시간이나 휴무일 체크
+            let timeDisplay = timeText;
+            if (hour.note) {
+                timeDisplay += ` (${hour.note})`;
+            }
+
+            return `${dayText} : ${timeDisplay}`;
+        }).join('\n');
+
+        // 운영시간 내용 표시
+        hoursEl.innerHTML = `
+            <div class="operating-hours-details">${detailedHours.split('\n').map(line =>
+            `<div class="hours-line">${line}</div>`
+        ).join('')}</div>
+        `;
+
+        hoursEl.style.display = 'block';
     }
 
     // 위치 정보 렌더링 메서드

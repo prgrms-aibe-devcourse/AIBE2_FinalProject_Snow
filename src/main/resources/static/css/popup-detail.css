@@ -71,6 +71,24 @@
     background: #E5E7EB;
 }
 
+/* 운영시간 섹션 */
+.operating-hours-section {
+    padding: 20px;
+    background: #fff;
+    position: relative;
+}
+
+/* 운영시간 섹션 구분선 */
+.operating-hours-section::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 20px;
+    right: 20px;
+    height: 1px;
+    background: #E5E7EB;
+}
+
 .popup-title {
     font-size: 24px;
     font-weight: 700;

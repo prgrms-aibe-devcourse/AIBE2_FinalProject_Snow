@@ -66,11 +66,10 @@
             <div class="popup-info-section">
                 <h1 id="popup-title" class="popup-title"></h1>
 
-                <!-- 기간 및 일정 정보 -->
+                <!-- 기간 정보 -->
                 <div class="popup-schedule-simple">
                     <div id="popup-period" class="schedule-item period-text"></div>
                     <div id="popup-days" class="schedule-item days-text" style="display: none;"></div>
-                    <div id="popup-hours" class="schedule-item hours-text" style="display: none;"></div>
                 </div>
 
                 <!-- 태그 섹션 -->
@@ -82,12 +81,15 @@
                 </button>
             </div>
 
+            <!-- 운영시간 섹션 -->
+            <div class="operating-hours-section" id="operating-hours-section" style="display: none;">
+                <h2 class="section-title">운영 시간</h2>
+                <div id="popup-hours" class="schedule-item hours-text" style="display: none;"></div>
+            </div>
+
             <!-- 지도 섹션 -->
             <div class="location-section" id="location-section" style="display: none;">
                 <div class="location-header">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                    </svg>
                     <h2 class="location-title">위치</h2>
                     <div id="venue-name" class="venue-name"></div>
                 </div>
