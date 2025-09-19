@@ -97,4 +97,17 @@ public class Venue extends BaseEntity {
         this.longitude = longitude;
         this.parkingAvailable = parkingAvailable != null ? parkingAvailable : false;
     }
+
+    // 테스트용 메서드
+    public static Venue createForTestWithLocation(String region, double latitude, double longitude) {
+        Venue venue = new Venue();
+        venue.name = "테스트 장소";
+        venue.region = region;
+        venue.roadAddress = "테스트 도로명 주소";
+        venue.jibunAddress = "테스트 지번 주소";
+        venue.latitude = latitude;
+        venue.longitude = longitude;
+        venue.parkingAvailable = false;
+        return venue;
+    }
 }

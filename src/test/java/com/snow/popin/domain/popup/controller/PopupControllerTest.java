@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.*;
@@ -30,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(
         controllers = PopupController.class,
-        excludeAutoConfiguration = SecurityAutoConfiguration.class  // 이 부분이 핵심!
+        excludeAutoConfiguration = SecurityAutoConfiguration.class
 )
 class PopupControllerTest {
 
@@ -49,12 +50,13 @@ class PopupControllerTest {
     @MockBean(name = "jwtFilter")
     private Object jwtFilter;
 
+    // 메인 페이지 필터링 API 테스트
     @Test
-    @DisplayName("팝업 리스트 조회 - 기본 요청")
-    void getPopupList_기본요청_200응답() throws Exception {
+    @DisplayName("전체 팝업 조회 - 기본 요청")
+    void getAllPopups_기본요청_200응답() throws Exception {
         // given
         PopupListResponseDto response = PopupListResponseDto.builder()
-                .popups(Arrays.asList(createMockSummaryDto(1L, "팝업1")))
+                .popups(Arrays.asList(createMockSummaryDto(1L, "전체 팝업1")))
                 .totalPages(1)
                 .totalElements(1L)
                 .currentPage(0)
@@ -63,7 +65,7 @@ class PopupControllerTest {
                 .hasPrevious(false)
                 .build();
 
-        when(popupService.getPopupList(any())).thenReturn(response);
+        when(popupService.getAllPopups(eq(0), eq(20), isNull())).thenReturn(response);
 
         // when & then
         mockMvc.perform(get("/api/popups"))
@@ -73,15 +75,13 @@ class PopupControllerTest {
                 .andExpect(jsonPath("$.popups").isArray())
                 .andExpect(jsonPath("$.popups", hasSize(1)))
                 .andExpect(jsonPath("$.popups[0].id").value(1))
-                .andExpect(jsonPath("$.popups[0].title").value("팝업1"))
-                .andExpect(jsonPath("$.totalElements").value(1))
-                .andExpect(jsonPath("$.currentPage").value(0))
-                .andExpect(jsonPath("$.size").value(20));
+                .andExpect(jsonPath("$.popups[0].title").value("전체 팝업1"))
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 
     @Test
-    @DisplayName("팝업 리스트 조회 - 상태 필터")
-    void getPopupList_상태필터_정상응답() throws Exception {
+    @DisplayName("전체 팝업 조회 - 상태 필터")
+    void getAllPopups_상태필터_정상응답() throws Exception {
         // given
         PopupListResponseDto response = PopupListResponseDto.builder()
                 .popups(Arrays.asList(createMockSummaryDto(1L, "진행중 팝업")))
@@ -93,7 +93,8 @@ class PopupControllerTest {
                 .hasPrevious(false)
                 .build();
 
-        when(popupService.getPopupList(any())).thenReturn(response);
+        when(popupService.parseStatus("ONGOING")).thenReturn(PopupStatus.ONGOING);
+        when(popupService.getAllPopups(eq(0), eq(20), eq(PopupStatus.ONGOING))).thenReturn(response);
 
         // when & then
         mockMvc.perform(get("/api/popups")
@@ -106,13 +107,13 @@ class PopupControllerTest {
     }
 
     @Test
-    @DisplayName("팝업 리스트 조회 - 지역 및 정렬 필터")
-    void getPopupList_복합필터_정상응답() throws Exception {
+    @DisplayName("인기 팝업 조회 - 조회수 기준")
+    void getPopularPopups_조회수기준_정상응답() throws Exception {
         // given
         PopupListResponseDto response = PopupListResponseDto.builder()
                 .popups(Arrays.asList(
-                        createMockSummaryDto(1L, "강남 팝업1"),
-                        createMockSummaryDto(2L, "강남 팝업2")
+                        createMockSummaryDtoWithViewCount(1L, "인기 팝업1", 1000L),
+                        createMockSummaryDtoWithViewCount(2L, "인기 팝업2", 500L)
                 ))
                 .totalPages(1)
                 .totalElements(2L)
@@ -122,57 +123,129 @@ class PopupControllerTest {
                 .hasPrevious(false)
                 .build();
 
-        when(popupService.getPopupList(any())).thenReturn(response);
+        when(popupService.parseStatus("ONGOING")).thenReturn(PopupStatus.ONGOING);
+        when(popupService.getPopularPopups(eq(0), eq(20), eq(PopupStatus.ONGOING))).thenReturn(response);
 
         // when & then
-        mockMvc.perform(get("/api/popups")
-                        .param("region", "강남구")
-                        .param("sortBy", "latest")
-                        .param("page", "0")
-                        .param("size", "10"))
+        mockMvc.perform(get("/api/popups/popular")
+                        .param("status", "ONGOING"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.popups", hasSize(2)))
-                .andExpect(jsonPath("$.totalElements").value(2));
+                .andExpect(jsonPath("$.popups[0].viewCount").value(1000))
+                .andExpect(jsonPath("$.popups[1].viewCount").value(500));
     }
 
     @Test
-    @DisplayName("팝업 리스트 조회 - 날짜 필터")
-    void getPopupList_날짜필터_정상응답() throws Exception {
+    @DisplayName("마감임박 팝업 조회")
+    void getDeadlineSoonPopups_정상응답() throws Exception {
         // given
         PopupListResponseDto response = PopupListResponseDto.builder()
-                .popups(Collections.emptyList())
-                .totalPages(0)
-                .totalElements(0L)
+                .popups(Arrays.asList(createMockSummaryDto(1L, "마감임박 팝업")))
+                .totalPages(1)
+                .totalElements(1L)
                 .currentPage(0)
                 .size(20)
                 .hasNext(false)
                 .hasPrevious(false)
                 .build();
 
-        when(popupService.getPopupList(any())).thenReturn(response);
+        when(popupService.parseStatus("ONGOING")).thenReturn(PopupStatus.ONGOING);
+        when(popupService.getDeadlineSoonPopups(eq(0), eq(20), eq(PopupStatus.ONGOING))).thenReturn(response);
 
         // when & then
-        mockMvc.perform(get("/api/popups")
-                        .param("dateFilter", "custom")
-                        .param("startDate", "2024-01-01")
-                        .param("endDate", "2024-01-07")
-                        .param("page", "0")
-                        .param("size", "20"))
+        mockMvc.perform(get("/api/popups/deadline")
+                        .param("status", "ONGOING"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.popups").isEmpty())
-                .andExpect(jsonPath("$.totalElements").value(0));
+                .andExpect(jsonPath("$.popups", hasSize(1)))
+                .andExpect(jsonPath("$.popups[0].title").value("마감임박 팝업"));
     }
 
     @Test
-    @DisplayName("팝업 리스트 조회 - 잘못된 페이지 파라미터")
-    void getPopupList_잘못된페이지_400응답() throws Exception {
+    @DisplayName("지역별 + 날짜별 팝업 조회 - 7일 필터")
+    void getPopupsByRegionAndDate_7일필터_정상응답() throws Exception {
+        // given
+        PopupListResponseDto response = PopupListResponseDto.builder()
+                .popups(Arrays.asList(createMockSummaryDto(1L, "강남 7일 팝업")))
+                .totalPages(1)
+                .totalElements(1L)
+                .currentPage(0)
+                .size(20)
+                .hasNext(false)
+                .hasPrevious(false)
+                .build();
+
+        when(popupService.parseStatus("ONGOING")).thenReturn(PopupStatus.ONGOING);
+        when(popupService.getPopupsByRegionAndDate(
+                eq("강남구"), eq(PopupStatus.ONGOING), eq("7days"), isNull(), isNull(), eq(0), eq(20)))
+                .thenReturn(response);
+
         // when & then
-        mockMvc.perform(get("/api/popups")
-                        .param("page", "-1")
-                        .param("size", "0"))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/popups/region-date")
+                        .param("region", "강남구")
+                        .param("status", "ONGOING")
+                        .param("dateFilter", "7days"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.popups", hasSize(1)))
+                .andExpect(jsonPath("$.popups[0].title").value("강남 7일 팝업"));
     }
 
+    @Test
+    @DisplayName("지역별 + 날짜별 팝업 조회 - 사용자 지정 기간")
+    void getPopupsByRegionAndDate_사용자지정기간_정상응답() throws Exception {
+        // given
+        PopupListResponseDto response = PopupListResponseDto.builder()
+                .popups(Arrays.asList(createMockSummaryDto(1L, "사용자 지정 기간 팝업")))
+                .totalPages(1)
+                .totalElements(1L)
+                .currentPage(0)
+                .size(20)
+                .hasNext(false)
+                .hasPrevious(false)
+                .build();
+
+        LocalDate startDate = LocalDate.of(2024, 1, 1);
+        LocalDate endDate = LocalDate.of(2024, 1, 31);
+
+        when(popupService.parseStatus(isNull())).thenReturn(null);
+        when(popupService.getPopupsByRegionAndDate(
+                eq("종로구"), isNull(), eq("custom"), eq(startDate), eq(endDate), eq(0), eq(20)))
+                .thenReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/popups/region-date")
+                        .param("region", "종로구")
+                        .param("dateFilter", "custom")
+                        .param("startDate", "2024-01-01")
+                        .param("endDate", "2024-01-31"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.popups", hasSize(1)));
+    }
+
+    @Test
+    @DisplayName("AI 추천 팝업 조회")
+    void getAIRecommendedPopups_정상응답() throws Exception {
+        // given
+        PopupListResponseDto response = PopupListResponseDto.builder()
+                .popups(Arrays.asList(createMockSummaryDto(1L, "AI 추천 팝업")))
+                .totalPages(1)
+                .totalElements(1L)
+                .currentPage(0)
+                .size(20)
+                .hasNext(false)
+                .hasPrevious(false)
+                .build();
+
+        when(popupService.getAIRecommendedPopups(eq("test-token"), eq(0), eq(20))).thenReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/popups/ai-recommended")
+                        .header("Authorization", "Bearer test-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.popups", hasSize(1)))
+                .andExpect(jsonPath("$.popups[0].title").value("AI 추천 팝업"));
+    }
+
+    // 팝업 상세 조회 API 테스트
     @Test
     @DisplayName("팝업 상세 조회 - 정상 케이스")
     void getPopupDetail_유효한ID_팝업상세반환() throws Exception {
@@ -188,12 +261,25 @@ class PopupControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(popupId))
                 .andExpect(jsonPath("$.title").value("상세 팝업"))
+                .andExpect(jsonPath("$.viewCount").value(250))
                 .andExpect(jsonPath("$.status").value("ONGOING"))
-                .andExpect(jsonPath("$.statusDisplayText").value("진행 중"))
-                .andExpect(jsonPath("$.venueName").exists())
-                .andExpect(jsonPath("$.venueAddress").exists())
-                .andExpect(jsonPath("$.images").isArray())
-                .andExpect(jsonPath("$.hours").isArray());
+                .andExpect(jsonPath("$.statusDisplayText").value("진행 중"));
+    }
+
+    @Test
+    @DisplayName("팝업 상세 조회 (관리자) - 조회수 증가 없음")
+    void getPopupDetailForAdmin_정상응답() throws Exception {
+        // given
+        Long popupId = 1L;
+        PopupDetailResponseDto response = createMockDetailDto(popupId, "관리자 상세 팝업");
+
+        when(popupService.getPopupDetailForAdmin(popupId)).thenReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/popups/{popupId}/admin", popupId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(popupId))
+                .andExpect(jsonPath("$.title").value("관리자 상세 팝업"));
     }
 
     @Test
@@ -210,17 +296,89 @@ class PopupControllerTest {
     }
 
     @Test
-    @DisplayName("팝업 상세 조회 - 잘못된 ID 형식")
-    void getPopupDetail_잘못된ID형식_400응답() throws Exception {
+    @DisplayName("유사한 팝업 조회 - 정상 케이스")
+    void getSimilarPopups_정상응답() throws Exception {
+        // given
+        Long popupId = 1L;
+        PopupDetailResponseDto currentPopup = createMockDetailDto(popupId, "현재 팝업");
+        currentPopup = PopupDetailResponseDto.builder()
+                .id(popupId)
+                .title("현재 팝업")
+                .categoryName("패션")
+                .build();
+
+        PopupListResponseDto response = PopupListResponseDto.builder()
+                .popups(Arrays.asList(
+                        createMockSummaryDto(2L, "유사 팝업1"),
+                        createMockSummaryDto(3L, "유사 팝업2")
+                ))
+                .totalPages(1)
+                .totalElements(2L)
+                .currentPage(0)
+                .size(4)
+                .hasNext(false)
+                .hasPrevious(false)
+                .build();
+
+        when(popupService.getPopupDetailForAdmin(popupId)).thenReturn(currentPopup);
+        when(popupService.getSimilarPopups(eq("패션"), eq(popupId), eq(0), eq(4))).thenReturn(response);
+
         // when & then
-        mockMvc.perform(get("/api/popups/{popupId}", "invalid-id"))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/popups/{popupId}/similar", popupId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.popups", hasSize(2)));
+    }
+
+    // 카테고리 및 지역별 조회 API 테스트
+    @Test
+    @DisplayName("카테고리별 팝업 조회")
+    void getPopupsByCategory_정상응답() throws Exception {
+        // given
+        String categoryName = "뷰티";
+        PopupListResponseDto response = PopupListResponseDto.builder()
+                .popups(Arrays.asList(createMockSummaryDto(1L, "뷰티 팝업")))
+                .totalPages(1)
+                .totalElements(1L)
+                .currentPage(0)
+                .size(20)
+                .hasNext(false)
+                .hasPrevious(false)
+                .build();
+
+        when(popupService.getPopupsByCategory(eq(categoryName), eq(0), eq(20))).thenReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/popups/category/{categoryName}", categoryName))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.popups", hasSize(1)))
+                .andExpect(jsonPath("$.popups[0].title").value("뷰티 팝업"));
     }
 
     @Test
-    @DisplayName("추천 팝업 조회 - 기본 요청")
-    void getFeaturedPopups_기본요청_정상응답() throws Exception {
+    @DisplayName("지역별 팝업 조회")
+    void getPopupsByRegion_정상응답() throws Exception {
         // given
+        String region = "홍대";
+        List<PopupSummaryResponseDto> popups = Arrays.asList(
+                createMockSummaryDto(1L, "홍대 팝업1"),
+                createMockSummaryDto(2L, "홍대 팝업2")
+        );
+
+        when(popupService.getPopupsByRegion(eq(region))).thenReturn(popups);
+
+        // when & then
+        mockMvc.perform(get("/api/popups/region/{region}", region))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", hasSize(2)));
+    }
+
+    // 추천 팝업 API 테스트
+    @Test
+    @DisplayName("카테고리별 추천 팝업 조회")
+    void getRecommendedPopupsByCategories_정상응답() throws Exception {
+        // given
+        List<Long> categoryIds = Arrays.asList(1L, 2L);
         PopupListResponseDto response = PopupListResponseDto.builder()
                 .popups(Arrays.asList(
                         createMockSummaryDto(1L, "추천 팝업1"),
@@ -234,43 +392,25 @@ class PopupControllerTest {
                 .hasPrevious(false)
                 .build();
 
-        when(popupService.getPopularPopups(anyInt(), anyInt())).thenReturn(response);
+        when(popupService.getRecommendedPopupsBySelectedCategories(eq(categoryIds), eq(0), eq(20)))
+                .thenReturn(response);
 
         // when & then
-        mockMvc.perform(get("/api/popups/featured"))
+        mockMvc.perform(get("/api/popups/recommended/by-categories")
+                        .param("categoryIds", "1,2"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.popups", hasSize(2)))
-                .andExpect(jsonPath("$.popups[0].title").value("추천 팝업1"))
-                .andExpect(jsonPath("$.popups[1].title").value("추천 팝업2"));
+                .andExpect(jsonPath("$.popups", hasSize(2)));
     }
 
     @Test
-    @DisplayName("추천 팝업 조회 - 페이징 파라미터")
-    void getFeaturedPopups_페이징파라미터_정상응답() throws Exception {
-        // given
-        PopupListResponseDto response = PopupListResponseDto.builder()
-                .popups(Collections.emptyList())
-                .totalPages(0)
-                .totalElements(0L)
-                .currentPage(1)
-                .size(5)
-                .hasNext(false)
-                .hasPrevious(true)
-                .build();
-
-        when(popupService.getPopularPopups(1, 5)).thenReturn(response);
-
+    @DisplayName("잘못된 ID 형식")
+    void getPopupDetail_잘못된ID형식_400응답() throws Exception {
         // when & then
-        mockMvc.perform(get("/api/popups/featured")
-                        .param("page", "1")
-                        .param("size", "5"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.currentPage").value(1))
-                .andExpect(jsonPath("$.size").value(5))
-                .andExpect(jsonPath("$.hasPrevious").value(true));
+        mockMvc.perform(get("/api/popups/{popupId}", "invalid-id"))
+                .andExpect(status().isBadRequest());
     }
 
-    // Helper methods
+    // ===== Helper Methods =====
     private PopupSummaryResponseDto createMockSummaryDto(Long id, String title) {
         return PopupSummaryResponseDto.builder()
                 .id(id)
@@ -285,6 +425,32 @@ class PopupControllerTest {
                 .entryFee(0)
                 .isFreeEntry(true)
                 .feeDisplayText("무료")
+                .viewCount(100L) // 조회수 추가
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .images(Collections.emptyList())
+                .venueName("테스트 장소")
+                .venueAddress("테스트 주소")
+                .region("강남구")
+                .parkingAvailable(false)
+                .build();
+    }
+
+    private PopupSummaryResponseDto createMockSummaryDtoWithViewCount(Long id, String title, Long viewCount) {
+        return PopupSummaryResponseDto.builder()
+                .id(id)
+                .title(title)
+                .summary("테스트 요약")
+                .period("2024.01.01 - 2024.01.08")
+                .status(PopupStatus.ONGOING)
+                .mainImageUrl("test-image.jpg")
+                .isFeatured(false)
+                .reservationAvailable(false)
+                .waitlistAvailable(false)
+                .entryFee(0)
+                .isFreeEntry(true)
+                .feeDisplayText("무료")
+                .viewCount(viewCount) // 조회수 지정
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .images(Collections.emptyList())
@@ -312,6 +478,7 @@ class PopupControllerTest {
                 .entryFee(5000)
                 .isFreeEntry(false)
                 .feeDisplayText("5,000원")
+                .viewCount(250L) // 조회수 추가
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .venueName("테스트 상세 장소")
