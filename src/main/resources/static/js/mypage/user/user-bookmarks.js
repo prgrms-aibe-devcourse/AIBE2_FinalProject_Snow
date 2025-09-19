@@ -2,41 +2,52 @@ document.addEventListener('DOMContentLoaded', async function () {
     await loadComponents();   // header/footer 로드
     initializeLayout();
 
-    try {
-        // =============================
-        // 내 북마크 (API 연동)
-        // =============================
+    // 로그인 체크
+    const token = apiService.getStoredToken();
+    if (!token) {
         const section = document.querySelector('.content-section');
-
-        const bookmarkContainer = document.createElement('div');
-        bookmarkContainer.className = 'card';
-        bookmarkContainer.innerHTML = `<h2 class="mypage-title">내 북마크</h2><div id="bookmark-list"></div>`;
-        section.appendChild(bookmarkContainer);
-
-        try {
-            // 북마크 목록 호출
-            const data = await apiService.get('/bookmarks');
-            const bookmarks = data.bookmarks || [];
-
-            const listEl = document.getElementById('bookmark-list');
-
-            if (bookmarks.length === 0) {
-                listEl.innerHTML = `<p style="color:#777;">북마크한 팝업이 없습니다.</p>`;
-            } else {
-                bookmarks.forEach(b => {
-                    listEl.appendChild(renderBookmarkCard(b));
-                });
-            }
-        } catch (e) {
-            console.error('북마크 목록 불러오기 실패:', e);
-        }
-
-    } catch (err) {
-        console.error(err);
-        const mc = document.getElementById('content-section') || document.querySelector('.content-section');
-        if (mc) mc.innerHTML = `
-            <p style="color:red; text-align:center;">로그인 후 이용 가능합니다.</p>
+        section.innerHTML = `
+            <div class="card" style="text-align:center; padding:40px;">
+                <p style="color:#666; margin-bottom:20px;">로그인이 필요한 서비스입니다.</p>
+                <button onclick="window.location.href='/auth/login'" 
+                        style="padding:10px 20px; background:#4B5AE4; color:white; border:none; border-radius:8px;">
+                    로그인하기
+                </button>
+            </div>
         `;
+        return;
+    }
+
+    // =============================
+    // 내 북마크 (API 연동)
+    // =============================
+    const section = document.querySelector('.content-section');
+
+    const bookmarkContainer = document.createElement('div');
+    bookmarkContainer.className = 'card';
+    bookmarkContainer.innerHTML = `<h2 class="mypage-title">내 북마크</h2><div id="bookmark-list"></div>`;
+    section.appendChild(bookmarkContainer);
+
+    try {
+        // 북마크 목록 호출
+        const data = await apiService.get('/bookmarks');
+        const bookmarks = data.bookmarks || [];
+
+        const listEl = document.getElementById('bookmark-list');
+
+        if (bookmarks.length === 0) {
+            listEl.innerHTML = `<p style="color:#777;">북마크한 팝업이 없습니다.</p>`;
+        } else {
+            bookmarks.forEach(b => {
+                listEl.appendChild(renderBookmarkCard(b));
+            });
+        }
+    } catch (e) {
+        console.error('북마크 목록 불러오기 실패:', e);
+        const listEl = document.getElementById('bookmark-list');
+        if (listEl) {
+            listEl.innerHTML = `<p style="color:red; text-align:center;">북마크를 불러오는 중 오류가 발생했습니다.</p>`;
+        }
     }
 });
 
