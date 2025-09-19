@@ -272,9 +272,19 @@ function showAlert(message, type = 'info') {
     }
 }
 
+// 푸터용 사용자 역할 반환
+function getStoredUserRole() {
+    try {
+        const storage = localStorage.getItem('userId') ? localStorage : sessionStorage;
+        return storage.getItem('userRole') || 'GUEST';
+    } catch (e) {
+        return 'GUEST';
+    }
+}
+
 // 역할에 따른 푸터 생성 함수
 function createFooterByRole() {
-    const userRole = getUserRole();
+    const userRole = getStoredUserRole();
 
     let navItems = `
         <a href="#" class="footer-item active" data-page="popupList">
