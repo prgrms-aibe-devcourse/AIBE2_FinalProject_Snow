@@ -63,6 +63,9 @@ public class Popup extends BaseEntity {
     @Column(name = "is_featured")
     private Boolean isFeatured = false;
 
+    @Column(name = "view_count", nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    private Long viewCount = 0L;
+
     @OneToMany(mappedBy = "popup", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @BatchSize(size = 50)
     @OrderBy("sortOrder ASC")
@@ -190,6 +193,11 @@ public class Popup extends BaseEntity {
         }
     }
 
+    // 조회수 증가 메서드
+    public void incrementViewCount() {
+        this.viewCount++;
+    }
+
     // 테스트용 메서드
     public static Popup createForTest(String title, PopupStatus status, Venue venue) {
         Popup popup = new Popup();
@@ -269,6 +277,10 @@ public class Popup extends BaseEntity {
 
     public void setStatus(PopupStatus status) {
         this.status = status;
+    }
+
+    public void setViewCountForTest(Long viewCount) {
+        this.viewCount = viewCount;
     }
 
     public void setCategory(Category category) {
