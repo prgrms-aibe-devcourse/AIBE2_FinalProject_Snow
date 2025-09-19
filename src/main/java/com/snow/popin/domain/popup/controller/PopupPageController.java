@@ -23,6 +23,13 @@ public class PopupPageController {
         return "forward:/templates/pages/popup/popup-search.html";
     }
 
+    // 북마크 페이지
+    @GetMapping("/bookmarks")
+    public String bookmarks() {
+        log.info("북마크 페이지 요청");
+        return "forward:/templates/pages/mypage/user/user-bookmarks.html";
+    }
+
     // 지도 페이지
     @GetMapping("/map")
     public String mapPage() {
