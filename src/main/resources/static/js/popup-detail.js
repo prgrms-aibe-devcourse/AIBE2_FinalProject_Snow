@@ -377,17 +377,20 @@ class PopupDetailManager {
                 year: 'numeric',
                 month: '2-digit',
                 day: '2-digit'
-            }).replace(/\. /g, '.').replace('.', '');
+            }).replace(/\. /g, '.').replace(/\.$/, '');
         };
 
         const period = `${formatDate(this.popupData.startDate)}-${formatDate(this.popupData.endDate)}`;
+        const sanitizeHashtag = (tag) => String(tag ?? '').replace(/^#/, '').replace(/\s+/g, '');
+        const hashtags = ['POPIN', '팝업스토어', ...((this.popupData.tags || []).map(sanitizeHashtag))];
 
         return {
             title: this.popupData.title || '팝업 스토어',
             description: `✨ ${this.popupData.title} ✨\n📅 ${period}\n📍 ${this.popupData.venueAddress || ''}\n\nPOPIN에서 확인하세요!`,
             url: window.location.href,
-            hashtags: ['POPIN', '팝업스토어', ...(this.popupData.tags || [])],
-            image: this.popupData.thumbnailUrl || 'https://via.placeholder.com/300x200/4B5AE4/ffffff?text=POPIN'
+            address: this.popupData.venueAddress || '',
+            hashtags,
+            image: this.getPopupImageUrl()
         };
     }
 
@@ -977,7 +980,7 @@ class ShareModal {
         if (typeof Kakao !== 'undefined' && Kakao.Share) {
             Kakao.Share.sendDefault({
                 objectType: 'location',
-                address: data.description.split('\n📍')[1]?.split('\n')[0] || '',
+                address: data.address || '',
                 addressTitle: data.title,
                 content: {
                     title: data.title,
