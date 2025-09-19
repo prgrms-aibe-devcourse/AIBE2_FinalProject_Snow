@@ -85,7 +85,7 @@ function renderBookmarkCard(b) {
             <div class="popup-summary">${popup && popup.description ? popup.description : '상세설명'}</div>
             ${period}
             <div class="popup-action">
-                <a class="popup-link" href="/popups/${popup ? popup.popupId : ''}">자세히 보기 &gt;</a>
+                <a class="popup-link" href="/popup/${popup ? popup.popupId : ''}">자세히 보기 &gt;</a>
             </div>
         </div>
     `;
