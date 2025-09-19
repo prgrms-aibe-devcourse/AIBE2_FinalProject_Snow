@@ -164,10 +164,37 @@ class ProviderManager {
 
     createReservationCard(reservation) {
         const card = document.createElement('div');
-        card.className = 'reservation-card';
+        card.className = `reservation-card ${reservation.status.toLowerCase()}`;
 
+        // 헤더 생성
+        const header = document.createElement('div');
+        header.className = 'timeline-header';
+
+        const status = document.createElement('div');
+        status.className = `timeline-status ${reservation.status.toLowerCase()}`;
+        status.textContent = this.getStatusText(reservation.status);
+
+        header.appendChild(status);
+
+        // 거절됨/취소됨 상태일 때만 삭제 버튼 추가
+        if (reservation.status === 'REJECTED' || reservation.status === 'CANCELLED') {
+            const btnDeleteTop = document.createElement('button');
+            btnDeleteTop.className = 'btn-delete-top';
+            btnDeleteTop.innerHTML = '×';
+            btnDeleteTop.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.removeReservationCard(card);
+            });
+            header.appendChild(btnDeleteTop);
+        }
+
+        // 바디 생성
+        const body = document.createElement('div');
+        body.className = 'timeline-body';
+
+        // 썸네일
         const thumbWrap = document.createElement('div');
-        thumbWrap.className = 'thumb';
+        thumbWrap.className = 'timeline-thumb';
 
         const imageUrl = reservation.spaceImageUrl || reservation.popupMainImage;
         if (imageUrl) {
@@ -182,93 +209,81 @@ class ProviderManager {
             thumbWrap.appendChild(img);
         }
 
-        const info = document.createElement('div');
-        info.className = 'info';
+        // 콘텐츠
+        const content = document.createElement('div');
+        content.className = 'timeline-content';
 
-        const statusBox = document.createElement('div');
-        statusBox.className = `status-box ${reservation.status.toLowerCase()}`;
-        statusBox.textContent = this.getStatusText(reservation.status);
+        const title = document.createElement('div');
+        title.className = 'timeline-title';
+        title.textContent = reservation.popupTitle || '팝업 제목 없음';
 
-        const popupTitle = document.createElement('div');
-        popupTitle.className = 'popup-title';
-        popupTitle.textContent = reservation.popupTitle || '팝업 제목 없음';
+        // 브랜드 정보 추가 (백엔드에서 오는 brandName 그대로 사용)
+        const brand = document.createElement('div');
+        brand.className = 'timeline-brand';
+        brand.textContent = reservation.brandName || '브랜드명 없음';
 
-        const period = document.createElement('div');
-        period.className = 'dates';
-        period.textContent = `${reservation.startDate} ~ ${reservation.endDate}`;
+        const dates = document.createElement('div');
+        dates.className = 'timeline-dates';
+        dates.textContent = `${reservation.startDate} ~ ${reservation.endDate}`;
 
-        const applicant = document.createElement('div');
-        applicant.className = 'applicant';
+        const meta = document.createElement('div');
+        meta.className = 'timeline-meta';
+
+        const applicant = document.createElement('span');
         applicant.textContent = `신청자: ${reservation.hostName || '이름 없음'}`;
 
-        const contact = document.createElement('div');
-        contact.className = 'contact';
+        const contact = document.createElement('span');
         contact.textContent = `연락처: ${reservation.hostPhone || '연락처 없음'}`;
 
-        const spaceInfo = document.createElement('div');
-        spaceInfo.className = 'space-info';
-        spaceInfo.textContent = `공간: ${reservation.spaceTitle || '공간명 없음'}`;
+        meta.appendChild(applicant);
+        meta.appendChild(contact);
 
-        info.appendChild(statusBox);
-        info.appendChild(popupTitle);
-        info.appendChild(period);
-        info.appendChild(applicant);
-        info.appendChild(contact);
-        info.appendChild(spaceInfo);
+        content.appendChild(title);
+        content.appendChild(brand);
+        content.appendChild(dates);
+        content.appendChild(meta);
 
-        const actions = document.createElement('div');
-        actions.className = 'btn-row';
-
-        const btnDetail = document.createElement('button');
-        btnDetail.className = 'btn btn-outline';
-        btnDetail.innerHTML = '<div class="icon-detail"></div>';
-        btnDetail.addEventListener('click', () => this.showReservationDetail(reservation.id));
-
-        const btnCall = document.createElement('button');
-        btnCall.className = 'btn btn-call';
-        btnCall.innerHTML = '<div class="icon-phone"></div>';
-        btnCall.addEventListener('click', () => this.callHost(reservation.hostPhone));
-
-        actions.appendChild(btnDetail);
-        actions.appendChild(btnCall);
-
-        // 채팅 버튼 추가 (토큰 전달 포함)
+        // 채팅 플로팅 버튼 (거절됨/취소됨이 아닌 경우에만)
         if (reservation.status !== 'REJECTED' && reservation.status !== 'CANCELLED') {
             const btnChat = document.createElement('button');
-            btnChat.className = 'btn btn-chat';
-            btnChat.textContent = '채팅하기';
+            btnChat.className = 'chat-floating';
+            btnChat.innerHTML = '💬';
             btnChat.addEventListener('click', () => this.openChat(reservation.id));
-            actions.appendChild(btnChat);
+            body.appendChild(btnChat);
         }
 
+        body.appendChild(thumbWrap);
+        body.appendChild(content);
+
+        // 액션바 (대기중 상태일 때만)
         if (reservation.status === 'PENDING') {
+            const actionBar = document.createElement('div');
+            actionBar.className = 'action-bar';
+
             const btnAccept = document.createElement('button');
-            btnAccept.className = 'btn btn-success';
-            btnAccept.innerHTML = '<div class="icon-check"></div>';
+            btnAccept.className = 'action-btn btn-accept';
+            btnAccept.innerHTML = '<span>✓</span><span>수락</span>';
             btnAccept.addEventListener('click', () => {
                 this.handleReservationAction('accept', reservation.id, reservation.popupTitle);
             });
 
             const btnReject = document.createElement('button');
-            btnReject.className = 'btn btn-danger';
-            btnReject.innerHTML = '<div class="icon-x"></div>';
+            btnReject.className = 'action-btn btn-reject';
+            btnReject.innerHTML = '<span>✗</span><span>거절</span>';
             btnReject.addEventListener('click', () => {
                 this.handleReservationAction('reject', reservation.id, reservation.popupTitle);
             });
 
-            actions.appendChild(btnAccept);
-            actions.appendChild(btnReject);
-        } else if (reservation.status === 'REJECTED' || reservation.status === 'CANCELLED') {
-            const btnDelete = document.createElement('button');
-            btnDelete.className = 'btn btn-danger';
-            btnDelete.innerHTML = '<div class="icon-delete"></div>';
-            btnDelete.addEventListener('click', () => this.removeReservationCard(card));
-            actions.appendChild(btnDelete);
-        }
+            actionBar.appendChild(btnAccept);
+            actionBar.appendChild(btnReject);
 
-        card.appendChild(thumbWrap);
-        card.appendChild(info);
-        card.appendChild(actions);
+            card.appendChild(header);
+            card.appendChild(body);
+            card.appendChild(actionBar);
+        } else {
+            card.appendChild(header);
+            card.appendChild(body);
+        }
 
         return card;
     }
@@ -365,14 +380,6 @@ class ProviderManager {
         } catch (error) {
             console.error('예약 상세 조회 실패:', error);
             alert('예약 상세 정보를 불러올 수 없습니다.');
-        }
-    }
-
-    callHost(phoneNumber) {
-        if (phoneNumber) {
-            window.open(`tel:${phoneNumber}`, '_self');
-        } else {
-            alert('연락처 정보가 없습니다.');
         }
     }
 

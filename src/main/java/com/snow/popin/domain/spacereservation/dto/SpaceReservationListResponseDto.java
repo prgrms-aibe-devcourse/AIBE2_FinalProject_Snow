@@ -45,15 +45,15 @@ public class SpaceReservationListResponseDto {
                 .id(reservation.getId())
                 .popupId(reservation.getPopup().getId())
                 .popupTitle(reservation.getPopup().getTitle())
-                .brandName(reservation.getPopup().getBrandId().toString())
+                .brandName(reservation.getBrand().getName())
                 .popupMainImage(reservation.getPopup().getMainImageUrl())
-                .spaceId(reservation.getSpace().getId()) // 추가
+                .spaceId(reservation.getSpace().getId())
                 .startDate(reservation.getStartDate())
                 .endDate(reservation.getEndDate())
                 .status(reservation.getStatus())
                 .createdAt(reservation.getCreatedAt())
                 .spaceTitle(reservation.getSpace().getTitle())
-                .spaceAddress(reservation.getSpace().getVenue() != null ? // 수정
+                .spaceAddress(reservation.getSpace().getVenue() != null ?
                         reservation.getSpace().getVenue().getFullAddress() :
                         (reservation.getSpace().getAddress() != null ? reservation.getSpace().getAddress() : "주소 정보 없음"))
                 .spaceImageUrl(reservation.getSpace().getCoverImageUrl())
@@ -65,7 +65,7 @@ public class SpaceReservationListResponseDto {
                 .id(reservation.getId())
                 .popupId(reservation.getPopup().getId())
                 .popupTitle(reservation.getPopup().getTitle())
-                .brandName(reservation.getPopup().getBrandId().toString())
+                .brandName(reservation.getBrand().getName())
                 .popupMainImage(reservation.getPopup().getMainImageUrl())
                 .startDate(reservation.getStartDate())
                 .endDate(reservation.getEndDate())

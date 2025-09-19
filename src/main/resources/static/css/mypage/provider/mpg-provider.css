@@ -177,109 +177,240 @@
     cursor: pointer;
 }
 
-/* === 예약 카드 === */
+/* === 예약 카드 - 타임라인 스타일 === */
 .reservation-card {
-    display: flex;
-    align-items: flex-start;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
+    background: white;
     border-radius: 16px;
-    padding: 16px;
+    padding: 0;
+    margin-bottom: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    overflow: hidden;
+    position: relative;
     transition: all 0.2s ease;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .reservation-card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    border-color: #d1d5db;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
 }
 
-.reservation-card .thumb {
-    width: 80px;
-    height: 80px;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-right: 14px;
+.reservation-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: #f59e0b;
+}
+
+.reservation-card.accepted::before {
+    background: #10b981;
+}
+
+.reservation-card.rejected::before {
+    background: #ef4444;
+}
+
+.reservation-card.cancelled::before {
+    background: #6b7280;
+}
+
+/* 헤더 */
+.reservation-card .timeline-header {
+    background: #f8fafc;
+    padding: 12px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.reservation-card .timeline-status {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.reservation-card .timeline-status.pending {
+    color: #f59e0b;
+}
+
+.reservation-card .timeline-status.accepted {
+    color: #10b981;
+}
+
+.reservation-card .timeline-status.rejected {
+    color: #ef4444;
+}
+
+.reservation-card .timeline-status.cancelled {
+    color: #6b7280;
+}
+
+/* 삭제 버튼 - 우상단 */
+.reservation-card .btn-delete-top {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    background: rgba(239, 68, 68, 0.8);
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    z-index: 2;
+}
+
+.reservation-card .btn-delete-top:hover {
+    opacity: 1;
+    background: #dc2626;
+}
+
+/* 바디 */
+.reservation-card .timeline-body {
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    position: relative;
+}
+
+.reservation-card .timeline-thumb {
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
     flex-shrink: 0;
-    background: #f3f4f6;
+    overflow: hidden;
 }
 
-.reservation-card .thumb img {
+.reservation-card .timeline-thumb img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.reservation-card .info {
+.reservation-card .timeline-content {
     flex: 1;
-    min-width: 0;
 }
 
-/* 상태 뱃지 */
-.status-box {
-    display: inline-block;
-    padding: 4px 12px;
-    font-size: 12px;
-    font-weight: 600;
-    border-radius: 20px;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.status-box.pending {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.status-box.accepted {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.status-box.rejected {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.status-box.cancelled {
-    background: #e5e7eb;
-    color: #374151;
-}
-
-/* 예약 정보 텍스트 */
-.reservation-card .popup-title {
-    font-size: 16px;
+.reservation-card .timeline-title {
+    font-size: 18px;
     font-weight: 600;
     color: #1f2937;
-    margin-bottom: 8px;
-}
-
-.reservation-card .dates {
-    font-size: 14px;
-    color: #374151;
-    margin-bottom: 6px;
-    font-weight: 500;
-}
-
-.reservation-card .applicant,
-.reservation-card .contact,
-.reservation-card .space-info {
-    font-size: 13px;
-    color: #6b7280;
     margin-bottom: 4px;
-    line-height: 1.4;
 }
 
-/* === 버튼 스타일 === */
+.reservation-card .timeline-brand {
+    font-size: 14px;
+    font-weight: 500;
+    color: #3b82f6;
+    margin-bottom: 8px;
+    background: #eff6ff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.reservation-card .timeline-dates {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 12px;
+}
+
+.reservation-card .timeline-meta {
+    display: flex;
+    gap: 24px;
+    font-size: 13px;
+    color: #9ca3af;
+}
+
+/* 채팅 플로팅 버튼 */
+.reservation-card .chat-floating {
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background: #3b82f6;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    transition: all 0.2s ease;
+    z-index: 1;
+}
+
+.reservation-card .chat-floating:hover {
+    background: #2563eb;
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+/* 하단 액션바 */
+.reservation-card .action-bar {
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* 수락/거절 버튼 */
+.reservation-card .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reservation-card .btn-accept {
+    background: #10b981;
+    color: white;
+}
+
+.reservation-card .btn-accept:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+.reservation-card .btn-reject {
+    background: #ef4444;
+    color: white;
+}
+
+.reservation-card .btn-reject:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+/* === 기존 버튼 스타일 (공간 카드용) === */
 .btn-row {
     display: flex;
     gap: 8px;
     flex-shrink: 0;
 }
 
-.space-card .btn-row,
-.reservation-card .btn-row {
+.space-card .btn-row {
     margin-left: auto;
 }
 
@@ -316,56 +447,10 @@
     border-radius: 10px;
 }
 
-/* 버튼 타입별 색상 */
-.btn-outline {
-    background: #ffffff;
-    border-color: #d1d5db;
-}
-
-.btn-outline:hover {
-    background: #f9fafb;
-}
-
-.btn-success {
-    background: #10b981;
-    color: white;
-    border-color: #10b981;
-}
-
-.btn-success:hover {
-    background: #059669;
-    border-color: #059669;
-}
-
-.btn-danger {
-    background: #ef4444;
-    color: white;
-    border-color: #ef4444;
-}
-
-.btn-danger:hover {
-    background: #dc2626;
-    border-color: #dc2626;
-}
-
-.btn-call {
-    background: #3b82f6;
-    color: white;
-    border-color: #3b82f6;
-}
-
-.btn-call:hover {
-    background: #2563eb;
-    border-color: #2563eb;
-}
-
 /* === 아이콘 스타일 === */
 .icon-map,
 .icon-delete,
-.icon-detail,
-.icon-phone,
-.icon-check,
-.icon-x {
+.icon-detail {
     width: 20px;
     height: 20px;
     background-size: 16px 16px;
@@ -381,24 +466,8 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16'/%3E%3C/svg%3E");
 }
 
-.btn-danger .icon-delete {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16'/%3E%3C/svg%3E");
-}
-
 .icon-detail {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
-}
-
-.icon-phone {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z'/%3E%3C/svg%3E");
-}
-
-.icon-check {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7'/%3E%3C/svg%3E");
-}
-
-.icon-x {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'/%3E%3C/svg%3E");
 }
 
 /* === 빈 상태 === */
@@ -431,24 +500,34 @@
         gap: 8px;
     }
 
-    .reservation-card {
+    .reservation-card .timeline-body {
         flex-direction: column;
+        padding-right: 60px; /* 채팅 버튼 공간 확보 */
     }
 
-    .reservation-card .thumb {
+    .reservation-card .timeline-thumb {
         width: 100%;
-        height: 160px;
-        margin-right: 0;
+        height: 120px;
         margin-bottom: 12px;
     }
 
-    .reservation-card .btn-row {
-        width: 100%;
-        margin-top: 12px;
+    .reservation-card .timeline-meta {
+        flex-direction: column;
+        gap: 8px;
     }
 
-    .reservation-card .btn-row .btn {
-        flex: 1;
+    .reservation-card .chat-floating {
+        top: 60px;
+        right: 15px;
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+
+    .reservation-card .action-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
     }
 }
 
