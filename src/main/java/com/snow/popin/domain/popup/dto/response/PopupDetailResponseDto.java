@@ -2,6 +2,7 @@ package com.snow.popin.domain.popup.dto.response;
 
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.entity.PopupStatus;
+import com.snow.popin.domain.popup.entity.Tag;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -16,6 +17,7 @@ public class PopupDetailResponseDto {
     private final Long id;
     private final String title;
     private final String summary;
+    private final String description;
     private final LocalDate startDate;
     private final LocalDate endDate;
     private final String periodText;
@@ -46,12 +48,14 @@ public class PopupDetailResponseDto {
 
     private List<PopupImageResponseDto> images;
     private List<PopupHoursResponseDto> hours;
+    private final List<String> tags;
 
     public static PopupDetailResponseDto from(Popup popup) {
         return PopupDetailResponseDto.builder()
                 .id(popup.getId())
                 .title(popup.getTitle())
                 .summary(popup.getSummary())
+                .description(popup.getDescription())
                 .startDate(popup.getStartDate())
                 .endDate(popup.getEndDate())
                 .periodText(popup.getPeriodText())
@@ -80,6 +84,9 @@ public class PopupDetailResponseDto {
                         .collect(Collectors.toList()))
                 .hours(popup.getHours().stream()
                         .map(PopupHoursResponseDto::from)
+                        .collect(Collectors.toList()))
+                .tags(popup.getTags().stream()
+                        .map(Tag::getName)
                         .collect(Collectors.toList()))
                 .build();
     }

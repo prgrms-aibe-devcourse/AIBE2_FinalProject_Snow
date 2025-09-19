@@ -66,13 +66,11 @@
             <div class="popup-info-section">
                 <h1 id="popup-title" class="popup-title"></h1>
 
-                <div class="popup-dates">
-                    <div class="date-info">
-                        <span id="popup-period" class="period-text"></span>
-                    </div>
-                    <div class="hours-info">
-                        <div id="popup-hours" class="hours-text"></div>
-                    </div>
+                <!-- 기간 및 일정 정보 -->
+                <div class="popup-schedule-simple">
+                    <div id="popup-period" class="schedule-item period-text"></div>
+                    <div id="popup-days" class="schedule-item days-text" style="display: none;"></div>
+                    <div id="popup-hours" class="schedule-item hours-text" style="display: none;"></div>
                 </div>
 
                 <!-- 태그 섹션 -->
@@ -105,6 +103,15 @@
                     <button id="copy-address-btn" class="copy-btn-inline">
                         주소복사
                     </button>
+                </div>
+            </div>
+
+            <!-- 팝업 상세설명 섹션 -->
+            <div class="description-section" id="description-section" style="display: none;">
+                <h2 class="section-title">팝업스토어 소개</h2>
+                <div class="description-content">
+                    <div id="popup-summary" class="popup-summary"></div>
+                    <div id="popup-description" class="popup-description"></div>
                 </div>
             </div>
 
