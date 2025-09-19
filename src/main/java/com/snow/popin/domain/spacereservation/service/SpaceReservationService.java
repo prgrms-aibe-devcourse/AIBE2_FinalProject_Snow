@@ -16,6 +16,7 @@ import com.snow.popin.domain.spacereservation.entity.SpaceReservation;
 import com.snow.popin.domain.spacereservation.entity.ReservationStatus;
 import com.snow.popin.domain.spacereservation.repository.SpaceReservationRepository;
 import com.snow.popin.domain.user.entity.User;
+import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * SpaceReservationService
+ * 공간 예약 관련 비즈니스 로직 처리
+ * - 예약 생성, 조회, 승인/거절, 취소, 삭제
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -34,12 +40,17 @@ public class SpaceReservationService {
     private final SpaceRepository spaceRepository;
     private final PopupRepository popupRepository;
     private final HostRepository hostRepository;
+    private final UserUtil userUtil;
 
     /**
-     * 공간 예약 생성
+     * 공간 예약 생성 (HOST)
+     *
+     * @param dto 예약 생성 요청 DTO
+     * @return 생성된 예약 ID
      */
     @Transactional
-    public Long createReservation(User user, SpaceReservationCreateRequestDto dto) {
+    public Long createReservation(SpaceReservationCreateRequestDto dto) {
+        User user = userUtil.getCurrentUser();
         log.info("DTO start={}, end={}", dto.getStartDate(), dto.getEndDate());
 
         Host hostEntity = hostRepository.findByUser(user)
@@ -67,10 +78,13 @@ public class SpaceReservationService {
     }
 
     /**
-     * HOST가 신청한 예약 목록 조회
+     * 내가 신청한 예약 목록 조회 (HOST)
+     *
+     * @return 예약 목록
      */
     @Transactional(readOnly = true)
-    public List<SpaceReservationListResponseDto> getMyRequests(User host) {
+    public List<SpaceReservationListResponseDto> getMyRequests() {
+        User host = userUtil.getCurrentUser();
         return reservationRepository.findByHostOrderByCreatedAtDesc(host)
                 .stream()
                 .map(SpaceReservationListResponseDto::fromForHost)
@@ -78,10 +92,13 @@ public class SpaceReservationService {
     }
 
     /**
-     * PROVIDER의 공간에 신청된 예약 목록 조회
+     * 내 공간에 신청된 예약 목록 조회 (PROVIDER)
+     *
+     * @return 예약 목록
      */
     @Transactional(readOnly = true)
-    public List<SpaceReservationListResponseDto> getMySpaceReservations(User provider) {
+    public List<SpaceReservationListResponseDto> getMySpaceReservations() {
+        User provider = userUtil.getCurrentUser();
         return reservationRepository.findBySpaceOwnerOrderByCreatedAtDesc(provider)
                 .stream()
                 .map(SpaceReservationListResponseDto::fromForProvider)
@@ -90,9 +107,13 @@ public class SpaceReservationService {
 
     /**
      * 예약 상세 조회
+     *
+     * @param reservationId 예약 ID
+     * @return 예약 상세 응답 DTO
      */
     @Transactional(readOnly = true)
-    public SpaceReservationResponseDto getReservationDetail(User user, Long reservationId) {
+    public SpaceReservationResponseDto getReservationDetail(Long reservationId) {
+        User user = userUtil.getCurrentUser();
         SpaceReservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다."));
 
@@ -104,9 +125,12 @@ public class SpaceReservationService {
 
     /**
      * 예약 승인 (PROVIDER)
+     *
+     * @param reservationId 예약 ID
      */
     @Transactional
-    public void acceptReservation(User currentUser, Long reservationId) {
+    public void acceptReservation(Long reservationId) {
+        User currentUser = userUtil.getCurrentUser();
         SpaceReservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
 
@@ -126,12 +150,13 @@ public class SpaceReservationService {
         }
     }
 
-
-
     /**
      * 예약 거절 (PROVIDER)
+     *
+     * @param reservationId 예약 ID
      */
-    public void rejectReservation(User provider, Long reservationId) {
+    public void rejectReservation(Long reservationId) {
+        User provider = userUtil.getCurrentUser();
         SpaceReservation reservation = reservationRepository.findByIdAndSpaceOwner(reservationId, provider)
                 .orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않거나 거절 권한이 없습니다."));
         reservation.reject();
@@ -139,8 +164,11 @@ public class SpaceReservationService {
 
     /**
      * 예약 취소 (HOST)
+     *
+     * @param reservationId 예약 ID
      */
-    public void cancelReservation(User host, Long reservationId) {
+    public void cancelReservation(Long reservationId) {
+        User host = userUtil.getCurrentUser();
         SpaceReservation reservation = reservationRepository.findByIdAndHost(reservationId, host)
                 .orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않거나 취소 권한이 없습니다."));
         reservation.cancel();
@@ -148,8 +176,11 @@ public class SpaceReservationService {
 
     /**
      * 예약 삭제 (거절된 예약만 가능, PROVIDER)
+     *
+     * @param reservationId 예약 ID
      */
-    public void deleteReservation(User provider, Long reservationId) {
+    public void deleteReservation(Long reservationId) {
+        User provider = userUtil.getCurrentUser();
         SpaceReservation reservation = reservationRepository.findByIdAndSpaceOwner(reservationId, provider)
                 .orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않거나 삭제 권한이 없습니다."));
 

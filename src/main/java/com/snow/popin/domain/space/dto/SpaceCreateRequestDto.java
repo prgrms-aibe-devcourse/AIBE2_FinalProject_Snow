@@ -59,13 +59,4 @@ public class SpaceCreateRequestDto {
     private Double longitude;
 
     private Boolean parkingAvailable;
-
-    // 유효성 검증 메서드
-    @AssertTrue(message = "종료일은 시작일 이후여야 합니다.")
-    public boolean isValidDateRange() {
-        if (startDate == null || endDate == null) {
-            return true;
-        }
-        return !endDate.isBefore(startDate);
-    }
 }

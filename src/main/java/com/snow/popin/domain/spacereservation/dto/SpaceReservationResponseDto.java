@@ -52,7 +52,7 @@ public class SpaceReservationResponseDto {
                 .id(reservation.getId())
                 .popupId(reservation.getPopup().getId())
                 .popupTitle(reservation.getPopup().getTitle())
-                .brandName(reservation.getPopup().getBrandId().toString())
+                .brandName(reservation.getBrand().getName())
                 .popupMainImage(reservation.getPopup().getMainImageUrl())
                 .startDate(reservation.getStartDate())
                 .endDate(reservation.getEndDate())

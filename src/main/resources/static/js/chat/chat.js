@@ -60,7 +60,6 @@ const ChatPage = {
             const me = await apiService.get("/users/me");
             this.userId = me.id;
             this.userNickname = me.nickname || me.name || me.email?.split('@')[0] || '익명';
-            console.log("현재 사용자:", this.userId, this.userNickname);
         } catch (err) {
             console.error("사용자 정보 로드 실패:", err);
             alert("로그인 정보가 필요합니다.");
@@ -72,7 +71,6 @@ const ChatPage = {
     async loadChatContext() {
         try {
             const context = await apiService.getChatContext(this.reservationId);
-            console.log("채팅 컨텍스트:", context);
             this.updateChatHeader(context);
         } catch (err) {
             console.error("채팅 컨텍스트 로드 실패:", err);
@@ -133,7 +131,6 @@ const ChatPage = {
     async loadMessages() {
         try {
             const messages = await apiService.getChatMessages(this.reservationId);
-            console.log("이전 메시지:", messages);
 
             messages.forEach(m => {
                 this.addMessage(m.senderId, m.content, m.sentAt);
@@ -162,8 +159,6 @@ const ChatPage = {
                     `/topic/reservation/${this.reservationId}`,
                     (msg) => {
                         const payload = JSON.parse(msg.body);
-                        console.log("받은 메시지:", payload);
-
                         if (payload.error) {
                             alert(payload.error);
                             this.el.input.disabled = true;

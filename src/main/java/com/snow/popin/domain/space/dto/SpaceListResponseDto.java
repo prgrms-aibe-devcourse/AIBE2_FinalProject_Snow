@@ -15,6 +15,7 @@ public class SpaceListResponseDto {
     private Long id;
     private String ownerName;
     private String title;
+    private String description;
     private String address;
     private Integer areaSize;
     private boolean mine;
@@ -38,6 +39,7 @@ public class SpaceListResponseDto {
         return SpaceListResponseDto.builder()
                 .id(space.getId())
                 .title(space.getTitle())
+                .description(space.getDescription())
                 .ownerName(space.getOwner().getName())
                 .address(fullAddress)
                 .areaSize(space.getAreaSize())

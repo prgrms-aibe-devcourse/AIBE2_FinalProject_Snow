@@ -3,11 +3,9 @@ class SpaceRegisterManager {
         const form = document.getElementById("space-register-form");
         if (form) form.addEventListener("submit", (e) => this.handleSubmit(e));
 
-        document
-            .querySelectorAll('[data-act="back"], [data-act="list"]')
-            .forEach((btn) => {
-                btn.addEventListener("click", () => this.goList());
-            });
+        document.querySelectorAll('[data-act="back"], [data-act="list"]').forEach((btn) => {
+            btn.addEventListener("click", () => this.goList());
+        });
 
         this.setupDateValidation();
         this.setupAddressSearch();
@@ -38,6 +36,19 @@ class SpaceRegisterManager {
                     document.getElementById("roadAddress").value = data.roadAddress;
                     document.getElementById("jibunAddress").value = data.jibunAddress;
                     document.getElementById("detailAddress")?.focus();
+
+                    // --- 좌표 변환 추가 ---
+                    const geocoder = new kakao.maps.services.Geocoder();
+                    geocoder.addressSearch(data.roadAddress, function (result, status) {
+                        if (status === kakao.maps.services.Status.OK) {
+                            const lat = result[0].y;
+                            const lng = result[0].x;
+                            document.getElementById("latitude").value = lat;
+                            document.getElementById("longitude").value = lng;
+                        } else {
+                            console.warn("좌표 변환 실패:", status);
+                        }
+                    });
                 },
             }).open();
         });
@@ -46,36 +57,14 @@ class SpaceRegisterManager {
     async handleSubmit(e) {
         e.preventDefault();
 
-        const submitBtn =
-            e.submitter || document.querySelector('button[type="submit"]');
+        const submitBtn = e.submitter || document.querySelector('button[type="submit"]');
         if (submitBtn) submitBtn.disabled = true;
 
         try {
             if (!this.validateForm()) return;
 
-            const fd = new FormData();
-            const v = (id) => document.getElementById(id)?.value?.trim() ?? "";
-
-            const roadAddress = v("roadAddress");
-            if (!roadAddress) {
-                alert("주소 검색을 통해 주소를 입력해주세요.");
-                return;
-            }
-
-            fd.append("roadAddress", roadAddress);
-            fd.append("jibunAddress", v("jibunAddress"));
-            fd.append("detailAddress", v("detailAddress"));
-
-            fd.append("title", v("title"));
-            fd.append("description", v("description"));
-            fd.append("areaSize", v("areaSize"));
-            fd.append("startDate", v("startDate"));
-            fd.append("endDate", v("endDate"));
-            fd.append("rentalFee", v("rentalFee"));
-            fd.append("contactPhone", v("contactPhone"));
-
-            const img = document.getElementById("image")?.files?.[0];
-            if (img) fd.append("image", img);
+            // form 자체를 FormData로 변환 (hidden 필드 포함됨)
+            const fd = new FormData(document.getElementById("space-register-form"));
 
             await apiService.createSpace(fd);
             alert("공간이 성공적으로 등록되었습니다.");
@@ -107,23 +96,6 @@ class SpaceRegisterManager {
                 return false;
             }
         }
-
-        const startDate = document.getElementById("startDate").value;
-        const endDate = document.getElementById("endDate").value;
-        if (startDate && endDate && endDate < startDate) {
-            alert("종료일은 시작일 이후여야 합니다.");
-            document.getElementById("endDate").focus();
-            return false;
-        }
-
-        const phone = document.getElementById("contactPhone").value.trim();
-        const phoneRegex = /^[0-9-+()\s]+$/;
-        if (phone && !phoneRegex.test(phone)) {
-            alert("올바른 전화번호 형식이 아닙니다.");
-            document.getElementById("contactPhone").focus();
-            return false;
-        }
-
         return true;
     }
 
