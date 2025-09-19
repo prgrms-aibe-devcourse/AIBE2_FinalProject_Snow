@@ -57,34 +57,100 @@
 /* 팝업 정보 섹션 */
 .popup-info-section {
     padding: 24px 20px;
-    border-bottom: 8px solid #F8F9FA;
+    position: relative;
+}
+
+/* 양옆 패딩이 있는 구분선 추가 */
+.popup-info-section::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 20px;
+    right: 20px;
+    height: 1px;
+    background: #E5E7EB;
+}
+
+/* 운영시간 섹션 */
+.operating-hours-section {
+    padding: 20px;
+    background: #fff;
+    position: relative;
+}
+
+/* 운영시간 섹션 구분선 */
+.operating-hours-section::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 20px;
+    right: 20px;
+    height: 1px;
+    background: #E5E7EB;
 }
 
 .popup-title {
     font-size: 24px;
     font-weight: 700;
     color: #1F2937;
-    margin: 0 0 16px 0;
+    margin: 0 0 20px 0;
     line-height: 1.3;
 }
 
-.popup-dates {
-    margin-bottom: 16px;
+/* 일정 정보 스타일 */
+.popup-schedule-simple {
+    margin-bottom: 20px;
 }
 
-.date-info {
-    margin-bottom: 8px;
+.schedule-item {
+    font-size: 16px;
+    color: #000000;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.schedule-item:last-child {
+    margin-bottom: 0;
 }
 
 .period-text {
-    font-size: 16px;
     font-weight: 600;
-    color: #6366F1;
+    color: #000000;
 }
 
-.hours-info {
-    color: #6B7280;
+.days-text {
+    font-weight: 400;
+    color: #000000;
+}
+
+.hours-text {
+    font-weight: 400;
+    color: #000000;
+}
+
+/* 상세 운영시간 스타일 */
+.operating-hours-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000000;
+    margin-bottom: 12px;
+}
+
+.operating-hours-details {
+    background: #F8F9FA;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.hours-line {
     font-size: 14px;
+    color: #374151;
+    padding: 4px 0;
+    line-height: 1.4;
+}
+
+.hours-line:last-child {
+    padding-bottom: 0;
 }
 
 .popup-tags {
@@ -131,16 +197,26 @@
 
 /* 위치 섹션 */
 .location-section {
-    margin: 20px 0;
     padding: 20px;
     background: #fff;
-    border-bottom: 8px solid #F8F9FA;
+    position: relative;
+}
+
+/* 위치 섹션 구분선 */
+.location-section::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 20px;
+    right: 20px;
+    height: 1px;
+    background: #E5E7EB;
 }
 
 .location-header {
     display: flex;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
     gap: 6px;
 }
 
@@ -179,7 +255,7 @@
     border-radius: 8px;
     overflow: hidden;
     border: 1px solid #E5E7EB;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 }
 
 #popup-location-map {
@@ -191,8 +267,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 0;
-    border-top: 1px solid #F3F4F6;
+    padding: 12px 1px;
 }
 
 .venue-address-inline {
@@ -237,6 +312,59 @@
     display: none;
 }
 
+/* 상세설명 섹션 */
+.description-section {
+    padding: 24px 20px;
+    background: #fff;
+    position: relative;
+}
+
+/* 상세설명 섹션 구분선 */
+.description-section::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 20px;
+    right: 20px;
+    height: 1px;
+    background: #E5E7EB;
+}
+
+.description-section .section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1F2937;
+    margin: 0 0 20px 0;
+}
+
+.description-content {
+    padding: 8px;
+}
+
+.popup-summary {
+    margin-bottom: 20px;
+}
+
+.popup-summary:last-child {
+    margin-bottom: 0;
+}
+
+.description-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #6B7280;
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+.description-text p {
+    margin: 0 0 12px 0;
+}
+
+.description-text p:last-child {
+    margin-bottom: 0;
+}
+
 .toast {
     visibility: hidden;
     min-width: 250px;
@@ -262,7 +390,18 @@
 /* 리뷰 섹션 */
 .reviews-section {
     padding: 24px 20px;
-    border-bottom: 8px solid #F8F9FA;
+    position: relative;
+}
+
+/* 리뷰 섹션 구분선 */
+.reviews-section::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 20px;
+    right: 20px;
+    height: 1px;
+    background: #E5E7EB;
 }
 
 .section-header {
@@ -472,6 +611,8 @@
     padding: 24px 20px;
 }
 
+/* 마지막 섹션은 구분선 없음 */
+
 .section-title {
     font-size: 20px;
     font-weight: 700;
@@ -480,9 +621,27 @@
 }
 
 .similar-popups-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    display: flex;
     gap: 16px;
+    overflow-x: auto;
+    padding: 0 0 20px 0;
+    white-space: nowrap;
+    cursor: grab;
+    user-select: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.similar-popups-grid.active-drag {
+    cursor: grabbing;
+}
+
+.similar-popups-grid::-webkit-scrollbar {
+    display: none;
+}
+
+.similar-popups-grid {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 .similar-popup-card {
@@ -492,6 +651,9 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     transition: transform 0.2s;
+    flex-shrink: 0;
+    width: 200px;
+    min-width: 200px;
 }
 
 .similar-popup-card:hover {
@@ -593,6 +755,22 @@
         font-size: 22px;
     }
 
+    .schedule-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .schedule-label {
+        min-width: auto;
+        margin-right: 0;
+        font-size: 13px;
+    }
+
+    .schedule-value {
+        font-size: 15px;
+    }
+
     .similar-popups-grid {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 12px;
@@ -609,9 +787,7 @@
         padding: 12px;
         border-radius: 8px;
     }
-}
 
-@media (max-width: 768px) {
     .map-container {
         height: 250px;
     }
@@ -624,5 +800,23 @@
 
     .copy-btn-inline {
         text-align: center;
+    }
+
+    .description-section {
+        padding: 20px 16px;
+    }
+
+    .popup-schedule-info,
+    .description-content {
+        padding: 16px;
+    }
+
+    /* 모바일에서도 구분선 패딩 조정 */
+    .popup-info-section::after,
+    .location-section::after,
+    .description-section::after,
+    .reviews-section::after {
+        left: 16px;
+        right: 16px;
     }
 }

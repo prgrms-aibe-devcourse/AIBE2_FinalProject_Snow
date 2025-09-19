@@ -1,10 +1,11 @@
-// 팝업 상세 페이지 매니저 (리뷰 기능 통합)
+// 팝업 상세 페이지 매니저
 class PopupDetailManager {
     constructor(popupId) {
         this.popupId = popupId;
         this.popupData = null;
         this.isBookmarked = false;
         this.reviewManager = null;
+        this.shareModal = null;
     }
 
     // 페이지 초기화
@@ -16,6 +17,9 @@ class PopupDetailManager {
             this.setupEventListeners();
             await this.loadPopupData();
 
+            // 공유 모달 초기화
+            this.initializeShareModal();
+
             // 리뷰 매니저 초기화
             this.reviewManager = new ReviewManager(this.popupId);
             await this.reviewManager.initialize();
@@ -23,6 +27,11 @@ class PopupDetailManager {
             console.error('팝업 상세 페이지 초기화 실패:', error);
             this.showError();
         }
+    }
+
+    // 공유 모달 초기화
+    initializeShareModal() {
+        this.shareModal = new ShareModal(this.getShareData.bind(this));
     }
 
     // HTML 렌더링
@@ -37,7 +46,7 @@ class PopupDetailManager {
         // 공유 버튼
         const shareBtn = document.getElementById('share-btn');
         if (shareBtn) {
-            shareBtn.addEventListener('click', () => this.handleShare());
+            shareBtn.addEventListener('click', () => this.showShareModal());
         }
 
         // 북마크 버튼
@@ -73,6 +82,8 @@ class PopupDetailManager {
         // 유사한 팝업 클릭 이벤트
         const similarGrid = document.getElementById('similar-popups-grid');
         if (similarGrid) {
+            this.initializeDragScroll(similarGrid);
+
             similarGrid.addEventListener('click', (e) => {
                 const card = e.target.closest('.similar-popup-card');
                 if (card && card.dataset.id) {
@@ -88,13 +99,29 @@ class PopupDetailManager {
 
         try {
             this.popupData = await apiService.getPopup(this.popupId);
+            await this.checkBookmarkStatus();
             this.renderPopupInfo();
+            this.renderOperatingHours();
             this.renderLocationInfo();
+            this.renderDescriptionInfo();
             await this.loadSimilarPopups();
+            this.updateMetaTags();
             this.showContent();
         } catch (error) {
             console.error('팝업 데이터 로드 실패:', error);
             this.showError();
+        }
+    }
+
+    // 북마크 상태 확인 함수 추가
+    async checkBookmarkStatus() {
+        try {
+            const result = await apiService.checkBookmark(this.popupId);
+            this.isBookmarked = result.bookmarked || false;
+            this.updateBookmarkButton();
+        } catch (error) {
+            console.warn('북마크 상태 확인 실패:', error);
+            this.isBookmarked = false; // 기본값으로 설정
         }
     }
 
@@ -117,23 +144,12 @@ class PopupDetailManager {
             titleEl.textContent = this.popupData.title;
         }
 
-        // 기간
-        const periodEl = document.getElementById('popup-period');
-        if (periodEl) {
-            const startDate = new Date(this.popupData.startDate).toLocaleDateString('ko-KR');
-            const endDate = new Date(this.popupData.endDate).toLocaleDateString('ko-KR');
-            periodEl.textContent = `${startDate} ~ ${endDate}`;
-        }
-
-        // 운영시간
-        const hoursEl = document.getElementById('popup-hours');
-        if (hoursEl && this.popupData.operatingHours) {
-            hoursEl.textContent = this.popupData.operatingHours;
-        }
+        // 기간 정보
+        this.renderScheduleInfo();
 
         // 태그
         const tagsEl = document.getElementById('popup-tags');
-        if (tagsEl && Array.isArray(this.popupData.tags)) {
+        if (tagsEl) {
             tagsEl.innerHTML = '';
             this.popupData.tags.forEach(tag => {
                 const span = document.createElement('span');
@@ -143,6 +159,72 @@ class PopupDetailManager {
                 tagsEl.appendChild(span);
             });
         }
+    }
+
+    // 일정 정보 렌더링
+    renderScheduleInfo() {
+        // 기간 표시
+        const periodEl = document.getElementById('popup-period');
+        if (periodEl) {
+            // periodText가 있으면 사용, 없으면 직접 생성
+            if (this.popupData.periodText) {
+                periodEl.textContent = this.popupData.periodText;
+            } else {
+                const startDate = new Date(this.popupData.startDate).toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                }).replace(/\. /g, '.').replace(/\.$/, '');
+
+                const endDate = new Date(this.popupData.endDate).toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                }).replace(/\. /g, '.').replace(/\.$/, '');
+
+                periodEl.textContent = `${startDate} ~ ${endDate}`;
+            }
+        }
+    }
+
+    // 운영시간 렌더링
+    renderOperatingHours() {
+        if (!this.popupData || !this.popupData.hours || this.popupData.hours.length === 0) {
+            return;
+        }
+
+        const operatingHoursSection = document.getElementById('operating-hours-section');
+        const hoursEl = document.getElementById('popup-hours');
+
+        if (!operatingHoursSection || !hoursEl) return;
+
+        // 운영시간 섹션 표시
+        operatingHoursSection.style.display = 'block';
+
+        const hours = this.popupData.hours;
+
+        // 요일별 운영시간 상세 표시
+        const detailedHours = hours.map(hour => {
+            const dayText = hour.dayOfWeekText;
+            const timeText = hour.timeRangeText.replace(' - ', ' - ');
+
+            // 특별 운영시간이나 휴무일 체크
+            let timeDisplay = timeText;
+            if (hour.note) {
+                timeDisplay += ` (${hour.note})`;
+            }
+
+            return `${dayText} : ${timeDisplay}`;
+        }).join('\n');
+
+        // 운영시간 내용 표시
+        hoursEl.innerHTML = `
+            <div class="operating-hours-details">${detailedHours.split('\n').map(line =>
+            `<div class="hours-line">${line}</div>`
+        ).join('')}</div>
+        `;
+
+        hoursEl.style.display = 'block';
     }
 
     // 위치 정보 렌더링 메서드
@@ -169,15 +251,6 @@ class PopupDetailManager {
             venueAddressEl.textContent = this.popupData.venueAddress || '주소 정보 없음';
         }
 
-        // 주차 정보
-        const parkingInfoEl = document.getElementById('parking-info');
-        const parkingTextEl = document.getElementById('parking-text');
-        if (parkingInfoEl && parkingTextEl && this.popupData.parkingAvailable !== undefined) {
-            parkingInfoEl.style.display = 'flex';
-            parkingTextEl.textContent = this.popupData.parkingAvailable ? '주차 가능' : '주차 불가';
-            parkingInfoEl.className = this.popupData.parkingAvailable ? 'parking-info parking-available' : 'parking-info parking-unavailable';
-        }
-
         if (hasLocation) {
             setTimeout(() => {
                 this.initializeLocationMap();
@@ -188,6 +261,45 @@ class PopupDetailManager {
                 mapContainer.style.display = 'none';
             }
         }
+    }
+
+    // 상세설명 렌더링
+    renderDescriptionInfo() {
+        if (!this.popupData) return;
+
+        const hasDescription = this.popupData.summary || this.popupData.description;
+        if (!hasDescription) return;
+
+        const descriptionSection = document.getElementById('description-section');
+        if (descriptionSection) {
+            descriptionSection.style.display = 'block';
+        }
+
+        // 요약 정보
+        const summaryEl = document.getElementById('popup-summary');
+        if (summaryEl && this.popupData.summary) {
+            summaryEl.innerHTML = `
+                <p class="description-text">${this.escapeHtml(this.popupData.summary)}</p>
+            `;
+        }
+
+        // 상세 설명
+        const descriptionEl = document.getElementById('popup-description');
+        if (descriptionEl && this.popupData.description) {
+            descriptionEl.innerHTML = `
+                <div class="description-text">${this.formatDescription(this.popupData.description)}</div>
+            `;
+        }
+    }
+
+    // 설명 텍스트 포맷팅
+    formatDescription(description) {
+        if (!description) return '';
+
+        // 줄바꿈을 <br>로 변환하고 HTML 이스케이프
+        return this.escapeHtml(description)
+            .replace(/\n/g, '<br>')
+            .replace(/\r\n/g, '<br>');
     }
 
     // 지도 초기화
@@ -310,11 +422,11 @@ class PopupDetailManager {
     // 유사한 팝업 로드
     async loadSimilarPopups() {
         try {
-            const similarPopups = await apiService.getSimilarPopups(this.popupId);
-            this.renderSimilarPopups(similarPopups);
+            // 카테고리를 기반으로 유사한 팝업 검색 (최대 4개)
+            const similarPopups = await apiService.getSimilarPopups(this.popupId, 0, 4);
+            this.renderSimilarPopups(similarPopups.popups || similarPopups);
         } catch (error) {
             console.warn('유사한 팝업 로드 실패:', error);
-            // 에러가 발생해도 계속 진행하도록 수정
             const gridEl = document.getElementById('similar-popups-grid');
             if (gridEl) {
                 gridEl.innerHTML = '<p style="text-align: center; color: #6B7280; padding: 20px;">유사한 팝업을 불러올 수 없습니다.</p>';
@@ -325,12 +437,17 @@ class PopupDetailManager {
     // 유사한 팝업 렌더링
     renderSimilarPopups(popups) {
         const gridEl = document.getElementById('similar-popups-grid');
-        if (!gridEl || !popups || popups.length === 0) return;
+        if (!gridEl || !popups || popups.length === 0) {
+            if (gridEl) {
+                gridEl.innerHTML = '<p style="text-align: center; color: #6B7280; padding: 20px;">유사한 팝업이 없습니다.</p>';
+            }
+            return;
+        }
 
         gridEl.innerHTML = popups.map(popup => {
             const title = this.escapeHtml(popup.title ?? '');
             const thumb = (popup.thumbnailUrl && /^https?:/i.test(popup.thumbnailUrl))
-              ? popup.thumbnailUrl
+                ? popup.thumbnailUrl
                 : 'https://via.placeholder.com/200x150/4B5AE4/ffffff?text=%F0%9F%8E%AA';
             return `
               <div class="similar-popup-card" data-id="${popup.id}">
@@ -350,30 +467,165 @@ class PopupDetailManager {
         return `${start} ~ ${end}`;
     }
 
-    // 공유 처리
-    async handleShare() {
-        const shareData = {
-            title: this.popupData?.title || '팝업 스토어',
-            text: `${this.popupData?.title} - POPIN에서 확인하세요!`,
-            url: window.location.href
+    // 공유 데이터 생성
+    getShareData() {
+        if (!this.popupData) {
+            return {
+                title: '팝업 스토어',
+                description: 'POPIN에서 확인하세요!',
+                url: window.location.href,
+                hashtags: ['POPIN', '팝업스토어']
+            };
+        }
+
+        const formatDate = (dateStr) => {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).replace(/\. /g, '.').replace(/\.$/, '');
         };
 
-        if (navigator.share) {
-            try {
-                await navigator.share(shareData);
-            } catch (error) {
-                console.log('공유 취소됨');
-            }
+        const period = `${formatDate(this.popupData.startDate)}-${formatDate(this.popupData.endDate)}`;
+        const sanitizeHashtag = (tag) => String(tag ?? '').replace(/^#/, '').replace(/\s+/g, '');
+        const hashtags = ['POPIN', '팝업스토어', ...((this.popupData.tags || []).map(sanitizeHashtag))];
+
+        return {
+            title: this.popupData.title || '팝업 스토어',
+            description: `✨ ${this.popupData.title} ✨\n📅 ${period}\n📍 ${this.popupData.venueAddress || ''}\n\nPOPIN에서 확인하세요!`,
+            url: window.location.href,
+            address: this.popupData.venueAddress || '',
+            hashtags,
+            image: this.getPopupImageUrl()
+        };
+    }
+
+    // 메타 태그 업데이트
+    updateMetaTags() {
+        if (!this.popupData) return;
+
+        // 기본 title 업데이트
+        document.title = `${this.popupData.title} - POPIN`;
+
+        // Open Graph 메타 태그 업데이트
+        this.updateMetaTag('og:title', `${this.popupData.title} - POPIN`);
+        this.updateMetaTag('og:description', this.createMetaDescription());
+        this.updateMetaTag('og:image', this.getPopupImageUrl());
+        this.updateMetaTag('og:url', window.location.href);
+
+        // Twitter 카드 업데이트
+        this.updateMetaTag('twitter:title', `${this.popupData.title} - POPIN`);
+        this.updateMetaTag('twitter:description', this.createMetaDescription());
+        this.updateMetaTag('twitter:image', this.getPopupImageUrl());
+
+        console.log('메타 태그 업데이트 완료');
+    }
+
+    // 메타 태그 업데이트 헬퍼
+    updateMetaTag(property, content) {
+        // property 속성으로 찾기 (og:* 태그용)
+        let meta = document.querySelector(`meta[property="${property}"]`);
+
+        // name 속성으로 찾기 (twitter:* 태그용)
+        if (!meta) {
+            meta = document.querySelector(`meta[name="${property}"]`);
+        }
+
+        if (meta) {
+            meta.setAttribute('content', content);
         } else {
-            // Web Share API 미지원 시 클립보드에 복사
-            try {
-                await navigator.clipboard.writeText(window.location.href);
-                alert('링크가 클립보드에 복사되었습니다.');
-            } catch (error) {
-                console.error('클립보드 복사 실패:', error);
-                alert('링크 복사에 실패했습니다.');
+            // 메타 태그가 없으면 생성
+            meta = document.createElement('meta');
+            if (property.startsWith('og:')) {
+                meta.setAttribute('property', property);
+            } else {
+                meta.setAttribute('name', property);
+            }
+            meta.setAttribute('content', content);
+            document.head.appendChild(meta);
+        }
+    }
+
+    // 메타 설명 생성
+    createMetaDescription() {
+        if (!this.popupData) return 'POPIN에서 다양한 팝업스토어 정보를 확인하세요!';
+
+        let description = '';
+
+        // 요약이 있으면 요약 사용
+        if (this.popupData.summary && this.popupData.summary.trim()) {
+            description = this.popupData.summary.trim();
+        } else {
+            // 요약이 없으면 기본 정보로 구성
+            description = `${this.popupData.title}`;
+
+            // 기간 정보 추가
+            const period = this.popupData.periodText || this.createPeriodText();
+            if (period && period !== '기간 미정') {
+                description += ` | ${period}`;
+            }
+
+            // 장소 정보 추가
+            const address = this.popupData.venueAddress;
+            if (address && address.trim()) {
+                // 주소가 너무 길면 첫 부분만 사용
+                const shortAddress = address.length > 30 ? address.substring(0, 30) + '...' : address;
+                description += ` | ${shortAddress}`;
             }
         }
+
+        description += ' | POPIN에서 확인하세요!';
+
+        // 메타 설명은 160자 이하로 제한
+        if (description.length > 160) {
+            description = description.substring(0, 157) + '...';
+        }
+
+        return description;
+    }
+
+    // 기간 텍스트 생성 (popupData에 periodText가 없는 경우)
+    createPeriodText() {
+        if (!this.popupData.startDate && !this.popupData.endDate) {
+            return '기간 미정';
+        }
+
+        const formatDate = (dateStr) => {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).replace(/\. /g, '.').replace(/\.$/, '');
+        };
+
+        if (this.popupData.startDate && this.popupData.endDate) {
+            if (this.popupData.startDate === this.popupData.endDate) {
+                return formatDate(this.popupData.startDate);
+            }
+            return `${formatDate(this.popupData.startDate)} - ${formatDate(this.popupData.endDate)}`;
+        } else if (this.popupData.startDate) {
+            return `${formatDate(this.popupData.startDate)} -`;
+        } else {
+            return `- ${formatDate(this.popupData.endDate)}`;
+        }
+    }
+
+    // 팝업 이미지 URL 가져오기
+    getPopupImageUrl() {
+        if (this.popupData.mainImageUrl && this.popupData.mainImageUrl.trim()) {
+            // 절대 URL인지 확인
+            if (this.popupData.mainImageUrl.startsWith('http')) {
+                return this.popupData.mainImageUrl;
+            } else {
+                // 상대 URL인 경우 절대 URL로 변환
+                return window.location.origin + this.popupData.mainImageUrl;
+            }
+        }
+
+        // 기본 이미지
+        return window.location.origin + '/images/default-popup.png';
     }
 
     // 북마크 처리
@@ -470,6 +722,20 @@ class PopupDetailManager {
         return null;
     }
 
+    // 공유 모달 표시
+    showShareModal() {
+        if (this.shareModal) {
+            this.shareModal.show();
+        }
+    }
+
+    // HTML 이스케이프
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = String(text ?? '');
+        return div.innerHTML;
+    }
+
     // 로딩 표시
     showLoading() {
         document.getElementById('popup-detail-loading').style.display = 'flex';
@@ -502,6 +768,51 @@ class PopupDetailManager {
         if (document.getElementById('popup-detail-error')) {
             document.getElementById('popup-detail-error').style.display = 'flex';
         }
+    }
+
+    // 드래그 스크롤 기능 초기화
+    initializeDragScroll(element) {
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        element.addEventListener('mousedown', (e) => {
+            isDown = true;
+            element.classList.add('active-drag');
+            startX = e.pageX - element.offsetLeft;
+            scrollLeft = element.scrollLeft;
+        });
+
+        element.addEventListener('mouseleave', () => {
+            isDown = false;
+            element.classList.remove('active-drag');
+        });
+
+        element.addEventListener('mouseup', () => {
+            isDown = false;
+            element.classList.remove('active-drag');
+        });
+
+        element.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - element.offsetLeft;
+            const walk = (x - startX) * 2; // 스크롤 속도 조절
+            element.scrollLeft = scrollLeft - walk;
+        });
+
+        // 터치 이벤트 (모바일)
+        element.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].pageX - element.offsetLeft;
+            scrollLeft = element.scrollLeft;
+        });
+
+        element.addEventListener('touchmove', (e) => {
+            if (!startX) return;
+            const x = e.touches[0].pageX - element.offsetLeft;
+            const walk = (x - startX) * 2;
+            element.scrollLeft = scrollLeft - walk;
+        });
     }
 
     // 컴포넌트 정리
@@ -688,12 +999,6 @@ class ReviewManager {
     // HTML 이스케이프
     escapeHtml(text) {
         const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    escapeHtml(text) {
-        const div = document.createElement('div');
         div.textContent = String(text ?? '');
         return div.innerHTML;
     }
@@ -711,6 +1016,197 @@ function searchByTag(tag) {
     const cleanTag = tag.startsWith('#') ? tag.substring(1) : tag;
 
     window.location.href = `/popup/search?query=${encodeURIComponent(cleanTag)}`;
+}
+
+// 공유 모달 클래스
+class ShareModal {
+    constructor(getShareDataCallback) {
+        this.getShareData = getShareDataCallback;
+        this.modal = null;
+        this.initialize();
+    }
+
+    initialize() {
+        this.createModalHTML();
+        this.setupEventListeners();
+    }
+
+    createModalHTML() {
+        // 이미 모달이 존재하면 제거
+        const existingModal = document.getElementById('share-modal-overlay');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        const modalHTML = `
+            <div id="share-modal-overlay" class="share-modal-overlay">
+                <div class="share-modal">
+                    <div class="share-modal-header">
+                        <h3 class="share-modal-title">공유하기</h3>
+                        <button class="share-modal-close" id="share-modal-close">×</button>
+                    </div>
+
+                    <div class="share-options">
+                        <button class="share-option" data-share-type="kakaotalk">
+                            <div class="share-option-icon kakaotalk">
+                                <img src="/images/icon_kakotalk.png" alt="카카오톡">
+                            </div>
+                            <p class="share-option-label">카카오톡</p>
+                        </button>
+            
+                        <button class="share-option" data-share-type="twitter">
+                            <div class="share-option-icon twitter">
+                                <img src="/images/icon-x.png" alt="X">
+                            </div>
+                            <p class="share-option-label">X</p>
+                        </button>
+            
+                        <button class="share-option" data-share-type="url">
+                            <div class="share-option-icon url">🔗</div>
+                            <p class="share-option-label">URL 복사</p>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        this.modal = document.getElementById('share-modal-overlay');
+    }
+
+    setupEventListeners() {
+        // 모달 닫기 버튼
+        document.getElementById('share-modal-close').addEventListener('click', () => {
+            this.hide();
+        });
+
+        // 배경 클릭 시 닫기
+        this.modal.addEventListener('click', (e) => {
+            if (e.target === this.modal) {
+                this.hide();
+            }
+        });
+
+        // 공유 옵션 클릭
+        document.querySelectorAll('.share-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const shareType = option.dataset.shareType;
+                this.handleShare(shareType);
+            });
+        });
+    }
+
+    show() {
+        this.modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    hide() {
+        this.modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    async handleShare(shareType) {
+        const shareData = this.getShareData();
+
+        try {
+            switch (shareType) {
+                case 'kakaotalk':
+                    this.shareToKakaoTalk(shareData);
+                    break;
+                case 'twitter':
+                    this.shareToTwitter(shareData);
+                    break;
+                case 'url':
+                    await this.copyUrl(shareData);
+                    break;
+            }
+        } catch (error) {
+            console.error(`${shareType} 공유 실패:`, error);
+            this.showToast('공유 중 오류가 발생했습니다.');
+        }
+
+        this.hide();
+    }
+
+    shareToKakaoTalk(data) {
+        if (typeof Kakao !== 'undefined' && Kakao.Share) {
+            Kakao.Share.sendDefault({
+                objectType: 'location',
+                address: data.address || '',
+                addressTitle: data.title,
+                content: {
+                    title: data.title,
+                    description: data.description,
+                    imageUrl: data.image,
+                    link: {
+                        mobileWebUrl: data.url,
+                        webUrl: data.url
+                    }
+                },
+                buttons: [{
+                    title: '자세히 보기',
+                    link: {
+                        mobileWebUrl: data.url,
+                        webUrl: data.url
+                    }
+                }]
+            });
+        } else {
+            const kakaoUrl = `https://sharer.kakao.com/talk/friends/picker/link?url=${encodeURIComponent(data.url)}&text=${encodeURIComponent(data.description)}`;
+            window.open(kakaoUrl, '_blank', 'width=500,height=600');
+        }
+    }
+
+    shareToTwitter(data) {
+        const twitterText = `${data.title}\n\n${data.description}\n\n${data.hashtags.map(tag => `#${tag}`).join(' ')}`;
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(twitterText)}&url=${encodeURIComponent(data.url)}`;
+        window.open(twitterUrl, '_blank', 'width=550,height=420');
+    }
+
+    async copyUrl(data) {
+        try {
+            await this.copyToClipboard(data.url);
+            this.showToast('링크가 클립보드에 복사되었습니다.');
+        } catch (error) {
+            console.error('URL 복사 실패:', error);
+            this.showToast('링크 복사에 실패했습니다.');
+        }
+    }
+
+    async copyToClipboard(text) {
+        if (navigator.clipboard) {
+            await navigator.clipboard.writeText(text);
+        } else {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+    }
+
+    showToast(message) {
+        // 기존 showToast 메서드 활용하거나 새로 생성
+        let toast = document.getElementById('share-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'share-toast';
+            toast.className = 'share-toast';
+            document.body.appendChild(toast);
+        }
+
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    isMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
 }
 
 // 전역 등록

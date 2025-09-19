@@ -780,7 +780,7 @@ apiService.removeBookmark = async function(popupId) {
 // 북마크 상태 확인
 apiService.checkBookmark = async function(popupId) {
     try {
-        return await this.get(`/bookmarks/${encodeURIComponent(popupId)}/check`);
+        return await this.get(`/bookmarks/check/${encodeURIComponent(popupId)}`);
     } catch (error) {
         return { isBookmarked: false };
     }
