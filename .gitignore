@@ -49,6 +49,7 @@ Thumbs.db
 # Database connection info (개발용만 제외, 운영용은 포함)
 application-dev.properties
 application-local.properties
+
 application.properties
 
 # Upload directories
