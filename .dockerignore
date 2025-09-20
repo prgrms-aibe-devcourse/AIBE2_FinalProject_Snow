@@ -1,0 +1,91 @@
+# Git 관련
+.git
+.gitignore
+
+# IDE 관련
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.sts4-cache
+
+# Maven 관련 (JAR 파일은 포함해야 함)
+target/dependency/
+target/classes/
+target/test-classes/
+target/maven-archiver/
+target/maven-status/
+target/surefire-reports/
+target/failsafe-reports/
+.mvn/
+mvnw
+mvnw.cmd
+
+# 환경 설정 파일들
+.env
+.env.local
+.env.prod
+application-dev.properties
+application-local.properties
+
+# 프론트엔드 관련 - Spring Boot가 서빙하므로 포함해야 함
+# frontend/
+# src/main/resources/static/  ← 이 줄들을 주석 처리
+# static/
+
+# 임시 파일
+*.tmp
+*.temp
+*.log
+*.pid
+*.swp
+*.swo
+*~
+
+# OS 관련
+.DS_Store
+Thumbs.db
+
+# 문서 및 개발 관련
+README.md
+docs/
+*.md
+LICENSE
+
+# Docker 관련 (자기 자신 제외)
+Dockerfile
+docker-compose.yml
+docker-compose.override.yml
+.dockerignore
+
+# 테스트 관련
+src/test/
+**/*Test.java
+**/*Tests.java
+
+# 업로드 디렉토리 (Docker 볼륨으로 관리)
+uploads/
+/uploads/
+
+# 백업 파일
+*.bak
+*.backup
+
+# 보안 관련
+*.p12
+*.jks
+*.pem
+*.key
+
+# Spring Boot DevTools
+.spring-boot-devtools.properties
+
+# 로그 파일
+logs/
+*.log.*
+
+# IDE 설정
+.settings/
+.project
+.classpath
