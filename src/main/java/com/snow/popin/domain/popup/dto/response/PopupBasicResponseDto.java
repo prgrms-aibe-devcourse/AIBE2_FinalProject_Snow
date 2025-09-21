@@ -19,6 +19,7 @@ public class PopupBasicResponseDto {
     private final LocalDate startDate;
     private final LocalDate endDate;
     private final String periodText;
+    private final String status;
 
     public static PopupBasicResponseDto from(Popup popup) {
         return PopupBasicResponseDto.builder()
@@ -31,6 +32,7 @@ public class PopupBasicResponseDto {
                 .startDate(popup.getStartDate())
                 .endDate(popup.getEndDate())
                 .periodText(formatPeriod(popup.getStartDate(), popup.getEndDate()))
+                .status(popup.getStatus().name())
                 .build();
     }
 
