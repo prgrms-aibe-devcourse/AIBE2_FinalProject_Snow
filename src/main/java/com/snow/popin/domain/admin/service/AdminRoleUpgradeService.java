@@ -1,5 +1,14 @@
 package com.snow.popin.domain.admin.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.snow.popin.domain.mypage.host.entity.Brand;
+import com.snow.popin.domain.mypage.host.entity.Host;
+import com.snow.popin.domain.mypage.host.entity.HostRole;
+import com.snow.popin.domain.mypage.host.repository.BrandRepository;
+import com.snow.popin.domain.mypage.host.repository.HostRepository;
+import com.snow.popin.domain.mypage.provider.entity.ProviderProfile;
+import com.snow.popin.domain.mypage.provider.repository.ProviderProfileRepository;
 import com.snow.popin.domain.roleupgrade.dto.AdminUpdateRequest;
 import com.snow.popin.domain.roleupgrade.dto.RoleUpgradeResponse;
 import com.snow.popin.domain.roleupgrade.entity.ApprovalStatus;
@@ -27,6 +36,11 @@ public class AdminRoleUpgradeService {
 
     private final RoleUpgradeRepository roleRepo;
     private final UserRepository userRepo;
+
+    private final BrandRepository brandRepository;
+    private final HostRepository hostRepository;
+    private final ProviderProfileRepository providerProfileRepository;
+    private final ObjectMapper objectMapper;
 
     // 대기중인 요청 개수 조회 (관리자용)
     public long getPendingRequestCount(){
@@ -72,25 +86,78 @@ public class AdminRoleUpgradeService {
         RoleUpgrade roleUpgrade = roleRepo.findById(id)
                 .orElseThrow(() -> new GeneralException(ErrorCode.ROLE_UPGRADE_REQUEST_NOT_FOUND));
 
-        // 대기중인 요청만 처리 가능
         validatePendingStatus(roleUpgrade);
 
         if (req.isApprove()){
-            // 승인 처리
             roleUpgrade.approve();
-            // 사용자 역할 업데이트
             User user = userRepo.findByEmail(roleUpgrade.getEmail())
                     .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND));
 
             user.updateRole(roleUpgrade.getRequestedRole());
 
+            // 역할별 추가 데이터 생성
+            createRoleSpecificData(user, roleUpgrade);
+
             log.info("역할 승격이 승인되었습니다. ID: {}, Email: {}, New Role: {}",
                     id, roleUpgrade.getEmail(), roleUpgrade.getRequestedRole());
         } else {
-            // 반려처리
             roleUpgrade.reject(req.getRejectReason());
-
             log.info("역할 승격이 반려되었습니다. ID: {}, Reason: {}", id, req.getRejectReason());
+        }
+    }
+
+    private void createRoleSpecificData(User user, RoleUpgrade roleUpgrade) {
+        if (roleUpgrade.getRequestedRole() == Role.HOST) {
+            createHostData(user, roleUpgrade.getPayload());
+        } else if (roleUpgrade.getRequestedRole() == Role.PROVIDER) {
+            createProviderData(user, roleUpgrade.getPayload());
+        }
+    }
+
+    private void createHostData(User user, String payloadJson) {
+        try {
+            JsonNode payload = objectMapper.readTree(payloadJson);
+
+            Brand brand = Brand.builder()
+                    .name(payload.get("brandName").asText())
+                    .description(payload.has("brandDescription") ? payload.get("brandDescription").asText() : null)
+                    .businessType(Brand.BusinessType.valueOf(payload.get("businessType").asText()))
+                    .categoryId(payload.has("categoryId") ? payload.get("categoryId").asLong() : null)
+                    .build();
+            brandRepository.save(brand);
+
+            Host host = Host.builder()
+                    .brand(brand)
+                    .user(user)
+                    .roleInBrand(HostRole.OWNER)
+                    .build();
+            hostRepository.save(host);
+
+        } catch (Exception e) {
+            log.error("Host 데이터 생성 실패: {}", e.getMessage());
+            throw new GeneralException(ErrorCode.INTERNAL_ERROR);
+        }
+    }
+
+    private void createProviderData(User user, String payloadJson) {
+        try {
+            JsonNode payload = objectMapper.readTree(payloadJson);
+
+            ProviderProfile profile = new ProviderProfile();
+            profile.setUserEmail(user.getEmail());
+            profile.setName(payload.get("name").asText());
+            profile.setPhone(payload.has("phone") ? payload.get("phone").asText() : null);
+            profile.setBusinessRegistrationNumber(
+                    payload.has("businessRegistrationNumber") ?
+                            payload.get("businessRegistrationNumber").asText() : null
+            );
+            profile.setVerified(false);
+
+            providerProfileRepository.save(profile);
+
+        } catch (Exception e) {
+            log.error("Provider 데이터 생성 실패: {}", e.getMessage());
+            throw new GeneralException(ErrorCode.INTERNAL_ERROR);
         }
     }
 
