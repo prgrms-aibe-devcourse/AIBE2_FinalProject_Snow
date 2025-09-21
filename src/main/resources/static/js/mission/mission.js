@@ -159,13 +159,10 @@
     try {
       data = await apiService.getMissionSet(missionSetId);
     } catch (e) {
-      mount.innerHTML = `<div class="content-section"><h2 class="content-title">불러오기 실패</h2><p>${e.message || e}</p></div>`;
+      window.location.href = '/error/error.html';
       return;
     }
-    if (!data) {
-      mount.innerHTML = `<div class="content-section"><h2 class="content-title">미션셋 없음</h2><p>해당 missionSetId에 해당하는 미션셋이 없습니다.</p></div>`;
-      return;
-    }
+
 
     const setView = data;
 
