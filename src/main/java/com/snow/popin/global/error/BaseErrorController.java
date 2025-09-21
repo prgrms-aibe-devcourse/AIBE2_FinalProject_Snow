@@ -23,7 +23,7 @@ public class BaseErrorController implements ErrorController {
         ErrorCode errorCode = ErrorCode.fromHttpStatus(httpStatus);
 
         return new ModelAndView(
-                "error",
+                "error/error",
                 Map.of(
                         "statusCode", httpStatus.value(),
                         "errorCode", errorCode,

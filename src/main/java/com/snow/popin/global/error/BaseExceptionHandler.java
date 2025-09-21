@@ -35,7 +35,7 @@ public class BaseExceptionHandler {
 
     private ModelAndView createErrorView(HttpStatus httpStatus, ErrorCode errorCode, String message) {
         return new ModelAndView(
-                "error",
+                "error/error",
                 Map.of(
                         "statusCode", httpStatus.value(),
                         "errorCode", errorCode,

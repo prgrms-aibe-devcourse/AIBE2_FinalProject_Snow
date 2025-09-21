@@ -58,10 +58,14 @@ document.addEventListener('DOMContentLoaded', async function () {
 // 팝업 카드 렌더링 유틸 함수
 // =============================
 function renderPopupCard(m, actionText, linkClass) {
-    const popup = m.popup; // ✅ 팝업 객체 분리
+    const popup = m.popup;
 
     const item = document.createElement('div');
     item.className = 'popup-card';
+
+    // 팝업 종료 여부 확인
+    const isEnded = popup.status && popup.status.toUpperCase() === 'ENDED';
+
     item.innerHTML = `
         <div class="popup-image-wrapper">
             ${popup.mainImageUrl && popup.mainImageUrl.trim() !== ""
@@ -73,7 +77,7 @@ function renderPopupCard(m, actionText, linkClass) {
             <div class="popup-summary">${popup.description || '상세설명'}</div>
             <div class="popup-period">${popup.periodText || ''}</div>
             <div class="popup-action">
-                <a class="${linkClass}" href="/missions/${m.missionSetId}">${actionText} &gt;</a>
+                ${!isEnded ? `<a class="${linkClass}" href="/missions/${m.missionSetId}">${actionText} &gt;</a>` : ""}
             </div>
         </div>
     `;

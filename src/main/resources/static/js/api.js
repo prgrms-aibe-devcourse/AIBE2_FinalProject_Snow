@@ -73,12 +73,14 @@ class SimpleApiService {
             }
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                sessionStorage.setItem("errorCode", response.status);
+                window.location.href = '/error/error.html';
             }
 
             return await response.json();
         } catch (error) {
             console.error('API GET Error:', error);
+            window.location.href = '/error/error.html';
             throw error;
         }
     }
@@ -99,12 +101,14 @@ class SimpleApiService {
             }
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                sessionStorage.setItem("errorCode", response.status);
+                window.location.href = '/error/error.html';
             }
 
             return await response.json();
         } catch (error) {
             console.error('API POST Error:', error);
+            window.location.href = '/error/error.html';
             throw error;
         }
     }
@@ -125,7 +129,8 @@ class SimpleApiService {
             }
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                sessionStorage.setItem("errorCode", response.status);
+                window.location.href = '/error/error.html';
             }
 
             // 응답이 비어있을 수 있음
@@ -133,6 +138,7 @@ class SimpleApiService {
             return text ? JSON.parse(text) : true;
         } catch (error) {
             console.error('API PUT Error:', error);
+            window.location.href = '/error/error.html';
             throw error;
         }
     }
@@ -150,14 +156,18 @@ class SimpleApiService {
                 this.removeToken();
                 throw new Error('인증이 필요합니다.');
             }
+
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                sessionStorage.setItem("errorCode", response.status);
+                window.location.href = '/error/error.html';
             }
+
             // 보통 빈 응답이지만, 서버가 JSON을 주면 파싱
             const ct = response.headers.get('content-type') || '';
             return ct.includes('application/json') ? await response.json() : true;
         } catch (err) {
             console.error('API DELETE Error:', err);
+            window.location.href = '/error/error.html';
             throw err;
         }
     }

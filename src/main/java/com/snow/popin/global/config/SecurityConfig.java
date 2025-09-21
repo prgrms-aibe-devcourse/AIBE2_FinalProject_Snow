@@ -40,7 +40,7 @@ public class SecurityConfig {
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring()
                 .antMatchers("/css/**", "/js/**", "/images/**", "/static/**",
-                        "/favicon.ico", "/templates/**", "/uploads/**");
+                        "/favicon.ico", "/templates/**", "/uploads/**", "/error/**");
     }
 
     @Bean
@@ -57,10 +57,10 @@ public class SecurityConfig {
 
                 .authorizeRequests(authz -> authz
                         // 정적 리소스
-                        .antMatchers("/uploads/**","/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico", "/templates/**", "/*.json", "/pages/**").permitAll()
+                        .antMatchers("/uploads/**","/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico", "/templates/**", "/*.json", "/pages/**", "/error/**").permitAll()
 
                         // 공개 페이지
-                        .antMatchers("/", "/index.html", "/main", "/error").permitAll()
+                        .antMatchers("/", "/index.html", "/main").permitAll()
                         .antMatchers("/popup/**", "/map", "/users/**", "/mypage/**", "/space/**", "/missions/**" ,"/reviews/**", "/bookmarks/**").permitAll()
 
 
@@ -94,6 +94,8 @@ public class SecurityConfig {
 
                         .antMatchers("/api/public/**").permitAll()
                         .antMatchers("/api/**").permitAll()
+                        .antMatchers("/not-exist-page").permitAll()   // 테스트용
+
 
                         .anyRequest().authenticated()
                 )
