@@ -74,7 +74,8 @@ class SimpleApiService {
 
             if (!response.ok) {
                 sessionStorage.setItem("errorCode", response.status);
-                window.location.href = '/error/error.html';
+                //window.location.href = '/error/error.html';
+                console.error('API 에러:', response.status, endpoint); // 디버깅용 추가
             }
 
             return await response.json();
