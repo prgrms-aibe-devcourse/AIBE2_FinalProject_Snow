@@ -21,19 +21,37 @@
     <!-- 메인 콘텐츠 영역 -->
     <main class="main-content" id="main-content">
 
-        <!-- 마이페이지 (변경) -->
+        <!-- 마이페이지 -->
         <section class="block user-info">
-            <h3 class="block-title">마이페이지</h3>
+            <h3 class="block-title">마이페이지 - 팝업 주최자</h3>
             <div class="card user-profile">
-                <div class="profile-row"><span class="label">계정명</span><span id="user-email" class="value"></span><button class="edit-btn">수정</button></div>
-                <div class="profile-row"><span class="label">이름</span><span id="user-name" class="value"></span><button class="edit-btn">수정</button></div>
-                <div class="profile-row"><span class="label">닉네임</span><span id="user-nickname" class="value"></span><button class="edit-btn">수정</button></div>
-                <div class="profile-row"><span class="label">연락처</span><span id="user-phone" class="value"></span><button class="edit-btn">수정</button></div>
-                <div class="profile-row"><span class="label">브랜드명</span><span id="user-brand" class="value"></span><button class="edit-btn">수정</button></div>
+                <div class="profile-row readonly">
+                    <span class="label">계정명</span>
+                    <span id="user-email" class="value"></span>
+                </div>
+                <div class="profile-row">
+                    <span class="label">이름</span>
+                    <span id="user-name" class="value"></span>
+                    <button class="edit-btn">수정</button>
+                </div>
+                <div class="profile-row">
+                    <span class="label">닉네임</span>
+                    <span id="user-nickname" class="value"></span>
+                    <button class="edit-btn">수정</button>
+                </div>
+                <div class="profile-row">
+                    <span class="label">연락처</span>
+                    <span id="user-phone" class="value"></span>
+                    <button class="edit-btn">수정</button>
+                </div>
+                <div class="profile-row readonly">
+                    <span class="label">브랜드명</span>
+                    <span id="user-brand" class="value"></span>
+                </div>
             </div>
         </section>
 
-        <!-- 내가 등록한 팝업 (레이아웃 변경) -->
+        <!-- 내가 등록한 팝업 -->
         <section class="block">
             <h3 class="block-title">내가 등록한 팝업</h3>
             <button id="btn-popup-register" class="btn-primary register-btn">팝업 등록하기</button>
@@ -72,7 +90,6 @@
     document.addEventListener('DOMContentLoaded', async function() {
         await loadComponents();
         initializeLayout();
-        // 이 페이지는 HostPage 전용
         if (window.HostPage) {
             HostPage.init();
         }
