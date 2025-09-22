@@ -19,6 +19,49 @@ async function loadComponents() {
     }
 }
 
+function setupAuthIcon() {
+    const authIcon = document.getElementById("authIcon");
+    if (!authIcon) return;
+
+    const token = apiService.getStoredToken();
+
+    if (token) {
+        // 로그아웃 아이콘
+        authIcon.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+        `;
+        authIcon.onclick = async () => {
+            try {
+                await apiService.post("/auth/logout", {});
+            } catch (e) {
+                console.warn("서버 로그아웃 실패:", e);
+            } finally {
+                apiService.removeToken();
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = "/auth/login?logout=true";
+            }
+        };
+    } else {
+        // 로그인 아이콘
+        authIcon.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                <polyline points="10 17 15 12 10 7"></polyline>
+                <line x1="15" y1="12" x2="3" y2="12"></line>
+            </svg>
+        `;
+        authIcon.onclick = () => {
+            window.location.href = "/auth/login";
+        };
+    }
+}
+
+
 // 컴포넌트 이벤트 설정
 function setupComponentEvents() {
     // 푸터 네비게이션 이벤트
@@ -26,6 +69,9 @@ function setupComponentEvents() {
 
     // 현재 페이지에 맞는 활성 탭 설정
     setActiveFooterTab();
+
+    // 헤더 로그인/로그아웃 버튼 이벤트
+    setupAuthIcon();
 }
 
 // 푸터 네비게이션 이벤트 설정
