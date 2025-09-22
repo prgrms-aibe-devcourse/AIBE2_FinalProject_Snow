@@ -1,5 +1,7 @@
 package com.snow.popin.domain.mypage.host.service;
 
+import com.snow.popin.domain.category.entity.Category;
+import com.snow.popin.domain.category.repository.CategoryRepository;
 import com.snow.popin.domain.mypage.host.dto.HostProfileResponseDto;
 import com.snow.popin.domain.mypage.host.dto.PopupRegisterRequestDto;
 import com.snow.popin.domain.mypage.host.dto.PopupRegisterResponseDto;
@@ -7,12 +9,15 @@ import com.snow.popin.domain.mypage.host.entity.Host;
 import com.snow.popin.domain.mypage.host.repository.HostRepository;
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.entity.PopupHours;
+import com.snow.popin.domain.popup.entity.Tag;
 import com.snow.popin.domain.popup.repository.PopupHoursRepository;
 import com.snow.popin.domain.popup.repository.PopupRepository;
+import com.snow.popin.domain.popup.repository.TagRepository;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.global.constant.ErrorCode;
 import com.snow.popin.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +40,8 @@ public class HostService {
     private final HostRepository hostRepository;
     private final PopupRepository popupRepository;
     private final PopupHoursRepository popupHoursRepository;
+    private final TagRepository tagRepository;
+    private final CategoryRepository categoryRepository;
     /**
      * 팝업 등록
      *
@@ -44,14 +51,27 @@ public class HostService {
      */
     @Transactional
     public Long createPopup(User user, PopupRegisterRequestDto dto) {
-        // 기존 코드
         Host host = hostRepository.findByUser(user)
                 .orElseThrow(() -> new GeneralException(ErrorCode.UNAUTHORIZED));
 
         Popup popup = Popup.create(host.getBrand().getId(), dto);
+
+        //  카테고리 매핑
+        if (dto.getCategoryId() != null) {
+            Category category = categoryRepository.findById(dto.getCategoryId())
+                    .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND));
+            popup.setCategory(category);
+        }
+
+        //  태그 매핑
+        if (dto.getTagIds() != null && !dto.getTagIds().isEmpty()) {
+            List<Tag> tags = tagRepository.findAllById(dto.getTagIds());
+            popup.getTags().addAll(tags);
+        }
+
         popupRepository.save(popup);
 
-        // 운영시간 저장 로직 추가
+        // 운영시간 저장
         if (dto.getHours() != null && !dto.getHours().isEmpty()) {
             List<PopupHours> hours = dto.getHours().stream()
                     .map(hourDto -> PopupHours.create(popup, hourDto))
@@ -113,12 +133,29 @@ public class HostService {
         Popup popup = popupRepository.findById(id)
                 .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND));
 
+        // 권한 체크
         if (!popup.getBrandId().equals(host.getBrand().getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "권한이 없습니다.");
         }
 
+        // 기본 필드 업데이트
         popup.update(dto);
+
+        //  카테고리 업데이트
+        if (dto.getCategoryId() != null) {
+            Category category = categoryRepository.findById(dto.getCategoryId())
+                    .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND));
+            popup.setCategory(category);
+        }
+
+        //  태그 업데이트
+        popup.getTags().clear();
+        if (dto.getTagIds() != null && !dto.getTagIds().isEmpty()) {
+            List<Tag> tags = tagRepository.findAllById(dto.getTagIds());
+            popup.getTags().addAll(tags);
+        }
     }
+
     /**
      * 팝업 삭제
      *

@@ -10,7 +10,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     setupImagePreview();
+    setupTagSelection();
 });
+
+function setupTagSelection() {
+    const selectedTags = new Set();
+    const tagButtons = document.querySelectorAll(".tag-btn");
+
+    tagButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const tagId = parseInt(btn.dataset.id, 10);
+            if (selectedTags.has(tagId)) {
+                selectedTags.delete(tagId);
+                btn.classList.remove("selected");
+            } else {
+                selectedTags.add(tagId);
+                btn.classList.add("selected");
+            }
+        });
+    });
+
+    window.getSelectedTags = () => Array.from(selectedTags);
+}
 
 function addHourItem() {
     const container = document.getElementById("hours-container");
@@ -200,7 +221,9 @@ async function collectFormData() {
         mainImageUrl: mainImageUrl,
         isFeatured: false,
         imageUrls: imageUrls,
-        hours: hours
+        hours: hours,
+        categoryId: parseInt(document.getElementById("categoryId")?.value) || null,
+        tagIds: window.getSelectedTags ? window.getSelectedTags() : []
     };
 
     return formData;

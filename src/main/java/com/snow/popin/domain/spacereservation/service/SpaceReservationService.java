@@ -4,6 +4,8 @@ import com.snow.popin.domain.map.entity.Venue;
 import com.snow.popin.domain.mypage.host.entity.Brand;
 import com.snow.popin.domain.mypage.host.entity.Host;
 import com.snow.popin.domain.mypage.host.repository.HostRepository;
+import com.snow.popin.domain.notification.constant.NotificationType;
+import com.snow.popin.domain.notification.service.NotificationService;
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.entity.PopupStatus;
 import com.snow.popin.domain.popup.repository.PopupRepository;
@@ -41,6 +43,7 @@ public class SpaceReservationService {
     private final PopupRepository popupRepository;
     private final HostRepository hostRepository;
     private final UserUtil userUtil;
+    private final NotificationService notificationService;
 
     /**
      * 공간 예약 생성 (HOST)
@@ -74,7 +77,21 @@ public class SpaceReservationService {
                 .status(ReservationStatus.PENDING)
                 .build();
 
-        return reservationRepository.save(reservation).getId();
+        SpaceReservation saved = reservationRepository.save(reservation);
+
+        // 공간 소유자에게 알림 전송
+        notificationService.createNotification(
+                space.getOwner().getId(),
+                "새로운 공간 예약 신청",
+                String.format("%s님이 '%s' 공간에 예약을 신청했습니다.",
+                        user.getName(), space.getTitle()),
+                NotificationType.RESERVATION,
+                "/provider/reservations/" + saved.getId()
+        );
+
+        log.info("예약 생성 완료 및 알림 전송: 예약ID={}, 공간소유자={}", saved.getId(), space.getOwner().getEmail());
+
+        return saved.getId();
     }
 
     /**
@@ -140,6 +157,16 @@ public class SpaceReservationService {
 
         reservation.accept();
 
+        // 예약 신청자에게 알림 전송
+        notificationService.createNotification(
+                reservation.getHost().getId(),
+                "공간 예약 승인",
+                String.format("'%s' 공간 예약이 승인되었습니다!",
+                        reservation.getSpace().getTitle()),
+                NotificationType.RESERVATION,
+                "/host/reservations/" + reservationId
+        );
+
         Popup popup = reservation.getPopup();
         if (popup != null && reservation.getSpace() != null) {
             Venue venue = reservation.getSpace().getVenue();
@@ -148,6 +175,8 @@ public class SpaceReservationService {
                 popup.setStatus(PopupStatus.ONGOING);
             }
         }
+
+        log.info("예약 승인 완료 및 알림 전송: 예약ID={}, 호스트={}", reservationId, reservation.getHost().getEmail());
     }
 
     /**
@@ -159,7 +188,20 @@ public class SpaceReservationService {
         User provider = userUtil.getCurrentUser();
         SpaceReservation reservation = reservationRepository.findByIdAndSpaceOwner(reservationId, provider)
                 .orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않거나 거절 권한이 없습니다."));
+
         reservation.reject();
+
+        // 예약 신청자에게 알림 전송
+        notificationService.createNotification(
+                reservation.getHost().getId(),
+                "공간 예약 거절",
+                String.format("'%s' 공간 예약이 거절되었습니다.",
+                        reservation.getSpace().getTitle()),
+                NotificationType.RESERVATION,
+                "/host/reservations/" + reservationId
+        );
+
+        log.info("예약 거절 완료 및 알림 전송: 예약ID={}, 호스트={}", reservationId, reservation.getHost().getEmail());
     }
 
     /**
@@ -171,7 +213,20 @@ public class SpaceReservationService {
         User host = userUtil.getCurrentUser();
         SpaceReservation reservation = reservationRepository.findByIdAndHost(reservationId, host)
                 .orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않거나 취소 권한이 없습니다."));
+
         reservation.cancel();
+
+        // 공간 소유자에게 알림 전송
+        notificationService.createNotification(
+                reservation.getSpace().getOwner().getId(),
+                "공간 예약 취소",
+                String.format("%s님이 '%s' 공간 예약을 취소했습니다.",
+                        host.getName(), reservation.getSpace().getTitle()),
+                NotificationType.RESERVATION,
+                "/provider/reservations/" + reservationId
+        );
+
+        log.info("예약 취소 완료 및 알림 전송: 예약ID={}, 공간소유자={}", reservationId, reservation.getSpace().getOwner().getEmail());
     }
 
     /**

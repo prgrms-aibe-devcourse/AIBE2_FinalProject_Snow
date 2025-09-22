@@ -51,6 +51,33 @@
                     <input type="number" id="entryFee" name="entryFee" value="0" />
                 </div>
 
+                <!-- 카테고리 선택 -->
+                <div class="form-group">
+                    <label for="categoryId">카테고리</label>
+                    <select id="categoryId" name="categoryId" required>
+                        <option value="">카테고리를 선택하세요</option>
+                        <option value="1">패션</option>
+                        <option value="2">반려동물</option>
+                        <option value="3">게임</option>
+                        <option value="4">캐릭터/IP</option>
+                        <option value="5">문화/컨텐츠</option>
+                        <option value="6">연예</option>
+                        <option value="7">여행/레저/스포츠</option>
+                    </select>
+                </div>
+
+                <!-- 태그 선택 -->
+                <div class="form-group">
+                    <label>태그 선택</label>
+                    <div id="tag-container" class="tag-container">
+                        <button type="button" class="tag-btn" data-id="1">할인</button>
+                        <button type="button" class="tag-btn" data-id="2">한정판</button>
+                        <button type="button" class="tag-btn" data-id="3">체험존</button>
+                        <button type="button" class="tag-btn" data-id="4">콜라보</button>
+                        <button type="button" class="tag-btn" data-id="5">신제품</button>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label><input type="checkbox" id="reservationAvailable" /> 예약 가능 여부</label>
                 </div>
@@ -83,6 +110,7 @@
                     <input type="file" id="extraImageFiles" accept="image/*" multiple />
                     <div id="extraImagePreview" class="image-preview"></div>
                 </div>
+
                 <!-- 운영 시간 -->
                 <div class="form-group">
                     <label>운영 시간</label>
@@ -109,18 +137,5 @@
 
 <!-- 페이지 전용 스크립트 -->
 <script src="/js/mypage/host/popup-register.js"></script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', async () => {
-        try {
-            await loadComponents();
-            initializeLayout();
-        } catch (error) {
-            console.error('페이지 초기화 오류:', error);
-            document.getElementById('main-content').innerHTML =
-                '<div class="error">페이지 로딩 중 오류가 발생했습니다: ' + error.message + '</div>';
-        }
-    });
-</script>
 </body>
 </html>

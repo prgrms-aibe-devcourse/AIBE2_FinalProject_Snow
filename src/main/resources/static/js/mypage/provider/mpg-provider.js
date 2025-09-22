@@ -2,6 +2,7 @@ class ProviderManager {
     constructor() {
         this.allReservations = [];
         this.elements = {};
+        this.userInfo = {}; // 사용자 정보 저장용
     }
 
     async initialize() {
@@ -9,6 +10,7 @@ class ProviderManager {
             this.setupElements();
             await this.loadData();
             this.setupEventListeners();
+            this.setupEditButtons(); // 편집 버튼 설정 추가
         } catch (error) {
             console.error('Provider page initialization failed:', error);
             this.showError('페이지 로딩 중 오류가 발생했습니다.');
@@ -23,20 +25,28 @@ class ProviderManager {
             statAccepted: document.getElementById('stat-accepted'),
             statRejected: document.getElementById('stat-rejected'),
             statTotal: document.getElementById('stat-total'),
-            mainContent: document.getElementById('main-content')
+            mainContent: document.getElementById('main-content'),
+            // 사용자 정보 요소들 추가
+            userEmail: document.getElementById('user-email'),
+            userName: document.getElementById('user-name'),
+            userNickname: document.getElementById('user-nickname'),
+            userPhone: document.getElementById('user-phone')
         };
     }
 
     async loadData() {
         try {
-            const [spaces, reservations, stats] = await Promise.all([
+            const [userInfo, spaces, reservations, stats] = await Promise.all([
+                apiService.get('/users/me').catch(() => ({})), // 사용자 정보 API 추가
                 apiService.getMySpaces().catch(() => []),
                 apiService.getMyReservations().catch(() => []),
                 apiService.getReservationStats().catch(() => ({}))
             ]);
 
+            this.userInfo = userInfo; // 사용자 정보 저장
             this.allReservations = reservations;
 
+            this.renderUserInfo(userInfo); // 사용자 정보 렌더링 추가
             this.renderStats(stats);
             this.renderSpaces(spaces);
             this.renderReservations(reservations);
@@ -45,6 +55,99 @@ class ProviderManager {
             console.error('데이터 로딩 실패:', error);
             throw error;
         }
+    }
+
+    // 사용자 정보 렌더링 메소드 추가
+    renderUserInfo(info) {
+        if (this.elements.userEmail) {
+            this.elements.userEmail.textContent = info.email || '-';
+        }
+        if (this.elements.userName) {
+            this.elements.userName.textContent = info.name || '-';
+        }
+        if (this.elements.userNickname) {
+            this.elements.userNickname.textContent = info.nickname || '-';
+        }
+        if (this.elements.userPhone) {
+            this.elements.userPhone.textContent = info.phone || '-';
+        }
+        if (this.elements.userBrand) {
+            this.elements.userBrand.textContent = info.brandName || '-';
+        }
+    }
+
+    // 편집 버튼 설정 메소드
+    setupEditButtons() {
+        const editableFields = [
+            { idx: 1, field: 'name', label: '이름', elementId: 'user-name' },
+            { idx: 2, field: 'nickname', label: '닉네임', elementId: 'user-nickname' },
+            { idx: 3, field: 'phone', label: '연락처', elementId: 'user-phone' }
+        ];
+
+        document.querySelectorAll('.edit-btn').forEach((btn, idx) => {
+            const fieldConfig = editableFields.find(f => f.idx === idx + 1);
+            if (!fieldConfig) return;
+
+            btn.addEventListener('click', () => {
+                const spanEl = document.getElementById(fieldConfig.elementId);
+                if (!spanEl) return;
+
+                const currentValue = spanEl.textContent;
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = currentValue === '-' ? '' : currentValue;
+                input.className = 'inline-edit';
+
+                const saveBtn = document.createElement('button');
+                saveBtn.textContent = '저장';
+                saveBtn.className = 'save-btn';
+
+                const cancelBtn = document.createElement('button');
+                cancelBtn.textContent = '취소';
+                cancelBtn.className = 'cancel-btn';
+
+                const buttonGroup = document.createElement('div');
+                buttonGroup.className = 'button-group';
+                buttonGroup.appendChild(saveBtn);
+                buttonGroup.appendChild(cancelBtn);
+
+                spanEl.replaceWith(input);
+                btn.replaceWith(buttonGroup);
+
+                cancelBtn.addEventListener('click', () => {
+                    input.replaceWith(spanEl);
+                    buttonGroup.replaceWith(btn);
+                });
+
+                saveBtn.addEventListener('click', async () => {
+                    const newValue = input.value.trim();
+                    if (!newValue || newValue === currentValue) {
+                        cancelBtn.click();
+                        return;
+                    }
+
+                    try {
+                        const updatedData = await apiService.put('/users/me', {
+                            name: fieldConfig.field === 'name' ? newValue : this.userInfo.name,
+                            nickname: fieldConfig.field === 'nickname' ? newValue : this.userInfo.nickname,
+                            phone: fieldConfig.field === 'phone' ? newValue : this.userInfo.phone
+                        });
+
+                        // 로컬 데이터 업데이트
+                        this.userInfo[fieldConfig.field] = updatedData[fieldConfig.field];
+
+                        spanEl.textContent = newValue;
+                        input.replaceWith(spanEl);
+                        buttonGroup.replaceWith(btn);
+
+                        alert(`${fieldConfig.label}이(가) 수정되었습니다.`);
+                    } catch (err) {
+                        console.error(err);
+                        alert(`${fieldConfig.label} 수정 실패: ${err.message || err}`);
+                    }
+                });
+            });
+        });
     }
 
     setupEventListeners() {

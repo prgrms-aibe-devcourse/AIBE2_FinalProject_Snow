@@ -25,6 +25,7 @@ public class PopupRegisterRequestDto {
 
     private List<String> imageUrls;
     private List<PopupHourResponseDto> hours;
-    //태그 정해지면 추가
-    //private List<String> tags;
+
+    private List<Long> tagIds;
+    private Long categoryId;
 }
