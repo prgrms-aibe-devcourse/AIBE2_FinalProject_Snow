@@ -39,7 +39,6 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest req,
                                     HttpServletResponse res,
                                     FilterChain filterChain) throws ServletException, IOException {
-
         String requestURI = req.getRequestURI();
         log.debug("JWT 필터 처리 시작 : {}", requestURI);
 
@@ -47,7 +46,6 @@ public class JwtFilter extends OncePerRequestFilter {
             String token = jwtTokenResolver.resolve(req);
 
             if (StringUtils.hasText(token) && jwtUtil.validateToken(token)){
-
                 log.debug("✅ 토큰 유효함");
 
                 String email = jwtUtil.getEmail(token);
@@ -58,7 +56,6 @@ public class JwtFilter extends OncePerRequestFilter {
                     // 이미 인증된 경우 스킵
                     if (SecurityContextHolder.getContext().getAuthentication() == null){
                         try{
-
                             UserDetails userDetails = getUserDetailsService().loadUserByUsername(email);
                             log.debug("사용자 정보 로드 완료 : {}", userDetails.getUsername());
 
@@ -75,7 +72,6 @@ public class JwtFilter extends OncePerRequestFilter {
                             log.debug("사용자 인증 설정 완료 : {}",email);
 
                         } catch (Exception e){
-
                             log.error("❌ 사용자 정보 로드 실패 : {}", e.getMessage());
                             SecurityContextHolder.clearContext();
                             sendErrorResponse(res, ErrorCode.USER_NOT_FOUND);
@@ -87,9 +83,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     log.debug("❌ 유효한 토큰을 찾을 수 없습니다.");
                 }
             }
-
             filterChain.doFilter(req, res);
-
         } catch (Exception e){
             log.error("❌ 필터에서 예외 발생: {}", e.getMessage());
             SecurityContextHolder.clearContext();
@@ -103,19 +97,25 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest req) {
         String path = req.getRequestURI();
-
         log.debug("필터 제외 경로 확인 : {}", path);
 
         // 정적 리소스
         if (path.startsWith("/css/") || path.startsWith("/js/") ||
                 path.startsWith("/images/") || path.startsWith("/static/") ||
-                path.equals("/favicon.ico")) {
+                path.startsWith("/templates/") || path.startsWith("/uploads/") ||
+                path.equals("/favicon.ico") || path.endsWith(".json")) {
             return true;
         }
 
-        // 공개 페이지
+        // 기본 페이지
         if (path.equals("/") || path.equals("/index.html") ||
                 path.equals("/main") || path.equals("/error")) {
+            return true;
+        }
+
+        // 페이지 경로들
+        if (path.startsWith("/popup/") || path.equals("/map") ||
+                path.startsWith("/users/") || path.startsWith("/missions/")) {
             return true;
         }
 
@@ -127,8 +127,22 @@ public class JwtFilter extends OncePerRequestFilter {
         // 공개 API
         if (path.equals("/api/auth/login") ||
                 path.equals("/api/auth/signup") ||
-                path.equals("/api/auth/check-email")) {
+                path.equals("/api/auth/check-email") ||
+                path.equals("/api/auth/check-nickname") ||
+                path.equals("/api/auth/logout")) {
             return true;
+        }
+
+        // GET 요청 공개 API들
+        String method = req.getMethod();
+        if ("GET".equalsIgnoreCase(method)) {
+            if (path.startsWith("/api/mission-sets/") ||
+                    path.startsWith("/api/missions/") ||
+                    path.startsWith("/api/popups/") ||
+                    path.startsWith("/api/search/") ||
+                    path.startsWith("/api/map/")) {
+                return true;
+            }
         }
 
         return false;

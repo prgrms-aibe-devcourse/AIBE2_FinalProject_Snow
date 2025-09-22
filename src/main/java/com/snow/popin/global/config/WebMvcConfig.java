@@ -33,56 +33,31 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // CSS 파일들
-        registry.addResourceHandler("/css/**")
-                .addResourceLocations("classpath:/static/css/")
-                .setCachePeriod(0)
-                .resourceChain(true);
+        // 정적 리소스 설정
+        registry.addResourceHandler("/css/**").addResourceLocations("classpath:/static/css/");
+        registry.addResourceHandler("/js/**").addResourceLocations("classpath:/static/js/");
+        registry.addResourceHandler("/images/**").addResourceLocations("classpath:/static/images/");
+        registry.addResourceHandler("/templates/**").addResourceLocations("classpath:/static/templates/");
+        registry.addResourceHandler("/static/**").addResourceLocations("classpath:/static/");
+        registry.addResourceHandler("/favicon.ico").addResourceLocations("classpath:/static/favicon.ico");
 
-        // JavaScript 파일들
-        registry.addResourceHandler("/js/**")
-                .addResourceLocations("classpath:/static/js/")
-                .setCachePeriod(0)
-                .resourceChain(true);
-
-        // 이미지 파일들
-        registry.addResourceHandler("/images/**")
-                .addResourceLocations("classpath:/static/images/")
-                .setCachePeriod(0);
-
-        // 전체 static 폴더
-        registry.addResourceHandler("/static/**")
-                .addResourceLocations("classpath:/static/")
-                .setCachePeriod(0);
-
-        // templates 폴더
-        registry.addResourceHandler("/templates/**")
-                .addResourceLocations("classpath:/static/templates/")
-                .setCachePeriod(0);
-
-        // favicon
-        registry.addResourceHandler("/favicon.ico")
-                .addResourceLocations("classpath:/static/favicon.ico")
-                .setCachePeriod(0);
-
-        // 업로드된 파일
+        // 업로드 파일
         String dir = uploadPath.endsWith("/") ? uploadPath : uploadPath + "/";
-        registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:" + dir);
+        registry.addResourceHandler("/uploads/**").addResourceLocations("file:" + dir);
     }
 
-    // CORS 설정 추가
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("https://d3ud9r2r0ydzqw.cloudfront.net", "http://localhost:3000")  // 실제 도메인들
+                .allowedOriginPatterns("https://d3ud9r2r0ydzqw.cloudfront.net",
+                        "http://d3ud9r2r0ydzqw.cloudfront.net"
+                        , "http://localhost:8080", "https://localhost:8080")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD")
                 .allowedHeaders("*")
-                .allowCredentials(true)  // 쿠키/JWT 사용하므로 true 유지
+                .allowCredentials(true)
                 .maxAge(3600);
     }
 
-    // MIME 타입 문제 해결을 위해 추가
     @Override
     public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
         configurer
