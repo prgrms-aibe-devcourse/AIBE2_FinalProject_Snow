@@ -75,10 +75,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns("*")
+                .allowedOrigins("https://d3ud9r2r0ydzqw.cloudfront.net", "http://localhost:3000")  // 실제 도메인들
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD")
                 .allowedHeaders("*")
-                .allowCredentials(true)
+                .allowCredentials(true)  // 쿠키/JWT 사용하므로 true 유지
                 .maxAge(3600);
     }
 
