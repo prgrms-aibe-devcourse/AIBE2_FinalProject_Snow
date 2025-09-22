@@ -3,10 +3,13 @@ package com.snow.popin.global.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.List;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
@@ -48,5 +51,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .mediaType("css", MediaType.valueOf("text/css"))
                 .mediaType("js", MediaType.valueOf("application/javascript"))
                 .defaultContentType(MediaType.APPLICATION_JSON);
+    }
+
+    // HTTP 메시지 컨버터에 UTF-8 설정 추가
+    @Override
+    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        converters.add(0, new org.springframework.http.converter.StringHttpMessageConverter(java.nio.charset.StandardCharsets.UTF_8));
     }
 }
