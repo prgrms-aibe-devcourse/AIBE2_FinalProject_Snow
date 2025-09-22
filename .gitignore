@@ -1,11 +1,13 @@
-HELP.md
+# Maven
 target/
 !.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
 
-# Compiled class file
+# Compiled class files
 *.class
 
-# Log file
+# Log files
 *.log
 
 # BlueJ files
@@ -14,7 +16,7 @@ target/
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Package Files #
+# Package Files
 *.jar
 *.war
 *.nar
@@ -23,10 +25,11 @@ target/
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# Virtual machine crash logs
 hs_err_pid*
 replay_pid*
 
+# IDE
 .sts4-cache
 .vscode/
 .idea/
@@ -34,5 +37,51 @@ replay_pid*
 *.iml
 *.ipr
 
-# Spring Boot application properties
-application.properties
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment and Configuration
+.env
+.env.local
+.env.prod
+
+# Database connection info (개발용만 제외, 운영용은 포함)
+application-dev.properties
+application-local.properties
+
+# Upload directories
+uploads/
+/uploads/
+
+# Spring Boot DevTools
+.spring-boot-devtools.properties
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Test reports
+/target/surefire-reports/
+/target/failsafe-reports/
+
+# Security
+*.p12
+*.jks
+*.pem
+*.key
+
+# Docker Compose override
+docker-compose.override.yml
+
+# Frontend dependencies (만약 나중에 npm을 사용하게 될 경우)
+node_modules/
+package-lock.json
+*.tsbuildinfo
+
+# Backup files
+*.bak
+*.backup
