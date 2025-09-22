@@ -74,13 +74,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     // CORS 설정 추가
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**")
-                .allowedOrigins(
-                        "http://localhost:8080",
-                        "http://127.0.0.1:8080",
-                        "https://d3ud9r2r0ydzqw.cloudfront.net"
-                )
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        registry.addMapping("/**")
+                .allowedOriginPatterns("*")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD")
                 .allowedHeaders("*")
                 .allowCredentials(true)
                 .maxAge(3600);
