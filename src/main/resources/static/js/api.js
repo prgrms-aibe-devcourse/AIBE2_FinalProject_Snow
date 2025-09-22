@@ -1,8 +1,27 @@
 // 간단한 API 통신 모듈
 class SimpleApiService {
     constructor() {
-        this.baseURL = '/api';
+        // 환경에 따른 API Base URL 설정
+        this.baseURL = this.getApiBaseUrl();
         this.token = this.getStoredToken();
+    }
+
+    // 환경에 따른 API Base URL 결정
+    getApiBaseUrl() {
+        const hostname = window.location.hostname;
+
+        // CloudFront 도메인인 경우
+        if (hostname === 'd3ud9r2r0ydzqw.cloudfront.net') {
+            return 'https://d3ud9r2r0ydzqw.cloudfront.net/api';
+        }
+
+        // 로컬 개발 환경
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            return 'http://localhost:8080/api';
+        }
+
+        // 기본값 (상대 경로)
+        return '/api';
     }
 
     // 로컬 스토리지에서 토큰 가져오기
@@ -61,6 +80,8 @@ class SimpleApiService {
     // GET 요청
     async get(endpoint) {
         try {
+            console.log('API GET 요청:', `${this.baseURL}${endpoint}`);
+
             const response = await fetch(`${this.baseURL}${endpoint}`, {
                 method: 'GET',
                 headers: this.getHeaders(),
@@ -73,16 +94,15 @@ class SimpleApiService {
             }
 
             if (!response.ok) {
+                console.error('API 응답 에러:', response.status, response.statusText);
                 sessionStorage.setItem("errorCode", response.status);
-                // window.location.href = '/error/error.html';  // 완전히 제거
-                console.error('API GET 에러:', response.status, endpoint);
-                throw new Error(`HTTP ${response.status}: ${endpoint}`); // 추가
+                window.location.href = '/error/error.html';
             }
 
             return await response.json();
         } catch (error) {
             console.error('API GET Error:', error);
-            // window.location.href = '/error/error.html';  // 제거
+            window.location.href = '/error/error.html';
             throw error;
         }
     }
@@ -90,6 +110,8 @@ class SimpleApiService {
     // POST 요청
     async post(endpoint, data) {
         try {
+            console.log('API POST 요청:', `${this.baseURL}${endpoint}`, data);
+
             const response = await fetch(`${this.baseURL}${endpoint}`, {
                 method: 'POST',
                 headers: this.getHeaders(),
@@ -103,16 +125,15 @@ class SimpleApiService {
             }
 
             if (!response.ok) {
+                console.error('API 응답 에러:', response.status, response.statusText);
                 sessionStorage.setItem("errorCode", response.status);
-                // window.location.href = '/error/error.html';  // 제거
-                console.error('API POST 에러:', response.status, endpoint);
-                throw new Error(`HTTP ${response.status}: ${endpoint}`);
+                window.location.href = '/error/error.html';
             }
 
             return await response.json();
         } catch (error) {
             console.error('API POST Error:', error);
-            // window.location.href = '/error/error.html';  // 제거
+            window.location.href = '/error/error.html';
             throw error;
         }
     }
@@ -120,6 +141,8 @@ class SimpleApiService {
     // PUT 요청
     async put(endpoint, data) {
         try {
+            console.log('API PUT 요청:', `${this.baseURL}${endpoint}`, data);
+
             const response = await fetch(`${this.baseURL}${endpoint}`, {
                 method: 'PUT',
                 headers: this.getHeaders(),
@@ -129,16 +152,13 @@ class SimpleApiService {
 
             if (response.status === 401) {
                 this.removeToken();
-                console.error('API GET 에러:', response.status, endpoint);
-
                 throw new Error('인증이 필요합니다.');
             }
 
             if (!response.ok) {
+                console.error('API 응답 에러:', response.status, response.statusText);
                 sessionStorage.setItem("errorCode", response.status);
-                // window.location.href = '/error/error.html';  // 제거
-                console.error('API PUT 에러:', response.status, endpoint);
-                throw new Error(`HTTP ${response.status}: ${endpoint}`);
+                window.location.href = '/error/error.html';
             }
 
             // 응답이 비어있을 수 있음
@@ -146,7 +166,7 @@ class SimpleApiService {
             return text ? JSON.parse(text) : true;
         } catch (error) {
             console.error('API PUT Error:', error);
-            // window.location.href = '/error/error.html';  // 제거
+            window.location.href = '/error/error.html';
             throw error;
         }
     }
@@ -164,18 +184,19 @@ class SimpleApiService {
                 this.removeToken();
                 throw new Error('인증이 필요합니다.');
             }
+
             if (!response.ok) {
+                console.error('API 응답 에러:', response.status, response.statusText);
                 sessionStorage.setItem("errorCode", response.status);
-                // window.location.href = '/error/error.html';  // 제거
-                console.error('API DELETE 에러:', response.status, endpoint);
-                throw new Error(`HTTP ${response.status}: ${endpoint}`);
+                window.location.href = '/error/error.html';
             }
+
             // 보통 빈 응답이지만, 서버가 JSON을 주면 파싱
             const ct = response.headers.get('content-type') || '';
             return ct.includes('application/json') ? await response.json() : true;
         } catch (err) {
             console.error('API DELETE Error:', err);
-            // window.location.href = '/error/error.html';  // 제거
+            window.location.href = '/error/error.html';
             throw err;
         }
     }
@@ -218,6 +239,37 @@ class SimpleApiService {
     // 메인 페이지 데이터
     async getMainData() {
         return await this.get('/main');
+    }
+
+    // === 미션 관련 API ===
+    async getMission(missionId) {
+        return await this.get(`/missions/${encodeURIComponent(missionId)}`);
+    }
+
+    async listMissions(params = {}) {
+        let url = '/missions';
+        if (params.missionSetId != null) {
+            url += `?missionSetId=${encodeURIComponent(params.missionSetId)}`;
+        }
+        return await this.get(url);
+    }
+
+    async getMissionSet(missionSetId) {
+        const url = `/mission-sets/${encodeURIComponent(missionSetId)}`;
+        return this.get(url);
+    }
+
+    async submitMissionAnswer(missionId, answer) {
+        return this.post(`/user-missions/${encodeURIComponent(missionId)}/submit-answer`, { answer });
+    }
+
+    // === 리워드 관련 API ===
+    async getMyReward(missionSetId) {
+        return this.get(`/rewards/my/${encodeURIComponent(missionSetId)}`);
+    }
+
+    async redeemReward(missionSetId, staffPin) {
+        return this.post(`/rewards/redeem`, { missionSetId, staffPin });
     }
 }
 
@@ -955,35 +1007,6 @@ apiService.updateMissionSet = async function(setId, data) {
     return await this.put(`/admin/mission-sets/${encodeURIComponent(setId)}`, data);
 };
 
-apiService.getMission = async function(missionId) {
-    return await this.get(`/missions/${encodeURIComponent(missionId)}`);
-};
-
-apiService.listMissions = async function(params = {}) {
-    let url = '/missions';
-    if (params.missionSetId != null) {
-        url += `?missionSetId=${encodeURIComponent(params.missionSetId)}`;
-    }
-    return await this.get(url);
-};
-
-apiService.getMissionSet = async function(missionSetId) {
-    return await this.get(`/mission-sets/${encodeURIComponent(missionSetId)}`);
-};
-
-apiService.submitMissionAnswer = async function(missionId, answer) {
-    return await this.post(`/user-missions/${encodeURIComponent(missionId)}/submit-answer`, { answer });
-};
-
-// === 리워드 관련 API ===
-apiService.getMyReward = async function(missionSetId) {
-    return await this.get(`/rewards/my/${encodeURIComponent(missionSetId)}`);
-};
-
-apiService.redeemReward = async function(missionSetId, staffPin) {
-    return await this.post(`/rewards/redeem`, { missionSetId, staffPin });
-};
-
 // 닉네임 중복 확인
 apiService.checkNicknameDuplicate = async function(nickname) {
     return await this.get(`/auth/check-nickname?nickname=${encodeURIComponent(nickname)}`);
@@ -1020,6 +1043,7 @@ apiService.updatePopupBasicSettings = async function(popupId, settings) {
 apiService.getAvailableTimeSlots = async function(popupId, date) {
     return await this.get(`/reservations/popups/${encodeURIComponent(popupId)}/available-slots?date=${encodeURIComponent(date)}`);
 };
+
 // 남은 예약 좌석 수 조회
 apiService.getAvailableSlotsWithCapacity = async function(popupId, date) {
     return await this.get(`/reservations/popups/${encodeURIComponent(popupId)}/available-slots/with-capacity?date=${encodeURIComponent(date)}`);

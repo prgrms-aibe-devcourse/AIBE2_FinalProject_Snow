@@ -37,8 +37,13 @@ class PopupListManager {
             this.setInitialTabState();
             await this.loadInitialData();
         } catch (error) {
-            console.error('팝업 리스트 페이지 초기화 실패:', error);
-            this.showError('페이지를 불러오는 중 오류가 발생했습니다.');
+            console.error('팝업 리스트 초기화 실패:', error);
+
+            // 에러가 발생해도 기본 UI는 표시
+            this.showErrorMessage('팝업 목록을 불러올 수 없습니다.');
+
+            // 초기화는 완료된 것으로 처리
+            return true;
         }
     }
 
