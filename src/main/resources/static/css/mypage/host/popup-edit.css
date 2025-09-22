@@ -216,3 +216,31 @@ input[type="checkbox"] {
         min-width: auto;
     }
 }
+.tag-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.tag-btn {
+    padding: 8px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    background: #f9fafb;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #374151;
+}
+
+.tag-btn:hover {
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+.tag-btn.selected {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}

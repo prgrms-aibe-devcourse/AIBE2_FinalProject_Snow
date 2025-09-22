@@ -1,18 +1,35 @@
-/* ===== 공통 ===== */
-.main-content {
+/* mpg-host.css - 마이페이지 호스트 전체 스타일 (provider와 동일한 사용자 정보 디자인) */
+
+/* === 페이지 컨테이너 === */
+.mypage-host {
+    padding: 0;
     background: #f9fafb;
-    padding: 0 20px;
 }
 
+/* === 제목 스타일 (블루 헤더) === */
+.section-title {
+    background: #2563eb !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    margin: 20px 16px 24px 16px !important;
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3) !important;
+}
+
+.section-title h2 {
+    color: white !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    margin: 0 !important;
+}
+
+/* === 공통 블록 스타일 === */
 .block {
-    margin-bottom: 24px;
+    margin: 24px 0;
+    padding: 0 16px;
 }
 
-/* ===== 제목 스타일 (블루 헤더) ===== */
-.block-title,
-.section-title,
-h3.block-title,
-h2.block-title {
+.block-title {
     background: #2563eb !important;
     border-radius: 12px !important;
     padding: 20px !important;
@@ -22,51 +39,35 @@ h2.block-title {
     font-size: 18px !important;
     font-weight: 600 !important;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-    margin: 0 0 24px 0 !important;
 }
 
-/* 카드 공통 */
-.card,
-.popup-card,
-.rent-card {
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* === 사용자 정보 === */
+.user-info .card {
     background: white;
     border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    border: 1px solid #e5e7eb;
-    padding: 16px;
-    margin-bottom: 12px;
-    transition: transform 0.2s, box-shadow 0.2s;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.card:hover,
-.popup-card:hover,
-.rent-card:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.empty {
-    text-align: center;
-    padding: 40px 20px;
-    color: #6b7280;
-    font-size: 14px;
-}
-
-/* ===== 사용자 정보 카드 (흰색 계열) ===== */
-.user-info .card {
-    padding: 0;
+.user-profile {
     background: white;
-    color: #374151;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .profile-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px;
-    border-bottom: 1px solid #f3f4f6;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f0f0f0;
 }
 
 .profile-row:last-child {
@@ -75,7 +76,7 @@ h2.block-title {
 
 .profile-row .label {
     font-weight: 600;
-    color: #111827;
+    color: #374151;
     min-width: 80px;
     font-size: 14px;
 }
@@ -87,325 +88,273 @@ h2.block-title {
     font-size: 14px;
 }
 
-.profile-row .edit-btn {
-    font-size: 12px;
-    padding: 6px 12px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    background: #f9fafb;
-    color: #6b7280;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-weight: 500;
+.profile-row.readonly .value {
+    color: #9ca3af;
+    font-style: italic;
 }
 
-.profile-row .edit-btn:hover {
-    background: #f3f4f6;
-    color: #374151;
-    transform: translateY(-1px);
-}
-
-/* ===== 페이지 헤더 ===== */
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-}
-
-.btn-primary.small {
-    padding: 10px 16px;
-    font-size: 14px;
-    background: #1e40af;
+.edit-btn {
+    background: #3b82f6;
     color: white;
     border: none;
-    border-radius: 8px;
-    cursor: pointer;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 12px;
     font-weight: 500;
+    cursor: pointer;
     transition: all 0.2s;
-    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
 }
 
-.btn-primary.small:hover {
-    background: #1e3a8a;
+.edit-btn:hover {
+    background: #2563eb;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
 }
 
-/* ===== 팝업 카드 ===== */
+/* === 인라인 편집 === */
+.inline-edit {
+    flex: 1;
+    margin: 0 12px;
+    padding: 8px 12px;
+    border: 2px solid #3b82f6;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #ffffff;
+    color: #374151;
+    outline: none;
+}
+
+.button-group {
+    display: flex;
+    gap: 8px;
+}
+
+.save-btn, .cancel-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.save-btn {
+    background: #10b981;
+    color: white;
+}
+
+.save-btn:hover {
+    background: #059669;
+}
+
+.cancel-btn {
+    background: #6b7280;
+    color: white;
+}
+
+.cancel-btn:hover {
+    background: #4b5563;
+}
+
+/* === 팝업 카드 === */
 .popup-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
+}
+
+.popup-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .popup-card .thumb {
-    width: 72px;
-    height: 72px;
-    border-radius: 10px;
-    object-fit: cover;
-    background: #f9fafb;
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f3f4f6;
     flex-shrink: 0;
-    border: 1px solid #e5e7eb;
+}
+
+.popup-card .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .popup-card .info {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
 }
 
-.popup-card .info .title {
+.popup-card .title {
     font-size: 16px;
     font-weight: 600;
-    color: #111827;
+    color: #374151;
+    margin-bottom: 8px;
 }
 
-.popup-card .info .meta {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-}
-
-/* 상태 뱃지 */
-.status-badge {
-    display: inline-block;
-    padding: 6px 12px;
-    font-size: 12px;
-    border-radius: 12px;
-    font-weight: 500;
-    white-space: nowrap;
-}
-
-.status-badge.ongoing,
-.status-badge.planned {
-    background: #dbeafe;
-    color: #1e40af;
-}
-
-.status-badge.finished {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.status-badge.cancelled {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.status-badge.pending {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.status-badge.accepted {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.status-badge.rejected {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-/* 팝업 카드 버튼 */
 .popup-card .right-actions {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    flex-shrink: 0;
 }
 
-.popup-card .right-actions button {
-    background: #1e40af;
-    color: white;
-    border: none;
+.btn-detail, .btn-manage, .btn-stats {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
     border-radius: 8px;
-    font-size: 12px;
     padding: 8px 12px;
+    font-size: 12px;
     font-weight: 500;
+    color: #475569;
     cursor: pointer;
     transition: all 0.2s;
-    min-width: 80px;
+    white-space: nowrap;
 }
 
-.popup-card .right-actions button:hover {
-    background: #1e3a8a;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
-}
-
-/* ===== 공간 예약 카드 ===== */
+/* === 예약 카드 === */
 .rent-card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .rent-card .left {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-}
-
-.rent-card .left .thumb {
-    width: 60px;
-    height: 60px;
-    border-radius: 8px;
-    object-fit: cover;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-}
-
-.rent-card .left .address {
-    font-size: 16px;
-    font-weight: 600;
-    color: #111827;
-    margin-bottom: 4px;
-}
-
-.rent-card .left .desc {
-    font-size: 13px;
-    color: #6b7280;
-    margin-bottom: 4px;
-}
-
-.rent-card .left .dates {
-    font-size: 13px;
-    color: #6b7280;
-    margin-bottom: 8px;
-}
-
-/* 공간 예약 카드 버튼 */
-.rent-card .right-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    flex-shrink: 0;
-}
-
-.rent-card .right-actions button {
-    background: #1e40af;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 12px;
-    padding: 8px 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    min-width: 80px;
-}
-
-.rent-card .right-actions button:hover {
-    background: #1e3a8a;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
-}
-
-.rent-card .right-actions .btn-cancel {
-    background: #f3f4f6;
-    color: #6b7280;
-    border: 1px solid #e5e7eb;
-}
-
-.rent-card .right-actions .btn-cancel:hover {
-    background: #e5e7eb;
-    color: #374151;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* ===== 푸터 겹침 방지 ===== */
-.mobile-container {
-    display: flex !important;
-    flex-direction: column !important;
-    min-height: 100vh !important;
-}
-
-.main-content {
-    flex: 1 !important;
-    padding: 0 20px 120px 20px !important;
-    box-sizing: border-box !important;
-}
-
-#footer-container {
-    position: relative !important;
-    flex-shrink: 0 !important;
-}
-
-/* ===== 모바일 대응 ===== */
-@media (max-width: 480px) {
-    .main-content {
-        padding: 0 12px 120px 12px !important;
-    }
-
-    .rent-card .left .thumb {
-        width: 48px;
-        height: 48px;
-    }
-
-    .popup-card .thumb {
-        width: 60px;
-        height: 60px;
-    }
-
-    .popup-card .info .title {
-        font-size: 14px;
-    }
-
-    .popup-card .right-actions,
-    .rent-card .right-actions {
-        flex-direction: row;
-        gap: 6px;
-    }
-
-    .popup-card .right-actions button,
-    .rent-card .right-actions button {
-        flex: 1;
-        min-width: auto;
-        padding: 6px 8px;
-    }
-
-    .profile-row {
-        padding: 12px 16px;
-    }
-
-    .profile-row .label {
-        min-width: 60px;
-        font-size: 13px;
-    }
-
-    .profile-row .value {
-        font-size: 13px;
-    }
-
-    .profile-row .edit-btn {
-        padding: 4px 8px;
-        font-size: 11px;
-    }
-}
-/* ===== 팝업 등록 버튼 (제목 아래 배치) ===== */
-.btn-primary.register-btn {
-    display: block;
-    width: 100%;
-    padding: 12px 20px;
-    font-size: 14px;
-    background: #1e40af;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.2s;
-    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
+    gap: 16px;
     margin-bottom: 16px;
 }
 
-.btn-primary.register-btn:hover {
-    background: #1e3a8a;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
+.rent-card .thumb {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f3f4f6;
+    flex-shrink: 0;
+}
+
+.rent-card .right-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.action-left {
+    display: flex;
+    gap: 8px;
+}
+
+.action-right {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+/* 공통 버튼 */
+.btn-map, .btn-detail, .btn-cancel, .btn-chat {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-map:hover, .btn-detail:hover {
+    background: #f1f5f9;
+}
+
+.btn-cancel {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
+}
+
+.btn-cancel:hover {
+    background: #fee2e2;
+    border-color: #f87171;
+}
+
+/* 채팅 버튼 - 아이콘 전용 */
+.btn-chat {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #3b82f6;
+    border: none;
+    color: white;
+}
+
+.btn-chat::before {
+    content: "";
+    width: 18px;
+    height: 18px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4-.8L3 20l1.2-3.6A7.96 7.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'/%3E%3C/svg%3E");
+    background-size: cover;
+}
+
+/* === 등록 버튼 === */
+.register-btn {
+    width: auto;
+    padding: 10px 20px;
+    font-size: 14px;
+    margin-left: auto;
+    display: block;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.register-btn:hover {
+    background: #1d4ed8;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+/* === 빈 상태 === */
+.empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6b7280;
+    font-size: 14px;
+    background: #f9fafb;
+    border-radius: 12px;
+    border: 2px dashed #d1d5db;
+}
+
+/* === 반응형 === */
+@media (max-width: 480px) {
+    .popup-card, .rent-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .popup-card .right-actions, .rent-card .right-actions {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        margin-top: 12px;
+    }
+
+    .rent-card .left {
+        width: 100%;
+    }
 }

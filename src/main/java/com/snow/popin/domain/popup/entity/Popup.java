@@ -270,4 +270,8 @@ public class Popup extends BaseEntity {
     public void setStatus(PopupStatus status) {
         this.status = status;
     }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
 }
