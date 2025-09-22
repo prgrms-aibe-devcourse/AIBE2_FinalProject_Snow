@@ -5,11 +5,15 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-@RequiredArgsConstructor
 public class MainController {
 
-//    @GetMapping(value="/")
-//    public String main(){
-//        return "main";
-//    }
+    @GetMapping("/")
+    public String index() {
+        return "forward:/templates/pages/home.html"; // 기존 home.html 활용
+    }
+
+    @GetMapping("/main")
+    public String main() {
+        return "forward:/templates/pages/home.html";
+    }
 }
