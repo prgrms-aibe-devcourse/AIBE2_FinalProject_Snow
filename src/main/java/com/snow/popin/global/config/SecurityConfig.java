@@ -17,8 +17,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.snow.popin.global.error.ErrorResponseUtil.sendErrorResponse;
 
@@ -46,7 +51,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors()
+                .cors().configurationSource(corsConfigurationSource())
                 .and()
                 .csrf().disable()
 
@@ -57,14 +62,17 @@ public class SecurityConfig {
 
                 .authorizeRequests(authz -> authz
                         // 정적 리소스
-                        .antMatchers("/uploads/**","/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico", "/templates/**", "/*.json", "/pages/**", "/error/**").permitAll()
+                        .antMatchers("/uploads/**","/css/**", "/js/**", "/images/**",
+                                "/static/**", "/favicon.ico", "/templates/**", "/*.json",
+                                "/pages/**", "/error/**").permitAll()
 
-                        // 공개 페이지
-                        .antMatchers("/", "/index.html", "/main").permitAll()
-                        .antMatchers("/popup/**", "/map", "/users/**", "/mypage/**", "/space/**", "/missions/**" ,"/reviews/**", "/bookmarks/**","/admins/**").permitAll()
+                        // 공개 페이지 - 충돌 해결: /error와 /admins/** 추가
+                        .antMatchers("/", "/index.html", "/main", "/error").permitAll()
+                        .antMatchers("/popup/**", "/map", "/users/**", "/mypage/**",
+                                "/space/**", "/missions/**" ,"/reviews/**",
+                                "/bookmarks/**", "/admins/**").permitAll()
 
-
-                        // 인증 관련 페이지궁금
+                        // 인증 관련 페이지
                         .antMatchers("/auth/**").permitAll()
 
                         // === 채팅 ===
@@ -96,10 +104,8 @@ public class SecurityConfig {
                         .antMatchers("/api/**").permitAll()
                         .antMatchers("/not-exist-page").permitAll()   // 테스트용
 
-
                         .anyRequest().authenticated()
                 )
-
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
 
                 // 예외 처리
@@ -131,6 +137,35 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource(){
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.setAllowedOrigins(Arrays.asList(
+                "https://d3ud9r2r0ydzqw.cloudfront.net",  // 실제 프론트엔드 도메인 (HTTPS)
+                "http://d3ud9r2r0ydzqw.cloudfront.net",   // 혹시 HTTP로도 접근하는 경우
+                "http://localhost:8080",                  // 로컬 백엔드 (HTTP)
+                "https://localhost:8080"                  // 로컬 백엔드 (HTTPS)
+        ));
+
+        // 모든 HTTP 메소드 허용
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
+
+        // 모든 헤더 허용
+        configuration.setAllowedHeaders(List.of("*"));
+
+        // 인증정보 허용 (JWT 토큰용)
+        configuration.setAllowCredentials(true);
+
+        // preflight 결과 캐시 시간
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
     }
 
     private boolean isApiRequest(HttpServletRequest req) {
