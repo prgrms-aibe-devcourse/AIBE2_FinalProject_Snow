@@ -1,169 +1,214 @@
-// ====== 날짜 포맷 유틸 ======
-function formatDate(dateString) {
-    if (!dateString) return "-";
-    const d = new Date(dateString);
-    if (isNaN(d)) return dateString;
-
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    const hh = String(d.getHours()).padStart(2, "0");
-    const mm = String(d.getMinutes()).padStart(2, "0");
-
-    return `${y}-${m}-${day} ${hh}:${mm}`;
-}
-
-// ====== 사용자 이름에서 첫글자 추출 ======
-function getInitial(name) {
-    return name ? name.charAt(0) : "?";
-}
-
-// ====== 통계 업데이트 ======
-function updateStats(reservations) {
-    const totalCount = reservations.length;
-    const reservedCount = reservations.filter(r => r.status === 'RESERVED').length;
-    const visitedCount = reservations.filter(r => r.status === 'VISITED').length;
-
-    document.getElementById('total-count').textContent = totalCount;
-    document.getElementById('reserved-count').textContent = reservedCount;
-    document.getElementById('visited-count').textContent = visitedCount;
-}
-
+// reservation-manage.js
 const ReservationManagePage = {
+    popupId: null,
+
     async init() {
-        // RESTful 경로: /mypage/host/popup/{id}/reservation
-        const pathParts = window.location.pathname.split("/");
-        const popupId = pathParts[pathParts.indexOf("popup") + 1];
-
-        if (!popupId) {
-            alert("popupId가 없습니다.");
-            return;
-        }
-
         try {
-            const popup = await apiService.get(`/popups/${popupId}`);
-            document.getElementById("popup-title").innerText = popup.title;
-        } catch (err) {
-            console.error("팝업 정보 불러오기 실패:", err);
-            document.getElementById("popup-title").innerText = "팝업명 불러오기 실패";
-        }
+            // 1) 쿼리스트링에서 가져오기
+            const params = new URLSearchParams(window.location.search);
+            this.popupId = params.get("popupId");
 
-        await this.loadReservations(popupId);
-    },
+            // 2) 없으면 pathname에서 숫자 추출 (/reservation/68 등)
+            if (!this.popupId) {
+                const pathParts = window.location.pathname.split("/").filter(Boolean);
+                const idPart = pathParts.find(p => /^\d+$/.test(p));
+                if (idPart) {
+                    this.popupId = idPart;
+                }
+            }
 
-    async loadReservations(popupId) {
-        try {
-            const res = await apiService.get(`/reservations/popups/${popupId}`);
-            const list = document.getElementById("reservation-list");
-            list.innerHTML = "";
-
-            if (!res || res.length === 0) {
-                list.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">📅</div>
-                        <div class="text">예약자가 없습니다.</div>
-                    </div>
-                `;
-                updateStats([]);
+            // 3) 그래도 없으면 에러
+            if (!this.popupId) {
+                alert("팝업 ID가 필요합니다.");
                 return;
             }
 
-            const statusMap = {
-                RESERVED: { text: "예약됨", class: "status-reserved" },
-                VISITED: { text: "방문완료", class: "status-visited" },
-                CANCELLED: { text: "예약취소", class: "status-cancelled" }
-            };
+            // 원래 기능 유지
+            await this.loadPopup();
+            await this.loadReservations();
 
-            res.forEach(r => {
-                const status = statusMap[r.status] || { text: r.status, class: "" };
+            // 예약 설정 초기화
+            if (window.ReservationSettings) {
+                ReservationSettings.init(this.popupId);
+            }
+        } catch (error) {
+            console.error("예약 관리 페이지 초기화 실패:", error);
+            alert("페이지를 불러오는 중 오류가 발생했습니다.");
+        }
+    },
 
-                const card = document.createElement("div");
-                card.className = "reservation-card";
-                card.innerHTML = `
-                    <div class="card-main">
-                        <div class="user-avatar">${getInitial(r.name)}</div>
-                        <div class="card-info">
-                            <div class="user-name">${r.name}</div>
-                            <div class="user-phone">${r.phone}</div>
-                        </div>
-                        <div class="status-badge ${status.class}">${status.text}</div>
-                    </div>
-                    <div class="card-details">
-                        <div class="detail-row">
-                            <span class="detail-label">예약일시</span>
-                            <span class="detail-value">${formatDate(r.reservationDate)}</span>
-                        </div>
-                        ${r.partySize ? `
-                        <div class="detail-row">
-                            <span class="detail-label">인원</span>
-                            <span class="detail-value">${r.partySize}명</span>
-                        </div>` : ''}
-                        ${r.note ? `
-                        <div class="detail-row">
-                            <span class="detail-label">메모</span>
-                            <span class="detail-value">${r.note}</span>
-                        </div>` : ''}
-                    </div>
-                    ${r.status === "RESERVED" ? `
-                    <div class="card-actions">
-                        <button class="action-btn btn-complete" onclick="ReservationManagePage.markVisited(${r.id})">방문완료</button>
-                        <button class="action-btn btn-cancel" onclick="ReservationManagePage.cancel(${r.id})">취소</button>
-                    </div>` : ""}
-                `;
-                list.appendChild(card);
-            });
-
-            // 통계 업데이트
-            updateStats(res);
-
+    // 팝업 정보 로드
+    async loadPopup() {
+        try {
+            const popup = await apiService.getPopup(this.popupId);
+            document.getElementById("popup-title").textContent = popup.title || "제목 없음";
         } catch (err) {
-            console.error(err);
-            alert("예약 정보를 불러오지 못했습니다.");
-            document.getElementById("reservation-list").innerHTML = `
+            console.error("팝업 정보 로딩 실패:", err);
+            alert("팝업 정보를 불러오지 못했습니다.");
+        }
+    },
+
+    // 예약자 목록 로드
+    async loadReservations() {
+        try {
+            const reservations = await apiService.getPopupReservations(this.popupId);
+
+            this.renderStats(reservations);
+            this.renderReservations(reservations);
+        } catch (err) {
+            console.error("예약 목록 로딩 실패:", err);
+            alert("예약 목록을 불러오지 못했습니다.");
+        }
+    },
+
+    // 예약 통계 렌더링
+    renderStats(reservations) {
+        const stats = {
+            reserved: 0,
+            visited: 0,
+            cancelled: 0,
+            total: reservations.length
+        };
+
+        reservations.forEach(r => {
+            if (r.status === "RESERVED") stats.reserved++;
+            if (r.status === "VISITED") stats.visited++;
+            if (r.status === "CANCELLED") stats.cancelled++;
+        });
+
+        document.getElementById("reserved-count").textContent = stats.reserved;
+        document.getElementById("visited-count").textContent = stats.visited;
+        document.getElementById("total-count").textContent = stats.total;
+    },
+
+    // 예약자 목록 렌더링
+    renderReservations(reservations) {
+        const container = document.getElementById("reservation-list");
+        container.innerHTML = "";
+
+        if (!reservations || reservations.length === 0) {
+            container.innerHTML = `
                 <div class="empty-state">
-                    <div class="icon">❌</div>
-                    <div class="text">예약 정보를 불러오는데 실패했습니다.</div>
-                </div>
-            `;
-        }
-    },
-
-    async markVisited(reservationId) {
-        if (!confirm('방문 완료 처리하시겠습니까?')) {
+                    <div class="icon">📅</div>
+                    <div class="text">예약자가 없습니다.</div>
+                </div>`;
             return;
         }
 
+        reservations.forEach(r => {
+            const card = this.createReservationCard(r);
+            container.appendChild(card);
+        });
+    },
+
+    // 예약 카드 생성
+    createReservationCard(r) {
+        const card = document.createElement("div");
+        card.className = "reservation-card";
+
+        const top = document.createElement("div");
+        top.className = "reservation-top";
+        top.innerHTML = `
+            <div class="reservation-status status-${r.status.toLowerCase()}">${this.getStatusText(r.status)}</div>
+            <div class="reservation-name">${r.name || "이름 없음"}</div>
+            <div class="reservation-phone">${r.phone || "연락처 없음"}</div>
+        `;
+        card.appendChild(top);
+
+        const body = document.createElement("div");
+        body.className = "reservation-body";
+        body.innerHTML = `
+            <div class="reservation-date">예약일: ${formatReservationDate(r.reservationDate)}</div>
+            <div class="reservation-party">인원: ${r.partySize || 1}명</div>
+        `;
+        card.appendChild(body);
+
+        const actions = document.createElement("div");
+        actions.className = "reservation-actions";
+
+        if (r.status === "RESERVED") {
+            const btnVisit = document.createElement("button");
+            btnVisit.className = "btn-visit";
+            btnVisit.textContent = "방문완료";
+            btnVisit.addEventListener("click", () => this.markAsVisited(r.id));
+
+            const btnCancel = document.createElement("button");
+            btnCancel.className = "btn-cancel";
+            btnCancel.textContent = "취소";
+            btnCancel.addEventListener("click", () => this.cancelReservation(r.id));
+
+            actions.appendChild(btnVisit);
+            actions.appendChild(btnCancel);
+        }
+
+        card.appendChild(actions);
+        return card;
+    },
+
+    getStatusText(status) {
+        const map = {
+            RESERVED: "예약됨",
+            VISITED: "방문완료",
+            CANCELLED: "취소됨"
+        };
+        return map[status] || status;
+    },
+
+    async markAsVisited(id) {
+        if (!confirm("이 예약을 방문완료 처리하시겠습니까?")) return;
         try {
-            await apiService.put(`/reservations/${reservationId}/visit`);
-            alert("방문 완료 처리했습니다.");
-            location.reload();
+            await apiService.visitReservation(id);
+            alert("방문완료 처리되었습니다.");
+            await this.loadReservations();
         } catch (err) {
-            console.error("방문 완료 처리 실패:", err);
-            alert("처리에 실패했습니다. 다시 시도해주세요.");
+            console.error("방문완료 실패:", err);
+            alert("방문완료 처리에 실패했습니다.");
         }
     },
 
-    async cancel(reservationId) {
-        if (!confirm('예약을 취소하시겠습니까?\n취소된 예약은 되돌릴 수 없습니다.')) {
-            return;
-        }
-
+    async cancelReservation(id) {
+        if (!confirm("이 예약을 취소하시겠습니까?")) return;
         try {
-            await apiService.put(`/reservations/${reservationId}/cancel`);
-            alert("예약을 취소했습니다.");
-            location.reload();
+            await apiService.cancelReservation(id);ㄴ
+            await this.loadReservations();
         } catch (err) {
-            console.error("예약 취소 실패:", err);
-            alert("처리에 실패했습니다. 다시 시도해주세요.");
+            console.error("취소 실패:", err);
+            alert("예약 취소에 실패했습니다.");
         }
+    },
+
+
+
+    switchTab(tabName) {
+        // 모든 탭 버튼/콘텐츠 초기화
+        document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
+        document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
+
+        // 선택된 탭 활성화
+        const selectedBtn = document.querySelector(`.tab-button[onclick*="${tabName}"]`);
+        const selectedTab = document.getElementById(`tab-${tabName}`);
+        if (selectedBtn) selectedBtn.classList.add("active");
+        if (selectedTab) selectedTab.classList.add("active");
     }
+
 };
 
-// 페이지 초기화
-document.addEventListener("DOMContentLoaded", () => {
-    if (!window.componentLoaded) {
-        ReservationManagePage.init();
+// 날짜 포매팅
+function formatReservationDate(dateString) {
+    if (!dateString) return "-";
+
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleString('ko-KR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (error) {
+        return dateString; // 파싱 실패시 원본 반환
     }
-});
+}
 
 window.ReservationManagePage = ReservationManagePage;
