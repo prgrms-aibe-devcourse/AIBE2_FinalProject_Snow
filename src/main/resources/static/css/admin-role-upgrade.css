@@ -89,58 +89,6 @@
     background-color: #f0f0f0;
 }
 
-/* 상태 배지 - 통일된 크기와 스타일 */
-.status-badge {
-    display: inline-block;
-    padding: 8px 16px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    text-align: center;
-    min-width: 80px;
-    box-sizing: border-box;
-}
-
-.status-badge.pending {
-    background-color: #fef3c7;
-    color: #92400e;
-    border: 1px solid #fbbf24;
-}
-
-.status-badge.approved {
-    background-color: #d1fae5;
-    color: #065f46;
-    border: 1px solid #10b981;
-}
-
-.status-badge.rejected {
-    background-color: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #ef4444;
-}
-
-/* 역할 배지 - 줄바꿈 방지 */
-.role-badge {
-    display: inline-block;
-    padding: 6px 8px;
-    border-radius: 10px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    box-sizing: border-box;
-    white-space: nowrap; /* 줄바꿈 방지 */
-}
-
-.role-badge.host {
-    background-color: #dbeafe;
-    color: #1d4ed8;
-}
-
-.role-badge.provider {
-    background-color: #f3e8ff;
-    color: #7c3aed;
-}
-
 /* 모달 스타일 */
 .modal {
     display: none;

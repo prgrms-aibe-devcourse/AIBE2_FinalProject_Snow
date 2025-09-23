@@ -81,32 +81,6 @@ body {
     width: 10%;
 }
 
-/* 상태 배지 */
-.status-badge {
-    padding: 6px 12px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
-    text-align: center;
-    display: inline-block;
-    min-width: 60px;
-}
-
-.status-badge.open {
-    background-color: #fef3c7;
-    color: #92400e;
-}
-
-.status-badge.in-progress {
-    background-color: #dbeafe;
-    color: #1e40af;
-}
-
-.status-badge.closed {
-    background-color: #d1fae5;
-    color: #065f46;
-}
-
 /* 테이블 행 hover 효과 */
 .inquiry-table tbody tr {
     cursor: pointer;

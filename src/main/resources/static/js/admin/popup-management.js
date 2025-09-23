@@ -67,7 +67,7 @@ class PopupManagement {
     async loadCategories() {
         try {
             const response = await fetch('/api/auth/categories', {
-                headers: { 'Content-Type': 'application/json' }
+                headers: {'Content-Type': 'application/json'}
             });
 
             if (response.ok) {
@@ -85,14 +85,14 @@ class PopupManagement {
 
     getDefaultCategories() {
         return [
-            { id: 1, name: '푸드', slug: 'FOOD' },
-            { id: 2, name: '패션', slug: 'FASHION' },
-            { id: 3, name: '뷰티', slug: 'BEAUTY' },
-            { id: 4, name: '라이프스타일', slug: 'LIFESTYLE' },
-            { id: 5, name: '문화/예술', slug: 'CULTURE' },
-            { id: 6, name: '스포츠', slug: 'SPORTS' },
-            { id: 7, name: '기술/IT', slug: 'TECH' },
-            { id: 8, name: '기타', slug: 'OTHER' }
+            {id: 1, name: '푸드', slug: 'FOOD'},
+            {id: 2, name: '패션', slug: 'FASHION'},
+            {id: 3, name: '뷰티', slug: 'BEAUTY'},
+            {id: 4, name: '라이프스타일', slug: 'LIFESTYLE'},
+            {id: 5, name: '문화/예술', slug: 'CULTURE'},
+            {id: 6, name: '스포츠', slug: 'SPORTS'},
+            {id: 7, name: '기술/IT', slug: 'TECH'},
+            {id: 8, name: '기타', slug: 'OTHER'}
         ];
     }
 
@@ -214,9 +214,9 @@ class PopupManagement {
         document.getElementById('tableContainer').innerHTML = tableHTML;
     }
 
-    // 페이지네이션
+// 페이지네이션
     renderPagination(pageInfo) {
-        const { number, totalPages, first, last } = pageInfo;
+        const {number, totalPages, first, last} = pageInfo;
 
         if (totalPages <= 1) {
             document.getElementById('pagination').innerHTML = '';
@@ -226,16 +226,18 @@ class PopupManagement {
         const startPage = Math.max(0, number - 2);
         const endPage = Math.min(totalPages - 1, number + 2);
 
-        let html = `<button ${first ? 'disabled' : ''} onclick="popupManagement.goToPage(${number})">이전</button>`;
+        let html = `<button class="page-button" ${first ? 'disabled' : ''} onclick="popupManagement.goToPage(${number})">이전</button>`;
 
         for (let i = startPage; i <= endPage; i++) {
-            html += `<button class="${i === number ? 'active' : ''}" onclick="popupManagement.goToPage(${i + 1})">${i + 1}</button>`;
+            const activeClass = i === number ? 'active' : '';
+            html += `<button class="page-button ${activeClass}" onclick="popupManagement.goToPage(${i + 1})">${i + 1}</button>`;
         }
 
-        html += `<button ${last ? 'disabled' : ''} onclick="popupManagement.goToPage(${number + 2})">다음</button>`;
+        html += `<button class="page-button" ${last ? 'disabled' : ''} onclick="popupManagement.goToPage(${number + 2})">다음</button>`;
 
         document.getElementById('pagination').innerHTML = html;
     }
+
 
     goToPage(page) {
         this.currentPage = page;
@@ -420,7 +422,7 @@ class PopupManagement {
             const response = await fetch(`/api/admin/popups/${this.selectedPopupId}/reject`, {
                 method: 'POST',
                 headers: this.getAuthHeaders(),
-                body: JSON.stringify({ reason })
+                body: JSON.stringify({reason})
             });
 
             if (!response.ok) throw new Error('팝업 거부 실패');
@@ -516,6 +518,6 @@ class PopupManagement {
 let popupManagement;
 
 // DOM 로드 완료 후 초기화
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', async function () {
     popupManagement = new PopupManagement();
 });

@@ -158,30 +158,6 @@
     color: #6b7280;
 }
 
-/* ===== 상태 배지 (호스트 페이지와 통일) ===== */
-.status-badge {
-    padding: 6px 12px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 500;
-    white-space: nowrap;
-}
-
-.status-reserved {
-    background: #dbeafe;
-    color: #1e40af;
-}
-
-.status-visited {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.status-cancelled {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
 .card-details {
     background: #f9fafb;
     border-radius: 8px;

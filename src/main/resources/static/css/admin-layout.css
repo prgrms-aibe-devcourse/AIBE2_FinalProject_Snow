@@ -653,3 +653,144 @@ body::-webkit-scrollbar-thumb:hover {
 #admin-footer .footer-item {
     line-height: 1;      /* 아이콘이 라인박스에 끌려가지 않게 */
 }
+
+
+/* 테이블 영역 */
+.table-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.data-table th {
+    background: #f9fafb;
+    padding: 16px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+}
+
+.data-table td {
+    padding: 16px 12px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+}
+
+.data-table tr:hover {
+    background: #f9fafb;
+}
+
+
+/* 상태 배지 - 통일된 크기와 스타일 */
+.status-badge {
+    display: inline-flex;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 80px;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+}
+
+.status-badge.pending {
+    background-color: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fbbf24;
+}
+
+.status-badge.approved {
+    background-color: #B6BCF7;
+    color: #232b78;
+    border: 1px solid #5860b5;
+}
+
+.status-badge.rejected {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #ef4444;
+}
+
+.status-badge.rejected {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-badge.active {
+    background: #d4edda;
+    color: #97a7f8;
+}
+
+.status-badge.completed {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+.status-badge.cancelled {
+    background: #f5c6cb;
+    color: #721c24;
+}
+
+.status-badge.public {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.private {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.open {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.in_progress {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.status-badge.closed {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+
+/* 역할 배지 - 줄바꿈 방지 */
+.role-badge {
+    display: inline-block;
+    padding: 6px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    box-sizing: border-box;
+    white-space: nowrap; /* 줄바꿈 방지 */
+}
+
+.role-badge.host {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+
+.role-badge.provider {
+    background-color: #f3e8ff;
+    color: #7c3aed;
+}

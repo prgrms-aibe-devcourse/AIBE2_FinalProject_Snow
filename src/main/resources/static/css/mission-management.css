@@ -28,23 +28,6 @@
 }
 .popup-table tr:hover { background: #f8f9fa; }
 
-/* ===== 상태 배지 ===== */
-.status-badge {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 500;
-    text-align: center;
-    display: inline-block;
-    min-width: 60px;
-}
-.status-badge.pending   { background: #fff3cd; color: #856404; }
-.status-badge.approved  { background: #d1ecf1; color: #0c5460; }
-.status-badge.rejected  { background: #f8d7da; color: #721c24; }
-.status-badge.active    { background: #d4edda; color: #155724; }
-.status-badge.completed { background: #e2e3e5; color: #383d41; }
-.status-badge.cancelled { background: #f5c6cb; color: #721c24; }
-
 /* (선택) 카테고리 배지 - 필요 시 */
 .category-badge {
     padding: 2px 6px;

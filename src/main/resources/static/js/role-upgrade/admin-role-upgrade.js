@@ -156,7 +156,6 @@ class AdminRoleUpgradeManager {
         }
     }
 
-    // 테이블 렌더링
     renderTable(data) {
         const container = document.getElementById('tableContainer');
         if (!container) return;
@@ -166,23 +165,7 @@ class AdminRoleUpgradeManager {
             return;
         }
 
-        let html = `
-        <table class="requests-table">
-            <thead>
-                <tr>
-                    <th>이메일</th>
-                    <th>요청 역할</th>
-                    <th>업체명</th>
-                    <th>상태</th>
-                    <th>요청일</th>
-                    <th>처리일</th>
-                    <th>처리</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-        data.content.forEach(request => {
+        const rowsHtml = data.content.map(request => {
             const statusClass = request.status ? request.status.toLowerCase() : '';
             const roleClass = request.requestedRole ? request.requestedRole.toLowerCase() : '';
 
@@ -199,31 +182,43 @@ class AdminRoleUpgradeManager {
                 payload = {};
             }
 
-            html += `
-            <tr>
-                <td>${this.escapeHtml(request.email)}</td>
-                <td><span class="role-badge ${roleClass}">${this.getRoleText(request.requestedRole)}</span></td>
-                <td>${this.escapeHtml(payload.companyName || '-')}</td>
-                <td><span class="status-badge ${statusClass}">${this.getStatusText(request.status)}</span></td>
-                <td>${this.formatDate(request.createdAt)}</td>
-                <td>${this.formatDate(request.updatedAt)}</td>
-                <td>
-                    <button class="btn btn-sm btn-primary" onclick="adminManager.showDetail(${request.id})">
-                        상세보기
-                    </button>
-                </td>
-            </tr>
-        `;
-        });
-
-        html += `
-            </tbody>
-        </table>
+            return `
+      <tr>
+        <td>${this.escapeHtml(request.email)}</td>
+        <td><span class="role-badge ${roleClass}">${this.getRoleText(request.requestedRole)}</span></td>
+        <td>${this.escapeHtml(payload.companyName || '-')}</td>
+        <td><span class="status-badge ${statusClass}">${this.getStatusText(request.status)}</span></td>
+        <td>${this.formatDate(request.createdAt)}</td>
+        <td>${this.formatDate(request.updatedAt)}</td>
+        <td>
+          <button class="button button-sm button-primary" onclick="adminManager.showDetail(${request.id})">
+            상세보기
+          </button>
+        </td>
+      </tr>
     `;
+        }).join('');
 
-        container.innerHTML = html;
+        container.innerHTML = `
+    <table class="requests-table">
+      <thead>
+        <tr>
+          <th>이메일</th>
+          <th>요청 역할</th>
+          <th>업체명</th>
+          <th>상태</th>
+          <th>요청일</th>
+          <th>처리일</th>
+          <th>처리</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rowsHtml}
+      </tbody>
+    </table>
+  `;
 
-        // 페이지네이션 렌더링
+        // 페이지네이션
         this.renderPagination(data);
     }
 
