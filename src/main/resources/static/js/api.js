@@ -918,3 +918,39 @@ apiService.redeemReward = async function(missionSetId, staffPin) {
 apiService.checkNicknameDuplicate = async function(nickname) {
     return await this.get(`/auth/check-nickname?nickname=${encodeURIComponent(nickname)}`);
 };
+
+// === 팝업 예약 관련 API ===
+
+// 특정 팝업의 예약 목록 조회
+apiService.getPopupReservations = async function(popupId) {
+    return await this.get(`/reservations/popups/${encodeURIComponent(popupId)}`);
+};
+
+// 예약 취소
+apiService.cancelReservation = async function(reservationId) {
+    return await this.put(`/reservations/${encodeURIComponent(reservationId)}/cancel`, {});
+};
+
+// 예약 방문 완료
+apiService.visitReservation = async function(reservationId) {
+    return await this.put(`/reservations/${encodeURIComponent(reservationId)}/visit`, {});
+};
+
+// 예약 기본 설정 조회
+apiService.getPopupBasicSettings = async function(popupId) {
+    return await this.get(`/reservations/settings/popups/${encodeURIComponent(popupId)}/basic`);
+};
+
+// 예약 기본 설정 수정
+apiService.updatePopupBasicSettings = async function(popupId, settings) {
+    return await this.put(`/reservations/settings/popups/${encodeURIComponent(popupId)}/basic`, settings);
+};
+
+// 예약 가능 시간대 조회
+apiService.getAvailableTimeSlots = async function(popupId, date) {
+    return await this.get(`/reservations/popups/${encodeURIComponent(popupId)}/available-slots?date=${encodeURIComponent(date)}`);
+};
+// 남은 예약 좌석 수 조회
+apiService.getAvailableSlotsWithCapacity = async function(popupId, date) {
+    return await this.get(`/reservations/popups/${encodeURIComponent(popupId)}/available-slots/with-capacity?date=${encodeURIComponent(date)}`);
+};
