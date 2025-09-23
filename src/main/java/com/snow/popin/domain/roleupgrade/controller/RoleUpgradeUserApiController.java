@@ -1,6 +1,7 @@
 package com.snow.popin.domain.roleupgrade.controller;
 
 import com.snow.popin.domain.roleupgrade.dto.CreateRoleUpgradeRequest;
+import com.snow.popin.domain.roleupgrade.dto.RoleUpgradeResponse;
 import com.snow.popin.domain.roleupgrade.service.RoleUpgradeService;
 import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class RoleUpgradeUserApiController {
     private final RoleUpgradeService roleService;
     private final UserUtil userUtil;
 
+    // 승격 요청 생성
     @PostMapping("/request")
     public ResponseEntity<?> createRequest(
             @Valid @RequestPart("request") CreateRoleUpgradeRequest req,
@@ -34,4 +36,13 @@ public class RoleUpgradeUserApiController {
                 "requestId", reqId
         ));
     }
+
+    // 내 승격 요청 목록 조회
+    @GetMapping("/my-requests")
+    public ResponseEntity<List<RoleUpgradeResponse>> getMyRequests(){
+        String userEmail = userUtil.getCurrentUserEmail();
+        List<RoleUpgradeResponse> requests = roleService.getMyRoleUpgradeRequests(userEmail);
+        return ResponseEntity.ok(requests);
+    }
+
 }
