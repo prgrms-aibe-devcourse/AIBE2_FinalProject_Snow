@@ -185,7 +185,7 @@ class GeneralInquiryManager {
                 <td>${inquiry.subject || '일반 문의'}</td>
                 <td>${inquiry.targetTitle || 'GENERAL'}</td>
                 <td><span class="status-badge ${inquiry.status.toLowerCase()}">${this.getStatusText(inquiry.status)}</span></td>
-                <td><button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); generalInquiryManager.showDetail(${inquiry.id})">상세보기</button></td>
+                <td><button class="button button-sm button-primary" onclick="event.stopPropagation(); generalInquiryManager.showDetail(${inquiry.id})">상세보기</button></td>
             `;
 
             tbody.appendChild(row);
@@ -204,7 +204,7 @@ class GeneralInquiryManager {
 
         // 이전 버튼
         const prevBtn = document.createElement('button');
-        prevBtn.className = `page-btn ${currentPage === 0 ? 'disabled' : ''}`;
+        prevBtn.className = `page-button ${currentPage === 0 ? 'disabled' : ''}`;
         prevBtn.innerHTML = '이전';
         prevBtn.onclick = () => {
             if (currentPage > 0) {
@@ -220,7 +220,7 @@ class GeneralInquiryManager {
 
         for (let i = startPage; i <= endPage; i++) {
             const pageBtn = document.createElement('button');
-            pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            pageBtn.className = `page-button ${i === currentPage ? 'active' : ''}`;
             pageBtn.textContent = i + 1;
             pageBtn.onclick = () => {
                 this.currentPage = i;
@@ -231,7 +231,7 @@ class GeneralInquiryManager {
 
         // 다음 버튼
         const nextBtn = document.createElement('button');
-        nextBtn.className = `page-btn ${currentPage >= totalPages - 1 ? 'disabled' : ''}`;
+        nextBtn.className = `page-button ${currentPage >= totalPages - 1 ? 'disabled' : ''}`;
         nextBtn.innerHTML = '다음';
         nextBtn.onclick = () => {
             if (currentPage < totalPages - 1) {
@@ -326,8 +326,8 @@ class GeneralInquiryManager {
             </div>
 
             <div class="action-buttons">
-                <button class="btn btn-success" onclick="generalInquiryManager.updateStatus(${inquiry.id})">상태 변경</button>
-                <button class="btn btn-secondary" onclick="generalInquiryManager.closeModal()">닫기</button>
+                <button class="button button-success" onclick="generalInquiryManager.updateStatus(${inquiry.id})">상태 변경</button>
+                <button class="button button-secondary" onclick="generalInquiryManager.closeModal()">닫기</button>
             </div>
         `;
     }

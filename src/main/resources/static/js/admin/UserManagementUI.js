@@ -40,7 +40,7 @@ class UserManagementUI {
                     <td>${this.formatDate(user.createdAt)}</td>
                     <td><span class="status-badge ${user.status === 'ACTIVE' ? 'active' : 'inactive'}">${user.status === 'ACTIVE' ? '활성' : '비활성'}</span></td>
                     <td>
-                        <button type="button" class="detail-btn" data-user-id="${user.userId}">상세</button>
+                        <button type="button" class="detail-button" data-user-id="${user.userId}">상세</button>
                     </td>
                 </tr>
             `).join('');
@@ -69,7 +69,7 @@ class UserManagementUI {
 
         // 이전 페이지
         if (currentPage > 1) {
-            paginationHtml += `<button type="button" class="page-btn" data-page="${currentPage - 1}">이전</button>`;
+            paginationHtml += `<button type="button" class="page-button" data-page="${currentPage - 1}">이전</button>`;
         }
 
         // 페이지 번호들
@@ -77,18 +77,18 @@ class UserManagementUI {
         const endPage = Math.min(totalPages, currentPage + 2);
 
         for (let i = startPage; i <= endPage; i++) {
-            paginationHtml += `<button type="button" class="page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+            paginationHtml += `<button type="button" class="page-button ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
         }
 
         // 다음 페이지
         if (currentPage < totalPages) {
-            paginationHtml += `<button type="button" class="page-btn" data-page="${currentPage + 1}">다음</button>`;
+            paginationHtml += `<button type="button" class="page-button" data-page="${currentPage + 1}">다음</button>`;
         }
 
         this.elements.pagination.innerHTML = paginationHtml;
 
         // 페이지 버튼 이벤트 바인딩
-        this.elements.pagination.querySelectorAll('.page-btn').forEach(btn => {
+        this.elements.pagination.querySelectorAll('.page-button').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const page = parseInt(e.target.dataset.page);
                 onPageClick(page);

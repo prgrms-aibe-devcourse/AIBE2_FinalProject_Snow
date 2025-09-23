@@ -154,7 +154,7 @@ class PopupInquiryManager {
                 <td>${inquiry.targetTitle || '삭제된 팝업'}</td>
                 <td>${inquiry.subject}</td>
                 <td><span class="status-badge ${inquiry.status.toLowerCase()}">${this.getStatusText(inquiry.status)}</span></td>
-                <td><button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); popupInquiryManager.showDetail(${inquiry.id})">상세보기</button></td>
+                <td><button class="button button-sm button-primary" onclick="event.stopPropagation(); popupInquiryManager.showDetail(${inquiry.id})">상세보기</button></td>
             `;
 
             tbody.appendChild(row);
@@ -173,7 +173,7 @@ class PopupInquiryManager {
 
         // 이전 버튼
         const prevBtn = document.createElement('button');
-        prevBtn.className = `page-btn ${currentPage === 0 ? 'disabled' : ''}`;
+        prevBtn.className = `page-button ${currentPage === 0 ? 'disabled' : ''}`;
         prevBtn.innerHTML = '이전';
         prevBtn.onclick = () => {
             if (currentPage > 0) {
@@ -189,7 +189,7 @@ class PopupInquiryManager {
 
         for (let i = startPage; i <= endPage; i++) {
             const pageBtn = document.createElement('button');
-            pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            pageBtn.className = `page-button ${i === currentPage ? 'active' : ''}`;
             pageBtn.textContent = i + 1;
             pageBtn.onclick = () => {
                 this.currentPage = i;
@@ -200,7 +200,7 @@ class PopupInquiryManager {
 
         // 다음 버튼
         const nextBtn = document.createElement('button');
-        nextBtn.className = `page-btn ${currentPage >= totalPages - 1 ? 'disabled' : ''}`;
+        nextBtn.className = `page-button ${currentPage >= totalPages - 1 ? 'disabled' : ''}`;
         nextBtn.innerHTML = '다음';
         nextBtn.onclick = () => {
             if (currentPage < totalPages - 1) {
@@ -299,8 +299,8 @@ class PopupInquiryManager {
             </div>
 
             <div class="action-buttons">
-                <button class="btn btn-success" onclick="popupInquiryManager.updateStatus(${inquiry.id})">상태 변경</button>
-                <button class="btn btn-secondary" onclick="popupInquiryManager.closeModal()">닫기</button>
+                <button class="button button-success" onclick="popupInquiryManager.updateStatus(${inquiry.id})">상태 변경</button>
+                <button class="button button-secondary" onclick="popupInquiryManager.closeModal()">닫기</button>
             </div>
         `;
     }
