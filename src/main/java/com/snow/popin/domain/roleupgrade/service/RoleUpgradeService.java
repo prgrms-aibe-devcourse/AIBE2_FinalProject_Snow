@@ -1,25 +1,24 @@
 package com.snow.popin.domain.roleupgrade.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.snow.popin.domain.roleupgrade.dto.*;
+import com.snow.popin.domain.roleupgrade.dto.CreateRoleUpgradeRequest;
+import com.snow.popin.domain.roleupgrade.dto.RoleUpgradeResponse;
 import com.snow.popin.domain.roleupgrade.entity.ApprovalStatus;
 import com.snow.popin.domain.roleupgrade.entity.DocumentType;
 import com.snow.popin.domain.roleupgrade.entity.RoleUpgrade;
 import com.snow.popin.domain.roleupgrade.entity.RoleUpgradeDocument;
 import com.snow.popin.domain.roleupgrade.repository.RoleUpgradeRepository;
+import com.snow.popin.domain.space.service.FileStorageService;
 import com.snow.popin.domain.user.constant.Role;
-import com.snow.popin.domain.user.entity.User;
-import com.snow.popin.domain.user.repository.UserRepository;
 import com.snow.popin.global.constant.ErrorCode;
 import com.snow.popin.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,10 +30,11 @@ public class RoleUpgradeService {
 
     private final RoleUpgradeRepository roleRepo;
     private final ObjectMapper objMapper;
+    private final FileStorageService fileStorageService;
 
-    // 역할 승격 요청 생성
+    // 역할 승격 요청 생성 + file
     @Transactional
-    public Long createRoleUpgradeRequest(String email, CreateRoleUpgradeRequest  req){
+    public Long createRoleUpgradeRequest(String email, CreateRoleUpgradeRequest req, List<MultipartFile> files) {
         validateNoDuplicateRequest(email);
 
         try {
@@ -47,61 +47,83 @@ public class RoleUpgradeService {
                     .build();
 
             RoleUpgrade saved = roleRepo.save(roleUpgrade);
-            log.info("역할 승격 요청이 생성되었습니다. ID: {}, Email: {}", saved.getId(), email);
 
-            return saved.getId();
-
-        } catch (Exception e) {
-            log.error("역할 승격 요청 생성 실패: {}", e.getMessage());
-            throw new GeneralException(ErrorCode.INTERNAL_ERROR);
-        }
-    }
-
-    // 역할 승격 요청 생성 + file
-    @Transactional
-    public Long createRoleUpgradeRequestWithDocuments(String email, CreateRoleUpgradeRequest req, List<MultipartFile> files) {
-        validateNoDuplicateRequest(email);
-
-        try {
-            // 1. 기본 요청 생성
-            RoleUpgrade roleUpgrade = RoleUpgrade.builder()
-                    .email(email)
-                    .requestedRole(req.getRequestedRole())
-                    .payload(req.getPayload())
-                    .build();
-
-            RoleUpgrade saved = roleRepo.save(roleUpgrade);
-
-            // 2. 파일이 있는 경우에만 문서 처리
-            if (files != null && !files.isEmpty()) {
-                // 역할에 따른 DocumentType 결정
-                DocumentType docType = determineDocTypeByRole(req.getRequestedRole());
-
-                for (MultipartFile file : files) {
-                    if (!file.isEmpty()) {
-                        String fileUrl = saveFile(file);
-
-                        RoleUpgradeDocument document = RoleUpgradeDocument.builder()
-                                .roleUpgrade(saved)
-                                .docType(docType)
-                                .fileUrl(fileUrl)
-                                .build();
-
-                        saved.addDocument(document);
-                    }
-                }
+            // 파일이 있는 경우에만 문서 처리
+            if (files != null && !files.isEmpty()){
+                processUploadedFiles(saved, files, req.getRequestedRole());
             }
+
             log.info("역할 승격 요청 생성 완료. ID: {}, Email: {}, Role: {}, 첨부파일 수: {}",
                     saved.getId(), email, req.getRequestedRole(), files != null ? files.size() : 0);
 
             return saved.getId();
+        } catch (GeneralException e) {
+            // GeneralException은 그대로 다시 던져서 GlobalExceptionHandler에서 처리
+            throw e;
         } catch (Exception e) {
-            log.error("역할 승격 요청 생성 실패: {}", e.getMessage());
-            throw new GeneralException(ErrorCode.INTERNAL_ERROR);
+            log.error("역할 승격 요청 생성 실패: {}", e.getMessage(), e);
+            throw new GeneralException(ErrorCode.INTERNAL_ERROR, "역할 승격 요청 처리 중 오류가 발생했습니다.");
         }
     }
 
-    // 역할에 따른 DocumentType 결정
+    /**
+     * 파일 처리 로직 분리
+     */
+    private void processUploadedFiles(RoleUpgrade roleUpgrade, List<MultipartFile> files, Role requestedRole) {
+        DocumentType documentType = determineDocTypeByRole(requestedRole);
+
+        for (MultipartFile file : files){
+            if (!file.isEmpty()){
+                try {
+                    // 파일 유효성 검사
+                    validateUploadFile(file);
+
+                    String fileUrl = fileStorageService.saveDocument(file);
+
+                    RoleUpgradeDocument document = RoleUpgradeDocument.builder()
+                            .roleUpgrade(roleUpgrade)
+                            .docType(documentType)
+                            .fileUrl(fileUrl)
+                            .build();
+
+                    roleUpgrade.addDocument(document);
+
+                    log.info("문서 첨부 완료. RequestId: {}, FileName: {}, FileUrl: {}",
+                            roleUpgrade.getId(),
+                            sanitizeFileName(file.getOriginalFilename()),
+                            fileUrl);
+                } catch (IllegalArgumentException e) {
+                    // FileStorageService에서 발생하는 validation 예외를 GeneralException으로 변환
+                    throw new GeneralException(ErrorCode.VALIDATION_ERROR, e.getMessage());
+                } catch (Exception e) {
+                    log.error("파일 처리 중 오류 발생: {}", e.getMessage(), e);
+                    throw new GeneralException(ErrorCode.FILE_UPLOAD_ERROR, "파일 업로드 중 오류가 발생했습니다.");
+                }
+            }
+        }
+    }
+
+    /**
+     * 파일명 안전하게 처리
+     */
+    private String sanitizeFileName(String originalFilename) {
+        if (originalFilename == null) {
+            return "unknown_file";
+        }
+
+        try {
+            // UTF-8로 안전하게 인코딩
+            byte[] bytes = originalFilename.getBytes(StandardCharsets.UTF_8);
+            return new String(bytes, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            log.warn("Failed to sanitize filename: {}", originalFilename);
+            return "file_" + System.currentTimeMillis();
+        }
+    }
+
+    /**
+     * 역할에 따른 DocumentType 결정
+     */
     private DocumentType determineDocTypeByRole(Role requestedRole) {
         switch (requestedRole) {
             case HOST:
@@ -113,7 +135,9 @@ public class RoleUpgradeService {
         }
     }
 
-    // 내 역할 승격 요청 목록 조회
+    /**
+     * 내 역할 승격 요청 목록 조회
+     */
     public List<RoleUpgradeResponse> getMyRoleUpgradeRequests(String email){
         List<RoleUpgrade> reqs = roleRepo.findByEmailOrderByCreatedAtDesc(email);
 
@@ -122,85 +146,54 @@ public class RoleUpgradeService {
                 .collect(Collectors.toList());
     }
 
-    // 역할 승격 요청 상세 조회
-    public RoleUpgradeResponse getRoleUpgradeRequest(Long id, String email){
-        RoleUpgrade roleUpgrade = roleRepo.findById(id)
-                .orElseThrow(() -> new GeneralException(ErrorCode.ROLE_UPGRADE_REQUEST_NOT_FOUND));
-
-        // 본인의 요청만 조회 (관리자는 별도 메소드 사용)
-        if (!roleUpgrade.getEmail().equals(email)){
-            throw new GeneralException(ErrorCode.ACCESS_DENIED);
-        }
-        return RoleUpgradeResponse.from(roleUpgrade);
-    }
-
-    // 문서 첨부
-    @Transactional
-    public void attachDocument(Long upgradeId, String email, DocumentUploadRequest req){
-        RoleUpgrade roleUpgrade = findRoleUpgradeById(upgradeId);
-        // 본인의 요청인지 확인
-        validateOwnership(roleUpgrade, email);
-        // 대기중인 요청에만 문서 첨부 가능
-        validatePendingStatus(roleUpgrade);
-
-        // 파일 저장 로직 (실제 구현에서는 파일 저장 서비스 사용)
-        // String fileUrl = saveFile(request.getFileUrl());
-        String fileUrl = "fileUrl";
-
-        RoleUpgradeDocument document = RoleUpgradeDocument.builder()
-                .roleUpgrade(roleUpgrade)
-                .docType(req.getDocType())
-                .businessNumber(req.getBusinessNumber())
-                .fileUrl(fileUrl)
-                .build();
-
-        roleUpgrade.addDocument(document);
-
-        log.info("문서가 첨부되었습니다. RequestId: {}, DocType: {}", upgradeId, req.getDocType());
-    }
-
-    // 공통 로직들
-    // 이미 대기중인 요청이 있는지 확인
+    /**
+     * 이미 대기중인 요청이 있는지 확인
+     */
     private void validateNoDuplicateRequest(String email){
         if (roleRepo.existsByEmailAndStatus(email, ApprovalStatus.PENDING)){
             throw new GeneralException(ErrorCode.DUPLICATE_ROLE_UPGRADE_REQUEST);
         }
     }
 
-    // 본인의 요청인지 확인
-    private void validateOwnership(RoleUpgrade roleUpgrade, String email){
-        if (!roleUpgrade.getEmail().equals(email)){
-            throw new GeneralException(ErrorCode.ACCESS_DENIED);
-        }
-    }
-
-    // 본인의 요청인지 확인
-    private RoleUpgrade findRoleUpgradeById(Long id){
-        return roleRepo.findById(id)
-                .orElseThrow(() -> new GeneralException(ErrorCode.ROLE_UPGRADE_REQUEST_NOT_FOUND));
-    }
-
-    // 대기중인 요청에만 문서 첨부 가능
+    /**
+     * 대기중인 요청에만 문서 첨부 가능
+     */
     public static void validatePendingStatus(RoleUpgrade roleUpgrade) {
         if (!roleUpgrade.isPending()) {
             throw new GeneralException(ErrorCode.INVALID_REQUEST_STATUS);
         }
     }
 
-    // 파일 저장 (실제 구현에서는 파일 저장 서비스로 분리)
-    private String saveFile(MultipartFile file){
-        try{
-            // 실제로는 AWS S3, 로컬 저장소 등을 사용
-            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-            String filePath = "/uploads/role-upgrade/" + fileName;
-
-            // 파일 저장 로직 구현 필요
-            // file.transferTo(new File(filePath));
-
-            return filePath;
-        } catch (Exception e) {
-            log.error("파일 저장 중 오류 발생: {}", e.getMessage());
-            throw new GeneralException(ErrorCode.FILE_UPLOAD_ERROR);
+    /**
+     * 파일 유효성 검사
+     */
+    private void validateUploadFile(MultipartFile file){
+        // 파일 크기 검사 (10MB 제한)
+        long maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.getSize() > maxSize) {
+            throw new GeneralException(ErrorCode.VALIDATION_ERROR, "파일 크기는 10MB를 초과할 수 없습니다.");
         }
+
+        // 파일 타입 검사
+        String contentType = file.getContentType();
+        if (contentType == null || !isAllowedFileType(contentType)) {
+            throw new GeneralException(ErrorCode.VALIDATION_ERROR, "허용되지 않는 파일 형식입니다. (JPG, PNG, PDF만 가능)");
+        }
+
+        // 파일명 검사
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.trim().isEmpty()) {
+            throw new GeneralException(ErrorCode.VALIDATION_ERROR, "파일명이 올바르지 않습니다.");
+        }
+    }
+
+    /**
+     * 허용된 파일 타입 검사
+     */
+    private boolean isAllowedFileType(String contentType) {
+        return contentType.equals("image/jpeg") ||
+                contentType.equals("image/jpg") ||
+                contentType.equals("image/png") ||
+                contentType.equals("application/pdf");
     }
 }

@@ -286,6 +286,29 @@ select.form-input {
     border: 1px solid #bee5eb;
 }
 
+/* 비활성화된 폼 스타일 */
+.form-input:disabled {
+    background-color: #f8f9fa !important;
+    color: #6c757d !important;
+    border-color: #e9ecef !important;
+    cursor: not-allowed;
+}
+
+.tab-btn:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+
+/* 파일 업로드 영역 비활성화 */
+.file-upload-area:disabled,
+.file-upload-area.disabled {
+    opacity: 0.6 !important;
+    pointer-events: none !important;
+    background-color: #f8f9fa !important;
+    cursor: not-allowed !important;
+}
+
 /* 반응형 */
 @media (max-width: 768px) {
     .upgrade-container {

@@ -7,6 +7,10 @@ class RoleUpgradeController {
         this.api = typeof RoleUpgradeApi !== 'undefined' ? new RoleUpgradeApi() : null;
         this.ui = typeof RoleUpgradeUI !== 'undefined' ? new RoleUpgradeUI() : null;
 
+        // 요청 완료 상태 관리
+        this.isRequestCompleted = false;
+        this.submittedData = null;
+
         this.init();
     }
 
@@ -21,8 +25,11 @@ class RoleUpgradeController {
             return;
         }
 
-        this.checkUserAuth();
-        this.setupFormSubmission();
+        // 약간의 지연을 두고 초기화 (DOM 요소들이 완전히 로드된 후)
+        setTimeout(() => {
+            this.checkUserAuth();
+            this.setupFormSubmission();
+        }, 100);
     }
 
     /**
@@ -60,6 +67,15 @@ class RoleUpgradeController {
             const pendingRequest = requests.find(req => req.status === 'PENDING');
 
             if (pendingRequest) {
+                this.isRequestCompleted = true;
+
+                // 폼에 기존 데이터 채우기
+                this.fillFormWithData(pendingRequest);
+
+                // 폼 비활성화
+                this.disableForm();
+
+                // 성공 메시지 표시
                 this.ui.showAlert('이미 제출된 승격 요청이 있습니다. 관리자 검토를 기다려주세요.', 'info');
 
                 // UI 요소가 존재할 때만 접근
@@ -73,6 +89,234 @@ class RoleUpgradeController {
             }
         } catch (error) {
             console.warn('기존 요청 확인 중 오류:', error);
+        }
+    }
+
+    /**
+     * 요청 정보를 화면에 표시 (폼만 유지하고 별도 카드는 표시하지 않음)
+     */
+    displayRequestInfo(requestData) {
+        if (!this.ui) return;
+
+        // 폼에 기존 데이터 채우기
+        this.fillFormWithData(requestData);
+
+        // 폼 비활성화
+        this.disableForm();
+
+        // 성공 메시지 표시
+        this.ui.showAlert('승격 요청이 성공적으로 제출되었습니다! 관리자 검토를 기다려주세요.', 'success');
+    }
+
+    /**
+     * 폼에 제출된 데이터 채우기
+     */
+    fillFormWithData(requestData) {
+        if (!requestData.payload) return;
+
+        try {
+            const payload = typeof requestData.payload === 'string'
+                ? JSON.parse(requestData.payload)
+                : requestData.payload;
+
+            console.log('폼에 채울 데이터:', payload); // 디버깅용
+            console.log('요청된 역할:', requestData.requestedRole); // 디버깅용
+
+            // 탭 상태 먼저 설정 (다른 필드들보다 먼저 설정해야 함)
+            if (requestData.requestedRole) {
+                // 역할에 따른 탭 설정 수정
+                const targetTab = this.getTabByRole(requestData.requestedRole);
+                console.log('설정할 탭:', targetTab); // 디버깅용
+
+                const tabBtn = document.querySelector(`[data-tab="${targetTab}"]`);
+
+                if (tabBtn && !tabBtn.classList.contains('active')) {
+                    // 탭 클릭 이벤트 시뮬레이션
+                    tabBtn.click();
+
+                    // 탭 전환 후 잠시 대기 (UI 업데이트를 위해)
+                    setTimeout(() => {
+                        this.setFormValues(payload);
+                    }, 100);
+                } else {
+                    this.setFormValues(payload);
+                }
+            } else {
+                this.setFormValues(payload);
+            }
+
+        } catch (error) {
+            console.warn('폼 데이터 채우기 실패:', error);
+        }
+    }
+
+    /**
+     * 역할에 따른 탭 반환 (수정된 로직)
+     */
+    getTabByRole(requestedRole) {
+        // PROVIDER = 기업 = 'host' 탭
+        // HOST = 공간 제공자 = 'guest' 탭
+        if (requestedRole === 'PROVIDER') {
+            return 'host'; // 기업 탭
+        } else if (requestedRole === 'HOST') {
+            return 'guest'; // 공간 제공자 탭
+        }
+        return 'host'; // 기본값
+    }
+
+    /**
+     * 실제 폼 값 설정
+     */
+    setFormValues(payload) {
+        // 회사명/공간 표시명
+        const companyInput = document.getElementById('company');
+        if (companyInput && payload.company) {
+            companyInput.value = payload.company;
+            console.log('회사명 설정:', payload.company);
+        }
+
+        // 사업자등록번호
+        const businessNumberInput = document.getElementById('businessNumber');
+        if (businessNumberInput && payload.businessNumber) {
+            businessNumberInput.value = payload.businessNumber;
+            console.log('사업자등록번호 설정:', payload.businessNumber);
+        }
+
+        // 권한 (공간 제공자인 경우)
+        const permissionSelect = document.getElementById('permission');
+        if (permissionSelect && payload.permission) {
+            permissionSelect.value = payload.permission;
+            console.log('권한 설정:', payload.permission);
+        }
+
+        // 추가 작성 사항
+        const additionalTextarea = document.getElementById('additional');
+        if (additionalTextarea && payload.additional) {
+            additionalTextarea.value = payload.additional;
+            console.log('추가 작성사항 설정:', payload.additional);
+        }
+    }
+
+    /**
+     * 폼 비활성화
+     */
+    disableForm() {
+        const form = document.getElementById('upgradeForm');
+        if (!form) return;
+
+        // 모든 입력 필드 비활성화
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.disabled = true;
+            input.style.backgroundColor = '#f5f5f5';
+            input.style.color = '#666';
+        });
+
+        // 탭 버튼 비활성화
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        tabBtns.forEach(btn => {
+            btn.disabled = true;
+            btn.style.opacity = '0.6';
+            btn.style.cursor = 'not-allowed';
+        });
+
+        // 파일 업로드 영역 비활성화
+        const fileUpload = document.querySelector('.file-upload-area');
+        if (fileUpload) {
+            fileUpload.style.opacity = '0.6';
+            fileUpload.style.pointerEvents = 'none';
+        }
+    }
+
+    /**
+     * 요청 상태 정보 표시
+     */
+    displayRequestStatus(requestData) {
+        // 기존 상태 정보가 있다면 제거
+        const existingStatus = document.getElementById('request-status-info');
+        if (existingStatus) {
+            existingStatus.remove();
+        }
+
+        // 상태 정보 HTML 생성
+        const statusHtml = `
+            <div id="request-status-info" class="request-status-card">
+                <h3>제출된 요청 정보</h3>
+                <div class="status-info">
+                    <div class="status-item">
+                        <span class="label">요청 ID:</span>
+                        <span class="value">#${requestData.id}</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">요청 역할:</span>
+                        <span class="value">${this.getRoleDisplayName(requestData.requestedRole)}</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">상태:</span>
+                        <span class="value status-${requestData.status.toLowerCase()}">${this.getStatusText(requestData.status)}</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">제출일:</span>
+                        <span class="value">${this.formatDate(requestData.createdAt)}</span>
+                    </div>
+                </div>
+                <div class="status-actions">
+                    <button type="button" class="btn-secondary" onclick="window.location.href='/templates/pages/main.html'">
+                        메인으로 돌아가기
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // 폼 컨테이너 아래에 상태 정보 추가
+        const formContainer = document.querySelector('.form-container');
+        if (formContainer) {
+            formContainer.insertAdjacentHTML('afterend', statusHtml);
+        }
+    }
+
+    /**
+     * 역할 표시명 반환
+     */
+    getRoleDisplayName(role) {
+        switch (role) {
+            case 'PROVIDER':
+                return '기업';
+            case 'HOST':
+                return '공간 제공자';
+            default:
+                return role;
+        }
+    }
+
+    /**
+     * 상태 텍스트 변환
+     */
+    getStatusText(status) {
+        switch (status) {
+            case 'PENDING':
+                return '검토 대기';
+            case 'APPROVED':
+                return '승인 완료';
+            case 'REJECTED':
+                return '반려';
+            default:
+                return status;
+        }
+    }
+
+    /**
+     * 날짜 포맷팅
+     */
+    formatDate(dateString) {
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR') + ' ' + date.toLocaleTimeString('ko-KR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (error) {
+            return dateString;
         }
     }
 
@@ -96,6 +340,12 @@ class RoleUpgradeController {
     async handleSubmit(e) {
         e.preventDefault();
 
+        // 이미 요청이 완료된 상태라면 제출 방지
+        if (this.isRequestCompleted) {
+            this.ui.showAlert('이미 제출된 요청이 있습니다.', 'info');
+            return;
+        }
+
         if (!this.ui || !this.api) {
             this.showSimpleAlert('시스템 오류가 발생했습니다.');
             return;
@@ -116,18 +366,23 @@ class RoleUpgradeController {
             return;
         }
 
+        // 제출된 데이터 저장 (성공 시 사용)
+        this.submittedData = {
+            ...requestData,
+            file: selectedFile
+        };
+
         this.ui.toggleLoading(true);
 
         try {
             const response = await this.api.createUpgradeRequest(requestData, selectedFile);
 
             if (response.success) {
-                this.ui.showAlert(response.message || '승격 요청이 성공적으로 제출되었습니다!', 'success');
-                this.ui.resetForm();
+                // 요청 완료 상태로 설정
+                this.isRequestCompleted = true;
 
-                setTimeout(() => {
-                    window.location.href = '/templates/pages/main.html';
-                }, 3000);
+                // 제출된 데이터로 폼 유지 (단순히 폼 데이터만 유지)
+                // 페이지는 그대로 유지 (main으로 이동하지 않음)
             } else {
                 throw new Error(response.message || '승격 요청에 실패했습니다.');
             }
@@ -188,43 +443,9 @@ class RoleUpgradeController {
     }
 
     /**
-     * 간단한 알림 표시 (UI 클래스 없을 때 사용)
+     * 단순 알림창 표시 (UI가 없을 때 사용)
      */
     showSimpleAlert(message) {
-        // 기존 알림이 있다면 제거
-        const existingAlert = document.querySelector('.simple-alert');
-        if (existingAlert) {
-            existingAlert.remove();
-        }
-
-        // 새 알림 생성
-        const alertDiv = document.createElement('div');
-        alertDiv.className = 'simple-alert';
-        alertDiv.textContent = message;
-        alertDiv.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #ff4757;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            z-index: 9999;
-            font-size: 14px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        `;
-
-        document.body.appendChild(alertDiv);
-
-        // 3초 후 제거
-        setTimeout(() => {
-            alertDiv.remove();
-        }, 3000);
+        alert(message);
     }
-}
-
-// 전역에서 사용할 수 있도록 window 객체에 추가 (필요한 경우)
-if (typeof window !== 'undefined') {
-    window.RoleUpgradeController = RoleUpgradeController;
 }
