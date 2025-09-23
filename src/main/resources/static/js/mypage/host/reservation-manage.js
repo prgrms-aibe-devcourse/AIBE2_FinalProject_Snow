@@ -118,7 +118,7 @@ const ReservationManagePage = {
         const body = document.createElement("div");
         body.className = "reservation-body";
         body.innerHTML = `
-            <div class="reservation-date">예약일: ${r.reservationDate}</div>
+            <div class="reservation-date">예약일: ${formatReservationDate(r.reservationDate)}</div>
             <div class="reservation-party">인원: ${r.partySize || 1}명</div>
         `;
         card.appendChild(body);
@@ -169,14 +169,15 @@ const ReservationManagePage = {
     async cancelReservation(id) {
         if (!confirm("이 예약을 취소하시겠습니까?")) return;
         try {
-            await apiService.cancelReservation(id);
-            alert("예약이 취소되었습니다.");
+            await apiService.cancelReservation(id);ㄴ
             await this.loadReservations();
         } catch (err) {
             console.error("취소 실패:", err);
             alert("예약 취소에 실패했습니다.");
         }
     },
+
+
 
     switchTab(tabName) {
         // 모든 탭 버튼/콘텐츠 초기화
@@ -191,5 +192,23 @@ const ReservationManagePage = {
     }
 
 };
+
+// 날짜 포매팅
+function formatReservationDate(dateString) {
+    if (!dateString) return "-";
+
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleString('ko-KR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (error) {
+        return dateString; // 파싱 실패시 원본 반환
+    }
+}
 
 window.ReservationManagePage = ReservationManagePage;

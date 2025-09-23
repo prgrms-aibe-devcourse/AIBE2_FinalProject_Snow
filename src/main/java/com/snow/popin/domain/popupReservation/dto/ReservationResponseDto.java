@@ -37,31 +37,37 @@ public class ReservationResponseDto {
     private String timeUntilReservation;
 
     public static ReservationResponseDto from(Reservation reservation) {
+
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime reservationTime = reservation.getReservationDate();
 
-        boolean isUpcoming = reservationTime.isAfter(now);
-        long hoursUntil = isUpcoming ? ChronoUnit.HOURS.between(now, reservationTime) : 0;
+        boolean isUpcoming = reservationTime != null && reservationTime.isAfter(now);
+        long hoursUntil = (isUpcoming && reservationTime != null) ?
+                ChronoUnit.HOURS.between(now, reservationTime) : 0;
 
-        return ReservationResponseDto.builder()
+        var builder = ReservationResponseDto.builder()
                 .id(reservation.getId())
-                .popupId(reservation.getPopup().getId())
-                .popupTitle(reservation.getPopup().getTitle())
-                .popupSummary(reservation.getPopup().getSummary())
-                .venueName(reservation.getPopup().getVenueName())
-                .venueAddress(reservation.getPopup().getVenueAddress())
                 .name(reservation.getName())
                 .phone(reservation.getPhone())
                 .partySize(reservation.getPartySize())
                 .reservationDate(reservation.getReservationDate())
                 .reservedAt(reservation.getReservedAt())
                 .status(reservation.getStatus())
-                .statusDescription(reservation.getStatus().getDescription())
+                .statusDescription(reservation.getStatus() != null ? reservation.getStatus().getDescription() : "")
                 .canCancel(reservation.canCancel() && isUpcoming)
                 .isUpcoming(isUpcoming)
                 .hoursUntilReservation(hoursUntil)
-                .timeUntilReservation(formatTimeUntil(hoursUntil))
-                .build();
+                .timeUntilReservation(formatTimeUntil(hoursUntil));
+
+        if (reservation.getPopup() != null) {
+            builder.popupId(reservation.getPopup().getId())
+                    .popupTitle(reservation.getPopup().getTitle())
+                    .popupSummary(reservation.getPopup().getSummary())
+                    .venueName(reservation.getPopup().getVenueName())
+                    .venueAddress(reservation.getPopup().getVenueAddress());
+        }
+
+        return builder.build();
     }
 
     private static String formatTimeUntil(long hours) {
