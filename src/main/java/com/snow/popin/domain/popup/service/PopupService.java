@@ -48,6 +48,7 @@ public class PopupService {
         return PopupListResponseDto.of(popupPage, popupDtos);
     }
 
+
     // 인기 팝업 조회
     public PopupListResponseDto getPopularPopups(int page, int size) {
         log.info("인기 팝업 조회 시작 - page: {}, size: {}", page, size);

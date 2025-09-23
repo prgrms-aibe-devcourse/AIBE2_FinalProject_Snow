@@ -68,7 +68,11 @@ public class PopupSummaryResponseDto {
                                 .map(PopupImageResponseDto::from)
                                 .collect(Collectors.toList()) :
                         Collections.emptyList())
-                .venueName(popup.getVenueName())
+                .venueName(popup.getVenue() != null ? popup.getVenue().getName() : "정보 없음")
+                .venueAddress(popup.getVenue() != null ? popup.getVenue().getFullAddress() : "정보 없음")
+                .region(popup.getVenue() != null ? popup.getVenue().getRegion() : "정보 없음")
+                .parkingAvailable(popup.getVenue() != null && popup.getVenue().getParkingAvailable() != null ?
+                        popup.getVenue().getParkingAvailable() : false)
                 .venueAddress(popup.getVenueAddress())
                 .region(popup.getRegion())
                 .parkingAvailable(popup.getParkingAvailable())
