@@ -42,11 +42,6 @@ public class AdminRoleUpgradeService {
     private final ProviderProfileRepository providerProfileRepository;
     private final ObjectMapper objectMapper;
 
-    // 대기중인 요청 개수 조회 (관리자용)
-    public long getPendingRequestCount(){
-        return roleRepo.countByStatus(ApprovalStatus.PENDING);
-    }
-
     // 관리자용: 모든 역할 승격 요청 페이징 조회
     public Page<RoleUpgradeResponse> getAllRoleUpgradeRequests(Pageable pageable){
         Page<RoleUpgrade> reqs = roleRepo.findAllByOrderByCreatedAtDesc(pageable);
@@ -161,4 +156,23 @@ public class AdminRoleUpgradeService {
         }
     }
 
+    // 대기중인 승격 요청 개수 조회
+    public Long getPendingRequestCount() {
+        return roleRepo.countByStatus(ApprovalStatus.PENDING);
+    }
+
+    // 전체 승격 요청 개수 조회
+    public Long getTotalRequestCount() {
+        return roleRepo.count();
+    }
+
+    // 승인된 승격 요청 개수 조회
+    public Long getApprovedRequestCount() {
+        return roleRepo.countByStatus(ApprovalStatus.APPROVED);
+    }
+
+    // 거절된 승격 요청 개수 조회
+    public Long getRejectedRequestCount() {
+        return roleRepo.countByStatus(ApprovalStatus.REJECTED);
+    }
 }
