@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POPIN Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .result {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+            margin-top: 10px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<h1>POPIN Debug 페이지</h1>
+
+<div class="test-section">
+    <h2>환경 정보</h2>
+    <div id="env-info">
+        <p>현재 도메인: <span id="current-domain"></span></p>
+        <p>API Base URL: <span id="api-base-url"></span></p>
+        <p>User Agent: <span id="user-agent"></span></p>
+    </div>
+</div>
+
+<div class="test-section">
+    <h2>백엔드 연결 테스트</h2>
+    <button onclick="testHealth()">Health Check</button>
+    <button onclick="testInfo()">Info Check</button>
+    <div id="health-result" class="result"></div>
+</div>
+
+<div class="test-section">
+    <h2>API 테스트</h2>
+    <button onclick="testPopups()">팝업 목록 조회</button>
+    <button onclick="testMain()">메인 데이터 조회</button>
+    <div id="api-result" class="result"></div>
+</div>
+
+<div class="test-section">
+    <h2>CORS 테스트</h2>
+    <button onclick="testCors()">CORS 헤더 확인</button>
+    <div id="cors-result" class="result"></div>
+</div>
+
+<script>
+    // 환경 정보 표시
+    document.getElementById('current-domain').textContent = window.location.hostname;
+    document.getElementById('user-agent').textContent = navigator.userAgent;
+
+    // API Base URL 결정
+    function getApiBaseUrl() {
+        const hostname = window.location.hostname;
+
+        if (hostname === 'd3ud9r2r0ydzqw.cloudfront.net') {
+            return 'https://d3ud9r2r0ydzqw.cloudfront.net/api';
+        }
+
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            return 'http://localhost:8080/api';
+        }
+
+        return '/api';
+    }
+
+    const API_BASE_URL = getApiBaseUrl();
+    document.getElementById('api-base-url').textContent = API_BASE_URL;
+
+    // Health Check 테스트
+    async function testHealth() {
+        const resultDiv = document.getElementById('health-result');
+        resultDiv.innerHTML = '테스트 중...';
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/health`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                        <strong>✅ Health Check 성공</strong><br>
+                        Status: ${response.status}<br>
+                        Data: <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+            } else {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                        <strong>❌ Health Check 실패</strong><br>
+                        Status: ${response.status}<br>
+                        Status Text: ${response.statusText}
+                    `;
+            }
+        } catch (error) {
+            resultDiv.className = 'result error';
+            resultDiv.innerHTML = `
+                    <strong>❌ Health Check 에러</strong><br>
+                    Error: ${error.message}
+                `;
+        }
+    }
+
+    // Info Check 테스트
+    async function testInfo() {
+        const resultDiv = document.getElementById('health-result');
+        resultDiv.innerHTML = '테스트 중...';
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/info`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                        <strong>✅ Info Check 성공</strong><br>
+                        Status: ${response.status}<br>
+                        Data: <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+            } else {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                        <strong>❌ Info Check 실패</strong><br>
+                        Status: ${response.status}<br>
+                        Status Text: ${response.statusText}
+                    `;
+            }
+        } catch (error) {
+            resultDiv.className = 'result error';
+            resultDiv.innerHTML = `
+                    <strong>❌ Info Check 에러</strong><br>
+                    Error: ${error.message}
+                `;
+        }
+    }
+
+    // 팝업 목록 테스트
+    async function testPopups() {
+        const resultDiv = document.getElementById('api-result');
+        resultDiv.innerHTML = '테스트 중...';
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/popups?page=0&size=10`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                        <strong>✅ 팝업 목록 조회 성공</strong><br>
+                        Status: ${response.status}<br>
+                        Data: <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+            } else {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                        <strong>❌ 팝업 목록 조회 실패</strong><br>
+                        Status: ${response.status}<br>
+                        Status Text: ${response.statusText}
+                    `;
+            }
+        } catch (error) {
+            resultDiv.className = 'result error';
+            resultDiv.innerHTML = `
+                    <strong>❌ 팝업 목록 조회 에러</strong><br>
+                    Error: ${error.message}
+                `;
+        }
+    }
+
+    // 메인 데이터 테스트
+    async function testMain() {
+        const resultDiv = document.getElementById('api-result');
+        resultDiv.innerHTML = '테스트 중...';
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/main`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                        <strong>✅ 메인 데이터 조회 성공</strong><br>
+                        Status: ${response.status}<br>
+                        Data: <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+            } else {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                        <strong>❌ 메인 데이터 조회 실패</strong><br>
+                        Status: ${response.status}<br>
+                        Status Text: ${response.statusText}
+                    `;
+            }
+        } catch (error) {
+            resultDiv.className = 'result error';
+            resultDiv.innerHTML = `
+                    <strong>❌ 메인 데이터 조회 에러</strong><br>
+                    Error: ${error.message}
+                `;
+        }
+    }
+
+    // CORS 테스트
+    async function testCors() {
+        const resultDiv = document.getElementById('cors-result');
+        resultDiv.innerHTML = '테스트 중...';
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/health`, {
+                method: 'OPTIONS',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Request-Method': 'GET',
+                    'Access-Control-Request-Headers': 'Content-Type'
+                }
+            });
+
+            const corsHeaders = {
+                'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers'),
+                'Access-Control-Allow-Credentials': response.headers.get('Access-Control-Allow-Credentials')
+            };
+
+            resultDiv.className = 'result success';
+            resultDiv.innerHTML = `
+                    <strong>CORS 헤더 정보</strong><br>
+                    Status: ${response.status}<br>
+                    Headers: <pre>${JSON.stringify(corsHeaders, null, 2)}</pre>
+                `;
+        } catch (error) {
+            resultDiv.className = 'result error';
+            resultDiv.innerHTML = `
+                    <strong>❌ CORS 테스트 에러</strong><br>
+                    Error: ${error.message}
+                `;
+        }
+    }
+
+    // 페이지 로드시 자동으로 Health Check 실행
+    window.onload = function() {
+        setTimeout(testHealth, 1000);
+    };
+</script>
+</body>
+</html>
