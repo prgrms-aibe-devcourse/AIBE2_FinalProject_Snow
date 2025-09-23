@@ -276,6 +276,10 @@ class SimpleApiService {
 // 전역 API 서비스 인스턴스
 const apiService = new SimpleApiService();
 
+// 페이지 로드시 API Base URL 확인
+console.log('API Base URL:', apiService.baseURL);
+console.log('Current hostname:', window.location.hostname);
+
 // === 공간대여 API ===
 
 // 공간 목록 조회
