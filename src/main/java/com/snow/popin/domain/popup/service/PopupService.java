@@ -406,6 +406,9 @@ public class PopupService {
 
     // Popup 리스트를 PopupSummaryResponseDto 리스트로 변환
     private List<PopupSummaryResponseDto> convertToSummaryDtos(List<Popup> popups) {
+        if (popups == null) {
+            return Collections.emptyList();
+        }
         return popups.stream()
                 .map(PopupSummaryResponseDto::from)
                 .collect(Collectors.toList());

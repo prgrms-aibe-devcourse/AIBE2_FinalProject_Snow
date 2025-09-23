@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,9 +63,11 @@ public class PopupSummaryResponseDto {
                 .viewCount(popup.getViewCount())
                 .createdAt(popup.getCreatedAt())
                 .updatedAt(popup.getUpdatedAt())
-                .images(popup.getImages().stream()
-                        .map(PopupImageResponseDto::from)
-                        .collect(Collectors.toList()))
+                .images(popup.getImages() != null ?
+                        popup.getImages().stream()
+                                .map(PopupImageResponseDto::from)
+                                .collect(Collectors.toList()) :
+                        Collections.emptyList())
                 .venueName(popup.getVenueName())
                 .venueAddress(popup.getVenueAddress())
                 .region(popup.getRegion())
