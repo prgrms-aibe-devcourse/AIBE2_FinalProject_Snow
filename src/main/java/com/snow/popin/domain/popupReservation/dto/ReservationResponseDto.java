@@ -2,15 +2,17 @@ package com.snow.popin.domain.popupReservation.dto;
 
 import com.snow.popin.domain.popupReservation.entity.Reservation;
 import com.snow.popin.domain.popupReservation.entity.ReservationStatus;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 /**
  * 예약 응답 DTO
  *
- * 예약 정보와 함께 팝업 정보, 상태를 포함
+ * 예약 정보와 함께 팝업 정보, 상태, 추가 메타 정보를 포함
  */
 @Getter
 @Builder
@@ -29,7 +31,18 @@ public class ReservationResponseDto {
     private ReservationStatus status;
     private String statusDescription;
 
+    private boolean canCancel;
+    private boolean isUpcoming;
+    private Long hoursUntilReservation;
+    private String timeUntilReservation;
+
     public static ReservationResponseDto from(Reservation reservation) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime reservationTime = reservation.getReservationDate();
+
+        boolean isUpcoming = reservationTime.isAfter(now);
+        long hoursUntil = isUpcoming ? ChronoUnit.HOURS.between(now, reservationTime) : 0;
+
         return ReservationResponseDto.builder()
                 .id(reservation.getId())
                 .popupId(reservation.getPopup().getId())
@@ -44,6 +57,18 @@ public class ReservationResponseDto {
                 .reservedAt(reservation.getReservedAt())
                 .status(reservation.getStatus())
                 .statusDescription(reservation.getStatus().getDescription())
+                .canCancel(reservation.canCancel() && isUpcoming)
+                .isUpcoming(isUpcoming)
+                .hoursUntilReservation(hoursUntil)
+                .timeUntilReservation(formatTimeUntil(hoursUntil))
                 .build();
+    }
+
+    private static String formatTimeUntil(long hours) {
+        if (hours <= 0) return "지난 예약";
+        if (hours < 24) return hours + "시간 후";
+        long days = hours / 24;
+        long remainingHours = hours % 24;
+        return days + "일 " + remainingHours + "시간 후";
     }
 }

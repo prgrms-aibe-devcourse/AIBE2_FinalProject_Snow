@@ -80,12 +80,16 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             ReservationStatus status
     );
     /**
-     * 팝업별 예약 상태 개수 조회
-     */
-    Long countByPopupAndStatus(Popup popup, ReservationStatus status);
-
-    /**
      * 팝업별 상태별 예약 목록 조회 (시간대별 통계용)
      */
     List<Reservation> findByPopupAndStatus(Popup popup, ReservationStatus status);
+
+    @Query("SELECT COUNT(r) FROM Reservation r " +
+            "WHERE r.popup.id = :popupId " +
+            "AND r.reservationDate >= :start " +
+            "AND r.reservationDate < :end " +
+            "AND r.status = 'RESERVED'")
+    int countByPopupAndTimeRange(@Param("popupId") Long popupId,
+                                 @Param("start") LocalDateTime start,
+                                 @Param("end") LocalDateTime end);
 }
