@@ -413,18 +413,35 @@ apiService.searchPopups = async function(params = {}) {
 
 // 자동완성 제안 조회
 apiService.getAutocompleteSuggestions = async function(query) {
+    const q = String(query || '').trim();
+    if (!q) {
+        return { suggestions: [], query: '', totalCount: 0 };
+    }
+
     try {
-        if (!query || query.trim().length < 1) {
-            return { suggestions: [], query: query || '', totalCount: 0 };
+        const resp = await fetch(`${this.baseURL}/search/suggestions?q=${encodeURIComponent(q)}`, {
+            method: 'GET',
+            headers: this.getHeaders(),
+            credentials: 'include'
+        });
+
+        if (resp.status === 401) {
+            this.removeToken();
+            return { suggestions: [], query: q, totalCount: 0 };
         }
 
-        const encodedQuery = encodeURIComponent(query.trim());
-        const response = await this.get(`/search/suggestions?q=${encodedQuery}`);
+        if (!resp.ok) {
+            return { suggestions: [], query: q, totalCount: 0 };
+        }
 
-        return response || { suggestions: [], query: query, totalCount: 0 };
+        const data = await resp.json();
+        const suggestions = Array.isArray(data?.suggestions) ? data.suggestions : [];
+        const totalCount = Number.isFinite(data?.totalCount) ? data.totalCount : suggestions.length;
+
+        return { suggestions, query: q, totalCount };
     } catch (error) {
         console.warn('자동완성 제안 조회 실패:', error);
-        return { suggestions: [], query: query || '', totalCount: 0 };
+        return { suggestions: [], query: q, totalCount: 0 };
     }
 };
 
