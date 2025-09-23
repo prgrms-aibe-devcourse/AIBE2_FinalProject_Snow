@@ -174,18 +174,18 @@ class ReservationControllerTest {
     void getAvailableTimeSlots_Success() throws Exception {
         // given
         Long popupId = 1L;
-        LocalDate date = LocalDate.of(2024, 12, 20);
+        LocalDate date = LocalDate.now().plusDays(1); // 현재 날짜 + 1일로 변경
         List<TimeSlotDto> timeSlots = Arrays.asList(
-                TimeSlotDto.createAvailable(LocalTime.of(10, 0), LocalTime.of(11, 0), 5),
-                TimeSlotDto.createAvailable(LocalTime.of(11, 0), LocalTime.of(12, 0), 3),
-                TimeSlotDto.createUnavailable(LocalTime.of(12, 0), LocalTime.of(13, 0))
+                TimeSlotDto.createAvailable(LocalTime.of(10, 0), LocalTime.of(11, 0), 5, 10),
+                TimeSlotDto.createAvailable(LocalTime.of(11, 0), LocalTime.of(12, 0), 7, 10),
+                TimeSlotDto.createUnavailable(LocalTime.of(12, 0), LocalTime.of(13, 0), "점심시간")
         );
 
         given(reservationService.getAvailableTimeSlots(popupId, date)).willReturn(timeSlots);
 
         // when & then
         mockMvc.perform(get("/api/reservations/popups/{popupId}/available-slots", popupId)
-                        .param("date", "2024-12-20"))
+                        .param("date", date.toString())) // 동적 날짜 사용
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(3))
                 .andExpect(jsonPath("$[0].available").value(true))
