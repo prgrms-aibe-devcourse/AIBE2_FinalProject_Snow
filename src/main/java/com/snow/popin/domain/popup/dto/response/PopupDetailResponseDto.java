@@ -32,6 +32,8 @@ public class PopupDetailResponseDto {
     private final Boolean isFreeEntry;
     private final String feeDisplayText;
 
+    private final Long viewCount;
+
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
@@ -68,6 +70,7 @@ public class PopupDetailResponseDto {
                 .entryFee(popup.getEntryFee())
                 .isFreeEntry(popup.isFreeEntry())
                 .feeDisplayText(popup.getFeeDisplayText())
+                .viewCount(popup.getViewCount())
                 .createdAt(popup.getCreatedAt())
                 .updatedAt(popup.getUpdatedAt())
                 .venueName(popup.getVenueName())

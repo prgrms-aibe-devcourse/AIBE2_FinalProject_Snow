@@ -41,6 +41,7 @@ public class PopupBatchService {
             var ids = popupsToStart.stream().map(Popup::getId).collect(Collectors.toSet());
             int enabled = missionSetRepository.bulkEnableByPopupIds(ids);
             log.info("ONGOING 전환된 팝업 {}건에 대해 미션셋 {}건 ENABLE(벌크) 처리", popupsToStart.size(), enabled);
+            popupRepository.saveAll(popupsToStart);
         }
 
         // ONGOING -> ENDED 업데이트
@@ -54,6 +55,7 @@ public class PopupBatchService {
             var ids = popupsToEnd.stream().map(Popup::getId).collect(Collectors.toSet());
             int disabled = missionSetRepository.bulkDisableByPopupIds(ids);
             log.info("ENDED 전환된 팝업 {}건에 대해 미션셋 {}건 DISABLE(벌크) 처리", popupsToEnd.size(), disabled);
+            popupRepository.saveAll(popupsToEnd);
         }
 
         if (updatedCount > 0) {

@@ -55,7 +55,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 24px;
-    padding: 0 24px 28px;
+    padding: 16px 24px 28px;
     max-width: 100%;
 }
 
@@ -134,6 +134,98 @@
     grid-column: 1 / -1;
 }
 
+/* 지역/날짜 필터 컨테이너 */
+.region-date-filters {
+    padding: 0 16px 8px 16px;
+    background-color: #f9fafb; /* 약간의 배경색 */
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.sub-filter-section {
+    padding: 12px 0;
+}
+
+.sub-filter-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin: 0 0 10px 4px;
+}
+
+/* 서브 필터 탭 (지역, 날짜) */
+/* 상태 필터 드롭다운 */
+.status-filter-container {
+    padding: 0 16px 16px;
+}
+
+.status-filter-select {
+    width: 120px;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background-color: #ffffff;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    cursor: pointer;
+}
+
+/* 지역/날짜 필터 컨테이너 */
+.region-date-filters {
+    padding: 0 16px 20px 16px;
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.sub-filter-section {
+    padding: 12px 0;
+}
+
+.sub-filter-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin: 0 0 10px 4px;
+}
+
+/* 서브 필터 탭 (지역, 날짜) */
+.sub-filter-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    white-space: nowrap;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.sub-filter-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.sub-tab-item {
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid #d1d5db;
+    background-color: #ffffff;
+    color: #4b5563;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.sub-tab-item.active {
+    border-color: #4B5AE4;
+    background-color: #eef2ff;
+    color: #4338ca;
+    font-weight: 700;
+}
 /* 반응형 - 작은 화면에서 더 컴팩트하게 */
 @media (max-width: 375px) {
     .popup-grid {
@@ -158,10 +250,75 @@
     }
 }
 
+/* 커스텀 날짜 선택기 */
+.custom-date-picker {
+    margin-top: 12px;
+    /* 배경, 테두리, 그림자 제거 */
+}
+
+.date-inputs-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.date-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    min-width: 0; /* flex 아이템이 축소될 수 있게 */
+}
+
+.btn-apply {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #4B5AE4;
+    color: white;
+    white-space: nowrap; /* 버튼 텍스트 줄바꿈 방지 */
+}
+
+.btn-apply:hover {
+    background: #3B4BD1;
+}
+
+/* 선택된 날짜 표시 영역 */
+.selected-date-display {
+    margin-top: 24px;
+}
+
+.date-range-text {
+    font-size: 16px;
+    font-weight: 500;
+    color: #374151;
+}
+
 /* 큰 화면에서도 너무 크지 않게 */
 @media (min-width: 600px) {
     .popup-grid {
         max-width: 600px;
         margin: 0 auto;
+    }
+}
+
+@media (max-width: 375px) {
+    .date-inputs-row {
+        gap: 6px;
+    }
+
+    .date-input {
+        padding: 6px 8px;
+        font-size: 13px;
+    }
+
+    .btn-apply {
+        padding: 6px 12px;
+        font-size: 13px;
     }
 }
