@@ -4,29 +4,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const section = document.querySelector(".content-section");
 
-    function formatToMinutes(value) {
-        if (value == null) return "";
-
-        if (typeof value === "string") {
-            const s = value.trim();
-            // 정규식으로 'YYYY-MM-DD HH:mm'만 추출
-            const m = s.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}):(\d{2})/);
-            if (m) return `${m[1]} ${m[2]}:${m[3]}`;
-        }
-
-        const d = value instanceof Date ? value : new Date(value);
-        return isNaN(d) ? String(value) : fmt(d);
-
-        function fmt(d) {
-            const yy = d.getFullYear();
-            const mm = String(d.getMonth() + 1).padStart(2, "0");
-            const dd = String(d.getDate()).padStart(2, "0");
-            const hh = String(d.getHours()).padStart(2, "0");
-            const mi = String(d.getMinutes()).padStart(2, "0");
-            return `${yy}-${mm}-${dd} ${hh}:${mi}`;
-        }
-    }
-
     // 리뷰 목록 불러오기
     async function loadReviews(page = 0, size = 10) {
         try {
@@ -58,14 +35,32 @@ document.addEventListener("DOMContentLoaded", async () => {
                 .join("");
 
             card.innerHTML = `
-                <div class="rating-input rating-display" aria-label="평점 ${r.rating}점">${starsHtml}</div>
-                <div class="review-content">${r.content}</div>
-                <div class="review-date">${formatToMinutes(r.createdAt)}</div>
-                <div class="review-actions">
-                    <button class="review-button" onclick="openEditModal(${r.id}, ${r.rating}, \`${r.content}\`)">수정</button>
-                    <button class="review-button" onclick="deleteReview(${r.id})">삭제</button>
-                </div>
-            `;
+      <div class="popup-info">
+        <div class="popup-title">${escapeHtml(r.popupTitle || "팝업")}</div>
+
+        <div class="meta-row">
+          <span class="meta-val">${starsHtml}</span>
+        </div>
+        
+        <div class="meta-row">
+          <span class="meta-key">작성일자</span>
+          <span class="meta-val">${fmt(r.createdAt)}</span>
+        </div>
+
+
+        <div class="meta-row">
+          <span class="meta-key">내용</span>
+          <span class="meta-val">${escapeHtml(r.content || "")}</span>
+        </div>
+
+        <div class="popup-action" style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="review-button" 
+                  onclick="openEditModal(${r.id}, ${r.rating}, \`${r.content}\`)">수정</button>
+          <button type="button" class="review-button" 
+                  onclick="deleteReview(${r.id})">삭제</button>
+        </div>
+      </div>
+    `;
             section.appendChild(card);
         });
     }
@@ -193,3 +188,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     };
 });
+
+function fmt(iso) {
+    if (!iso) return '-';
+    try { return new Date(iso).toLocaleString(); } catch { return iso; }
+}
+
+function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}

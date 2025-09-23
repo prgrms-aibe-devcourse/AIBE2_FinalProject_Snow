@@ -181,37 +181,6 @@ class SimpleApiService {
     async getMainData() {
         return await this.get('/main');
     }
-
-    // === 미션 관련 API ===
-    async getMission(missionId) {
-        return await this.get(`/missions/${encodeURIComponent(missionId)}`);
-    }
-
-    async listMissions(params = {}) {
-        let url = '/missions';
-        if (params.missionSetId != null) {
-            url += `?missionSetId=${encodeURIComponent(params.missionSetId)}`;
-        }
-        return await this.get(url);
-    }
-
-    async getMissionSet(missionSetId) {
-        const url = `/mission-sets/${encodeURIComponent(missionSetId)}`;
-        return this.get(url);
-    }
-
-    async submitMissionAnswer(missionId, answer) {
-        return this.post(`/user-missions/${encodeURIComponent(missionId)}/submit-answer`, { answer });
-    }
-
-    // === 리워드 관련 API ===
-    async getMyReward(missionSetId) {
-        return this.get(`/rewards/my/${encodeURIComponent(missionSetId)}`);
-    }
-
-    async redeemReward(missionSetId, staffPin) {
-        return this.post(`/rewards/redeem`, { missionSetId, staffPin });
-    }
 }
 
 // 전역 API 서비스 인스턴스
@@ -914,4 +883,38 @@ apiService.listAdminPopups = async function ({ page = 0, size = 500 } = {}) {
 
 apiService.updateMissionSet = async function(setId, data) {
     return await this.put(`/admin/mission-sets/${encodeURIComponent(setId)}`, data);
+};
+
+apiService.getMission = async function(missionId) {
+    return await this.get(`/missions/${encodeURIComponent(missionId)}`);
+};
+
+apiService.listMissions = async function(params = {}) {
+    let url = '/missions';
+    if (params.missionSetId != null) {
+        url += `?missionSetId=${encodeURIComponent(params.missionSetId)}`;
+    }
+    return await this.get(url);
+};
+
+apiService.getMissionSet = async function(missionSetId) {
+    return await this.get(`/mission-sets/${encodeURIComponent(missionSetId)}`);
+};
+
+apiService.submitMissionAnswer = async function(missionId, answer) {
+    return await this.post(`/user-missions/${encodeURIComponent(missionId)}/submit-answer`, { answer });
+};
+
+// === 리워드 관련 API ===
+apiService.getMyReward = async function(missionSetId) {
+    return await this.get(`/rewards/my/${encodeURIComponent(missionSetId)}`);
+};
+
+apiService.redeemReward = async function(missionSetId, staffPin) {
+    return await this.post(`/rewards/redeem`, { missionSetId, staffPin });
+};
+
+// 닉네임 중복 확인
+apiService.checkNicknameDuplicate = async function(nickname) {
+    return await this.get(`/auth/check-nickname?nickname=${encodeURIComponent(nickname)}`);
 };
