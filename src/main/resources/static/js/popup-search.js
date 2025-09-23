@@ -1,4 +1,4 @@
-// 팝업 검색 페이지 전용 모듈
+// 팝업 검색 페이지 전용 모듈 (개선된 버전)
 class PopupSearchManager {
     constructor() {
         this.searchInput = null;
@@ -6,20 +6,31 @@ class PopupSearchManager {
         this.relatedSearches = null;
         this.searchResults = null;
         this.searchLoading = null;
-        this.currentQuery = '';
-        this.isSearching = false;
-        this.selectedIndex = -1;
+
+        // 상태 관리
+        this.state = {
+            currentQuery: '',
+            isSearching: false,
+            selectedIndex: -1,
+            isLoadingSuggestions: false,
+            isShowingAlert: false
+        };
+
+        // 자동완성 관련
         this.autocompleteItems = [];
         this.debounceTimeout = null;
-        this.autocompleteCache = new Map(); // 자동완성 캐시
-        this.isLoadingSuggestions = false; // 자동완성 로딩 상태
-        this.isShowingAlert = false; // alert 표시 중 플래그
+        this.autocompleteCache = new Map();
+
+        // 상수
+        this.MIN_SEARCH_LENGTH = 2;
+        this.MIN_AUTOCOMPLETE_LENGTH = 1;
+        this.DEBOUNCE_DELAY = 300;
+        this.MAX_CACHE_SIZE = 50;
     }
 
     // 페이지 초기화
     async initialize() {
         try {
-            // HTML이 이미 있는지 확인
             if (!this.checkExistingHTML()) {
                 await this.renderHTML();
             }
@@ -51,7 +62,8 @@ class PopupSearchManager {
                 <div class="popup-search-container">
                     <div class="search-area">
                         <div class="search-input-wrapper">
-                            <input type="text" id="popup-search-input" class="search-input" placeholder="검색어를 입력하세요" autocomplete="off">
+                            <input type="text" id="popup-search-input" class="search-input" 
+                                   placeholder="검색어를 입력하세요" autocomplete="off">
                             <button class="search-button" id="popup-search-button">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <circle cx="11" cy="11" r="8"></circle>
@@ -77,7 +89,6 @@ class PopupSearchManager {
         this.searchResults = document.getElementById('popup-search-results');
         this.searchLoading = document.getElementById('popup-search-loading');
 
-        // 요소가 없으면 오류 발생
         if (!this.searchInput || !this.searchButton) {
             throw new Error('필수 DOM 요소를 찾을 수 없습니다.');
         }
@@ -85,25 +96,29 @@ class PopupSearchManager {
 
     // 이벤트 리스너 설정
     setupEventListeners() {
-        // 버튼 클릭 이벤트 (중복 방지)
+        // 검색 버튼 클릭
         this.searchButton.addEventListener('click', () => {
-            if (this.isShowingAlert) return; // alert 표시 중이면 무시
-            this.performSearch();
+            if (!this.state.isShowingAlert) {
+                this.performSearch();
+            }
         });
 
+        // 키보드 이벤트
         this.searchInput.addEventListener('keydown', this.handleKeyDown.bind(this));
 
+        // 입력 이벤트 (디바운싱)
         this.searchInput.addEventListener('input', this.handleInput.bind(this));
 
+        // 포커스 이벤트
         this.searchInput.addEventListener('focus', () => {
             const query = this.searchInput.value.trim();
-            if (query.length > 0) {
+            if (query.length >= this.MIN_AUTOCOMPLETE_LENGTH) {
                 this.loadAutocompleteSuggestions(query);
             }
         });
 
+        // 블러 이벤트
         this.searchInput.addEventListener('blur', (e) => {
-            // 자동완성 항목 클릭을 위해 약간의 지연 추가
             setTimeout(() => {
                 if (!e.relatedTarget || !e.relatedTarget.closest('.related-searches')) {
                     this.hideAutocomplete();
@@ -111,61 +126,60 @@ class PopupSearchManager {
             }, 150);
         });
 
+        // 외부 클릭 시 자동완성 숨김
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.search-area')) {
                 this.hideAutocomplete();
             }
         });
 
-        // 자동완성 클릭 이벤트 (중복 방지)
+        // 자동완성 항목 클릭
         if (this.relatedSearches) {
             this.relatedSearches.addEventListener('click', (e) => {
-                if (this.isShowingAlert) return; // alert 표시 중이면 무시
+                if (this.state.isShowingAlert) return;
 
                 const item = e.target.closest('.autocomplete-item');
                 if (item) {
-                    // data-suggestion 속성에서 정확한 텍스트 가져오기
                     const suggestionText = item.dataset.suggestion;
-                    console.log('자동완성 클릭:', suggestionText); // 디버깅 로그
                     this.searchInput.value = suggestionText;
                     this.hideAutocomplete();
-
-                    // 자동완성 선택시에는 길이 제한 없이 바로 검색
                     this.performSearchFromAutocomplete(suggestionText);
                 }
             });
         }
 
+        // 검색 결과 클릭
         if (this.searchResults) {
             this.searchResults.addEventListener('click', (e) => {
                 const card = e.target.closest('.popup-card');
-                if (!card) return;
-                const popupId = card.dataset.popupId;
-                if (popupId) goToPopupDetail(popupId);
+                if (card) {
+                    const popupId = card.dataset.popupId;
+                    if (popupId) goToPopupDetail(popupId);
+                }
             });
         }
     }
 
-    // 입력 처리를 위한 디바운싱 핸들러 (API 호출 버전)
+    // 입력 처리 (디바운싱)
     handleInput() {
         clearTimeout(this.debounceTimeout);
         this.debounceTimeout = setTimeout(() => {
             const query = this.searchInput.value.trim();
-            if (query && query.length >= 1) {
+            if (query && query.length >= this.MIN_AUTOCOMPLETE_LENGTH) {
                 this.loadAutocompleteSuggestions(query);
             } else {
                 this.hideAutocomplete();
                 this.hideSearchResults();
             }
-        }, 300); // 300ms 지연
+        }, this.DEBOUNCE_DELAY);
     }
 
-    // 서버에서 자동완성 제안 로드
+    // 자동완성 제안 로드
     async loadAutocompleteSuggestions(query) {
-        if (this.isLoadingSuggestions) return;
+        if (this.state.isLoadingSuggestions) return;
 
         try {
-            this.isLoadingSuggestions = true;
+            this.state.isLoadingSuggestions = true;
 
             // 캐시 확인
             if (this.autocompleteCache.has(query)) {
@@ -177,25 +191,28 @@ class PopupSearchManager {
             // API 호출
             const response = await apiService.getAutocompleteSuggestions(query);
 
-            // 캐시에 저장 (최대 50개 항목)
-            if (this.autocompleteCache.size >= 50) {
+            // 응답 구조 확인 및 처리
+            const suggestions = response?.suggestions || [];
+
+            // 캐시 저장
+            if (this.autocompleteCache.size >= this.MAX_CACHE_SIZE) {
                 const firstKey = this.autocompleteCache.keys().next().value;
                 this.autocompleteCache.delete(firstKey);
             }
-            this.autocompleteCache.set(query, response.suggestions);
+            this.autocompleteCache.set(query, suggestions);
 
             // 결과 표시
-            this.displayAutocompleteSuggestions(response.suggestions, query);
+            this.displayAutocompleteSuggestions(suggestions, query);
 
         } catch (error) {
             console.error('자동완성 제안 로드 실패:', error);
             this.hideAutocomplete();
         } finally {
-            this.isLoadingSuggestions = false;
+            this.state.isLoadingSuggestions = false;
         }
     }
 
-    // 자동완성 제안 표시 (아이콘 제거, 단순화)
+    // 자동완성 제안 표시
     displayAutocompleteSuggestions(suggestions, query) {
         if (!this.relatedSearches || !suggestions || suggestions.length === 0) {
             this.hideAutocomplete();
@@ -206,48 +223,42 @@ class PopupSearchManager {
         this.searchInput.closest('.search-area').classList.add('active');
 
         this.relatedSearches.innerHTML = suggestions.map(suggestion => {
+            // suggestion이 문자열일 수도 있고 객체일 수도 있음
+            const text = typeof suggestion === 'string' ? suggestion : suggestion.text;
             return `
-                <div class="autocomplete-item" data-suggestion="${this.escapeHtml(suggestion.text)}">
+                <div class="autocomplete-item" data-suggestion="${this.escapeHtml(text)}">
                     <svg class="autocomplete-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
-                    <div class="autocomplete-text">${this.escapeHtml(suggestion.text)}</div>
+                    <div class="autocomplete-text">${this.escapeHtml(text)}</div>
                 </div>`;
         }).join('');
 
         this.autocompleteItems = this.relatedSearches.querySelectorAll('.autocomplete-item');
         this.relatedSearches.classList.add('show');
-        this.selectedIndex = -1;
+        this.state.selectedIndex = -1;
     }
 
-    // 키보드 이벤트 (중복 alert 방지)
+    // 키보드 이벤트 처리
     handleKeyDown(e) {
-        console.log('키보드 이벤트:', e.key, '| alert 상태:', this.isShowingAlert); // 디버깅 로그
-
-        // alert가 표시 중이면 이벤트 무시
-        if (this.isShowingAlert) {
-            console.log('alert 표시 중이므로 키보드 이벤트 무시');
-            return;
-        }
+        if (this.state.isShowingAlert) return;
 
         const isAutocompleteVisible = this.relatedSearches && this.relatedSearches.classList.contains('show');
 
         switch (e.key) {
             case 'Enter':
                 e.preventDefault();
-                if (this.selectedIndex > -1 && this.autocompleteItems[this.selectedIndex]) {
-                    // 자동완성에서 선택한 경우 - 길이 체크 없이 바로 검색
-                    const suggestion = this.autocompleteItems[this.selectedIndex].dataset.suggestion;
-                    console.log('자동완성 키보드 선택:', suggestion);
+                if (this.state.selectedIndex > -1 && this.autocompleteItems[this.state.selectedIndex]) {
+                    // 자동완성에서 선택한 경우
+                    const suggestion = this.autocompleteItems[this.state.selectedIndex].dataset.suggestion;
                     this.searchInput.value = suggestion;
                     this.hideAutocomplete();
                     this.performSearchFromAutocomplete(suggestion);
                 } else {
-                    // 직접 입력한 경우 - 길이 체크 수행
-                    console.log('직접 입력 엔터 검색');
+                    // 직접 입력한 경우
                     this.hideAutocomplete();
-                    this.performSearch(); // 여기서 길이 체크가 수행됨
+                    this.performSearch();
                 }
                 break;
             case 'ArrowDown':
@@ -268,98 +279,51 @@ class PopupSearchManager {
         }
     }
 
-    // 자동완성 숨김
-    hideAutocomplete() {
-        if (this.relatedSearches) {
-            this.relatedSearches.classList.remove('show');
-            this.searchInput.closest('.search-input-wrapper').classList.remove('autocomplete-active');
-            this.searchInput.closest('.search-area').classList.remove('active');
-        }
-        this.autocompleteItems = [];
-        this.selectedIndex = -1;
-    }
-
-    // 키보드로 자동완성 네비게이션
+    // 자동완성 네비게이션
     navigateAutocomplete(direction) {
         if (this.autocompleteItems.length === 0) return;
 
-        this.autocompleteItems[this.selectedIndex]?.classList.remove('selected');
-        this.selectedIndex = (this.selectedIndex + direction + this.autocompleteItems.length) % this.autocompleteItems.length;
-        this.autocompleteItems[this.selectedIndex].classList.add('selected');
-        this.autocompleteItems[this.selectedIndex].scrollIntoView({ block: 'nearest' });
+        this.autocompleteItems[this.state.selectedIndex]?.classList.remove('selected');
+        this.state.selectedIndex = (this.state.selectedIndex + direction + this.autocompleteItems.length) % this.autocompleteItems.length;
+        this.autocompleteItems[this.state.selectedIndex].classList.add('selected');
+        this.autocompleteItems[this.state.selectedIndex].scrollIntoView({ block: 'nearest' });
     }
 
-    // 자동완성에서 선택했을 때의 검색 (길이 제한 없음, 중복 방지)
+    // 자동완성에서 선택했을 때의 검색 (길이 제한 없음)
     async performSearchFromAutocomplete(searchQuery) {
-        if (!searchQuery || this.isSearching || this.isShowingAlert) return;
+        if (!searchQuery || this.state.isSearching || this.state.isShowingAlert) return;
 
-        console.log('자동완성 검색 수행:', searchQuery);
-
-        this.currentQuery = searchQuery;
-        this.isSearching = true;
+        this.state.currentQuery = searchQuery;
+        this.state.isSearching = true;
 
         this.hideAutocomplete();
         this.showLoading();
         this.hideSearchResults();
 
         try {
-            const params = {
-                query: searchQuery,
-                page: 0,
-                size: 20
-            };
+            const params = { query: searchQuery, page: 0, size: 20 };
             const response = await apiService.searchPopups(params);
             this.displaySearchResults(response);
         } catch (error) {
             console.error('자동완성 검색 실패:', error);
             this.showSearchError();
         } finally {
-            this.isSearching = false;
+            this.state.isSearching = false;
             this.hideLoading();
         }
     }
 
-    // 검색 수행 (중복 alert 방지)
+    // 일반 검색 수행 (길이 체크 포함)
     async performSearch(searchParams = {}) {
         const searchQuery = searchParams.query || this.searchInput.value.trim();
-        console.log('performSearch 호출 - 검색어:', searchQuery, '| alert 상태:', this.isShowingAlert);
 
-        // 검색어 길이 체크 (최소 2글자)
-        if (!searchQuery || searchQuery.length < 2) {
-            console.log('검색어 길이 부족:', searchQuery);
+        // 검색어 길이 체크
+        if (!this.validateSearchQuery(searchQuery)) return;
+        if (this.state.isSearching) return;
 
-            if (searchQuery.length === 1) {
-                // alert 중복 방지
-                if (this.isShowingAlert) {
-                    console.log('이미 alert 표시 중 - 무시');
-                    return;
-                }
+        this.state.currentQuery = searchQuery;
+        this.state.isSearching = true;
 
-                console.log('alert 표시 시작');
-                this.isShowingAlert = true;
-                alert('검색어를 2글자 이상 입력해주세요.');
-
-                // alert 닫힌 후 포커스 복원 및 상태 해제
-                setTimeout(() => {
-                    console.log('alert 상태 해제');
-                    this.isShowingAlert = false;
-                    this.searchInput.focus(); // 포커스 복원
-                }, 200);
-                return;
-            } else if (!searchQuery) {
-                // 빈 검색어일 때는 조용히 무시
-                return;
-            }
-        }
-
-        if (this.isSearching) return;
-
-        console.log('정상 검색 수행:', searchQuery); // 디버깅 로그
-
-        this.currentQuery = searchQuery;
-        this.isSearching = true;
-
-        // 검색 시작 시 자동완성 및 기타 UI 숨김
         this.hideAutocomplete();
         this.showLoading();
         this.hideSearchResults();
@@ -370,34 +334,58 @@ class PopupSearchManager {
                 page: searchParams.page || 0,
                 size: searchParams.size || 20
             };
-            console.log('검색 파라미터:', params); // 디버깅 로그
             const response = await apiService.searchPopups(params);
             this.displaySearchResults(response);
         } catch (error) {
             console.error('팝업 검색 실패:', error);
             this.showSearchError();
         } finally {
-            this.isSearching = false;
+            this.state.isSearching = false;
             this.hideLoading();
         }
     }
 
+    // 검색어 유효성 검사
+    validateSearchQuery(query) {
+        if (!query || query.length < this.MIN_SEARCH_LENGTH) {
+            if (query && query.length === 1) {
+                this.showLengthAlert();
+            }
+            return false;
+        }
+        return true;
+    }
 
+    // 길이 경고 알림
+    showLengthAlert() {
+        if (this.state.isShowingAlert) return;
+
+        this.state.isShowingAlert = true;
+        alert(`검색어를 ${this.MIN_SEARCH_LENGTH}글자 이상 입력해주세요.`);
+
+        setTimeout(() => {
+            this.state.isShowingAlert = false;
+            this.searchInput.focus();
+        }, 200);
+    }
 
     // 검색 결과 표시
     displaySearchResults(response) {
         if (!this.searchResults) return;
 
-        // API 응답 구조에 맞게 'popups' 필드 사용
-        if (!response || !response.popups || response.popups.length === 0) {
+        // 응답 구조 확인
+        const popups = response?.popups || [];
+        const totalElements = response?.totalElements || 0;
+
+        if (popups.length === 0) {
             this.showNoResults();
             return;
         }
 
         this.searchResults.innerHTML = `
-            <div class="search-results-title">'${this.escapeHtml(this.currentQuery)}' 검색 결과 (${response.totalElements}개)</div>
+            <div class="search-results-title">'${this.escapeHtml(this.state.currentQuery)}' 검색 결과 (${totalElements}개)</div>
             <div class="search-results-grid">
-                ${response.popups.map(popup => this.createSearchResultCard(popup)).join('')}
+                ${popups.map(popup => this.createSearchResultCard(popup)).join('')}
             </div>`;
         this.showSearchResults();
     }
@@ -430,7 +418,7 @@ class PopupSearchManager {
             <div class="no-results">
                 <div class="no-results-icon">🔍</div>
                 <h3>검색 결과가 없습니다</h3>
-                <p>'${this.escapeHtml(this.currentQuery)}'에 대한 검색 결과를 찾을 수 없습니다.</p>
+                <p>'${this.escapeHtml(this.state.currentQuery)}'에 대한 검색 결과를 찾을 수 없습니다.</p>
                 <p>다른 검색어로 다시 시도해보세요.</p>
             </div>`;
         this.showSearchResults();
@@ -448,12 +436,22 @@ class PopupSearchManager {
         this.showSearchResults();
     }
 
-    // 검색 결과 표시
+    // 자동완성 숨김
+    hideAutocomplete() {
+        if (this.relatedSearches) {
+            this.relatedSearches.classList.remove('show');
+            this.searchInput.closest('.search-input-wrapper').classList.remove('autocomplete-active');
+            this.searchInput.closest('.search-area').classList.remove('active');
+        }
+        this.autocompleteItems = [];
+        this.state.selectedIndex = -1;
+    }
+
+    // UI 표시/숨김 메서드들
     showSearchResults() {
         if (this.searchResults) this.searchResults.classList.add('show');
     }
 
-    // 검색 결과 숨김
     hideSearchResults() {
         if (this.searchResults) this.searchResults.classList.remove('show');
     }
@@ -482,6 +480,7 @@ class PopupSearchManager {
         }
     }
 
+    // HTML 이스케이프
     escapeHtml(text) {
         if (typeof text !== 'string') return '';
         const map = {

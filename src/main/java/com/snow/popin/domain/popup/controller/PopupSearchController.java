@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Size;
 
 @Slf4j
 @RestController
@@ -24,11 +27,14 @@ public class PopupSearchController {
 
     // 팝업스토어 검색 (제목, 태그)
     @GetMapping("/popups")
-    public ResponseEntity<PopupListResponseDto> searchPopups(@Valid PopupSearchRequestDto request) {
-        log.info("팝업 검색 요청 - query: {}, page: {}, size: {}",
-                request.getQuery(), request.getPage(), request.getSize());
+    public ResponseEntity<PopupListResponseDto> searchPopups(
+            @RequestParam(value = "query", required = false) String query,
+            @RequestParam(value = "page", defaultValue = "0") @Min(0) int page,
+            @RequestParam(value = "size", defaultValue = "20") @Min(1) @Max(100) int size) {
 
+        PopupSearchRequestDto request = PopupSearchRequestDto.of(query, page, size);
         PopupListResponseDto response = popupSearchService.searchPopups(request);
+
         return ResponseEntity.ok(response);
     }
 
@@ -36,25 +42,14 @@ public class PopupSearchController {
     // 팝업 제목과 태그에서 검색어와 일치하는 항목들을 반환
     @GetMapping("/suggestions")
     public ResponseEntity<AutocompleteResponseDto> getAutocompleteSuggestions(
-            @RequestParam(value = "q", required = false) String query) {
-
-        log.info("자동완성 제안 요청 - query: {}", query);
-
-        // 검색어가 없거나 너무 짧으면 빈 결과 반환
-        if (query == null || query.trim().length() < 1) {
-            log.info("자동완성 검색어 부족 - query: {}", query);
-            return ResponseEntity.ok(AutocompleteResponseDto.empty(query));
-        }
+            @RequestParam(value = "q", required = false)
+            @Size(min = 1, max = 100, message = "검색어는 1~100자 사이여야 합니다") String query) {
 
         try {
-            // 간단한 검색만 사용 (안정적이고 모든 상태 포함)
-            AutocompleteResponseDto response = popupSearchService.getSimpleAutocompleteSuggestions(query);
-
-            log.info("자동완성 제안 완료 - query: {}, 결과 수: {}", query, response.getTotalCount());
+            AutocompleteResponseDto response = popupSearchService.getAutocompleteSuggestions(query);
             return ResponseEntity.ok(response);
-
         } catch (Exception e) {
-            log.error("자동완성 제안 요청 실패 - query: {}", query, e);
+            log.error("자동완성 제안 요청 실패", e);
             return ResponseEntity.ok(AutocompleteResponseDto.empty(query));
         }
     }
