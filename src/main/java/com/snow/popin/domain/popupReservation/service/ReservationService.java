@@ -9,7 +9,6 @@ import com.snow.popin.domain.popup.repository.PopupHoursRepository;
 import com.snow.popin.domain.popup.repository.PopupRepository;
 import com.snow.popin.domain.popupReservation.dto.*;
 import com.snow.popin.domain.popupReservation.entity.PopupReservationSettings;
-import com.snow.popin.domain.popupReservation.dto.AvailableSlotDto;
 import com.snow.popin.domain.popupReservation.entity.Reservation;
 import com.snow.popin.domain.popupReservation.repository.ReservationRepository;
 import com.snow.popin.domain.user.entity.User;
@@ -149,11 +148,7 @@ public class ReservationService {
         }
 
         long daysUntilReservation = now.toLocalDate().until(slotStart.toLocalDate()).getDays();
-        if (daysUntilReservation > settings.getAdvanceBookingDays()) {
-            return false;
-        }
-
-        return true;
+        return daysUntilReservation <= settings.getAdvanceBookingDays();
     }
 
     /**
@@ -261,7 +256,6 @@ public class ReservationService {
 
         List<AvailableSlotDto> slots = new ArrayList<>();
 
-        // 요일별 운영시간 조회
         List<PopupHours> hoursList = popupHoursRepository.findByPopupIdAndDayOfWeek(
                 popupId, date.getDayOfWeek().getValue() % 7);
 
@@ -273,11 +267,10 @@ public class ReservationService {
                 LocalTime slotStart = current;
                 LocalTime slotEnd = current.plusMinutes(settings.getTimeSlotInterval());
 
-                // 이미 예약된 인원 수 계산
-                int reservedCount = reservationRepository.countByPopupAndTimeRange(
-                        popupId, date.atTime(slotStart), date.atTime(slotEnd));
+                long reservedCount = reservationRepository.sumPartySizeByPopupAndReservationDateBetween(
+                        popup, date.atTime(slotStart), date.atTime(slotEnd));
 
-                int remaining = settings.getMaxCapacityPerSlot() - reservedCount;
+                int remaining = settings.getMaxCapacityPerSlot() - (int) reservedCount;
                 slots.add(AvailableSlotDto.of(slotStart, slotEnd, Math.max(remaining, 0)));
 
                 current = slotEnd;
