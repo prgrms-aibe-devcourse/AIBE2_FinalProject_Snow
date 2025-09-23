@@ -9,7 +9,6 @@ import javax.validation.constraints.Size;
 @Getter
 public class PopupSearchRequestDto {
 
-    @Size(min = 2, max = 100, message = "검색어는 2~100자여야 합니다.")
     private String query;
 
     @Min(0)
