@@ -360,7 +360,7 @@ class AdminRoleUpgradeManager {
                                 <div class="document-item">
                                     <span>${doc.docType === 'BUSINESS_LICENSE' ? '사업자등록증' : '기타'}</span>
                                     ${doc.businessNumber ? `<span>사업자번호: ${doc.businessNumber}</span>` : ''}
-                                    ${doc.filePath ? `<a href="${doc.filePath}" target="_blank" class="download-link">파일 보기</a>` : ''}
+                                    ${doc.fileUrl ? `<a href="${doc.fileUrl}" target="_blank" class="download-link">파일 보기</a>` : ''}  
                                 </div>
                             `).join('')}
                         </div>

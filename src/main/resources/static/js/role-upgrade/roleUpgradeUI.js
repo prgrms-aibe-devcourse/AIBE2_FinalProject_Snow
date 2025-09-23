@@ -3,7 +3,7 @@
  */
 class RoleUpgradeUI {
     constructor() {
-        this.activeTab = 'guest'; // 기본값: 기업
+        this.activeTab = 'host'; // 기본값: 기업 탭
         this.elements = this.getElements();
 
         this.init();
@@ -50,8 +50,8 @@ class RoleUpgradeUI {
         this.setupFormValidation();
         this.setupFileUpload();
 
-        // 초기 상태 설정
-        this.switchTab('guest');
+        // 초기 상태 설정 (기업 탭)
+        this.switchTab('host');
     }
 
     /**
@@ -113,22 +113,28 @@ class RoleUpgradeUI {
 
     /**
      * 탭 전환 (수정된 로직)
-     * @param {string} tab 탭 이름 ('guest' 또는 'host')
+     * @param {string} tab 탭 이름 ('host' 또는 'guest')
+     *
+     * 탭 매핑:
+     * - 'host' 탭 = 기업 (PROVIDER 역할)
+     * - 'guest' 탭 = 공간 제공자 (HOST 역할)
      */
     switchTab(tab) {
         this.activeTab = tab;
 
-        if (tab === 'guest') {
+        if (tab === 'host') {
+            // 기업 탭
             this.elements.companyLabel.textContent = '회사명';
             this.elements.companyInput.placeholder = '회사명을 입력해 주세요';
-            this.showRoleField();
-        } else {
+            this.hideRoleField(); // 기업은 권한 필드가 없음
+        } else if (tab === 'guest') {
+            // 공간 제공자 탭
             this.elements.companyLabel.textContent = '공간 표시명';
             this.elements.companyInput.placeholder = '공간 표시명을 입력해 주세요';
-            this.hideRoleField();
+            this.showRoleField(); // 공간 제공자는 권한 필드 필요
         }
 
-        // 탭 활성화 토글 (tabButtons → tabBtns)
+        // 탭 활성화 토글
         this.elements.tabBtns.forEach(btn => btn.classList.remove('active'));
         const activeBtn = Array.from(this.elements.tabBtns).find(btn => btn.dataset.tab === tab);
         if (activeBtn) activeBtn.classList.add('active');
@@ -138,14 +144,18 @@ class RoleUpgradeUI {
      * 권한 필드 표시
      */
     showRoleField() {
-        this.elements.roleGroup.classList.remove('hidden');
+        if (this.elements.roleGroup) {
+            this.elements.roleGroup.classList.remove('hidden');
+        }
     }
 
     /**
      * 권한 필드 숨기기
      */
     hideRoleField() {
-        this.elements.roleGroup.classList.add('hidden');
+        if (this.elements.roleGroup) {
+            this.elements.roleGroup.classList.add('hidden');
+        }
         // 권한 선택 초기화
         if (this.elements.permissionSelect) {
             this.elements.permissionSelect.value = '';
@@ -170,22 +180,30 @@ class RoleUpgradeUI {
      */
     handleFileSelect(file) {
         if (!file) {
-            this.elements.fileNameDisplay.textContent = '';
+            if (this.elements.fileNameDisplay) {
+                this.elements.fileNameDisplay.textContent = '';
+            }
             this.clearFieldError('file');
             return;
         }
 
         // 파일 검증 (이제 선택사항이므로 에러가 나면 표시만)
-        const validation = RoleUpgradeValidator.validateFile(file);
-        if (!validation.isValid) {
-            this.showFieldError('file', validation.message);
-            this.elements.businessFileInput.value = '';
-            this.elements.fileNameDisplay.textContent = '';
-            return;
+        if (typeof RoleUpgradeValidator !== 'undefined') {
+            const validation = RoleUpgradeValidator.validateFile(file);
+            if (!validation.isValid) {
+                this.showFieldError('file', validation.message);
+                this.elements.businessFileInput.value = '';
+                if (this.elements.fileNameDisplay) {
+                    this.elements.fileNameDisplay.textContent = '';
+                }
+                return;
+            }
         }
 
         // 파일명 표시
-        this.elements.fileNameDisplay.textContent = file.name;
+        if (this.elements.fileNameDisplay) {
+            this.elements.fileNameDisplay.textContent = file.name;
+        }
         this.clearFieldError('file');
     }
 
@@ -194,15 +212,20 @@ class RoleUpgradeUI {
      */
     validateField(fieldName) {
         const value = this.getFieldValue(fieldName);
-        const result = RoleUpgradeValidator.validateField(fieldName, value, this.activeTab);
 
-        if (result.isValid) {
-            this.clearFieldError(fieldName);
-        } else {
-            this.showFieldError(fieldName, result.message);
+        if (typeof RoleUpgradeValidator !== 'undefined') {
+            const result = RoleUpgradeValidator.validateField(fieldName, value, this.activeTab);
+
+            if (result.isValid) {
+                this.clearFieldError(fieldName);
+            } else {
+                this.showFieldError(fieldName, result.message);
+            }
+
+            return result.isValid;
         }
 
-        return result.isValid;
+        return true;
     }
 
     /**
@@ -224,7 +247,7 @@ class RoleUpgradeUI {
     }
 
     /**
-     * 전체 폼 유효성 검사 (파일 검증 제거)
+     * 전체 폼 유효성 검사
      */
     validateForm() {
         const errors = {};
@@ -232,41 +255,51 @@ class RoleUpgradeUI {
         // 기본 필수 필드
         const requiredFields = ['company', 'businessNumber'];
 
-        // 기업(guest) 탭에서만 권한 필수
+        // 공간 제공자(guest) 탭에서만 권한 필수
         if (this.activeTab === 'guest') {
             requiredFields.push('permission');
         }
 
+        let hasErrors = false;
+
         requiredFields.forEach(field => {
             const value = this.getFieldValue(field);
-            const validation = RoleUpgradeValidator.validateField(field, value, this.activeTab);
-            if (!validation.isValid) {
-                errors[field] = validation.message;
+
+            if (typeof RoleUpgradeValidator !== 'undefined') {
+                const validation = RoleUpgradeValidator.validateField(field, value, this.activeTab);
+                if (!validation.isValid) {
+                    errors[field] = validation.message;
+                    this.showFieldError(field, validation.message);
+                    hasErrors = true;
+                } else {
+                    this.clearFieldError(field);
+                }
             }
         });
 
-        return errors;
+        return !hasErrors;
     }
-
 
     /**
      * 승격 요청 데이터 가져오기
+     * 수정된 역할 매핑 로직
      */
     getUpgradeRequestData() {
-        const isBusiness = this.activeTab === 'guest'; // 기업 탭 여부
+        const isSpaceProvider = this.activeTab === 'guest'; // 공간 제공자 탭 여부
 
         // 폼 값을 payload로 모으기
         const payload = {
             company: this.getFieldValue('company'),
             businessNumber: this.getFieldValue('businessNumber'),
             additional: this.getFieldValue('additional'),
-            ...(isBusiness ? { permission: this.getFieldValue('permission') } : {})
+            ...(isSpaceProvider ? { permission: this.getFieldValue('permission') } : {})
         };
 
-        // 기업(guest) → HOST, 공간제공자(host) → PROVIDER
+        // 수정된 역할 매핑:
+        // - 기업(host 탭) → PROVIDER 역할
+        // - 공간 제공자(guest 탭) → HOST 역할
         return {
-            requestedRole: isBusiness ? 'HOST' : 'PROVIDER',
-            // 대부분 스프링 컨트롤러에서 payload를 String으로 받으므로 문자열로 전송
+            requestedRole: isSpaceProvider ? 'HOST' : 'PROVIDER',
             payload: JSON.stringify(payload)
         };
     }
@@ -275,18 +308,20 @@ class RoleUpgradeUI {
      * 선택된 파일 가져오기
      */
     getSelectedFile() {
-        return this.elements.businessFileInput?.files[0] || null;
+        const fileInput = this.elements.businessFileInput;
+        return fileInput && fileInput.files && fileInput.files.length > 0 ? fileInput.files[0] : null;
     }
 
     /**
      * 필드 에러 표시
      */
     showFieldError(fieldName, message) {
-        const errorElement = this.elements[fieldName + 'Error'];
-        const inputElement = this.getInputElement(fieldName);
+        const errorElement = this.elements[`${fieldName}Error`];
+        const inputElement = this.elements[`${fieldName}Input`] || this.elements[`${fieldName}Select`] || this.elements[`${fieldName}Textarea`];
 
         if (errorElement) {
             errorElement.textContent = message;
+            errorElement.style.display = 'block';
         }
 
         if (inputElement) {
@@ -295,14 +330,15 @@ class RoleUpgradeUI {
     }
 
     /**
-     * 필드 에러 제거
+     * 필드 에러 지우기
      */
     clearFieldError(fieldName) {
-        const errorElement = this.elements[fieldName + 'Error'];
-        const inputElement = this.getInputElement(fieldName);
+        const errorElement = this.elements[`${fieldName}Error`];
+        const inputElement = this.elements[`${fieldName}Input`] || this.elements[`${fieldName}Select`] || this.elements[`${fieldName}Textarea`];
 
         if (errorElement) {
             errorElement.textContent = '';
+            errorElement.style.display = 'none';
         }
 
         if (inputElement) {
@@ -311,49 +347,19 @@ class RoleUpgradeUI {
     }
 
     /**
-     * 입력 요소 가져오기
-     */
-    getInputElement(fieldName) {
-        switch (fieldName) {
-            case 'company':
-                return this.elements.companyInput;
-            case 'businessNumber':
-                return this.elements.businessNumberInput;
-            case 'permission':
-                return this.elements.permissionSelect;
-            case 'additional':
-                return this.elements.additionalTextarea;
-            case 'file':
-                return this.elements.businessFileInput;
-            default:
-                return null;
-        }
-    }
-
-    /**
-     * 모든 에러 제거
-     */
-    clearErrors() {
-        const errorFields = ['company', 'businessNumber', 'permission', 'additional', 'file'];
-        errorFields.forEach(field => {
-            this.clearFieldError(field);
-        });
-    }
-
-    /**
      * 알림 메시지 표시
      */
     showAlert(message, type = 'info') {
-        const container = this.elements.alertContainer;
-        if (!container) return;
+        if (!this.elements.alertContainer) return;
 
-        container.textContent = message;
-        container.className = `alert ${type}`;
-        container.style.display = 'block';
+        const alertContainer = this.elements.alertContainer;
+        alertContainer.textContent = message;
+        alertContainer.className = `alert ${type}`;
+        alertContainer.style.display = 'block';
 
         // 3초 후 자동 숨김
         setTimeout(() => {
-            container.style.display = 'none';
+            alertContainer.style.display = 'none';
         }, 3000);
     }
 
@@ -363,12 +369,17 @@ class RoleUpgradeUI {
     toggleLoading(isLoading) {
         if (!this.elements.submitBtn) return;
 
+        const loadingElement = this.elements.submitBtn.querySelector('.loading');
+        const textElement = this.elements.submitBtn.querySelector('.btn-text');
+
         if (isLoading) {
-            this.elements.submitBtn.classList.add('loading');
             this.elements.submitBtn.disabled = true;
+            this.elements.submitBtn.classList.add('loading');
+            if (textElement) textElement.textContent = '처리 중...';
         } else {
-            this.elements.submitBtn.classList.remove('loading');
             this.elements.submitBtn.disabled = false;
+            this.elements.submitBtn.classList.remove('loading');
+            if (textElement) textElement.textContent = '요청하기';
         }
     }
 
@@ -380,8 +391,48 @@ class RoleUpgradeUI {
             this.elements.form.reset();
         }
 
-        this.elements.fileNameDisplay.textContent = '';
-        this.clearErrors();
-        this.switchTab('guest'); // 기본 탭으로 초기화
+        // 파일명 표시 초기화
+        if (this.elements.fileNameDisplay) {
+            this.elements.fileNameDisplay.textContent = '';
+        }
+
+        // 모든 에러 메시지 지우기
+        ['company', 'businessNumber', 'permission', 'additional', 'file'].forEach(field => {
+            this.clearFieldError(field);
+        });
+
+        // 알림 숨기기
+        if (this.elements.alertContainer) {
+            this.elements.alertContainer.style.display = 'none';
+        }
+    }
+
+    /**
+     * 탭별 필수 필드 반환
+     */
+    getRequiredFields() {
+        const requiredFields = ['company', 'businessNumber'];
+
+        // 공간 제공자(guest) 탭에서만 권한 필수
+        if (this.activeTab === 'guest') {
+            requiredFields.push('permission');
+        }
+
+        return requiredFields;
+    }
+
+    /**
+     * 현재 활성 탭 반환
+     */
+    getActiveTab() {
+        return this.activeTab;
+    }
+
+    /**
+     * 현재 선택된 역할 반환
+     */
+    getSelectedRole() {
+        // 공간 제공자(guest 탭) → HOST, 기업(host 탭) → PROVIDER
+        return this.activeTab === 'guest' ? 'HOST' : 'PROVIDER';
     }
 }

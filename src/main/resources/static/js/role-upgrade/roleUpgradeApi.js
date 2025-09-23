@@ -90,7 +90,7 @@ class RoleUpgradeApi {
                 headers['Authorization'] = `Bearer ${token}`;
             }
 
-            const response = await fetch(`${this.baseURL}/user/role-upgrade/my-requests`, {
+            const response = await fetch(`${this.baseURL}/role-upgrade/my-requests`, {
                 method: 'GET',
                 headers: headers
             });
