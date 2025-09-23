@@ -14,16 +14,6 @@
     min-height: 100vh;
 }
 
-/* 헤더 */
-.upgrade-header {
-    background: white;
-    padding: 16px 20px;
-    border-bottom: 1px solid #e9ecef;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
 .back-btn {
     background: none;
     border: none;
@@ -71,18 +61,6 @@
 
 .logo-bubble::after {
     right: 20px;
-}
-
-.header-right {
-    display: flex;
-    gap: 12px;
-}
-
-.header-right svg {
-    width: 20px;
-    height: 20px;
-    color: #6c757d;
-    cursor: pointer;
 }
 
 /* 탭 네비게이션 */
@@ -317,10 +295,6 @@ select.form-input {
 
     .form-container {
         padding: 20px 16px;
-    }
-
-    .upgrade-header {
-        padding: 12px 16px;
     }
 
     .tab-container {

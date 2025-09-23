@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     loadNotificationSettings();
     setupNotificationSettingEvents();
 
-
     try {
         // =============================
         // 사용자 정보 불러오기
@@ -66,6 +65,15 @@ document.addEventListener('DOMContentLoaded', async function () {
                     }
 
                     try {
+                        // 닉네임 중복 확인 추가
+                        if (field === 'nickname') {
+                            const res = await apiService.checkNicknameDuplicate(newValue);
+                            if (res.exists) {
+                                alert('이미 사용 중인 닉네임입니다. 다른 닉네임을 입력해주세요.');
+                                return;
+                            }
+                        }
+
                         const updatedUser = await apiService.put('/users/me', {
                             name: field === 'name' ? newValue : user.name,
                             nickname: field === 'nickname' ? newValue : user.nickname,
@@ -89,6 +97,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 });
             });
         });
+
 
         // =============================
         // 관심 카테고리 (API 연동)

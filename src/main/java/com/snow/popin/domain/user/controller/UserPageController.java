@@ -32,4 +32,9 @@ public class UserPageController {
     public String myPopupReservation() {
         return "forward:/templates/pages/mypage/user/user-popup-reservation.html";
     }
+
+    @GetMapping("/role-upgrade-request")
+    public String roleUpgradeRequest() {
+        return "forward:/templates/pages/role-upgrade-request.html";
+    }
 }
