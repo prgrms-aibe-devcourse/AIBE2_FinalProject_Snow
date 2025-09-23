@@ -105,7 +105,7 @@
 
 .search-btn {
     padding: 12px 24px;
-    background: #1e40af !important;
+    background: #4B5AE4 !important;
     color: white;
     border: none;
     border-radius: 12px;
@@ -231,7 +231,7 @@
 .clear-search-btn {
     background: none;
     border: none;
-    color: #3b82f6;
+    color: #4B5AE4;
     text-decoration: underline;
     cursor: pointer;
     font-size: 14px;

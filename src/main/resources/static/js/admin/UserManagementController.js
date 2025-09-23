@@ -68,7 +68,7 @@ class UserManagementController {
 
         // 사용자 상세보기 버튼 클릭 (이벤트 위임)
         this.ui.elements.userTableBody.addEventListener('click', (e) => {
-            if (e.target.classList.contains('detail-btn')) {
+            if (e.target.classList.contains('detail-button')) {
                 const userId = e.target.dataset.userId;
                 this.showUserDetail(userId);
             }
