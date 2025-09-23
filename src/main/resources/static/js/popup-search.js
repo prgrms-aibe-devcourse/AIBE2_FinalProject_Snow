@@ -400,13 +400,13 @@ class PopupSearchManager {
 
         return `
             <div class="popup-card" data-popup-id="${popupId}">
-                <div class="popup-image">
-                    <img src="${imgSrc}" alt="${safeTitle}" loading="lazy">
+                <div class="card-image-wrapper">
+                    <img src="${imgSrc}" alt="${safeTitle}" class="card-image" loading="lazy">
                 </div>
-                <div class="popup-info">
-                    <h3 class="popup-title">${safeTitle}</h3>
-                    <p class="popup-region">${safeRegion}</p>
-                    <p class="popup-period">${safePeriod}</p>
+                <div class="card-content">
+                    <h3 class="card-title">${safeTitle}</h3>
+                    <p class="card-info location">${safeRegion}</p>
+                    <p class="card-info">${safePeriod}</p>
                 </div>
             </div>`;
     }
