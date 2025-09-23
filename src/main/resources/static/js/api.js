@@ -411,6 +411,23 @@ apiService.searchPopups = async function(params = {}) {
     return await this.get(`/search/popups${query}`);
 };
 
+// 자동완성 제안 조회
+apiService.getAutocompleteSuggestions = async function(query) {
+    try {
+        if (!query || query.trim().length < 1) {
+            return { suggestions: [], query: query || '', totalCount: 0 };
+        }
+
+        const encodedQuery = encodeURIComponent(query.trim());
+        const response = await this.get(`/search/suggestions?q=${encodedQuery}`);
+
+        return response || { suggestions: [], query: query, totalCount: 0 };
+    } catch (error) {
+        console.warn('자동완성 제안 조회 실패:', error);
+        return { suggestions: [], query: query || '', totalCount: 0 };
+    }
+};
+
 // 지역 목록 조회
 apiService.getMapRegions = async function() {
     return await this.get('/map/regions');
