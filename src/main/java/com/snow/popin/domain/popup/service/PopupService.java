@@ -30,13 +30,35 @@ public class PopupService {
     public PopupListResponseDto getAllPopups(int page, int size, PopupStatus status) {
         log.info("전체 팝업 조회 - page: {}, size: {}, status: {}", page, size, status);
 
-        Pageable pageable = createPageable(page, size);
-        Page<Popup> popupPage = popupRepository.findAllWithStatusFilter(status, pageable);
+        try {
+            Pageable pageable = createPageable(page, size);
+            log.info("Pageable 생성 완료: {}", pageable);
 
-        List<PopupSummaryResponseDto> popupDtos = convertToSummaryDtos(popupPage.getContent());
+            Page<Popup> popupPage = popupRepository.findAllWithStatusFilter(status, pageable);
+            log.info("Repository 호출 완료 - 조회된 팝업 수: {}", popupPage != null ? popupPage.getContent().size() : "null");
 
-        log.info("전체 팝업 조회 완료 - 총 {}개", popupPage.getTotalElements());
-        return PopupListResponseDto.of(popupPage, popupDtos);
+            if (popupPage != null && popupPage.getContent() != null) {
+                for (int i = 0; i < popupPage.getContent().size(); i++) {
+                    Popup popup = popupPage.getContent().get(i);
+                    log.info("Popup[{}]: id={}, title={}, venue={}, category={}, images={}개",
+                            i, popup.getId(), popup.getTitle(),
+                            popup.getVenue() != null ? popup.getVenue().getName() : "NULL",
+                            popup.getCategory() != null ? popup.getCategory().getName() : "NULL",
+                            popup.getImages() != null ? popup.getImages().size() : "NULL"
+                    );
+                }
+            }
+
+            List<PopupSummaryResponseDto> popupDtos = convertToSummaryDtos(popupPage.getContent());
+            log.info("DTO 변환 완료");
+
+            log.info("전체 팝업 조회 완료 - 총 {}개", popupPage.getTotalElements());
+            return PopupListResponseDto.of(popupPage, popupDtos);
+
+        } catch (Exception e) {
+            log.error("전체 팝업 조회 중 오류 발생: {}", e.getMessage(), e);
+            throw e; // 다시 던져서 정확한 스택 트레이스 확인
+        }
     }
 
     // 인기 팝업 조회
@@ -292,6 +314,9 @@ public class PopupService {
 
     // Popup 리스트를 PopupSummaryResponseDto 리스트로 변환
     private List<PopupSummaryResponseDto> convertToSummaryDtos(List<Popup> popups) {
+        if (popups == null) {
+            return Collections.emptyList();
+        }
         return popups.stream()
                 .map(PopupSummaryResponseDto::from)
                 .collect(Collectors.toList());
