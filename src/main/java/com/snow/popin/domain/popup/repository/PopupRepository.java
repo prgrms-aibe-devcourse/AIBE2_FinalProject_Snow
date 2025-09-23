@@ -46,24 +46,27 @@ public interface PopupRepository extends JpaRepository<Popup, Long>, JpaSpecific
             "LEFT JOIN FETCH p.category c " +
             "WHERE (:status IS NULL OR p.status = :status) " +
             "AND p.endDate >= CURRENT_DATE " +
+            "AND p.endDate <= CURRENT_DATE + 7 " +
             "ORDER BY p.endDate ASC",
             countQuery = "SELECT count(p) FROM Popup p " +
                     "WHERE (:status IS NULL OR p.status = :status) " +
-                    "AND p.endDate >= CURRENT_DATE")
+                    "AND p.endDate >= CURRENT_DATE " +
+                    "AND p.endDate <= CURRENT_DATE + 7 " +
+                    "AND p.status = com.snow.popin.domain.popup.entity.PopupStatus.ONGOING")
     Page<Popup> findDeadlineSoonPopups(@Param("status") PopupStatus status, Pageable pageable);
 
     // 지역별 + 기간별 필터링 (가장 범용적 - 다른 메서드들 대체)
     @Query(value = "SELECT p FROM Popup p " +
             "LEFT JOIN FETCH p.venue v " +
             "LEFT JOIN FETCH p.category c " +
-            "WHERE (:region IS NULL OR :region = '전체' OR v.region = :region) " +
+            "WHERE (:region IS NULL OR :region = '전체' OR v.region LIKE CONCAT('%', :region, '%')) " +
             "AND (:status IS NULL OR p.status = :status) " +
             "AND (:startDate IS NULL OR p.startDate <= :endDate) " +
             "AND (:endDate IS NULL OR p.endDate >= :startDate) " +
             "ORDER BY p.createdAt DESC",
             countQuery = "SELECT count(p) FROM Popup p " +
                     "LEFT JOIN p.venue v " +
-                    "WHERE (:region IS NULL OR :region = '전체' OR v.region = :region) " +
+                    "WHERE (:region IS NULL OR :region = '전체' OR v.region LIKE CONCAT('%', :region, '%')) " +
                     "AND (:status IS NULL OR p.status = :status) " +
                     "AND (:startDate IS NULL OR p.startDate <= :endDate) " +
                     "AND (:endDate IS NULL OR p.endDate >= :startDate)")
@@ -215,10 +218,10 @@ public interface PopupRepository extends JpaRepository<Popup, Long>, JpaSpecific
 
     Optional<Popup> findFirstByTitle(String title);
 
-    @Query("SELECT p FROM Popup p WHERE p.status = com.snow.popin.domain.popup.entity.PopupStatus.PLANNED AND p.startDate <= :today")
+    @Query("SELECT p FROM Popup p WHERE p.status != com.snow.popin.domain.popup.entity.PopupStatus.ONGOING AND p.startDate <= :today AND p.endDate >= :today")
     List<Popup> findPopupsToUpdateToOngoing(@Param("today") LocalDate today);
 
-    @Query("SELECT p FROM Popup p WHERE p.status = com.snow.popin.domain.popup.entity.PopupStatus.ONGOING AND p.endDate < :today")
+    @Query("SELECT p FROM Popup p WHERE p.status != com.snow.popin.domain.popup.entity.PopupStatus.ENDED AND p.endDate < :today")
     List<Popup> findPopupsToUpdateToEnded(@Param("today") LocalDate today);
 
     // ===== 통계용 기본 메서드들 =====

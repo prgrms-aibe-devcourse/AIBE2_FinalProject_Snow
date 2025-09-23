@@ -153,6 +153,47 @@
 }
 
 /* 서브 필터 탭 (지역, 날짜) */
+/* 상태 필터 드롭다운 */
+.status-filter-container {
+    padding: 0 16px 16px;
+}
+
+.status-filter-select {
+    width: 120px;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background-color: #ffffff;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    cursor: pointer;
+}
+
+/* 지역/날짜 필터 컨테이너 */
+.region-date-filters {
+    padding: 0 16px 20px 16px;
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.sub-filter-section {
+    padding: 12px 0;
+}
+
+.sub-filter-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin: 0 0 10px 4px;
+}
+
+/* 서브 필터 탭 (지역, 날짜) */
 .sub-filter-tabs {
     display: flex;
     gap: 8px;
@@ -185,7 +226,6 @@
     color: #4338ca;
     font-weight: 700;
 }
-
 /* 반응형 - 작은 화면에서 더 컴팩트하게 */
 @media (max-width: 375px) {
     .popup-grid {

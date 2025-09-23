@@ -9,10 +9,13 @@ class PopupListManager {
         this.currentFilterMode = 'latest'; // 'latest', 'featured', 'popularity', 'deadline', 'region-date'
         this.currentRegion = 'All';
         this.currentDateFilter = 'All'; // 'All', 'today', '7days', '14days'
+        this.currentStatus = 'All'; // 'All', 'ONGOING', 'PLANNED', 'ENDED'
 
         this.grid = null;
         this.loadingIndicator = null;
         this.regionDateFilterContainer = null;
+        this.statusFilterContainer = null;
+        this.statusFilterSelect = null;
     }
 
     // 페이지 초기화
@@ -42,6 +45,15 @@ class PopupListManager {
                 <button class="tab-item" data-mode="popularity">인기 팝업</button>
                 <button class="tab-item" data-mode="deadline">마감임박</button>
                 <button class="tab-item" data-mode="region-date">지역/날짜</button>
+            </div>
+
+            <div id="status-filter-container" class="status-filter-container">
+                <select id="status-filter-select" class="status-filter-select">
+                    <option value="All">전체</option>
+                    <option value="ONGOING">진행중</option>
+                    <option value="PLANNED">오픈 예정</option>
+                    <option value="ENDED">종료</option>
+                </select>
             </div>
 
             <div id="region-date-filters" class="region-date-filters" style="display: none;">
@@ -81,6 +93,8 @@ class PopupListManager {
         this.grid = document.getElementById('popup-grid');
         this.loadingIndicator = document.getElementById('loading-indicator');
         this.regionDateFilterContainer = document.getElementById('region-date-filters');
+        this.statusFilterContainer = document.getElementById('status-filter-container');
+        this.statusFilterSelect = document.getElementById('status-filter-select');
     }
 
     // 이벤트 리스너 설정
@@ -88,6 +102,11 @@ class PopupListManager {
         // 메인 필터 탭 이벤트
         document.querySelector('.filter-tabs').addEventListener('click', (e) => {
             this.handleFilterClick(e);
+        });
+
+        // 상태 필터 드롭다운 이벤트
+        this.statusFilterSelect.addEventListener('change', (e) => {
+            this.handleStatusChange(e);
         });
 
         // 지역/날짜 서브 필터 이벤트
@@ -136,15 +155,32 @@ class PopupListManager {
 
         this.currentFilterMode = newMode;
 
-        if (newMode === 'region-date') {
+        // 'All' 탭일 때만 상태 필터 표시
+        if (newMode === 'latest') {
+            this.statusFilterContainer.style.display = 'block';
+            this.regionDateFilterContainer.style.display = 'none';
+        } else if (newMode === 'region-date') {
+            this.statusFilterContainer.style.display = 'none';
             // 지역/날짜 필터 섹션 토글
             const isVisible = this.regionDateFilterContainer.style.display === 'block';
             this.regionDateFilterContainer.style.display = isVisible ? 'none' : 'block';
         } else {
-            // 다른 탭 선택 시 지역/날짜 필터 숨김
+            // 다른 탭 선택 시 모든 추가 필터 숨김
+            this.statusFilterContainer.style.display = 'none';
             this.regionDateFilterContainer.style.display = 'none';
+        }
+
+        // '지역/날짜' 탭이 아닐 경우에만 즉시 로드
+        if (newMode !== 'region-date') {
             this.resetAndLoad();
         }
+    }
+
+    // 상태 필터 변경 처리
+    handleStatusChange(e) {
+        if(this.isFetching) return;
+        this.currentStatus = e.target.value;
+        this.resetAndLoad();
     }
 
     // 서브 필터 클릭 처리 (지역, 날짜)
@@ -250,7 +286,11 @@ class PopupListManager {
 
             switch (this.currentFilterMode) {
                 case 'latest':
-                    response = await apiService.getPopups(params);
+                    const latestParams = { ...params };
+                    if (this.currentStatus !== 'All') {
+                        latestParams.status = this.currentStatus;
+                    }
+                    response = await apiService.getPopups(latestParams);
                     break;
                 case 'featured': // 백엔드에서 AI 추천이 인기팝업으로 연결되어 있음
                     response = await apiService.getAIRecommendedPopups({ ...params, status: 'ONGOING' });
