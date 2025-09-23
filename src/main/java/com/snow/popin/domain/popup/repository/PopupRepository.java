@@ -62,19 +62,16 @@ public interface PopupRepository extends JpaRepository<Popup, Long>, JpaSpecific
             "LEFT JOIN FETCH p.venue v " +
             "LEFT JOIN FETCH p.category c " +
             "WHERE (:region IS NULL OR :region = '전체' OR v.region LIKE CONCAT('%', :region, '%')) " +
-            "AND (:status IS NULL OR p.status = :status) " +
             "AND (:startDate IS NULL OR p.startDate <= :endDate) " +
             "AND (:endDate IS NULL OR p.endDate >= :startDate) " +
             "ORDER BY p.createdAt DESC",
             countQuery = "SELECT count(p) FROM Popup p " +
                     "LEFT JOIN p.venue v " +
                     "WHERE (:region IS NULL OR :region = '전체' OR v.region LIKE CONCAT('%', :region, '%')) " +
-                    "AND (:status IS NULL OR p.status = :status) " +
                     "AND (:startDate IS NULL OR p.startDate <= :endDate) " +
                     "AND (:endDate IS NULL OR p.endDate >= :startDate)")
     Page<Popup> findByRegionAndDateRange(
             @Param("region") String region,
-            @Param("status") PopupStatus status,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
             Pageable pageable);

@@ -86,8 +86,7 @@ public class PopupService {
             LocalDate customStartDate, LocalDate customEndDate,
             int page, int size) {
 
-        log.info("지역별 날짜별 팝업 조회 - region: {}, status: {}, dateFilter: {}",
-                region, status, dateFilter);
+        log.info("지역별 날짜별 팝업 조회 - region: {}, dateFilter: {}", region, dateFilter);
 
         // 날짜 범위 계산
         LocalDate[] dateRange = calculateDateRange(dateFilter, customStartDate, customEndDate);
@@ -95,8 +94,10 @@ public class PopupService {
         LocalDate endDate = dateRange[1];
 
         Pageable pageable = createPageable(page, size);
+
+        // status 파라미터 제거하고 호출
         Page<Popup> popupPage = popupRepository.findByRegionAndDateRange(
-                region, status, startDate, endDate, pageable);
+                region, startDate, endDate, pageable);
 
         List<PopupSummaryResponseDto> popupDtos = convertToSummaryDtos(popupPage.getContent());
 
@@ -255,9 +256,20 @@ public class PopupService {
         LocalDate startDate = null;
         LocalDate endDate = null;
 
+        // 직접입력인 경우 우선 처리
+        if (customStartDate != null && customEndDate != null) {
+            startDate = customStartDate;
+            endDate = customEndDate;
+            return new LocalDate[]{startDate, endDate};
+        }
+
         if (dateFilter != null) {
             LocalDate today = LocalDate.now();
             switch (dateFilter) {
+                case "today":
+                    startDate = today;
+                    endDate = today;
+                    break;
                 case "7days":
                     startDate = today;
                     endDate = today.plusDays(7);
@@ -271,7 +283,6 @@ public class PopupService {
                     endDate = customEndDate;
                     break;
                 default:
-                    // 날짜 필터 없음
                     break;
             }
         }

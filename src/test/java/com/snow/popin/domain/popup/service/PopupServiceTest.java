@@ -119,7 +119,7 @@ class PopupServiceTest {
         Page<Popup> pageResult = new PageImpl<>(popups);
 
         when(popupRepository.findByRegionAndDateRange(
-                eq(region), eq(status), any(LocalDate.class), any(LocalDate.class), any(Pageable.class)))
+                eq(region), any(LocalDate.class), any(LocalDate.class), any(Pageable.class)))
                 .thenReturn(pageResult);
 
         // when
@@ -129,7 +129,7 @@ class PopupServiceTest {
         // then
         assertThat(result.getPopups()).hasSize(1);
         verify(popupRepository).findByRegionAndDateRange(
-                eq(region), eq(status), any(LocalDate.class), any(LocalDate.class), any(Pageable.class));
+                eq(region), any(LocalDate.class), any(LocalDate.class), any(Pageable.class));
     }
 
     @Test
@@ -148,7 +148,7 @@ class PopupServiceTest {
         Page<Popup> pageResult = new PageImpl<>(popups);
 
         when(popupRepository.findByRegionAndDateRange(
-                eq(region), isNull(), eq(startDate), eq(endDate), any(Pageable.class)))
+                eq(region), eq(startDate), eq(endDate), any(Pageable.class)))
                 .thenReturn(pageResult);
 
         // when
@@ -158,7 +158,7 @@ class PopupServiceTest {
         // then
         assertThat(result.getPopups()).hasSize(1);
         verify(popupRepository).findByRegionAndDateRange(
-                eq(region), isNull(), eq(startDate), eq(endDate), any(Pageable.class));
+                eq(region),eq(startDate), eq(endDate), any(Pageable.class));
     }
 
     @Test

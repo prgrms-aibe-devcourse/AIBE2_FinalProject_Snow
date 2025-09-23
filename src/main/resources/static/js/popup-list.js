@@ -10,6 +10,9 @@ class PopupListManager {
         this.currentRegion = 'All';
         this.currentDateFilter = 'All'; // 'All', 'today', '7days', '14days'
         this.currentStatus = 'All'; // 'All', 'ONGOING', 'PLANNED', 'ENDED'
+        this.customStartDate = null;
+        this.customEndDate = null;
+        this.isCustomDateMode = false;
 
         this.grid = null;
         this.loadingIndicator = null;
@@ -70,12 +73,25 @@ class PopupListManager {
                 </div>
                 <div class="sub-filter-section">
                     <h4 class="sub-filter-title">날짜</h4>
-                     <div class="sub-filter-tabs" id="date-filter-tabs">
+                    <div class="sub-filter-tabs" id="date-filter-tabs">
                         <button class="sub-tab-item active" data-date="All">All</button>
                         <button class="sub-tab-item" data-date="today">오늘</button>
                         <button class="sub-tab-item" data-date="7days">+7</button>
                         <button class="sub-tab-item" data-date="14days">+14</button>
                         <button class="sub-tab-item" data-date="custom">직접입력</button>
+                    </div>
+                    
+                    <!-- 수정된 직접 입력 날짜 선택기 -->
+                    <div id="custom-date-picker" class="custom-date-picker" style="display: none;">
+                        <div class="date-inputs-row">
+                            <input type="date" id="start-date" class="date-input">
+                            <input type="date" id="end-date" class="date-input">
+                            <button class="btn-apply" id="apply-custom-date">적용</button>
+                        </div>
+                    </div>
+                    
+                    <div id="selected-date-display" class="selected-date-display" style="display: none;">
+                        <span class="date-range-text" id="date-range-text"></span>
                     </div>
                 </div>
             </div>
@@ -114,6 +130,11 @@ class PopupListManager {
             this.handleSubFilterClick(e);
         });
 
+        // 커스텀 날짜 선택기 이벤트
+        document.getElementById('apply-custom-date')?.addEventListener('click', () => {
+            this.applyCustomDate();
+        });
+
         // 무한 스크롤 이벤트
         this._onScroll = () => {
             if (this.isFetching || !this.hasMore) return;
@@ -145,6 +166,9 @@ class PopupListManager {
         if (!selectedTab || this.isFetching) return;
 
         const newMode = selectedTab.dataset.mode;
+        const previousMode = this.currentFilterMode; // 이전 모드 저장
+
+        // 지역/날짜 탭은 다시 클릭해도 유지되도록 수정
         if (this.currentFilterMode === newMode && newMode !== 'region-date') return;
 
         // 활성 탭 UI 변경
@@ -155,24 +179,25 @@ class PopupListManager {
 
         this.currentFilterMode = newMode;
 
-        // 'All' 탭일 때만 상태 필터 표시
         if (newMode === 'latest') {
             this.statusFilterContainer.style.display = 'block';
             this.regionDateFilterContainer.style.display = 'none';
+            this.resetAndLoad(); // 항상 로드
         } else if (newMode === 'region-date') {
             this.statusFilterContainer.style.display = 'none';
-            // 지역/날짜 필터 섹션 토글
-            const isVisible = this.regionDateFilterContainer.style.display === 'block';
-            this.regionDateFilterContainer.style.display = isVisible ? 'none' : 'block';
+            this.regionDateFilterContainer.style.display = 'block';
+
+            // 다른 탭에서 지역/날짜로 이동할 때만 초기화 및 로드
+            if (previousMode !== 'region-date') {
+                this.resetRegionDateFilters();
+                this.resetAndLoad(); // 전체 조회로 초기화
+            }
+            // 지역/날짜에서 지역/날짜 재클릭 시에는 아무것도 안 함
         } else {
-            // 다른 탭 선택 시 모든 추가 필터 숨김
+            // 다른 탭들 (추천, 인기, 마감임박)
             this.statusFilterContainer.style.display = 'none';
             this.regionDateFilterContainer.style.display = 'none';
-        }
-
-        // '지역/날짜' 탭이 아닐 경우에만 즉시 로드
-        if (newMode !== 'region-date') {
-            this.resetAndLoad();
+            this.resetAndLoad(); // 항상 로드
         }
     }
 
@@ -196,20 +221,136 @@ class PopupListManager {
             document.querySelectorAll('#region-filter-tabs .sub-tab-item').forEach(tab =>
                 tab.classList.toggle('active', tab.dataset.region === region)
             );
+            this.resetAndLoad();
         }
 
         if (date) {
             if (date === 'custom') {
-                alert('직접 입력 기능은 준비 중입니다.');
+                this.showCustomDatePicker();
                 return;
             }
+
+            // 다른 날짜 필터 선택 시 커스텀 설정 초기화
             this.currentDateFilter = date;
+            this.isCustomDateMode = false;
+            this.customStartDate = null;
+            this.customEndDate = null;
+
             document.querySelectorAll('#date-filter-tabs .sub-tab-item').forEach(tab =>
                 tab.classList.toggle('active', tab.dataset.date === date)
             );
+
+            this.hideCustomDatePicker();
+            this.hideSelectedDateRange(); // 다른 필터 선택 시 커스텀 날짜 표시 숨기기
+            this.resetAndLoad();
+        }
+    }
+
+    resetRegionDateFilters() {
+        this.currentRegion = 'All';
+        this.currentDateFilter = 'All';
+        this.isCustomDateMode = false;
+        this.customStartDate = null;
+        this.customEndDate = null;
+
+        // UI 초기화
+        document.querySelectorAll('#region-filter-tabs .sub-tab-item').forEach(tab =>
+            tab.classList.toggle('active', tab.dataset.region === 'All')
+        );
+        document.querySelectorAll('#date-filter-tabs .sub-tab-item').forEach(tab =>
+            tab.classList.toggle('active', tab.dataset.date === 'All')
+        );
+
+        this.hideCustomDatePicker();
+    }
+
+    showCustomDatePicker() {
+        document.querySelectorAll('#date-filter-tabs .sub-tab-item').forEach(tab =>
+            tab.classList.toggle('active', tab.dataset.date === 'custom')
+        );
+
+        document.getElementById('custom-date-picker').style.display = 'block';
+
+        // 오늘 날짜를 기본값으로 설정
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('start-date').value = today;
+        document.getElementById('end-date').value = today;
+    }
+
+    hideCustomDatePicker() {
+        document.getElementById('custom-date-picker').style.display = 'none';
+    }
+
+    applyCustomDate() {
+        const startDate = document.getElementById('start-date').value;
+        const endDate = document.getElementById('end-date').value;
+
+        if (!startDate || !endDate) {
+            alert('시작일과 마감일을 모두 선택해주세요.');
+            return;
         }
 
+        if (new Date(startDate) > new Date(endDate)) {
+            alert('시작일은 마감일보다 이전이어야 합니다.');
+            return;
+        }
+
+        this.customStartDate = startDate;
+        this.customEndDate = endDate;
+        this.isCustomDateMode = true;
+        this.currentDateFilter = 'custom';
+
+        this.displaySelectedDateRange(startDate, endDate);
+
+        this.hideCustomDatePicker();
         this.resetAndLoad();
+    }
+
+    // 선택된 날짜 범위 표시
+    displaySelectedDateRange(startDate, endDate) {
+        const dateRangeElement = document.getElementById('date-range-text');
+        const selectedDateDisplay = document.getElementById('selected-date-display');
+
+        if (dateRangeElement && selectedDateDisplay) {
+            // 날짜 포맷팅 (YYYY-MM-DD -> YYYY.MM.DD)
+            const formattedStartDate = startDate.replace(/-/g, '.');
+            const formattedEndDate = endDate.replace(/-/g, '.');
+
+            // 시작일과 종료일이 같으면 하나만 표시
+            if (startDate === endDate) {
+                dateRangeElement.textContent = formattedStartDate;
+            } else {
+                dateRangeElement.textContent = `${formattedStartDate} - ${formattedEndDate}`;
+            }
+
+            selectedDateDisplay.style.display = 'block';
+        }
+    }
+
+    hideSelectedDateRange() {
+        const selectedDateDisplay = document.getElementById('selected-date-display');
+        if (selectedDateDisplay) {
+            selectedDateDisplay.style.display = 'none';
+        }
+    }
+
+    resetRegionDateFilters() {
+        this.currentRegion = 'All';
+        this.currentDateFilter = 'All';
+        this.isCustomDateMode = false;
+        this.customStartDate = null;
+        this.customEndDate = null;
+
+        // UI 초기화
+        document.querySelectorAll('#region-filter-tabs .sub-tab-item').forEach(tab =>
+            tab.classList.toggle('active', tab.dataset.region === 'All')
+        );
+        document.querySelectorAll('#date-filter-tabs .sub-tab-item').forEach(tab =>
+            tab.classList.toggle('active', tab.dataset.date === 'All')
+        );
+
+        this.hideCustomDatePicker();
+        this.hideSelectedDateRange(); // 선택된 날짜 표시 숨기기
     }
 
     // 전체 페이지 스크롤 처리 (무한 스크롤)
@@ -303,12 +444,22 @@ class PopupListManager {
                     break;
                 case 'region-date':
                     const regionDateParams = { ...params };
+
                     if (this.currentRegion !== 'All') {
                         regionDateParams.region = this.currentRegion;
                     }
+
                     if (this.currentDateFilter !== 'All') {
-                        regionDateParams.dateFilter = this.currentDateFilter;
+                        if (this.isCustomDateMode) {
+                            // 커스텀 날짜 범위
+                            regionDateParams.startDate = this.customStartDate;
+                            regionDateParams.endDate = this.customEndDate;
+                        } else {
+                            // 기본 날짜 필터
+                            regionDateParams.dateFilter = this.currentDateFilter;
+                        }
                     }
+
                     response = await apiService.getPopupsByRegionAndDate(regionDateParams);
                     break;
                 default:

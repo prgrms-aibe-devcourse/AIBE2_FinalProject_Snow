@@ -168,7 +168,7 @@ class PopupRepositoryTest {
 
         // when
         Page<Popup> result = popupRepository.findByRegionAndDateRange(
-                "강남구", PopupStatus.ONGOING, today, week, pageable);
+                "강남구", today, week, pageable);
 
         // then
         assertThat(result.getContent()).hasSize(1);
@@ -191,7 +191,7 @@ class PopupRepositoryTest {
 
         // when
         Page<Popup> result = popupRepository.findByRegionAndDateRange(
-                null, null, null, null, pageable);
+                null, null, null, pageable);
 
         // then
         assertThat(result.getContent()).hasSize(2);
