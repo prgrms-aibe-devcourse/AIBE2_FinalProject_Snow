@@ -131,14 +131,14 @@ class SpaceManagementUI {
         <td>${formatDate(space.createdAt)}</td>
         <td>
             <div class="action-buttons">
-                <button class="btn btn-info detail-btn" data-space-id="${space.id}">
+                <button class="button button-sm button-primary" data-space-id="${space.id}">
                     상세보기
                 </button>
                 ${space.isPublic ?
-            `<button class="btn btn-warning" data-space-id="${space.id}">
+            `<button class="button button-warning" data-space-id="${space.id}">
                         비활성화
                     </button>` :
-            `<button class="btn btn-success" data-space-id="${space.id}">
+            `<button class="button button-success" data-space-id="${space.id}">
                         활성화
                     </button>`
         }

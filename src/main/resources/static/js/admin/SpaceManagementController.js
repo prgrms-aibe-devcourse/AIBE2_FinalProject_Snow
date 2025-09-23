@@ -94,8 +94,8 @@ class SpaceManagementController {
         if (this.ui.elements.spacesTableBody) {
             this.ui.elements.spacesTableBody.addEventListener('click', (e) => {
                 // 상세보기 버튼 클릭
-                if (e.target.classList.contains('detail-btn') || e.target.closest('.detail-btn')) {
-                    const button = e.target.classList.contains('detail-btn') ? e.target : e.target.closest('.detail-btn');
+                if (e.target.classList.contains('detail-button') || e.target.closest('.detail-button')) {
+                    const button = e.target.classList.contains('detail-button') ? e.target : e.target.closest('.detail-button');
                     const spaceId = button.dataset.spaceId;
                     if (spaceId) {
                         this.showSpaceDetail(spaceId);
@@ -103,16 +103,16 @@ class SpaceManagementController {
                 }
 
                 // 활성화/비활성화 버튼 클릭
-                if (e.target.classList.contains('btn-warning') || e.target.closest('.btn-warning')) {
-                    const button = e.target.classList.contains('btn-warning') ? e.target : e.target.closest('.btn-warning');
+                if (e.target.classList.contains('button-warning') || e.target.closest('.button-warning')) {
+                    const button = e.target.classList.contains('button-warning') ? e.target : e.target.closest('.button-warning');
                     const spaceId = button.dataset.spaceId || button.getAttribute('onclick')?.match(/\d+/)?.[0];
                     if (spaceId) {
                         this.hideSpace(spaceId);
                     }
                 }
 
-                if (e.target.classList.contains('btn-success') || e.target.closest('.btn-success')) {
-                    const button = e.target.classList.contains('btn-success') ? e.target : e.target.closest('.btn-success');
+                if (e.target.classList.contains('button-success') || e.target.closest('.button-success')) {
+                    const button = e.target.classList.contains('button-success') ? e.target : e.target.closest('.button-success');
                     const spaceId = button.dataset.spaceId || button.getAttribute('onclick')?.match(/\d+/)?.[0];
                     if (spaceId) {
                         this.showSpace(spaceId);

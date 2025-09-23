@@ -201,7 +201,7 @@ class PopupManagement {
                     <td><span class="status-badge ${popup.status.toLowerCase()}">${this.getStatusText(popup.status)}</span></td>
                     <td>${this.formatDate(popup.createdAt)}</td>
                     <td>
-                        <button class="btn btn-sm btn-primary" onclick="popupManagement.viewDetail(${popup.id})">
+                        <button class="button button-sm button-primary" onclick="popupManagement.viewDetail(${popup.id})">
                             상세보기
                         </button>
                     </td>
@@ -344,7 +344,7 @@ class PopupManagement {
 
         <div class="detail-section">
             <h3>상세 설명</h3>
-            <div class="detail-value" style="white-space: pre-wrap; line-height: 1.6;">
+            <div class="detail-value" style="white-space: pre-wrap; : 1.6;">
                 ${popup.description || '설명이 없습니다.'}
             </div>
         </div>
@@ -516,6 +516,6 @@ class PopupManagement {
 let popupManagement;
 
 // DOM 로드 완료 후 초기화
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     popupManagement = new PopupManagement();
 });

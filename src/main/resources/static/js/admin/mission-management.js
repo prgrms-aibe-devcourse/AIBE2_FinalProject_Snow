@@ -178,7 +178,7 @@ class MissionManagement {
         <td>${this.formatDate(set.createdAt)}</td>
         <td>
           <div class="action-buttons">
-            <button class="button button-primary" onclick="missionManagement.viewDetail('${set.id || set.missionSetId}')">상세</button>
+            <button class="button button-primary" onclick="missionManagement.viewDetail('${set.id || set.missionSetId}')">상세보기</button>
           </div>
         </td>
       </tr>`;

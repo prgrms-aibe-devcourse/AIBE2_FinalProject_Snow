@@ -330,14 +330,6 @@
     font-weight: bold;
 }
 
-/* 페이지네이션 */
-.pagination-container {
-    padding: 20px;
-    text-align: center;
-    border-top: 1px solid #F3F4F6;
-    background: #FAFBFC;
-}
-
 .load-more-btn {
     padding: 12px 32px;
     background: #F8F9FA;
