@@ -124,7 +124,7 @@ class PopupServiceTest {
 
         // when
         PopupListResponseDto result = popupService.getPopupsByRegionAndDate(
-                region, status, dateFilter, null, null, 0, 20);
+                region, dateFilter, null, null, 0, 20);
 
         // then
         assertThat(result.getPopups()).hasSize(1);
@@ -153,7 +153,7 @@ class PopupServiceTest {
 
         // when
         PopupListResponseDto result = popupService.getPopupsByRegionAndDate(
-                region, status, dateFilter, startDate, endDate, 0, 20);
+                region, dateFilter, startDate, endDate, 0, 20);
 
         // then
         assertThat(result.getPopups()).hasSize(1);

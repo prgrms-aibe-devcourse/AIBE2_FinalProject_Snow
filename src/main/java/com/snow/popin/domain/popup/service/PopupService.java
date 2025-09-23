@@ -52,7 +52,7 @@ public class PopupService {
         }
 
         int adjustedSize = Math.min(size, remainingItems);
-        Pageable pageable = PageRequest.of(page, adjustedSize);
+        Pageable pageable = createPageable(page, adjustedSize);
 
         // 진행중/예정 상태만 조회하는 새 메서드 사용
         Page<Popup> popupPage = popupRepository.findPopularActivePopups(pageable);
@@ -82,7 +82,7 @@ public class PopupService {
 
     // 지역별 + 날짜별 팝업 조회
     public PopupListResponseDto getPopupsByRegionAndDate(
-            String region, PopupStatus status, String dateFilter,
+            String region, String dateFilter,
             LocalDate customStartDate, LocalDate customEndDate,
             int page, int size) {
 

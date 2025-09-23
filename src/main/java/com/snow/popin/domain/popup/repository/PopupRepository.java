@@ -53,8 +53,7 @@ public interface PopupRepository extends JpaRepository<Popup, Long>, JpaSpecific
             countQuery = "SELECT count(p) FROM Popup p " +
                     "WHERE (:status IS NULL OR p.status = :status) " +
                     "AND p.endDate >= CURRENT_DATE " +
-                    "AND p.endDate <= CURRENT_DATE + 7 " +
-                    "AND p.status = com.snow.popin.domain.popup.entity.PopupStatus.ONGOING")
+                    "AND p.endDate <= CURRENT_DATE + 7")
     Page<Popup> findDeadlineSoonPopups(@Param("status") PopupStatus status, Pageable pageable);
 
     // 지역별 + 기간별 필터링
@@ -62,14 +61,14 @@ public interface PopupRepository extends JpaRepository<Popup, Long>, JpaSpecific
             "LEFT JOIN FETCH p.venue v " +
             "LEFT JOIN FETCH p.category c " +
             "WHERE (:region IS NULL OR :region = '전체' OR v.region LIKE CONCAT('%', :region, '%')) " +
-            "AND (:startDate IS NULL OR p.startDate <= :endDate) " +
-            "AND (:endDate IS NULL OR p.endDate >= :startDate) " +
+            "AND (:startDate IS NULL OR p.endDate >= :startDate) " +
+            "AND (:endDate IS NULL OR p.startDate <= :endDate) " +
             "ORDER BY p.createdAt DESC",
             countQuery = "SELECT count(p) FROM Popup p " +
                     "LEFT JOIN p.venue v " +
                     "WHERE (:region IS NULL OR :region = '전체' OR v.region LIKE CONCAT('%', :region, '%')) " +
-                    "AND (:startDate IS NULL OR p.startDate <= :endDate) " +
-                    "AND (:endDate IS NULL OR p.endDate >= :startDate)")
+                    "AND (:startDate IS NULL OR p.endDate >= :startDate) " +
+                    "AND (:endDate IS NULL OR p.startDate <= :endDate)")
     Page<Popup> findByRegionAndDateRange(
             @Param("region") String region,
             @Param("startDate") LocalDate startDate,

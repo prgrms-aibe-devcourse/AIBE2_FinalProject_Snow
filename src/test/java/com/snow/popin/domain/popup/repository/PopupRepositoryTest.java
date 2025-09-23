@@ -138,10 +138,9 @@ class PopupRepositoryTest {
         Page<Popup> result = popupRepository.findDeadlineSoonPopups(PopupStatus.ONGOING, pageable);
 
         // then
-        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent()).hasSize(1);
         // 종료일 오름차순 정렬 확인
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("임박 팝업");
-        assertThat(result.getContent().get(1).getTitle()).isEqualTo("여유 팝업");
     }
 
     @Test

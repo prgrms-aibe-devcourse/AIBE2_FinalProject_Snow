@@ -55,7 +55,7 @@ public class PopupBatchService {
             var ids = popupsToEnd.stream().map(Popup::getId).collect(Collectors.toSet());
             int disabled = missionSetRepository.bulkDisableByPopupIds(ids);
             log.info("ENDED 전환된 팝업 {}건에 대해 미션셋 {}건 DISABLE(벌크) 처리", popupsToEnd.size(), disabled);
-            popupRepository.saveAll(popupsToStart);
+            popupRepository.saveAll(popupsToEnd);
         }
 
         if (updatedCount > 0) {

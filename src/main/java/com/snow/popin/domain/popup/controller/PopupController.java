@@ -72,19 +72,17 @@ public class PopupController {
     @GetMapping("/region-date")
     public ResponseEntity<PopupListResponseDto> getPopupsByRegionAndDate(
             @RequestParam(required = false) String region,
-            @RequestParam(required = false) String status,
             @RequestParam(required = false) String dateFilter,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
-        log.info("지역별 날짜별 팝업 조회 API 호출 - region: {}, status: {}, dateFilter: {}, startDate: {}, endDate: {}",
-                region, status, dateFilter, startDate, endDate);
+        log.info("지역별 날짜별 팝업 조회 API 호출 - region: {}, dateFilter: {}, startDate: {}, endDate: {}",
+                region, dateFilter, startDate, endDate);
 
-        PopupStatus popupStatus = popupService.parseStatus(status);
         PopupListResponseDto response = popupService.getPopupsByRegionAndDate(
-                region, popupStatus, dateFilter, startDate, endDate, page, size);
+                region, dateFilter, startDate, endDate, page, size);
 
         return ResponseEntity.ok(response);
     }

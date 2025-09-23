@@ -176,7 +176,7 @@ class PopupControllerTest {
 
         when(popupService.parseStatus("ONGOING")).thenReturn(PopupStatus.ONGOING);
         when(popupService.getPopupsByRegionAndDate(
-                eq("강남구"), eq(PopupStatus.ONGOING), eq("7days"), isNull(), isNull(), eq(0), eq(20)))
+                eq("강남구"), eq("7days"), isNull(), isNull(), eq(0), eq(20)))
                 .thenReturn(response);
 
         // when & then
@@ -208,7 +208,7 @@ class PopupControllerTest {
 
         when(popupService.parseStatus(isNull())).thenReturn(null);
         when(popupService.getPopupsByRegionAndDate(
-                eq("종로구"), isNull(), eq("custom"), eq(startDate), eq(endDate), eq(0), eq(20)))
+                eq("종로구"), eq("custom"), eq(startDate), eq(endDate), eq(0), eq(20)))
                 .thenReturn(response);
 
         // when & then

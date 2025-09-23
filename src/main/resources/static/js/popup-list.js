@@ -246,24 +246,6 @@ class PopupListManager {
         }
     }
 
-    resetRegionDateFilters() {
-        this.currentRegion = 'All';
-        this.currentDateFilter = 'All';
-        this.isCustomDateMode = false;
-        this.customStartDate = null;
-        this.customEndDate = null;
-
-        // UI 초기화
-        document.querySelectorAll('#region-filter-tabs .sub-tab-item').forEach(tab =>
-            tab.classList.toggle('active', tab.dataset.region === 'All')
-        );
-        document.querySelectorAll('#date-filter-tabs .sub-tab-item').forEach(tab =>
-            tab.classList.toggle('active', tab.dataset.date === 'All')
-        );
-
-        this.hideCustomDatePicker();
-    }
-
     showCustomDatePicker() {
         document.querySelectorAll('#date-filter-tabs .sub-tab-item').forEach(tab =>
             tab.classList.toggle('active', tab.dataset.date === 'custom')
@@ -426,44 +408,45 @@ class PopupListManager {
             let response;
 
             switch (this.currentFilterMode) {
-                case 'latest':
+                case 'latest': {
                     const latestParams = { ...params };
                     if (this.currentStatus !== 'All') {
                         latestParams.status = this.currentStatus;
                     }
                     response = await apiService.getPopups(latestParams);
                     break;
-                case 'featured': // 백엔드에서 AI 추천이 인기팝업으로 연결되어 있음
+                }
+                case 'featured': {
                     response = await apiService.getAIRecommendedPopups({ ...params, status: 'ONGOING' });
                     break;
-                case 'popularity':
+                }
+                case 'popularity': {
                     response = await apiService.getPopularPopups(params);
                     break;
-                case 'deadline':
+                }
+                case 'deadline': {
                     response = await apiService.getDeadlineSoonPopups(params);
                     break;
-                case 'region-date':
+                }
+                case 'region-date': {
                     const regionDateParams = { ...params };
-
                     if (this.currentRegion !== 'All') {
                         regionDateParams.region = this.currentRegion;
                     }
-
                     if (this.currentDateFilter !== 'All') {
                         if (this.isCustomDateMode) {
-                            // 커스텀 날짜 범위
                             regionDateParams.startDate = this.customStartDate;
                             regionDateParams.endDate = this.customEndDate;
                         } else {
-                            // 기본 날짜 필터
                             regionDateParams.dateFilter = this.currentDateFilter;
                         }
                     }
-
                     response = await apiService.getPopupsByRegionAndDate(regionDateParams);
                     break;
-                default:
+                }
+                default: {
                     response = await apiService.getPopups(params);
+                }
             }
 
             if (response.popups && response.popups.length > 0) {
