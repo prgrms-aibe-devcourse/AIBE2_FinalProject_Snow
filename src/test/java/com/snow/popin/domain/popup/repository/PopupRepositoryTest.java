@@ -103,7 +103,7 @@ class PopupRepositoryTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // when
-        Page<Popup> result = popupRepository.findPopularByViewCount(PopupStatus.ONGOING, pageable);
+        Page<Popup> result = popupRepository.findPopularActivePopups(pageable);
 
         // then
         assertThat(result.getContent()).hasSize(2);

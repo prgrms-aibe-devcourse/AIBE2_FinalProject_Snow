@@ -1,7 +1,5 @@
 package com.snow.popin.domain.popup.controller;
 
-import com.snow.popin.domain.popup.dto.request.PopupListRequestDto;
-import com.snow.popin.domain.popup.dto.request.PopupSearchRequestDto;
 import com.snow.popin.domain.popup.dto.response.PopupDetailResponseDto;
 import com.snow.popin.domain.popup.dto.response.PopupListResponseDto;
 import com.snow.popin.domain.popup.dto.response.PopupSummaryResponseDto;
@@ -13,8 +11,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
-import javax.validation.Validator;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -52,8 +48,7 @@ public class PopupController {
 
         log.info("인기 팝업 조회 API 호출 - status: {}, page: {}, size: {}", status, page, size);
 
-        PopupStatus popupStatus = popupService.parseStatus(status);
-        PopupListResponseDto response = popupService.getPopularPopups(page, size, popupStatus);
+        PopupListResponseDto response = popupService.getPopularPopups(page, size);
 
         return ResponseEntity.ok(response);
     }

@@ -73,15 +73,15 @@ class PopupServiceTest {
         );
         Page<Popup> pageResult = new PageImpl<>(popups);
 
-        when(popupRepository.findPopularByViewCount(eq(status), any(Pageable.class)))
+        when(popupRepository.findPopularActivePopups(any(Pageable.class)))
                 .thenReturn(pageResult);
 
         // when
-        PopupListResponseDto result = popupService.getPopularPopups(0, 20, status);
+        PopupListResponseDto result = popupService.getPopularPopups(0, 20);
 
         // then
         assertThat(result.getPopups()).hasSize(2);
-        verify(popupRepository).findPopularByViewCount(eq(status), any(Pageable.class));
+        verify(popupRepository).findPopularActivePopups(any(Pageable.class));
     }
 
     @Test
@@ -171,7 +171,7 @@ class PopupServiceTest {
         );
         Page<Popup> pageResult = new PageImpl<>(popups);
 
-        when(popupRepository.findPopularByViewCount(eq(PopupStatus.ONGOING), any(Pageable.class)))
+        when(popupRepository.findPopularActivePopups(any(Pageable.class)))
                 .thenReturn(pageResult);
 
         // when
@@ -179,7 +179,7 @@ class PopupServiceTest {
 
         // then
         assertThat(result.getPopups()).hasSize(1);
-        verify(popupRepository).findPopularByViewCount(eq(PopupStatus.ONGOING), any(Pageable.class));
+        verify(popupRepository).findPopularActivePopups(any(Pageable.class));
     }
 
     // 팝업 상세 조회 테스트

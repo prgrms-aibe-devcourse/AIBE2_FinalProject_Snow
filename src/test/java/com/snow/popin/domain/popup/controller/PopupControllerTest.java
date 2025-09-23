@@ -124,7 +124,7 @@ class PopupControllerTest {
                 .build();
 
         when(popupService.parseStatus("ONGOING")).thenReturn(PopupStatus.ONGOING);
-        when(popupService.getPopularPopups(eq(0), eq(20), eq(PopupStatus.ONGOING))).thenReturn(response);
+        when(popupService.getPopularPopups(eq(0), eq(20))).thenReturn(response);
 
         // when & then
         mockMvc.perform(get("/api/popups/popular")

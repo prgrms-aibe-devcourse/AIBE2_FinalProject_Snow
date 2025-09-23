@@ -40,15 +40,30 @@ public class PopupService {
     }
 
     // 인기 팝업 조회
-    public PopupListResponseDto getPopularPopups(int page, int size, PopupStatus status) {
-        log.info("인기 팝업 조회 - page: {}, size: {}, status: {}", page, size, status);
+    public PopupListResponseDto getPopularPopups(int page, int size) {
+        log.info("인기 팝업 조회 시작 - page: {}, size: {}", page, size);
 
-        Pageable pageable = createPageable(page, size);
-        Page<Popup> popupPage = popupRepository.findPopularByViewCount(status, pageable);
+        // 인기 팝업은 최대 20개로 제한
+        int maxPopularItems = 20;
+        int remainingItems = maxPopularItems - (page * size);
 
-        List<PopupSummaryResponseDto> popupDtos = convertToSummaryDtos(popupPage.getContent());
+        if (remainingItems <= 0) {
+            return PopupListResponseDto.empty(page, size);
+        }
 
-        log.info("인기 팝업 조회 완료 - 총 {}개", popupPage.getTotalElements());
+        int adjustedSize = Math.min(size, remainingItems);
+        Pageable pageable = PageRequest.of(page, adjustedSize);
+
+        // 진행중/예정 상태만 조회하는 새 메서드 사용
+        Page<Popup> popupPage = popupRepository.findPopularActivePopups(pageable);
+
+        List<PopupSummaryResponseDto> popupDtos = popupPage.getContent()
+                .stream()
+                .map(PopupSummaryResponseDto::from)
+                .collect(Collectors.toList());
+
+        log.info("인기 팝업 조회 완료 - 총 {}개 (ONGOING/PLANNED만)", popupDtos.size());
+
         return PopupListResponseDto.of(popupPage, popupDtos);
     }
 
@@ -98,7 +113,7 @@ public class PopupService {
 
         // TODO: JWT 토큰에서 사용자 관심사 추출하여 AI 추천 로직 구현
         // 현재는 진행중인 인기 팝업을 반환
-        return getPopularPopups(page, size, PopupStatus.ONGOING);
+        return getPopularPopups(page, size);
     }
 
     // ===== 팝업 상세 조회 =====

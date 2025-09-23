@@ -184,13 +184,13 @@ public class Popup extends BaseEntity {
     }
 
     private PopupStatus determineStatus(LocalDate now) {
-        if (startDate != null && now.isBefore(startDate)) {
-            return PopupStatus.PLANNED;
-        } else if (endDate != null && now.isAfter(endDate)) {
+        if (this.endDate != null && now.isAfter(this.endDate)) {
             return PopupStatus.ENDED;
-        } else {
-            return PopupStatus.ONGOING;
         }
+        if (this.startDate != null && now.isBefore(this.startDate)) {
+            return PopupStatus.PLANNED;
+        }
+        return PopupStatus.ONGOING;
     }
 
     // 조회수 증가 메서드

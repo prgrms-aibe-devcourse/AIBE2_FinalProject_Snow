@@ -34,11 +34,13 @@ public interface PopupRepository extends JpaRepository<Popup, Long>, JpaSpecific
     @Query(value = "SELECT p FROM Popup p " +
             "LEFT JOIN FETCH p.venue v " +
             "LEFT JOIN FETCH p.category c " +
-            "WHERE (:status IS NULL OR p.status = :status) " +
+            "WHERE p.status IN (com.snow.popin.domain.popup.entity.PopupStatus.ONGOING, " +
+            "                  com.snow.popin.domain.popup.entity.PopupStatus.PLANNED) " +
             "ORDER BY p.viewCount DESC, p.createdAt DESC",
             countQuery = "SELECT count(p) FROM Popup p " +
-                    "WHERE (:status IS NULL OR p.status = :status)")
-    Page<Popup> findPopularByViewCount(@Param("status") PopupStatus status, Pageable pageable);
+                    "WHERE p.status IN (com.snow.popin.domain.popup.entity.PopupStatus.ONGOING, " +
+                    "                  com.snow.popin.domain.popup.entity.PopupStatus.PLANNED)")
+    Page<Popup> findPopularActivePopups(Pageable pageable);
 
     // 마감임박 팝업 조회
     @Query(value = "SELECT p FROM Popup p " +
@@ -55,7 +57,7 @@ public interface PopupRepository extends JpaRepository<Popup, Long>, JpaSpecific
                     "AND p.status = com.snow.popin.domain.popup.entity.PopupStatus.ONGOING")
     Page<Popup> findDeadlineSoonPopups(@Param("status") PopupStatus status, Pageable pageable);
 
-    // 지역별 + 기간별 필터링 (가장 범용적 - 다른 메서드들 대체)
+    // 지역별 + 기간별 필터링
     @Query(value = "SELECT p FROM Popup p " +
             "LEFT JOIN FETCH p.venue v " +
             "LEFT JOIN FETCH p.category c " +
