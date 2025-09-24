@@ -16,7 +16,7 @@ import java.util.Optional;
 public interface SpaceRepository extends JpaRepository<Space, Long>, JpaSpecificationExecutor<Space> {
 
     // 특정 사용자가 소유한 공간 목록 조회
-    List<Space> findByOwnerOrderByCreatedAtDesc(User owner);
+    List<Space> findByOwnerAndIsHiddenFalseOrderByCreatedAtDesc(User owner);
 
     // 특정 사용자 소유의 특정 공간 조회 (권한 체크용)
     Optional<Space> findByIdAndOwner(Long id, User owner);

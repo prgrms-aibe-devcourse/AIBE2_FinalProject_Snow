@@ -194,7 +194,7 @@ public class SpaceService {
     public List<SpaceListResponseDto> listMine(User owner) {
         log.debug("Fetching spaces for owner: {}", owner.getId());
 
-        return spaceRepository.findByOwnerOrderByCreatedAtDesc(owner)
+        return spaceRepository.findByOwnerAndIsHiddenFalseOrderByCreatedAtDesc(owner)
                 .stream()
                 .map(space -> SpaceListResponseDto.from(space, owner))
                 .collect(Collectors.toList());
