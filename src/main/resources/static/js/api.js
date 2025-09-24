@@ -688,9 +688,7 @@ apiService.getNotificationSettings = async function() {
 };
 
 apiService.updateNotificationSetting = async function(type, enabled) {
-    return await this.post("/notifications/settings/update", {
-        type, enabled
-    });
+    return await this.patch(`/notifications/settings/${type}?enabled=${enabled}`);
 };
 
 // === 마이페이지 HOST api ===
