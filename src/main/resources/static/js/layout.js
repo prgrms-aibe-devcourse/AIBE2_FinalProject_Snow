@@ -531,3 +531,8 @@ function updateNotificationBadge(show) {
     }
 }
 
+// === 실행 ===
+document.addEventListener("DOMContentLoaded", async () => {
+    await loadComponents();
+    initializeLayout();
+});
