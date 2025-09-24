@@ -30,29 +30,77 @@ class PopupManagement {
     }
 
     bindEvents() {
-        // 검색 및 필터
-        document.getElementById('searchBtn').addEventListener('click', () => this.search());
-        document.getElementById('resetBtn').addEventListener('click', () => this.resetFilters());
-        document.getElementById('searchKeyword').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.search();
-        });
+        // DOM 요소 존재 확인 후 이벤트 리스너 추가
+        const searchBtn = document.getElementById('searchBtn');
+        if (searchBtn) {
+            searchBtn.addEventListener('click', () => this.search());
+        }
 
-        // 모달
-        document.getElementById('modalCloseBtn').addEventListener('click', () => this.closeModal());
-        document.getElementById('closeModalBtn').addEventListener('click', () => this.closeModal());
-        document.getElementById('rejectModalCloseBtn').addEventListener('click', () => this.closeRejectModal());
-        document.getElementById('cancelRejectBtn').addEventListener('click', () => this.closeRejectModal());
+        const resetBtn = document.getElementById('resetBtn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => this.resetFilters());
+        }
+
+        const searchKeyword = document.getElementById('searchKeyword');
+        if (searchKeyword) {
+            searchKeyword.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.search();
+            });
+        }
+
+        // 모달 관련 이벤트
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+        if (modalCloseBtn) {
+            modalCloseBtn.addEventListener('click', () => this.closeModal());
+        }
+
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => this.closeModal());
+        }
+
+        const rejectModalCloseBtn = document.getElementById('rejectModalCloseBtn');
+        if (rejectModalCloseBtn) {
+            rejectModalCloseBtn.addEventListener('click', () => this.closeRejectModal());
+        }
+
+        const cancelRejectBtn = document.getElementById('cancelRejectBtn');
+        if (cancelRejectBtn) {
+            cancelRejectBtn.addEventListener('click', () => this.closeRejectModal());
+        }
 
         // 액션 버튼
-        document.getElementById('approveBtn').addEventListener('click', () => this.approvePopup());
-        document.getElementById('rejectBtn').addEventListener('click', () => this.openRejectModal());
-        document.getElementById('suspendBtn').addEventListener('click', () => this.suspendPopup());
-        document.getElementById('confirmRejectBtn').addEventListener('click', () => this.confirmReject());
+        const approveBtn = document.getElementById('approveBtn');
+        if (approveBtn) {
+            approveBtn.addEventListener('click', () => this.approvePopup());
+        }
+
+        const rejectBtn = document.getElementById('rejectBtn');
+        if (rejectBtn) {
+            rejectBtn.addEventListener('click', () => this.openRejectModal());
+        }
+
+        const suspendBtn = document.getElementById('suspendBtn');
+        if (suspendBtn) {
+            suspendBtn.addEventListener('click', () => this.suspendPopup());
+        }
+
+        const confirmRejectBtn = document.getElementById('confirmRejectBtn');
+        if (confirmRejectBtn) {
+            confirmRejectBtn.addEventListener('click', () => this.confirmReject());
+        }
 
         // 모달 외부 클릭 시 닫기
         window.addEventListener('click', (e) => {
-            if (e.target === document.getElementById('detailModal')) this.closeModal();
-            if (e.target === document.getElementById('rejectModal')) this.closeRejectModal();
+            const detailModal = document.getElementById('detailModal');
+            const rejectModal = document.getElementById('rejectModal');
+
+            if (detailModal && e.target === detailModal) {
+                this.closeModal();
+            }
+            if (rejectModal && e.target === rejectModal) {
+                this.closeRejectModal();
+            }
         });
     }
 
@@ -72,48 +120,27 @@ class PopupManagement {
 
             if (response.ok) {
                 const data = await response.json();
-                this.categories = data.success && data.data ? data.data : this.getDefaultCategories();
-            } else {
-                this.categories = this.getDefaultCategories();
+                this.categories = data.success && data.data ? data.data : [];
+                this.renderCategoryFilter();
             }
         } catch (error) {
             console.error('카테고리 로드 실패:', error);
-            this.categories = this.getDefaultCategories();
+            this.categories = [];
         }
-        this.populateCategoryFilter();
     }
 
-    getDefaultCategories() {
-        return [
-            {id: 1, name: '푸드', slug: 'FOOD'},
-            {id: 2, name: '패션', slug: 'FASHION'},
-            {id: 3, name: '뷰티', slug: 'BEAUTY'},
-            {id: 4, name: '라이프스타일', slug: 'LIFESTYLE'},
-            {id: 5, name: '문화/예술', slug: 'CULTURE'},
-            {id: 6, name: '스포츠', slug: 'SPORTS'},
-            {id: 7, name: '기술/IT', slug: 'TECH'},
-            {id: 8, name: '기타', slug: 'OTHER'}
-        ];
-    }
-
-    populateCategoryFilter() {
+    renderCategoryFilter() {
         const categoryFilter = document.getElementById('categoryFilter');
+        if (!categoryFilter) return;
 
-        // 기존 옵션 제거 (전체 옵션 제외)
-        while (categoryFilter.children.length > 1) {
-            categoryFilter.removeChild(categoryFilter.lastChild);
-        }
-
-        // 카테고리 옵션 추가
+        let options = '<option value="">전체 카테고리</option>';
         this.categories.forEach(category => {
-            const option = document.createElement('option');
-            option.value = category.slug || category.name;
-            option.textContent = category.name;
-            categoryFilter.appendChild(option);
+            options += `<option value="${category.slug}">${category.name}</option>`;
         });
+        categoryFilter.innerHTML = options;
     }
 
-    // 데이터 로드
+    // 통계 로드
     async loadStats() {
         try {
             const response = await fetch('/api/admin/popups/stats', {
@@ -122,35 +149,64 @@ class PopupManagement {
 
             if (response.ok) {
                 const stats = await response.json();
-                document.getElementById('totalCount').textContent = stats.total || 0;
-                document.getElementById('pendingCount').textContent = stats.pending || 0;
-                document.getElementById('activeCount').textContent = stats.active || 0;
+                this.updateStatsDisplay(stats);
             }
         } catch (error) {
             console.error('통계 로드 실패:', error);
         }
     }
 
+    updateStatsDisplay(stats) {
+        const statsContainer = document.getElementById('statsContainer');
+        if (statsContainer && stats) {
+            const total = stats.total || 0;
+            const pending = stats.pending || 0;
+            const approved = stats.approved || 0;
+            const active = stats.active || 0;
+
+            statsContainer.innerHTML = `
+                <div class="stat-item">
+                    <span class="stat-value">${total}</span>
+                    <span class="stat-label">전체 팝업</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">${pending}</span>
+                    <span class="stat-label">대기중</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">${approved}</span>
+                    <span class="stat-label">승인됨</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">${active}</span>
+                    <span class="stat-label">진행중</span>
+                </div>
+            `;
+        }
+    }
+
+    // 팝업 목록 로드
     async loadPopups() {
         try {
             this.showLoading();
 
-            const params = new URLSearchParams({
+            const queryParams = new URLSearchParams({
                 page: this.currentPage - 1,
                 size: this.pageSize,
                 ...this.currentFilters
             });
 
-            const response = await fetch(`/api/admin/popups?${params}`, {
+            const response = await fetch(`/api/admin/popups?${queryParams}`, {
                 headers: this.getAuthHeaders()
             });
 
-            if (!response.ok) throw new Error('팝업 목록 로드 실패');
+            if (!response.ok) {
+                throw new Error(`팝업 목록 로드 실패: ${response.status}`);
+            }
 
             const data = await response.json();
-            this.renderTable(data.content);
+            this.renderTable(data.content || []);
             this.renderPagination(data);
-            this.loadStats();
 
         } catch (error) {
             console.error('팝업 목록 로드 실패:', error);
@@ -159,67 +215,76 @@ class PopupManagement {
     }
 
     showLoading() {
-        document.getElementById('tableContainer').innerHTML =
-            '<div class="loading">데이터를 불러오는 중...</div>';
+        const tableContainer = document.getElementById('tableContainer');
+        if (tableContainer) {
+            tableContainer.innerHTML = '<div class="loading">데이터를 불러오는 중...</div>';
+        }
     }
 
     showError(message) {
-        document.getElementById('tableContainer').innerHTML =
-            `<div class="no-data">${message}</div>`;
+        const tableContainer = document.getElementById('tableContainer');
+        if (tableContainer) {
+            tableContainer.innerHTML = `<div class="no-data">${message}</div>`;
+        }
     }
 
     // 테이블 렌더링
     renderTable(popups) {
+        const tableContainer = document.getElementById('tableContainer');
+        if (!tableContainer) return;
+
         if (!popups || popups.length === 0) {
-            document.getElementById('tableContainer').innerHTML =
-                '<div class="no-data">등록된 팝업이 없습니다.</div>';
+            tableContainer.innerHTML = '<div class="no-data">등록된 팝업이 없습니다.</div>';
             return;
         }
 
         const tableHTML = `
-    <table class="popup-table">
-        <thead>
-            <tr>
-                <th>ID</th><th>팝업명</th><th>브랜드</th><th>카테고리</th>
-                <th>기간</th><th>상태</th><th>등록일</th><th>액션</th>
-            </tr>
-        </thead>
-        <tbody>
-            ${popups.map(popup => `
-                <tr>
-                    <td>${popup.id}</td>
-                    <td>
-                        <div style="font-weight: 500;">${popup.title}</div>
-                        <div style="font-size: 12px; color: #666;">${popup.venueName || popup.venueAddress || ''}</div>
-                    </td>
-                    <td>${popup.brandName || '미등록'}</td>
-                    <td><span class="category-badge">${popup.categoryName || this.getCategoryText(popup.category) || '미분류'}</span></td>
-                    <td>
-                        <div>${this.formatDate(popup.startDate)} ~</div>
-                        <div>${this.formatDate(popup.endDate)}</div>
-                    </td>
-                    <td><span class="status-badge ${popup.status.toLowerCase()}">${this.getStatusText(popup.status)}</span></td>
-                    <td>${this.formatDate(popup.createdAt)}</td>
-                    <td>
-                        <button class="button button-sm button-primary" onclick="popupManagement.viewDetail(${popup.id})">
-                            상세보기
-                        </button>
-                    </td>
-                </tr>
-            `).join('')}
-        </tbody>
-    </table>
-`;
+            <table class="popup-table">
+                <thead>
+                    <tr>
+                        <th>ID</th><th>팝업명</th><th>브랜드</th><th>카테고리</th>
+                        <th>기간</th><th>상태</th><th>등록일</th><th>액션</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${popups.map(popup => `
+                        <tr>
+                            <td>${popup.id}</td>
+                            <td>
+                                <div style="font-weight: 500;">${popup.title}</div>
+                                <div style="font-size: 12px; color: #666;">${popup.venueName || popup.venueAddress || ''}</div>
+                            </td>
+                            <td>${popup.brandName || '미등록'}</td>
+                            <td><span class="category-badge">${popup.categoryName || this.getCategoryText(popup.category) || '미분류'}</span></td>
+                            <td>
+                                <div>${this.formatDate(popup.startDate)} ~</div>
+                                <div>${this.formatDate(popup.endDate)}</div>
+                            </td>
+                            <td><span class="status-badge ${popup.status.toLowerCase()}">${this.getStatusText(popup.status)}</span></td>
+                            <td>${this.formatDate(popup.createdAt)}</td>
+                            <td>
+                                <button class="button button-sm button-primary" onclick="popupManagement.viewDetail(${popup.id})">
+                                    상세보기
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
 
-        document.getElementById('tableContainer').innerHTML = tableHTML;
+        tableContainer.innerHTML = tableHTML;
     }
 
-// 페이지네이션
+    // 페이지네이션
     renderPagination(pageInfo) {
-        const {number, totalPages, first, last} = pageInfo;
+        const paginationContainer = document.getElementById('pagination');
+        if (!paginationContainer) return;
+
+        const { number, totalPages, first, last } = pageInfo;
 
         if (totalPages <= 1) {
-            document.getElementById('pagination').innerHTML = '';
+            paginationContainer.innerHTML = '';
             return;
         }
 
@@ -235,9 +300,8 @@ class PopupManagement {
 
         html += `<button class="page-button" ${last ? 'disabled' : ''} onclick="popupManagement.goToPage(${number + 2})">다음</button>`;
 
-        document.getElementById('pagination').innerHTML = html;
+        paginationContainer.innerHTML = html;
     }
-
 
     goToPage(page) {
         this.currentPage = page;
@@ -246,10 +310,14 @@ class PopupManagement {
 
     // 검색 및 필터
     search() {
+        const statusFilter = document.getElementById('statusFilter');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const searchKeyword = document.getElementById('searchKeyword');
+
         const filters = {
-            status: document.getElementById('statusFilter').value,
-            category: document.getElementById('categoryFilter').value,
-            keyword: document.getElementById('searchKeyword').value.trim()
+            status: statusFilter ? statusFilter.value : '',
+            category: categoryFilter ? categoryFilter.value : '',
+            keyword: searchKeyword ? searchKeyword.value.trim() : ''
         };
 
         this.currentFilters = Object.fromEntries(
@@ -261,9 +329,13 @@ class PopupManagement {
     }
 
     resetFilters() {
-        document.getElementById('statusFilter').value = '';
-        document.getElementById('categoryFilter').value = '';
-        document.getElementById('searchKeyword').value = '';
+        const statusFilter = document.getElementById('statusFilter');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const searchKeyword = document.getElementById('searchKeyword');
+
+        if (statusFilter) statusFilter.value = '';
+        if (categoryFilter) categoryFilter.value = '';
+        if (searchKeyword) searchKeyword.value = '';
 
         this.currentFilters = {};
         this.currentPage = 1;
@@ -290,99 +362,58 @@ class PopupManagement {
 
     showDetailModal(popup) {
         this.selectedPopupId = popup.id;
-        document.getElementById('modalBody').innerHTML = this.buildDetailHTML(popup);
-        this.updateActionButtons(popup.status);
-        document.getElementById('detailModal').style.display = 'block';
+
+        const detailModal = document.getElementById('detailModal');
+        if (!detailModal) return;
+
+        // 모달 내용 업데이트
+        const modalContent = detailModal.querySelector('.modal-body');
+        if (modalContent) {
+            modalContent.innerHTML = this.generateModalContent(popup);
+        }
+
+        detailModal.style.display = 'block';
     }
 
-    buildDetailHTML(popup) {
-        const locationText = popup.venueName || popup.venueAddress || '장소 정보 없음';
-
+    generateModalContent(popup) {
         return `
-    <div class="popup-detail-content">
-        <div class="detail-section">
-            <h3>기본 정보</h3>
-            <div class="detail-grid">
-                <div class="detail-item">
-                    <label>팝업 ID:</label>
-                    <div class="detail-value">${popup.id}</div>
-                </div>
-                <div class="detail-item">
-                    <label>팝업명:</label>
-                    <div class="detail-value">${popup.title}</div>
-                </div>
-                <div class="detail-item">
-                    <label>브랜드:</label>
-                    <div class="detail-value">${popup.brandName || '미등록'}</div>
-                </div>
-                <div class="detail-item">
-                    <label>주최자:</label>
-                    <div class="detail-value">${popup.hostName || '정보 없음'}</div>
-                </div>
-                <div class="detail-item">
-                    <label>카테고리:</label>
-                    <div class="detail-value">${popup.categoryName || this.getCategoryText(popup.category) || '미분류'}</div>
-                </div>
-                <div class="detail-item">
-                    <label>장소:</label>
-                    <div class="detail-value">${locationText}</div>
-                </div>
-                <div class="detail-item">
-                    <label>상태:</label>
-                    <div class="detail-value">
-                        <span class="status-badge ${popup.status.toLowerCase()}">
-                            ${this.getStatusText(popup.status)}
-                        </span>
+            <div class="popup-detail">
+                <h3>${popup.title}</h3>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <strong>브랜드:</strong> ${popup.brandName || '미등록'}
                     </div>
-                </div>
-                <div class="detail-item">
-                    <label>기간:</label>
-                    <div class="detail-value">
-                        ${this.formatDate(popup.startDate)} ~ ${this.formatDate(popup.endDate)}
+                    <div class="detail-item">
+                        <strong>카테고리:</strong> ${this.getCategoryText(popup.category)}
+                    </div>
+                    <div class="detail-item">
+                        <strong>기간:</strong> ${this.formatDate(popup.startDate)} ~ ${this.formatDate(popup.endDate)}
+                    </div>
+                    <div class="detail-item">
+                        <strong>상태:</strong> ${this.getStatusText(popup.status)}
+                    </div>
+                    <div class="detail-item">
+                        <strong>장소:</strong> ${popup.venueName || '미정'}
+                    </div>
+                    <div class="detail-item">
+                        <strong>주소:</strong> ${popup.venueAddress || '미정'}
+                    </div>
+                    <div class="detail-item full-width">
+                        <strong>설명:</strong><br>
+                        ${popup.description || '설명이 없습니다.'}
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="detail-section">
-            <h3>상세 설명</h3>
-            <div class="detail-value" style="white-space: pre-wrap; : 1.6;">
-                ${popup.description || '설명이 없습니다.'}
-            </div>
-        </div>
-
-        ${popup.rejectReason ? `
-            <div class="detail-section">
-                <h3>거부 사유</h3>
-                <div class="detail-value reject-reason">
-                    ${popup.rejectReason}
-                </div>
-            </div>
-        ` : ''}
-    </div>
-`;
+        `;
     }
 
-    updateActionButtons(status) {
-        const buttons = {
-            approveBtn: document.getElementById('approveBtn'),
-            rejectBtn: document.getElementById('rejectBtn'),
-            suspendBtn: document.getElementById('suspendBtn')
-        };
-
-        // 모든 버튼 숨김
-        Object.values(buttons).forEach(btn => btn.style.display = 'none');
-
-        // 상태별 버튼 표시
-        if (status === 'PENDING') {
-            buttons.approveBtn.style.display = 'block';
-            buttons.rejectBtn.style.display = 'block';
-        } else if (['APPROVED', 'ACTIVE'].includes(status)) {
-            buttons.suspendBtn.style.display = 'block';
+    openRejectModal() {
+        const rejectModal = document.getElementById('rejectModal');
+        if (rejectModal) {
+            rejectModal.style.display = 'block';
         }
     }
 
-    // 팝업 관리 액션
     async approvePopup() {
         if (!this.selectedPopupId) return;
         if (!confirm('이 팝업을 승인하시겠습니까?')) return;
@@ -405,13 +436,11 @@ class PopupManagement {
         }
     }
 
-    openRejectModal() {
-        document.getElementById('rejectReason').value = '';
-        document.getElementById('rejectModal').style.display = 'block';
-    }
-
     async confirmReject() {
-        const reason = document.getElementById('rejectReason').value.trim();
+        if (!this.selectedPopupId) return;
+
+        const rejectReasonTextarea = document.getElementById('rejectReason');
+        const reason = rejectReasonTextarea ? rejectReasonTextarea.value.trim() : '';
 
         if (!reason) {
             alert('거부 사유를 입력해주세요.');
@@ -422,7 +451,7 @@ class PopupManagement {
             const response = await fetch(`/api/admin/popups/${this.selectedPopupId}/reject`, {
                 method: 'POST',
                 headers: this.getAuthHeaders(),
-                body: JSON.stringify({reason})
+                body: JSON.stringify({ reason })
             });
 
             if (!response.ok) throw new Error('팝업 거부 실패');
@@ -461,12 +490,18 @@ class PopupManagement {
     }
 
     closeModal() {
-        document.getElementById('detailModal').style.display = 'none';
+        const detailModal = document.getElementById('detailModal');
+        if (detailModal) {
+            detailModal.style.display = 'none';
+        }
         this.selectedPopupId = null;
     }
 
     closeRejectModal() {
-        document.getElementById('rejectModal').style.display = 'none';
+        const rejectModal = document.getElementById('rejectModal');
+        if (rejectModal) {
+            rejectModal.style.display = 'none';
+        }
     }
 
     // 유틸리티 함수
@@ -518,6 +553,6 @@ class PopupManagement {
 let popupManagement;
 
 // DOM 로드 완료 후 초기화
-document.addEventListener('DOMContentLoaded', async function () {
+document.addEventListener('DOMContentLoaded', function() {
     popupManagement = new PopupManagement();
 });

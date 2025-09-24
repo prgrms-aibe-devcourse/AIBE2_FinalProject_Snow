@@ -77,7 +77,4 @@ public class AdminPopupController {
         PopupAdminStatusUpdateResponse response = adminPopupService.updatePopupStatus(popupId, request.getStatus());
         return ResponseEntity.ok(response);
     }
-
-
-
 }
