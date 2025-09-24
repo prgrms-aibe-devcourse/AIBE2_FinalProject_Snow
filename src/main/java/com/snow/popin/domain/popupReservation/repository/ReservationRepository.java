@@ -108,6 +108,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     /**
      * 특정 카테고리의 예약 이력 조회
      */
-    @Query("SELECT r FROM Reservation r JOIN r.popup p WHERE r.user.id = :userId AND p.categoryId = :categoryId ORDER BY r.reservationDate DESC")
+    @Query("SELECT r FROM Reservation r JOIN r.popup p WHERE r.user.id = :userId AND p.category.id = :categoryId ORDER BY r.reservationDate DESC")
     List<Reservation> findByUserIdAndCategoryId(@Param("userId") Long userId, @Param("categoryId") Long categoryId);
 }
