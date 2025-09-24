@@ -62,7 +62,7 @@ class BaseExceptionHandlerTest {
                 .extracting(ModelAndView::getModel, as(MAP))
                 .containsEntry("statusCode", HttpStatus.FORBIDDEN.value())
                 .containsEntry("errorCode", expectedErrorCode)
-                .containsEntry("message", expectedErrorCode.getDetailedMessage(e));
+                .containsEntry("message", expectedErrorCode.getMessage());
     }
 
 }

@@ -23,7 +23,7 @@ class ErrorCodeTest {
         Exception e = new Exception("This is test message.");
 
         // When
-        String actual = sut.getDetailedMessage(e);
+        String actual = sut.getMessage();
 
         // Then
         assertThat(actual).isEqualTo(sut.getMessage() + " " + e.getMessage());

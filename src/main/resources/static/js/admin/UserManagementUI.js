@@ -40,7 +40,7 @@ class UserManagementUI {
                     <td>${this.formatDate(user.createdAt)}</td>
                     <td><span class="status-badge ${user.status === 'ACTIVE' ? 'active' : 'inactive'}">${user.status === 'ACTIVE' ? '활성' : '비활성'}</span></td>
                     <td>
-                        <button type="button" class="detail-button" data-user-id="${user.userId}">상세</button>
+                        <button type="button" class="button button-sm button-primary" data-user-id="${user.userId}">상세보기</button>
                     </td>
                 </tr>
             `).join('');

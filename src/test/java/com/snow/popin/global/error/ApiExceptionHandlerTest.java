@@ -103,7 +103,7 @@ class ApiExceptionHandlerTest {
                 .hasFieldOrPropertyWithValue("headers", headers)
                 .hasFieldOrPropertyWithValue("statusCode", httpStatus)
                 .extracting(ResponseEntity::getBody)
-                .hasFieldOrPropertyWithValue("message", errorCode.getDetailedMessage(e));
+                .hasFieldOrPropertyWithValue("message", errorCode.getMessage());
     }
 
     static Stream<Arguments> givenSpringException_whenHandlingApiException_thenReturnsResponseEntity() {

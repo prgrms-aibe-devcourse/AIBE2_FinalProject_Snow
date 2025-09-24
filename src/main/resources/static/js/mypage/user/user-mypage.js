@@ -27,9 +27,21 @@ document.addEventListener('DOMContentLoaded', async function () {
             btn.addEventListener('click', () => {
                 let field, label, spanEl;
                 switch (idx) {
-                    case 0: field = 'name'; label = '이름'; spanEl = document.getElementById('user-name'); break;
-                    case 1: field = 'nickname'; label = '닉네임'; spanEl = document.getElementById('user-nickname'); break;
-                    case 2: field = 'phone'; label = '연락처'; spanEl = document.getElementById('user-phone'); break;
+                    case 0:
+                        field = 'name';
+                        label = '이름';
+                        spanEl = document.getElementById('user-name');
+                        break;
+                    case 1:
+                        field = 'nickname';
+                        label = '닉네임';
+                        spanEl = document.getElementById('user-nickname');
+                        break;
+                    case 2:
+                        field = 'phone';
+                        label = '연락처';
+                        spanEl = document.getElementById('user-phone');
+                        break;
                 }
                 if (!spanEl) return;
 
@@ -165,14 +177,14 @@ document.addEventListener('DOMContentLoaded', async function () {
             <button class="modal-close" id="close-btn" style="position:absolute; top:12px; right:16px; font-size:24px; border:none; background:none; cursor:pointer;">&times;</button>
             <h2 style="margin-bottom:16px; font-size:20px;">팝업 제보하기</h2>
             <form id="popup-report-form" style="display:flex; flex-direction:column; gap:12px; text-align:left;">
-              <label>브랜드명<input type="text" name="brandName" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:8px;"></label>
-              <label>팝업명*<input type="text" name="popupName" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:8px;"></label>
-              <label>주소*<input type="text" name="address" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:8px;"></label>
-              <label>시작일<input type="date" name="startDate" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:8px;"></label>
-              <label>종료일<input type="date" name="endDate" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:8px;"></label>
-              <label>추가 정보<textarea name="extraInfo" rows="3" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:8px;"></textarea></label>
+              <label>브랜드명<input type="text" name="brandName" class="form-input"></label>
+              <label>팝업명*<input type="text" name="popupName" required class="form-input"></label>
+              <label>주소*<input type="text" name="address" required class="form-input"></label>
+              <label>시작일<input type="date" name="startDate" class="form-input"></label>
+              <label>종료일<input type="date" name="endDate" class="form-input"></label>
+              <label>추가 정보<textarea name="extraInfo" rows="3" class="form-input"></textarea></label>
               <label>이미지 업로드<input type="file" name="images" accept="image/*" multiple style="width:100%; padding:8px;"></label>
-              <button type="submit" class="submit-btn" style="padding:10px; border:none; background:#79f; color:#fff; border-radius:8px; cursor:pointer;">제출</button>
+              <button type="submit" class="button button-primary">제출</button>
             </form>
           </div>
         `;
@@ -186,12 +198,31 @@ document.addEventListener('DOMContentLoaded', async function () {
                 });
 
                 const form = backdrop.querySelector('#popup-report-form');
+
                 form.addEventListener('submit', async e => {
                     e.preventDefault();
 
                     const raw = Object.fromEntries(new FormData(form).entries());
 
-                    // DTO 데이터를 JSON으로 구성
+                    // 유효성 검사
+                    if (!raw.popupName?.trim()) {
+                        alert("팝업명은 필수 입력 항목입니다.");
+                        return;
+                    }
+                    if (!raw.address?.trim()) {
+                        alert("주소는 필수 입력 항목입니다.");
+                        return;
+                    }
+
+                    if (raw.startDate && raw.endDate) {
+                        const start = new Date(raw.startDate);
+                        const end = new Date(raw.endDate);
+                        if (end < start) {
+                            alert("종료일은 시작일 이후여야 합니다.");
+                            return;
+                        }
+                    }
+
                     const data = {
                         brandName: raw.brandName?.trim() || null,
                         popupName: raw.popupName?.trim(),
@@ -202,17 +233,15 @@ document.addEventListener('DOMContentLoaded', async function () {
                     };
 
                     const formData = new FormData();
-                    // JSON을 Blob으로 넣음 → @RequestPart("data")
                     formData.append("data", new Blob([JSON.stringify(data)], { type: "application/json" }));
 
-                    // 파일들 → @RequestPart("images")
                     const files = form.querySelector('input[name="images"]').files;
                     for (const file of files) {
                         formData.append("images", file);
                     }
 
                     try {
-                        await apiService.createPopupReport(formData); // FormData 그대로 전송
+                        await apiService.createPopupReport(formData);
                         alert('팝업 제보가 등록되었습니다.');
                         backdrop.remove();
                     } catch (err) {
@@ -220,6 +249,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                         alert('팝업 제보 실패: ' + (err.message || err));
                     }
                 });
+
             });
         }
 

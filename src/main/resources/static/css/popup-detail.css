@@ -164,7 +164,7 @@
     display: inline-block;
     padding: 6px 12px;
     background: #F3F4F6;
-    color: #6366F1;
+    color: #4B5AE4;
     border-radius: 16px;
     font-size: 14px;
     font-weight: 500;
@@ -174,14 +174,14 @@
 }
 
 .tag:hover {
-    background: #6366F1;
+    background: #4B5AE4;
     color: white;
 }
 
 .reservation-btn {
     width: 100%;
     padding: 16px;
-    background: #6366F1;
+    background: #4B5AE4;
     color: white;
     border: none;
     border-radius: 12px;
@@ -223,7 +223,7 @@
 .location-header svg {
     width: 20px;
     height: 20px;
-    color: #6366F1;
+    color: #4B5AE4;
     flex-shrink: 0;
 }
 
@@ -280,7 +280,7 @@
 .copy-btn-inline {
     flex-shrink: 0;
     padding: 8px 16px;
-    background: #6366F1;
+    background: #4B5AE4;
     color: white;
     border: none;
     border-radius: 6px;
@@ -419,7 +419,7 @@
 }
 
 .write-review-btn {
-    background: #6366F1;
+    background: #4B5AE4;
     color: white;
     border: none;
     padding: 10px 16px;
@@ -560,7 +560,7 @@
     background: #F8F9FA;
     border: 1px solid #E5E7EB;
     border-radius: 8px;
-    color: #6366F1;
+    color: #4B5AE4;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
@@ -570,7 +570,7 @@
 
 .load-more-btn:hover {
     background: #F3F4F6;
-    border-color: #6366F1;
+    border-color: #4B5AE4;
 }
 
 /* 리뷰 없을 때 */
@@ -596,7 +596,7 @@
     width: 20px;
     height: 20px;
     border: 2px solid #E5E7EB;
-    border-top: 2px solid #6366F1;
+    border-top: 2px solid #4B5AE4;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -698,7 +698,7 @@
     width: 40px;
     height: 40px;
     border: 4px solid #E5E7EB;
-    border-top: 4px solid #6366F1;
+    border-top: 4px solid #4B5AE4;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -737,7 +737,7 @@
 }
 
 .btn-primary {
-    background: #6366F1;
+    background: #4B5AE4;
     color: white;
 }
 

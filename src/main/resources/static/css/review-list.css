@@ -147,7 +147,7 @@
     align-items: center;
     gap: 8px;
     padding: 12px 20px;
-    background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+    background: linear-gradient(135deg, #4B5AE4, #674be4);
     color: white;
     border: none;
     border-radius: 25px;
@@ -196,7 +196,7 @@
 }
 
 .filter-btn.active {
-    background: #6366F1;
+    background: #4B5AE4;
     color: white;
     box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
 }
@@ -248,7 +248,7 @@
     top: 0;
     bottom: 0;
     width: 4px;
-    background: linear-gradient(to bottom, #6366F1, #8B5CF6);
+    background: linear-gradient(135deg, #4B5AE4, #674be4);
     opacity: 0;
     transition: opacity 0.2s;
 }
@@ -335,7 +335,7 @@
     background: #F8F9FA;
     border: 1px solid #E5E7EB;
     border-radius: 25px;
-    color: #6366F1;
+    color: #4B5AE4;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
@@ -347,7 +347,7 @@
 
 .load-more-btn:hover {
     background: #F3F4F6;
-    border-color: #6366F1;
+    border-color: #4B5AE4;
     transform: translateY(-1px);
 }
 
@@ -400,7 +400,7 @@
 
 .write-first-review-btn {
     padding: 14px 28px;
-    background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+    background: linear-gradient(135deg, #4B5AE4, #674be4);
     color: white;
     border: none;
     border-radius: 25px;
@@ -421,7 +421,7 @@
     width: 32px;
     height: 32px;
     border: 3px solid #E5E7EB;
-    border-top: 3px solid #6366F1;
+    border-top: 3px solid #4B5AE4;
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: 0 auto;

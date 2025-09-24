@@ -25,7 +25,7 @@ public class BaseExceptionHandler {
     public ModelAndView exception(Exception e, HttpServletResponse response) {
         HttpStatus httpStatus = getHttpStatus(response);
         ErrorCode errorCode = ErrorCode.fromHttpStatus(httpStatus);
-        return createErrorView(httpStatus, errorCode, errorCode.getDetailedMessage(e));
+        return createErrorView(httpStatus, errorCode, errorCode.getMessage());
     }
 
     private HttpStatus getHttpStatus(HttpServletResponse response) {

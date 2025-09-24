@@ -19,7 +19,7 @@ public class GeneralException extends RuntimeException {
     }
 
     public GeneralException(ErrorCode errorCode, Throwable cause) {
-        super(errorCode.getDetailedMessage(cause), cause);
+        super(errorCode.getMessage(), cause);
         this.errorCode = errorCode;
     }
 

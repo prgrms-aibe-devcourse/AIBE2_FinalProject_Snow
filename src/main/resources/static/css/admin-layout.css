@@ -60,7 +60,7 @@ body {
 }
 
 .logo-bubble {
-    background: linear-gradient(135deg, #4B5AE4 0%, #8b5cf6 100%);
+    background: linear-gradient(135deg, #4B5AE4, #674be4);
     border-radius: 50px;
     padding: 24px 44px;
     position: relative;
@@ -119,7 +119,8 @@ body {
     background: #f8f9fa;
     box-sizing: border-box;
     position: relative;
-    min-height: calc(100vh - 90px - 96px); /* 헤더(90px) + 푸터(96px) 제외 */
+    min-height: calc(100vh - 90px - 96px);
+    padding-bottom: 30px;
 }
 
 /* 푸터 - 하단 고정 */
@@ -696,40 +697,30 @@ body::-webkit-scrollbar-thumb:hover {
 
 /* 상태 배지 - 통일된 크기와 스타일 */
 .status-badge {
-    display: inline-flex;
-    padding: 8px 16px;
+    display: inline-block;
+    padding: 6px 8px;
     border-radius: 12px;
-    font-size: 14px;
+    font-size: 11px;
     font-weight: 600;
-    text-align: center;
-    min-width: 80px;
+    text-transform: uppercase;
     box-sizing: border-box;
-    align-items: center;
-    justify-content: center;
-    height: 24px;
+    white-space: nowrap; /* 줄바꿈 방지 */
 }
+
 
 .status-badge.pending {
     background-color: #fef3c7;
     color: #92400e;
-    border: 1px solid #fbbf24;
 }
 
 .status-badge.approved {
     background-color: #B6BCF7;
     color: #232b78;
-    border: 1px solid #5860b5;
 }
 
 .status-badge.rejected {
     background-color: #fee2e2;
     color: #991b1b;
-    border: 1px solid #ef4444;
-}
-
-.status-badge.rejected {
-    background: #f8d7da;
-    color: #721c24;
 }
 
 .status-badge.active {

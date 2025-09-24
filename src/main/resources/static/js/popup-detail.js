@@ -655,7 +655,7 @@ class PopupDetailManager {
             const svg = bookmarkBtn.querySelector('svg');
             if (this.isBookmarked) {
                 svg.setAttribute('fill', 'currentColor');
-                bookmarkBtn.style.color = '#6366F1';
+                bookmarkBtn.style.color = '#4B5AE4';
             } else {
                 svg.setAttribute('fill', 'none');
                 bookmarkBtn.style.color = '';

@@ -24,11 +24,15 @@ public class NotificationSettingApiController {
     }
 
     /** 특정 타입 알림 설정 변경 */
-    @PostMapping("/update")
-    public ResponseEntity<Void> updateSetting(@RequestBody NotificationSettingRequestDto dto) {
+    @PatchMapping("/{type}")
+    public ResponseEntity<Void> updateSetting(
+            @PathVariable String type,
+            @RequestParam boolean enabled
+    ) {
         Long userId = userUtil.getCurrentUserId();
-        settingService.updateSetting(userId, dto.getType(), dto.isEnabled());
-        return ResponseEntity.ok().build();
+        settingService.updateSetting(userId, type, enabled);
+        return ResponseEntity.noContent().build(); // 204 응답
     }
+
 
 }
