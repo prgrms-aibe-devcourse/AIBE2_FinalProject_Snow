@@ -4,7 +4,9 @@ import com.snow.popin.domain.mypage.host.entity.Brand;
 import com.snow.popin.domain.mypage.host.entity.Host;
 import com.snow.popin.domain.mypage.host.repository.BrandRepository;
 import com.snow.popin.domain.mypage.host.repository.HostRepository;
+import com.snow.popin.domain.popup.dto.request.PopupStatusUpdateRequest;
 import com.snow.popin.domain.popup.dto.response.PopupAdminResponse;
+import com.snow.popin.domain.popup.dto.response.PopupAdminStatusUpdateResponse;
 import com.snow.popin.domain.popup.dto.response.PopupStatsResponse;
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.entity.PopupStatus;
@@ -134,5 +136,23 @@ public class AdminPopupService {
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    /**
+     * 팝업 상태 변경
+     */
+    @Transactional
+    public PopupAdminStatusUpdateResponse updatePopupStatus(Long popupId, PopupStatus status){
+        log.info("팝업 상태 변경 시작 - popupId: {}, 새로운 상태: {}", popupId, status);
+
+        Popup popup = popupRepo.findById(popupId)
+                .orElseThrow(() -> new GeneralException(ErrorCode.POPUP_NOT_FOUND));
+
+        popup.AdminUpdateStatus(status);
+        popupRepo.save(popup);
+
+        log.info("팝업 상태 변경 완료 - popupId: {}, 변경된 상태: {}", popupId, status);
+
+        return PopupAdminStatusUpdateResponse.of(popup);
     }
 }

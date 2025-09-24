@@ -193,6 +193,11 @@ public class Popup extends BaseEntity {
         return PopupStatus.ONGOING;
     }
 
+    // 관리자가 직접 팝업의 상태 변경
+    public void AdminUpdateStatus(PopupStatus status) {
+        this.status = status;
+    }
+
     // 조회수 증가 메서드
     public void incrementViewCount() {
         this.viewCount++;

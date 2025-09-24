@@ -1,7 +1,9 @@
 package com.snow.popin.domain.admin.controller;
 
 import com.snow.popin.domain.admin.service.AdminPopupService;
+import com.snow.popin.domain.popup.dto.request.PopupStatusUpdateRequest;
 import com.snow.popin.domain.popup.dto.response.PopupAdminResponse;
+import com.snow.popin.domain.popup.dto.response.PopupAdminStatusUpdateResponse;
 import com.snow.popin.domain.popup.dto.response.PopupStatsResponse;
 import com.snow.popin.domain.popup.entity.PopupStatus;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 /**
  * 관리자 팝업 관리 컨트롤러
  */
@@ -25,7 +29,6 @@ import org.springframework.web.bind.annotation.*;
 public class AdminPopupController {
 
     private final AdminPopupService adminPopupService;
-
 
     /**
      * 팝업 통계 조회
@@ -64,7 +67,17 @@ public class AdminPopupController {
         return ResponseEntity.ok(res);
     }
 
-    
+    /**
+     * 팝업 상태 변경
+     */
+    @PutMapping("/{popupId}/status")
+    public ResponseEntity<PopupAdminStatusUpdateResponse> updatePopupStatus(
+            @PathVariable Long popupId,
+            @Valid @RequestBody PopupStatusUpdateRequest request){
+        PopupAdminStatusUpdateResponse response = adminPopupService.updatePopupStatus(popupId, request.getStatus());
+        return ResponseEntity.ok(response);
+    }
+
 
 
 }
