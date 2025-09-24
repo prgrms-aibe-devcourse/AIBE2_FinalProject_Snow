@@ -92,4 +92,22 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     int countByPopupAndTimeRange(@Param("popupId") Long popupId,
                                  @Param("start") LocalDateTime start,
                                  @Param("end") LocalDateTime end);
+
+    /**
+     * 사용자 ID로 예약 이력 조회 (최신순)
+     */
+    @Query("SELECT r FROM Reservation r WHERE r.user.id = :userId ORDER BY r.reservationDate DESC")
+    List<Reservation> findByUserIdOrderByReservationDateDesc(@Param("userId") Long userId);
+
+    /**
+     * 사용자의 방문 완료된 예약 이력 조회
+     */
+    @Query("SELECT r FROM Reservation r WHERE r.user.id = :userId AND r.status = 'VISITED' ORDER BY r.reservationDate DESC")
+    List<Reservation> findVisitedReservationsByUserId(@Param("userId") Long userId);
+
+    /**
+     * 특정 카테고리의 예약 이력 조회
+     */
+    @Query("SELECT r FROM Reservation r JOIN r.popup p WHERE r.user.id = :userId AND p.categoryId = :categoryId ORDER BY r.reservationDate DESC")
+    List<Reservation> findByUserIdAndCategoryId(@Param("userId") Long userId, @Param("categoryId") Long categoryId);
 }

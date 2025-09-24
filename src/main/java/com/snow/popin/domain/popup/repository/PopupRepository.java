@@ -75,6 +75,20 @@ public interface PopupRepository extends JpaRepository<Popup, Long>, JpaSpecific
             @Param("endDate") LocalDate endDate,
             Pageable pageable);
 
+    /**
+     * ID 목록으로 팝업 조회 (AI 추천 결과용)
+     */
+    @Query("SELECT p FROM Popup p " +
+            "LEFT JOIN FETCH p.venue v " +
+            "LEFT JOIN FETCH p.category c " +
+            "WHERE p.id IN :ids")
+    List<Popup> findByIdIn(@Param("ids") List<Long> ids);
+
+    /**
+     * 특정 상태의 팝업 조회 (AI 추천용)
+     */
+    List<Popup> findByStatus(PopupStatus status);
+
     // ===== 팝업 상세 조회 =====
 
     @EntityGraph(attributePaths = {"images", "hours", "venue", "tags", "category"})

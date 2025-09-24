@@ -10,6 +10,7 @@ import lombok.*;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "user")
@@ -79,5 +80,32 @@ public class User extends BaseEntity {
     public void updateRole(Role newRole){
         this.role = newRole;
     }
+
+    /**
+     * 사용자의 관심 카테고리 이름 목록 조회
+     */
+    public List<String> getInterestCategoryNames() {
+        return this.interests.stream()
+                .map(userInterest -> userInterest.getCategory().getName())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 사용자의 관심 카테고리 ID 목록 조회
+     */
+    public List<Long> getInterestCategoryIds() {
+        return this.interests.stream()
+                .map(userInterest -> userInterest.getCategory().getId())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 특정 카테고리에 관심이 있는지 확인
+     */
+    public boolean hasInterestInCategory(Long categoryId) {
+        return this.interests.stream()
+                .anyMatch(userInterest -> userInterest.getCategory().getId().equals(categoryId));
+    }
+
 
 }

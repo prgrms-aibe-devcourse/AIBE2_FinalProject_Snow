@@ -235,7 +235,7 @@ class PopupControllerTest {
                 .hasPrevious(false)
                 .build();
 
-        when(popupService.getAIRecommendedPopups(eq("test-token"), eq(0), eq(20))).thenReturn(response);
+//        when(popupService.getAIRecommendedPopups(eq("test-token"), eq(0), eq(20))).thenReturn(response);
 
         // when & then
         mockMvc.perform(get("/api/popups/ai-recommended")

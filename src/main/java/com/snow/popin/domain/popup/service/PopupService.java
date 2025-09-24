@@ -1,10 +1,15 @@
 package com.snow.popin.domain.popup.service;
 
+import com.snow.popin.domain.mypage.host.entity.Brand;
+import com.snow.popin.domain.mypage.host.repository.BrandRepository;
 import com.snow.popin.domain.popup.dto.response.*;
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.entity.PopupStatus;
 import com.snow.popin.domain.popup.repository.PopupRepository;
+import com.snow.popin.domain.recommended.dto.AiRecommendationResponseDto;
+import com.snow.popin.domain.recommended.service.AiRecommendationService;
 import com.snow.popin.global.exception.PopupNotFoundException;
+import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
@@ -12,8 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -23,6 +27,9 @@ import java.util.stream.Collectors;
 public class PopupService {
 
     private final PopupRepository popupRepository;
+    private final AiRecommendationService aiRecommendationService;
+    private final BrandRepository brandRepository;
+    private final UserUtil userUtil;
 
     // ===== 메인 페이지 필터링 API =====
 
@@ -106,15 +113,119 @@ public class PopupService {
     }
 
     /**
-     * AI 추천 팝업 조회 (현재는 인기 팝업으로 대체)
-     * TODO: 향후 실제 AI 추천 로직으로 교체 예정
+     * AI 추천 팝업 조회 (기존 메서드 활용)
+     * - 로그인한 경우: 사용자별 개인화 추천
+     * - 로그인하지 않은 경우: 기존 인기 팝업 반환
      */
-    public PopupListResponseDto getAIRecommendedPopups(String token, int page, int size) {
-        log.info("AI 추천 팝업 조회 - page: {}, size: {} (현재는 인기 팝업으로 대체)", page, size);
+    public PopupListResponseDto getAIRecommendedPopups(int page, int size) {
+        log.info("AI 추천 팝업 조회 - page: {}, size: {}", page, size);
 
-        // TODO: JWT 토큰에서 사용자 관심사 추출하여 AI 추천 로직 구현
-        // 현재는 진행중인 인기 팝업을 반환
-        return getPopularPopups(page, size);
+        try {
+            // 로그인 상태 확인
+            if (!userUtil.isAuthenticated()) {
+                log.info("비로그인 사용자 - 기존 인기 팝업으로 대체");
+                return getPopularPopups(page, size);
+            }
+
+            Long userId = userUtil.getCurrentUserId();
+            log.info("로그인 사용자 {} - AI 개인화 추천 시작", userId);
+
+            // AI 추천 서비스 호출
+            AiRecommendationResponseDto aiRecommendation =
+                    aiRecommendationService.getPersonalizedRecommendations(userId, size);
+
+            if (!aiRecommendation.isSuccess() || aiRecommendation.getRecommendedPopupIds().isEmpty()) {
+                log.warn("AI 추천 실패 - 기존 인기 팝업으로 대체");
+                return getPopularPopups(page, size);
+            }
+
+            // 추천된 팝업 ID로 팝업 조회
+            List<Popup> recommendedPopups = popupRepository.findByIdIn(
+                    aiRecommendation.getRecommendedPopupIds()
+            );
+
+            // AI가 추천한 순서대로 정렬
+            recommendedPopups = sortPopupsByIdOrder(recommendedPopups,
+                    aiRecommendation.getRecommendedPopupIds());
+
+            // DTO 변환 (브랜드 정보 포함)
+            List<PopupSummaryResponseDto> popupDtos = convertToSummaryDtosWithBrand(recommendedPopups);
+
+            // 페이지 처리
+            Pageable pageable = PageRequest.of(page, size);
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), popupDtos.size());
+
+            List<PopupSummaryResponseDto> pagedDtos = start < popupDtos.size() ?
+                    popupDtos.subList(start, end) : List.of();
+
+            Page<PopupSummaryResponseDto> popupPage = new PageImpl<>(
+                    pagedDtos, pageable, popupDtos.size()
+            );
+
+            log.info("AI 추천 완료 - 총 {}개 추천, 이유: {}",
+                    recommendedPopups.size(), aiRecommendation.getReasoning());
+
+            return PopupListResponseDto.of(popupPage, pagedDtos);
+
+        } catch (Exception e) {
+            log.error("AI 추천 처리 중 오류 발생", e);
+            return getPopularPopups(page, size);
+        }
+    }
+
+    /**
+     * AI 추천 순서대로 팝업 정렬
+     */
+    private List<Popup> sortPopupsByIdOrder(List<Popup> popups, List<Long> orderedIds) {
+        Map<Long, Popup> popupMap = popups.stream()
+                .collect(Collectors.toMap(Popup::getId, popup -> popup));
+
+        return orderedIds.stream()
+                .map(popupMap::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 브랜드 정보를 포함한 DTO 변환 (AI 추천용)
+     */
+    private List<PopupSummaryResponseDto> convertToSummaryDtosWithBrand(List<Popup> popups) {
+        if (popups.isEmpty()) {
+            return List.of();
+        }
+
+        try {
+            // 브랜드 ID 추출
+            Set<Long> brandIds = popups.stream()
+                    .map(Popup::getBrandId)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+
+            // 브랜드 정보 배치 조회
+            Map<Long, String> brandMap = brandRepository.findAllById(brandIds)
+                    .stream()
+                    .collect(Collectors.toMap(
+                            Brand::getId,
+                            Brand::getName,
+                            (existing, replacement) -> existing
+                    ));
+
+            // DTO 변환
+            return popups.stream()
+                    .map(popup -> {
+                        String brandName = brandMap.getOrDefault(popup.getBrandId(), "브랜드");
+                        return PopupSummaryResponseDto.fromWithBrand(popup, brandName);
+                    })
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            log.warn("브랜드 정보 포함 DTO 변환 실패, 기본 DTO로 대체", e);
+            // 오류 시 기본 DTO 변환 사용
+            return popups.stream()
+                    .map(PopupSummaryResponseDto::from)
+                    .collect(Collectors.toList());
+        }
     }
 
     // ===== 팝업 상세 조회 =====
