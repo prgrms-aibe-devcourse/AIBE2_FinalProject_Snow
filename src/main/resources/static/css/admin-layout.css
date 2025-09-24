@@ -723,11 +723,6 @@ body::-webkit-scrollbar-thumb:hover {
     color: #991b1b;
 }
 
-.status-badge.rejected {
-    background: #f8d7da;
-    color: #721c24;
-}
-
 .status-badge.active {
     background: #d4edda;
     color: #97a7f8;
