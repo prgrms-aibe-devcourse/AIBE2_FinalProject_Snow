@@ -1,5 +1,6 @@
 package com.snow.popin.domain.popup.dto.request;
 
+import lombok.Builder;
 import lombok.Getter;
 
 import javax.validation.constraints.Max;
@@ -9,7 +10,6 @@ import javax.validation.constraints.Size;
 @Getter
 public class PopupSearchRequestDto {
 
-    @Size(min = 2, max = 100, message = "검색어는 2~100자여야 합니다.")
     private String query;
 
     @Min(0)
@@ -19,23 +19,19 @@ public class PopupSearchRequestDto {
     @Max(100)
     private int size = 20;
 
-    public void setQuery(String query) {
+    @Builder
+    private PopupSearchRequestDto(String query, int page, int size) {
         this.query = query;
+        this.page = Math.max(0, page);
+        this.size = Math.min(Math.max(1, size), 100);
     }
 
-    public void setPage(int page) {
-        this.page = page;
-    }
-
-    public void setSize(int size) {
-        this.size = size;
-    }
-
-    public boolean hasQuery() {
-        return query != null && !query.trim().isEmpty();
-    }
-
-    public boolean isValidQueryLength() {
-        return hasQuery() && query.trim().length() >= 2;
+    // 팩토리 메서드
+    public static PopupSearchRequestDto of(String query, int page, int size) {
+        return PopupSearchRequestDto.builder()
+                .query(query)
+                .page(page)
+                .size(size)
+                .build();
     }
 }
