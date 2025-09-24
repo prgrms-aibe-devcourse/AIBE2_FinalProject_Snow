@@ -1,4 +1,4 @@
-package com.snow.popin.domain.recommended.controller;
+package com.snow.popin.domain.recommendation.controller;
 
 import com.snow.popin.domain.popup.dto.response.PopupListResponseDto;
 import com.snow.popin.domain.popup.service.PopupService;

@@ -1,6 +1,5 @@
-package com.snow.popin.domain.recommended.service;
+package com.snow.popin.domain.recommendation.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.snow.popin.domain.mypage.host.entity.Brand;
 import com.snow.popin.domain.mypage.host.repository.BrandRepository;
 import com.snow.popin.domain.popup.entity.Popup;
@@ -8,14 +7,13 @@ import com.snow.popin.domain.popup.entity.PopupStatus;
 import com.snow.popin.domain.popup.repository.PopupRepository;
 import com.snow.popin.domain.popupReservation.entity.Reservation;
 import com.snow.popin.domain.popupReservation.repository.ReservationRepository;
-import com.snow.popin.domain.recommended.dto.AiRecommendationResponseDto;
-import com.snow.popin.domain.recommended.dto.ReservationHistoryDto;
-import com.snow.popin.domain.recommended.dto.UserPreferenceDto;
+import com.snow.popin.domain.recommendation.dto.AiRecommendationResponseDto;
+import com.snow.popin.domain.recommendation.dto.ReservationHistoryDto;
+import com.snow.popin.domain.recommendation.dto.UserPreferenceDto;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-package com.snow.popin.domain.recommended.dto;
+package com.snow.popin.domain.recommendation.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;

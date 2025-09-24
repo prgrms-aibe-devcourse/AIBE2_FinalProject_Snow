@@ -1,8 +1,8 @@
-package com.snow.popin.domain.recommended.service;
+package com.snow.popin.domain.recommendation.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.snow.popin.domain.recommended.dto.GeminiRequestDto;
-import com.snow.popin.domain.recommended.dto.GeminiResponseDto;
+import com.snow.popin.domain.recommendation.dto.GeminiRequestDto;
+import com.snow.popin.domain.recommendation.dto.GeminiResponseDto;
 import com.snow.popin.global.config.GeminiProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,11 +13,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.List;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class GeminiAiService {
 
     private final GeminiProperties geminiProperties;

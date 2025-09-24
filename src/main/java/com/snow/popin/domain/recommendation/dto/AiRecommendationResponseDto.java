@@ -1,4 +1,4 @@
-package com.snow.popin.domain.recommended.dto;
+package com.snow.popin.domain.recommendation.dto;
 
 import lombok.Builder;
 import lombok.Getter;
