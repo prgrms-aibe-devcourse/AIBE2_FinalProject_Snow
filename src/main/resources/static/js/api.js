@@ -335,7 +335,7 @@ apiService.rejectReservation = async function(reservationId) {
     return await this.put(`/space-reservations/${encodeURIComponent(reservationId)}/reject`, {});
 };
 
-// 예약 삭제 (거절된 예약만)
+// 예약 삭제
 apiService.deleteReservation = async function(reservationId) {
     return await this.delete(`/space-reservations/${encodeURIComponent(reservationId)}/delete`);
 };

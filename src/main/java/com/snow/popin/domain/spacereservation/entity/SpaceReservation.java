@@ -54,6 +54,17 @@ public class SpaceReservation extends BaseEntity {
     @Column(nullable = false)
     private ReservationStatus status;
 
+    @Column(nullable = false)
+    private boolean isHidden = false;
+
+    public void hide() {
+        this.isHidden = true;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.isHidden = hidden;
+    }
+
     // Status 관련 메서드
     public void accept() {
         if (this.status != ReservationStatus.PENDING) {

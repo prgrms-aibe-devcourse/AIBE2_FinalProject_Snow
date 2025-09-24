@@ -102,7 +102,7 @@ public class SpaceReservationService {
     @Transactional(readOnly = true)
     public List<SpaceReservationListResponseDto> getMyRequests() {
         User host = userUtil.getCurrentUser();
-        return reservationRepository.findByHostOrderByCreatedAtDesc(host)
+        return reservationRepository.findByHostAndIsHiddenFalseOrderByCreatedAtDesc(host)
                 .stream()
                 .map(SpaceReservationListResponseDto::fromForHost)
                 .collect(Collectors.toList());
@@ -211,7 +211,7 @@ public class SpaceReservationService {
      */
     public void cancelReservation(Long reservationId) {
         User host = userUtil.getCurrentUser();
-        SpaceReservation reservation = reservationRepository.findByIdAndHost(reservationId, host)
+        SpaceReservation reservation = reservationRepository.findByIdAndHostAndIsHiddenFalse(reservationId, host)
                 .orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않거나 취소 권한이 없습니다."));
 
         reservation.cancel();
@@ -230,20 +230,21 @@ public class SpaceReservationService {
     }
 
     /**
-     * 예약 삭제 (거절된 예약만 가능, PROVIDER)
+     * 예약 삭제 (소프트 삭제, 거절 혹은 취소 시)
      *
      * @param reservationId 예약 ID
      */
+    @Transactional
     public void deleteReservation(Long reservationId) {
         User provider = userUtil.getCurrentUser();
         SpaceReservation reservation = reservationRepository.findByIdAndSpaceOwner(reservationId, provider)
                 .orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않거나 삭제 권한이 없습니다."));
 
-        if (reservation.getStatus() == ReservationStatus.REJECTED) {
-            reservationRepository.delete(reservation);
-            log.info("Reservation {} deleted by provider {}", reservationId, provider.getEmail());
+        if (reservation.getStatus() == ReservationStatus.REJECTED || reservation.getStatus() == ReservationStatus.CANCELLED) {
+            reservation.setHidden(true);
+            log.info("공간 예약 id {} 이 삭제(숨김) 처리 되었습니다.", reservationId);
         } else {
-            throw new IllegalArgumentException("승인되었거나 취소된 예약은 삭제할 수 없습니다.");
+            throw new IllegalArgumentException("승인되었거나 진행 중인 예약은 삭제(숨김)할 수 없습니다.");
         }
     }
 }

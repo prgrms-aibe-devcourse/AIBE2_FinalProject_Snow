@@ -17,32 +17,32 @@ import java.util.Optional;
 public interface SpaceReservationRepository extends JpaRepository<SpaceReservation, Long> {
 
     // 특정 사용자가 요청한 예약 목록 (HOST)
-    List<SpaceReservation> findByHostOrderByCreatedAtDesc(User host);
+    List<SpaceReservation> findByHostAndIsHiddenFalseOrderByCreatedAtDesc(User host);
 
     // 특정 공간 소유자에게 온 예약 목록 (PROVIDER)
-    @Query("SELECT sr FROM SpaceReservation sr WHERE sr.space.owner = :owner ORDER BY sr.createdAt DESC")
+    @Query("SELECT sr FROM SpaceReservation sr " +
+            "WHERE sr.space.owner = :owner AND sr.isHidden = false " +
+            "ORDER BY sr.createdAt DESC")
     List<SpaceReservation> findBySpaceOwnerOrderByCreatedAtDesc(@Param("owner") User owner);
 
     // 특정 사용자의 특정 예약 조회
-    Optional<SpaceReservation> findByIdAndHost(Long id, User host);
+    Optional<SpaceReservation> findByIdAndHostAndIsHiddenFalse(Long id, User host);
 
     // 특정 공간 소유자의 특정 예약 조회
-    @Query("SELECT sr FROM SpaceReservation sr WHERE sr.id = :id AND sr.space.owner = :owner")
+    @Query("SELECT sr FROM SpaceReservation sr WHERE sr.id = :id AND sr.space.owner = :owner AND sr.isHidden = false")
     Optional<SpaceReservation> findByIdAndSpaceOwner(@Param("id") Long id, @Param("owner") User owner);
 
     // 날짜 중복 체크용 - 특정 공간의 특정 기간에 승인된 예약이 있는지 확인
     @Query("SELECT COUNT(sr) FROM SpaceReservation sr WHERE sr.space = :space " +
-            "AND sr.status = 'ACCEPTED' " +
+            "AND sr.status = 'ACCEPTED' AND sr.isHidden = false " +
             "AND ((sr.startDate <= :endDate AND sr.endDate >= :startDate))")
     long countOverlappingReservations(@Param("space") Space space,
                                       @Param("startDate") LocalDate startDate,
                                       @Param("endDate") LocalDate endDate);
 
-    //이하 나중에 사용 할 수 있음
     // 특정 공간의 모든 예약 목록
-    List<SpaceReservation> findBySpaceOrderByStartDateDesc(Space space);
+    List<SpaceReservation> findBySpaceAndIsHiddenFalseOrderByStartDateDesc(Space space);
 
     // 특정 상태의 예약 목록
-    List<SpaceReservation> findByStatusOrderByCreatedAtDesc(ReservationStatus status);
-
+    List<SpaceReservation> findByStatusAndIsHiddenFalseOrderByCreatedAtDesc(ReservationStatus status);
 }
