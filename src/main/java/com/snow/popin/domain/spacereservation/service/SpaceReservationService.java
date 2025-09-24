@@ -157,6 +157,10 @@ public class SpaceReservationService {
 
         reservation.accept();
 
+        // 해당 공간 삭제(숨김)처리
+        Space space = reservation.getSpace();
+        space.hide();
+
         // 예약 신청자에게 알림 전송
         notificationService.createNotification(
                 reservation.getHost().getId(),

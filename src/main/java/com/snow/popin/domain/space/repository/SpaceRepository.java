@@ -21,9 +21,6 @@ public interface SpaceRepository extends JpaRepository<Space, Long>, JpaSpecific
     // 특정 사용자 소유의 특정 공간 조회 (권한 체크용)
     Optional<Space> findByIdAndOwner(Long id, User owner);
 
-    // 공간 모두 조회
-    List<Space> findByIsPublicTrueOrderByCreatedAtDesc();
-
     List<Space> findByOwner(User owner);
 
     List<Space> findByIsPublicTrueAndIsHiddenFalseOrderByCreatedAtDesc();

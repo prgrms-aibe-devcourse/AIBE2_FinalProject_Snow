@@ -174,13 +174,13 @@ public class SpaceService {
      * @param owner 삭제 요청 사용자
      * @param id    공간 ID
      */
-    public void delete(User owner, Long id) {
+    public void deleteSpace(User owner, Long id) {
         log.info("Deleting space ID: {} by owner: {}", id, owner.getId());
 
         Space space = spaceRepository.findByIdAndOwner(id, owner)
                 .orElseThrow(() -> new IllegalArgumentException("공간이 없거나 삭제 권한이 없습니다."));
 
-        spaceRepository.delete(space);
+        space.hide();
         log.info("Space deleted successfully: {}", id);
     }
 
