@@ -52,9 +52,6 @@ public enum ErrorCode {
     private final HttpStatus httpStatus;
     private final String message;
 
-    public String getDetailedMessage(Throwable e) {
-        return String.format("%s %s", this.message, e.getMessage());
-    }
 
     public String withMessage(String customMessage) {
         return Optional.ofNullable(customMessage)

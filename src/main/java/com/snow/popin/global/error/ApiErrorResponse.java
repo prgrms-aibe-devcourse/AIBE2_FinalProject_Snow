@@ -22,7 +22,7 @@ public class ApiErrorResponse {
     }
 
     public static ApiErrorResponse of(ErrorCode errorCode, Exception e) {
-        return new ApiErrorResponse(false, errorCode.getCode(), errorCode.getDetailedMessage(e), getCurrentTimestamp());
+        return new ApiErrorResponse(false, errorCode.getCode(), errorCode.getMessage(), getCurrentTimestamp());
     }
 
     public static ApiErrorResponse of(ErrorCode errorCode, String customMessage) {
