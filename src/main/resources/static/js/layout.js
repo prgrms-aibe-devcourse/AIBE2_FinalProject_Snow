@@ -359,8 +359,7 @@ function createFooterByRole() {
         navItems += `
         <a href="#" class="footer-item" data-page="spaceList">
             <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                <circle cx="12" cy="10" r="3"></circle>
+                <path d="M3 9.75L12 4l9 5.75V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1V9.75z"></path>
             </svg>
             <span class="footer-text">공간대여</span>
         </a>`;
@@ -381,6 +380,7 @@ function createFooterByRole() {
         </footer>
     `;
 }
+
 
 // 현재 사용자 ROLE 반환
 async function getUserRole() {
