@@ -24,6 +24,9 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
@@ -51,7 +54,6 @@ public class AdminPopupService {
                 .total(popupRepo.count())
                 .planning(popupRepo.countByStatus(PopupStatus.PLANNED))
                 .ongoing(popupRepo.countByStatus(PopupStatus.ONGOING))
-                // TODO 일단은 ENDED로 is_hidden 생기면 고치기
                 .completed(popupRepo.countByStatus(PopupStatus.ENDED))
                 .build();
     }
@@ -66,33 +68,57 @@ public class AdminPopupService {
         Specification<Popup> spec = createPopupSpecification(status, category, keyword);
         Page<Popup> popups = popupRepo.findAll(spec, pageable);
 
+        // 팝업에서 사용된 브랜드 ID들을 수집하여 한 번에 조회
+        List<Long> brandIds = popups.getContent().stream()
+                .map(Popup::getBrandId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // 브랜드 정보를 일괄 조회하여 Map으로 변환 (brandId -> Brand)
+        Map<Long, Brand> brandMap = getBrandMap(brandIds);
+
         // 각 팝업에 대해 브랜드와 주최자 정보를 포함하여 변환
         return popups.map(popup -> {
-            // 브랜드 정보 조회
-            Brand brand = null;
-            if (popup.getBrandId() != null){
-                try {
-                    brand = brandRepo.findById(popup.getBrandId()).orElse(null);
-                } catch (Exception e){
-                    log.warn("브랜드 정보 조회 실패: brandID={}", popup.getBrandId());
-                }
-            }
-
+            Brand brand = brandMap.get(popup.getBrandId());
             return PopupAdminResponse.fromWithBrand(popup, brand);
         });
     }
 
     /**
-     * 팝업 관리 정보 조회 (브랜드 + 주최자 정보 포함)
+     * 팝업 관리 정보 조회 (브랜드 정보 포함)
      */
     public PopupAdminResponse getPopupForAdmin(Long popupId){
         Popup popup = popupRepo.findById(popupId)
                 .orElseThrow(() -> new GeneralException(ErrorCode.POPUP_NOT_FOUND));
 
         // 브랜드 정보 조회
-        Brand brand = brandRepo.getReferenceById(popup.getBrandId());
+        Brand brand = brandRepo.findById(popup.getBrandId())
+                .orElseThrow(() -> {
+                    log.warn("브랜드 정보를 찾을 수 없음: brandId={}", popup.getBrandId());
+                    return new GeneralException(ErrorCode.NOT_FOUND);
+                });
 
         return PopupAdminResponse.fromWithBrand(popup,brand);
+    }
+
+    /**
+     * 브랜드 ID 목록으로부터 브랜드 Map을 생성
+     * 존재하지 않는 브랜드는 null로 처리하여 안전하게 처리
+     */
+    private Map<Long, Brand> getBrandMap(List<Long> brandIds){
+        if (brandIds.isEmpty()){
+            return Map.of();
+        }
+
+        try {
+            List<Brand> brands = brandRepo.findAllById(brandIds);
+            return brands.stream()
+                    .collect(Collectors.toMap(Brand::getId, Function.identity()));
+        } catch (Exception e){
+            log.warn("브랜드 정보 일괄 조회 중 오류 발생: brandIds={}", brandIds, e);
+            // 빈 Map 반환하여 null 처리되도록 함
+            return Map.of();
+        }
     }
 
     /**
@@ -120,18 +146,17 @@ public class AdminPopupService {
                 Predicate titlePredicate = criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("title")), searchKeyword);
 
-                // 주최자명으로 검색 (복잡한 JOIN 필요)
-                // Popup -> Brand -> Host -> User 경로
-                Subquery<Long> hostSubquery = query.subquery(Long.class);
-                Root<Host> hostRoot = hostSubquery.from(Host.class);
-                hostSubquery.select(hostRoot.get("brand").get("id"))
+                // 브랜드명으로 검색
+                Subquery<Long> brandSubquery = query.subquery(Long.class);
+                Root<Brand> brandRoot = brandSubquery.from(Brand.class);
+                brandSubquery.select(brandRoot.get("id"))
                         .where(criteriaBuilder.like(
-                                criteriaBuilder.lower(hostRoot.get("user").get("name")),
+                                criteriaBuilder.lower(brandRoot.get("name")),
                                 searchKeyword));
 
-                Predicate hostNamePredicate = criteriaBuilder.in(root.get("brandId")).value(hostSubquery);
+                Predicate brandNamePredicate = criteriaBuilder.in(root.get("brandId")).value(brandSubquery);
 
-                predicates.add(criteriaBuilder.or(titlePredicate, hostNamePredicate));
+                predicates.add(criteriaBuilder.or(titlePredicate, brandNamePredicate));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
