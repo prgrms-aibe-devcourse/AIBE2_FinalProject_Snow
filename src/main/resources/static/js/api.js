@@ -172,6 +172,36 @@ class SimpleApiService {
         }
     }
 
+    // PATCH 요청
+    async patch(endpoint, data) {
+        try {
+            const response = await fetch(`${this.baseURL}${endpoint}`, {
+                method: 'PATCH',
+                headers: this.getHeaders(),
+                body: JSON.stringify(data),
+                credentials: 'include'
+            });
+
+            if (response.status === 401) {
+                this.removeToken();
+                throw new Error('인증이 필요합니다.');
+            }
+
+            if (!response.ok) {
+                sessionStorage.setItem("errorCode", response.status);
+                window.location.href = '/error/error.html';
+            }
+
+            // 응답이 비어있을 수 있음
+            const text = await response.text();
+            return text ? JSON.parse(text) : true;
+        } catch (error) {
+            console.error('API PATCH Error:', error);
+            window.location.href = '/error/error.html';
+            throw error;
+        }
+    }
+
     // 현재 사용자 정보
     async getCurrentUser() {
         return await this.get('/users/me');
