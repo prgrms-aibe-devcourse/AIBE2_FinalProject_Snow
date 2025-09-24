@@ -81,7 +81,7 @@
 }
 .rating-label.active {
     opacity: 1;
-    color: #6366F1;
+    color: #4B5AE4;
     font-weight: 600;
     transform: scale(1.05);
 }
@@ -105,7 +105,7 @@
 .review-textarea:focus,
 .modal-input:focus {
     outline: none;
-    border-color: #6366F1;
+    border-color: #4B5AE4;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
     background: #fff;
 }
@@ -135,7 +135,7 @@
     border-color: #9CA3AF;
 }
 .button-primary {
-    background: #6366F1;
+    background: #4B5AE4;
     color: white;
     box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
 }

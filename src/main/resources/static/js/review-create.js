@@ -88,7 +88,7 @@ class ReviewCreateManager {
 
         // 안전한 이미지 URL 생성
         const imageUrl = this.popupData.thumbnailUrl ||
-            'https://via.placeholder.com/60x60/6366F1/ffffff?text=🎪';
+            'https://via.placeholder.com/60x60/4B5AE4/ffffff?text=🎪';
 
         popupInfoCard.innerHTML = `
         <div class="popup-info-content">

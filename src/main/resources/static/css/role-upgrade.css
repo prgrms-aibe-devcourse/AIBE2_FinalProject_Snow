@@ -35,7 +35,7 @@
 }
 
 .logo-bubble {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    background: linear-gradient(135deg, #4B5AE4, #674be4);
     color: white;
     padding: 8px 16px;
     border-radius: 20px;
@@ -50,7 +50,7 @@
     position: absolute;
     width: 12px;
     height: 12px;
-    background: #6366f1;
+    background: #4B5AE4;
     border-radius: 50%;
     top: -6px;
 }
@@ -87,8 +87,8 @@
 }
 
 .tab-btn.active {
-    color: #6366f1;
-    border-bottom-color: #6366f1;
+    color: #4B5AE4;
+    border-bottom-color: #4B5AE4;
     background: #f8f9ff;
 }
 
@@ -133,7 +133,7 @@
 
 .form-input:focus {
     outline: none;
-    border-color: #6366f1;
+    border-color: #4B5AE4;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
@@ -184,9 +184,9 @@ select.form-input {
 }
 
 .file-label:hover {
-    border-color: #6366f1;
+    border-color: #4B5AE4;
     background: #f8f9ff;
-    color: #6366f1;
+    color: #4B5AE4;
 }
 
 .file-label svg {
@@ -211,7 +211,7 @@ select.form-input {
 /* 제출 버튼 */
 .upgrade-btn {
     width: 100%;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    background: linear-gradient(135deg, #4B5AE4, #674be4);
     color: white;
     border: none;
     padding: 16px 24px;
