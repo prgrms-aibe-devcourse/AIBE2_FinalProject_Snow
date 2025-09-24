@@ -18,6 +18,11 @@ import com.snow.popin.domain.mypage.host.entity.Host;
 import com.snow.popin.domain.mypage.host.entity.HostRole;
 import com.snow.popin.domain.mypage.host.repository.BrandRepository;
 import com.snow.popin.domain.mypage.host.repository.HostRepository;
+import com.snow.popin.domain.notification.constant.NotificationType;
+import com.snow.popin.domain.notification.entity.Notification;
+import com.snow.popin.domain.notification.entity.NotificationSetting;
+import com.snow.popin.domain.notification.repository.NotificationRepository;
+import com.snow.popin.domain.notification.repository.NotificationSettingRepository;
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.entity.PopupStatus;
 import com.snow.popin.domain.popup.repository.PopupRepository;
@@ -65,6 +70,8 @@ public class DataInitializer implements CommandLineRunner {
     private final RoleUpgradeRepository roleUpgradeRepository;
     private final SpaceRepository spaceRepository;
     private final MapRepository venueRepository;
+    private final NotificationRepository notificationRepository;
+    private final NotificationSettingRepository notificationSettingRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -75,6 +82,8 @@ public class DataInitializer implements CommandLineRunner {
         createDataIfNotExists("신고", inquiryRepository.count(), this::createDummyInquiries);
         createDataIfNotExists("역할승격", roleUpgradeRepository.count(), this::createDummyRoleUpgrades);
         createDataIfNotExists("공간", spaceRepository.count(), this::createDummySpaces);
+        createDataIfNotExists("알림설정", notificationSettingRepository.count(), this::createDummyNotificationSettings);
+        createDataIfNotExists("알림", notificationRepository.count(), this::createDummyNotifications);
         fixExistingPopupsVenue();
     }
 
@@ -419,6 +428,77 @@ public class DataInitializer implements CommandLineRunner {
         venueRepository.saveAll(venues);
     }
 
+    /**
+     * 알림 설정 더미 데이터 생성
+     */
+    private void createDummyNotificationSettings() {
+        List<User> users = userRepository.findAll();
+
+        for (User user : users) {
+            if (notificationSettingRepository.findByUser(user).isEmpty()) {
+                NotificationSetting setting = NotificationSetting.createDefault(user);
+                notificationSettingRepository.save(setting);
+                log.info("사용자 {}의 알림 설정 생성 완료", user.getEmail());
+            }
+        }
+    }
+
+    /**
+     * 알림 더미 데이터 생성
+     */
+    private void createDummyNotifications() {
+        List<User> users = userRepository.findAll();
+        if (users.isEmpty()) {
+            log.warn("사용자가 없어 알림 데이터를 생성할 수 없습니다.");
+            return;
+        }
+
+        // 알림 데이터 정의
+        List<NotificationData> notificationDataList = Arrays.asList(
+                // RESERVATION 타입 알림
+                new NotificationData("예약 확정 알림", "가짜 팝업1 예약이 확정되었습니다.", NotificationType.RESERVATION, "/popup/1"),
+                new NotificationData("예약 취소 알림", "가짜 팝업2 예약이 취소되었습니다.", NotificationType.RESERVATION, "/popup/2"),
+                new NotificationData("예약 확인 필요", "내일 방문 예정인 팝업이 있습니다. 확인해주세요.", NotificationType.RESERVATION, "/mypage/reservations"),
+
+                // SYSTEM 타입 알림
+                new NotificationData("시스템 점검 안내", "오늘 밤 12시~2시 서버 점검이 진행됩니다.", NotificationType.SYSTEM, "/notice"),
+                new NotificationData("업데이트 알림", "새로운 기능이 추가되었습니다. 확인해보세요!", NotificationType.SYSTEM, "/"),
+                new NotificationData("약관 변경 안내", "이용약관이 변경되었습니다.", NotificationType.SYSTEM, "/terms"),
+
+                // EVENT 타입 알림
+                new NotificationData("특별 이벤트", "신규 회원 대상 특별 할인 이벤트가 시작되었습니다!", NotificationType.EVENT, "/event/1"),
+                new NotificationData("미션 완료 알림", "팝업 미션을 모두 완료하셨습니다. 리워드를 받아가세요!", NotificationType.EVENT, "/mission/reward"),
+                new NotificationData("새 팝업 오픈", "관심 지역에 새로운 팝업이 오픈했습니다.", NotificationType.EVENT, "/popup/new")
+        );
+
+        // 각 사용자에게 랜덤하게 알림 생성
+        for (User user : users) {
+            // 사용자당 3-7개의 알림 생성
+            int notificationCount = 3 + (int) (Math.random() * 5);
+
+            for (int i = 0; i < notificationCount; i++) {
+                NotificationData data = notificationDataList.get(i % notificationDataList.size());
+
+                Notification notification = Notification.builder()
+                        .user(user)
+                        .title(data.title)
+                        .message(data.message)
+                        .type(data.type)
+                        .link(data.link)
+                        .build();
+
+                // 일부 알림은 읽음 처리
+                if (Math.random() < 0.3) { // 30% 확률로 읽음 처리
+                    notification.markAsRead();
+                }
+
+                notificationRepository.save(notification);
+            }
+
+            log.info("사용자 {}에게 {}개의 알림 생성 완료", user.getEmail(), notificationCount);
+        }
+    }
+
     // 헬퍼 메소드들
     private Long getIdOrDefault(List<? extends Object> list, int index, Long defaultValue) {
         return list.size() > index ? ((Popup) list.get(index)).getId() : defaultValue;
@@ -499,6 +579,15 @@ public class DataInitializer implements CommandLineRunner {
         SpaceData(User owner, String title, String description, int areaSize, int rentalFee, String contactPhone, String coverImageUrl) {
             this.owner = owner; this.title = title; this.description = description;
             this.areaSize = areaSize; this.rentalFee = rentalFee; this.contactPhone = contactPhone; this.coverImageUrl = coverImageUrl;
+        }
+    }
+
+    private static class NotificationData {
+        final String title, message, link;
+        final NotificationType type;
+
+        NotificationData(String title, String message, NotificationType type, String link) {
+            this.title = title; this.message = message; this.type = type; this.link = link;
         }
     }
 }
