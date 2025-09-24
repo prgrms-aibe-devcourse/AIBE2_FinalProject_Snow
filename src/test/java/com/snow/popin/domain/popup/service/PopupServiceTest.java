@@ -1,12 +1,17 @@
 package com.snow.popin.domain.popup.service;
 
+import com.snow.popin.domain.mypage.host.entity.Brand;
+import com.snow.popin.domain.mypage.host.repository.BrandRepository;
 import com.snow.popin.domain.popup.dto.response.PopupDetailResponseDto;
 import com.snow.popin.domain.popup.dto.response.PopupListResponseDto;
 import com.snow.popin.domain.popup.dto.response.PopupSummaryResponseDto;
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.entity.PopupStatus;
 import com.snow.popin.domain.popup.repository.PopupRepository;
+import com.snow.popin.domain.recommended.dto.AiRecommendationResponseDto;
+import com.snow.popin.domain.recommended.service.AiRecommendationService;
 import com.snow.popin.global.exception.PopupNotFoundException;
+import com.snow.popin.global.util.UserUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +39,15 @@ class PopupServiceTest {
 
     @Mock
     private PopupRepository popupRepository;
+
+    @Mock
+    private AiRecommendationService aiRecommendationService;
+
+    @Mock
+    private BrandRepository brandRepository;
+
+    @Mock
+    private UserUtil userUtil;
 
     @InjectMocks
     private PopupService popupService;
@@ -162,24 +176,170 @@ class PopupServiceTest {
     }
 
     @Test
-    @DisplayName("AI 추천 팝업 조회 - 현재는 인기 팝업으로 대체")
-    void getAIRecommendedPopups_테스트() {
+    @DisplayName("AI 추천 팝업 조회 - 로그인된 사용자 (성공)")
+    void getAIRecommendedPopups_로그인사용자_성공() {
         // given
-        String token = "test-token";
-        List<Popup> popups = Arrays.asList(
-                createMockPopupWithViewCount(1L, "AI 추천 팝업", 2000L)
-        );
-        Page<Popup> pageResult = new PageImpl<>(popups);
+        Long userId = 1L;
+        List<Long> recommendedIds = Arrays.asList(1L, 2L, 3L);
 
+        // Mock 설정
+        when(userUtil.isAuthenticated()).thenReturn(true);
+        when(userUtil.getCurrentUserId()).thenReturn(userId);
+
+        AiRecommendationResponseDto aiResponse = AiRecommendationResponseDto.success(
+                recommendedIds, "사용자 취향에 맞는 추천");
+        when(aiRecommendationService.getPersonalizedRecommendations(userId, 10))
+                .thenReturn(aiResponse);
+
+        List<Popup> recommendedPopups = Arrays.asList(
+                createMockPopupForSummary(1L, "AI 추천1", PopupStatus.ONGOING),
+                createMockPopupForSummary(2L, "AI 추천2", PopupStatus.ONGOING),
+                createMockPopupForSummary(3L, "AI 추천3", PopupStatus.ONGOING)
+        );
+        when(popupRepository.findByIdIn(recommendedIds)).thenReturn(recommendedPopups);
+
+        // 브랜드 정보 Mock
+        Brand brand1 = mock(Brand.class);
+        when(brand1.getId()).thenReturn(101L);
+        when(brand1.getName()).thenReturn("나이키");
+
+        Brand brand2 = mock(Brand.class);
+        when(brand2.getId()).thenReturn(102L);
+        when(brand2.getName()).thenReturn("아디다스");
+
+        when(brandRepository.findAllById(anySet())).thenReturn(Arrays.asList(brand1, brand2));
+
+        // when
+        PopupListResponseDto result = popupService.getAIRecommendedPopups(0, 10);
+
+        // then
+        assertThat(result.getPopups()).hasSize(3);
+        verify(userUtil).isAuthenticated();
+        verify(userUtil).getCurrentUserId();
+        verify(aiRecommendationService).getPersonalizedRecommendations(userId, 10);
+        verify(popupRepository).findByIdIn(recommendedIds);
+    }
+
+    @Test
+    @DisplayName("AI 추천 팝업 조회 - 비로그인 사용자 (인기 팝업 반환)")
+    void getAIRecommendedPopups_비로그인사용자_인기팝업반환() {
+        // given
+        when(userUtil.isAuthenticated()).thenReturn(false);
+
+        List<Popup> popularPopups = Arrays.asList(
+                createMockPopupWithViewCount(1L, "인기 팝업1", 1000L),
+                createMockPopupWithViewCount(2L, "인기 팝업2", 500L)
+        );
+        Page<Popup> pageResult = new PageImpl<>(popularPopups);
         when(popupRepository.findPopularActivePopups(any(Pageable.class)))
                 .thenReturn(pageResult);
 
         // when
-        PopupListResponseDto result = popupService.getAIRecommendedPopups(token, 0, 20);
+        PopupListResponseDto result = popupService.getAIRecommendedPopups(0, 10);
+
+        // then
+        assertThat(result.getPopups()).hasSize(2);
+        verify(userUtil).isAuthenticated();
+        verify(userUtil, never()).getCurrentUserId();
+        verify(aiRecommendationService, never()).getPersonalizedRecommendations(anyLong(), anyInt());
+        verify(popupRepository).findPopularActivePopups(any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("AI 추천 팝업 조회 - AI 추천 실패시 인기 팝업으로 대체")
+    void getAIRecommendedPopups_AI실패_인기팝업대체() {
+        // given
+        Long userId = 1L;
+        when(userUtil.isAuthenticated()).thenReturn(true);
+        when(userUtil.getCurrentUserId()).thenReturn(userId);
+
+        // AI 추천 실패
+        AiRecommendationResponseDto failedResponse = AiRecommendationResponseDto.failure("AI 서비스 오류");
+        when(aiRecommendationService.getPersonalizedRecommendations(userId, 10))
+                .thenReturn(failedResponse);
+
+        // 인기 팝업 준비
+        List<Popup> popularPopups = Arrays.asList(
+                createMockPopupWithViewCount(1L, "인기 팝업", 1000L)
+        );
+        Page<Popup> pageResult = new PageImpl<>(popularPopups);
+        when(popupRepository.findPopularActivePopups(any(Pageable.class)))
+                .thenReturn(pageResult);
+
+        // when
+        PopupListResponseDto result = popupService.getAIRecommendedPopups(0, 10);
+
+        // then
+        assertThat(result.getPopups()).hasSize(1);
+        verify(aiRecommendationService).getPersonalizedRecommendations(userId, 10);
+        verify(popupRepository).findPopularActivePopups(any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("AI 추천 팝업 조회 - 예외 발생시 인기 팝업으로 대체")
+    void getAIRecommendedPopups_예외발생_인기팝업대체() {
+        // given
+        Long userId = 1L;
+        when(userUtil.isAuthenticated()).thenReturn(true);
+        when(userUtil.getCurrentUserId()).thenReturn(userId);
+
+        // AI 서비스에서 예외 발생
+        when(aiRecommendationService.getPersonalizedRecommendations(userId, 10))
+                .thenThrow(new RuntimeException("AI 서비스 오류"));
+
+        // 인기 팝업 준비
+        List<Popup> popularPopups = Arrays.asList(
+                createMockPopupWithViewCount(1L, "대체 인기 팝업", 1000L)
+        );
+        Page<Popup> pageResult = new PageImpl<>(popularPopups);
+        when(popupRepository.findPopularActivePopups(any(Pageable.class)))
+                .thenReturn(pageResult);
+
+        // when
+        PopupListResponseDto result = popupService.getAIRecommendedPopups(0, 10);
 
         // then
         assertThat(result.getPopups()).hasSize(1);
         verify(popupRepository).findPopularActivePopups(any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("브랜드 정보 포함 DTO 변환 테스트")
+    void convertToSummaryDtosWithBrand_테스트() {
+        // given
+        List<Popup> popups = Arrays.asList(
+                createMockPopupWithBrand(1L, "나이키 팝업", 101L),
+                createMockPopupWithBrand(2L, "아디다스 팝업", 102L)
+        );
+
+        Brand brand1 = mock(Brand.class);
+        when(brand1.getId()).thenReturn(101L);
+        when(brand1.getName()).thenReturn("나이키");
+
+        Brand brand2 = mock(Brand.class);
+        when(brand2.getId()).thenReturn(102L);
+        when(brand2.getName()).thenReturn("아디다스");
+
+        when(brandRepository.findAllById(Arrays.asList(101L, 102L)))
+                .thenReturn(Arrays.asList(brand1, brand2));
+
+        // AI 추천 설정
+        when(userUtil.isAuthenticated()).thenReturn(true);
+        when(userUtil.getCurrentUserId()).thenReturn(1L);
+
+        AiRecommendationResponseDto aiResponse = AiRecommendationResponseDto.success(
+                Arrays.asList(1L, 2L), "브랜드 테스트");
+        when(aiRecommendationService.getPersonalizedRecommendations(1L, 10))
+                .thenReturn(aiResponse);
+        when(popupRepository.findByIdIn(Arrays.asList(1L, 2L)))
+                .thenReturn(popups);
+
+        // when
+        PopupListResponseDto result = popupService.getAIRecommendedPopups(0, 10);
+
+        // then
+        assertThat(result.getPopups()).hasSize(2);
+        verify(brandRepository).findAllById(Arrays.asList(101L, 102L));
     }
 
     // 팝업 상세 조회 테스트
@@ -356,7 +516,6 @@ class PopupServiceTest {
     // Helper Methods
     private Popup createMockPopupForSummary(Long id, String title, PopupStatus status) {
         Popup popup = mock(Popup.class);
-
         when(popup.getId()).thenReturn(id);
         when(popup.getTitle()).thenReturn(title);
         when(popup.getSummary()).thenReturn("테스트 요약");
@@ -369,7 +528,7 @@ class PopupServiceTest {
         when(popup.getEntryFee()).thenReturn(0);
         when(popup.isFreeEntry()).thenReturn(true);
         when(popup.getFeeDisplayText()).thenReturn("무료");
-        when(popup.getViewCount()).thenReturn(100L); // 조회수 추가
+        when(popup.getViewCount()).thenReturn(100L);
         when(popup.getCreatedAt()).thenReturn(LocalDateTime.now());
         when(popup.getUpdatedAt()).thenReturn(LocalDateTime.now());
         when(popup.getImages()).thenReturn(Collections.emptySet());
@@ -377,7 +536,7 @@ class PopupServiceTest {
         when(popup.getVenueAddress()).thenReturn("테스트 주소");
         when(popup.getRegion()).thenReturn("강남구");
         when(popup.getParkingAvailable()).thenReturn(false);
-
+        when(popup.getBrandId()).thenReturn(101L);
         return popup;
     }
 
@@ -387,9 +546,14 @@ class PopupServiceTest {
         return popup;
     }
 
+    private Popup createMockPopupWithBrand(Long id, String title, Long brandId) {
+        Popup popup = createMockPopupForSummary(id, title, PopupStatus.ONGOING);
+        when(popup.getBrandId()).thenReturn(brandId);
+        return popup;
+    }
+
     private Popup createMockPopupForDetail(Long id, String title, PopupStatus status) {
         Popup popup = mock(Popup.class);
-
         when(popup.getId()).thenReturn(id);
         when(popup.getTitle()).thenReturn(title);
         when(popup.getSummary()).thenReturn("테스트 상세 요약");
@@ -404,7 +568,7 @@ class PopupServiceTest {
         when(popup.getEntryFee()).thenReturn(5000);
         when(popup.isFreeEntry()).thenReturn(false);
         when(popup.getFeeDisplayText()).thenReturn("5,000원");
-        when(popup.getViewCount()).thenReturn(250L); // 조회수 추가
+        when(popup.getViewCount()).thenReturn(250L);
         when(popup.getCreatedAt()).thenReturn(LocalDateTime.now());
         when(popup.getUpdatedAt()).thenReturn(LocalDateTime.now());
         when(popup.getVenueName()).thenReturn("테스트 상세 장소");
@@ -413,8 +577,7 @@ class PopupServiceTest {
         when(popup.getParkingAvailable()).thenReturn(true);
         when(popup.getImages()).thenReturn(Collections.emptySet());
         when(popup.getHours()).thenReturn(Collections.emptySet());
-        when(popup.updateStatus()).thenReturn(false); // 상태 업데이트 불필요
-
+        when(popup.updateStatus()).thenReturn(false);
         return popup;
     }
 }

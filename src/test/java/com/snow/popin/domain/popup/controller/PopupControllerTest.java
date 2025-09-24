@@ -24,6 +24,7 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -222,27 +223,137 @@ class PopupControllerTest {
     }
 
     @Test
-    @DisplayName("AI 추천 팝업 조회")
-    void getAIRecommendedPopups_정상응답() throws Exception {
+    @DisplayName("AI 추천 팝업 조회 - 로그인된 사용자")
+    void getAIRecommendedPopups_로그인사용자_정상응답() throws Exception {
         // given
         PopupListResponseDto response = PopupListResponseDto.builder()
-                .popups(Arrays.asList(createMockSummaryDto(1L, "AI 추천 팝업")))
+                .popups(Arrays.asList(
+                        createMockSummaryDtoWithBrand(1L, "AI 추천 나이키 팝업", "나이키"),
+                        createMockSummaryDtoWithBrand(2L, "AI 추천 아디다스 팝업", "아디다스")
+                ))
                 .totalPages(1)
-                .totalElements(1L)
+                .totalElements(2L)
                 .currentPage(0)
-                .size(20)
+                .size(10)
                 .hasNext(false)
                 .hasPrevious(false)
                 .build();
 
-//        when(popupService.getAIRecommendedPopups(eq("test-token"), eq(0), eq(20))).thenReturn(response);
+        when(popupService.getAIRecommendedPopups(eq(0), eq(10))).thenReturn(response);
 
         // when & then
         mockMvc.perform(get("/api/popups/ai-recommended")
                         .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.popups", hasSize(1)))
-                .andExpect(jsonPath("$.popups[0].title").value("AI 추천 팝업"));
+                .andExpect(jsonPath("$.popups", hasSize(2)))
+                .andExpect(jsonPath("$.popups[0].title").value("AI 추천 나이키 팝업"))
+                .andExpect(jsonPath("$.popups[0].brandName").value("나이키"))
+                .andExpect(jsonPath("$.popups[1].title").value("AI 추천 아디다스 팝업"))
+                .andExpect(jsonPath("$.popups[1].brandName").value("아디다스"));
+    }
+
+    @Test
+    @DisplayName("AI 추천 팝업 조회 - 비로그인 사용자 (인기 팝업 반환)")
+    void getAIRecommendedPopups_비로그인사용자_인기팝업반환() throws Exception {
+        // given
+        PopupListResponseDto response = PopupListResponseDto.builder()
+                .popups(Arrays.asList(
+                        createMockSummaryDtoWithViewCount(1L, "인기 팝업1", 1500L),
+                        createMockSummaryDtoWithViewCount(2L, "인기 팝업2", 1000L)
+                ))
+                .totalPages(1)
+                .totalElements(2L)
+                .currentPage(0)
+                .size(10)
+                .hasNext(false)
+                .hasPrevious(false)
+                .build();
+
+        when(popupService.getAIRecommendedPopups(eq(0), eq(10))).thenReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/popups/ai-recommended"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.popups", hasSize(2)))
+                .andExpect(jsonPath("$.popups[0].viewCount").value(1500))
+                .andExpect(jsonPath("$.popups[1].viewCount").value(1000));
+    }
+
+    @Test
+    @DisplayName("AI 추천 팝업 조회 - 페이징 파라미터")
+    void getAIRecommendedPopups_페이징파라미터_테스트() throws Exception {
+        // given
+        PopupListResponseDto response = PopupListResponseDto.builder()
+                .popups(Arrays.asList(createMockSummaryDto(1L, "AI 추천 팝업")))
+                .totalPages(3)
+                .totalElements(25L)
+                .currentPage(1)
+                .size(10)
+                .hasNext(true)
+                .hasPrevious(true)
+                .build();
+
+        when(popupService.getAIRecommendedPopups(eq(1), eq(10))).thenReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/popups/ai-recommended")
+                        .param("page", "1")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currentPage").value(1))
+                .andExpect(jsonPath("$.size").value(10))
+                .andExpect(jsonPath("$.totalPages").value(3))
+                .andExpect(jsonPath("$.hasNext").value(true))
+                .andExpect(jsonPath("$.hasPrevious").value(true));
+    }
+
+    @Test
+    @DisplayName("AI 추천 팝업 조회 - 기본 파라미터값 확인")
+    void getAIRecommendedPopups_기본파라미터_테스트() throws Exception {
+        // given
+        PopupListResponseDto response = PopupListResponseDto.builder()
+                .popups(Arrays.asList(createMockSummaryDto(1L, "기본 AI 추천")))
+                .totalPages(1)
+                .totalElements(1L)
+                .currentPage(0)
+                .size(10)
+                .hasNext(false)
+                .hasPrevious(false)
+                .build();
+
+        when(popupService.getAIRecommendedPopups(eq(0), eq(10))).thenReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/popups/ai-recommended"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.size").value(10));
+
+        verify(popupService).getAIRecommendedPopups(0, 10);
+    }
+
+    @Test
+    @DisplayName("AI 추천 팝업 조회 - 빈 결과")
+    void getAIRecommendedPopups_빈결과_테스트() throws Exception {
+        // given
+        PopupListResponseDto response = PopupListResponseDto.builder()
+                .popups(Collections.emptyList())
+                .totalPages(0)
+                .totalElements(0L)
+                .currentPage(0)
+                .size(10)
+                .hasNext(false)
+                .hasPrevious(false)
+                .build();
+
+        when(popupService.getAIRecommendedPopups(eq(0), eq(10))).thenReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/popups/ai-recommended"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.popups").isArray())
+                .andExpect(jsonPath("$.popups", hasSize(0)))
+                .andExpect(jsonPath("$.totalElements").value(0));
     }
 
     // 팝업 상세 조회 API 테스트
@@ -433,6 +544,35 @@ class PopupControllerTest {
                 .venueAddress("테스트 주소")
                 .region("강남구")
                 .parkingAvailable(false)
+                .brandId(101L)
+                .brandName("테스트브랜드")
+                .build();
+    }
+
+    private PopupSummaryResponseDto createMockSummaryDtoWithBrand(Long id, String title, String brandName) {
+        return PopupSummaryResponseDto.builder()
+                .id(id)
+                .title(title)
+                .summary("테스트 요약")
+                .period("2024.01.01 - 2024.01.08")
+                .status(PopupStatus.ONGOING)
+                .mainImageUrl("test-image.jpg")
+                .isFeatured(false)
+                .reservationAvailable(false)
+                .waitlistAvailable(false)
+                .entryFee(0)
+                .isFreeEntry(true)
+                .feeDisplayText("무료")
+                .viewCount(100L)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .images(Collections.emptyList())
+                .venueName("테스트 장소")
+                .venueAddress("테스트 주소")
+                .region("강남구")
+                .parkingAvailable(false)
+                .brandId(101L)
+                .brandName(brandName) // 브랜드명 추가
                 .build();
     }
 
@@ -458,6 +598,8 @@ class PopupControllerTest {
                 .venueAddress("테스트 주소")
                 .region("강남구")
                 .parkingAvailable(false)
+                .brandId(101L)
+                .brandName("인기브랜드")
                 .build();
     }
 
