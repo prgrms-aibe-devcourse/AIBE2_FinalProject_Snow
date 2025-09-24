@@ -2,7 +2,7 @@ function translateStatus(status) {
     switch (status) {
         case 'PLANNED': return '준비 중';
         case 'ONGOING': return '진행 중';
-        case 'FINISHED': return '종료됨';
+        case 'ENDED': return '종료됨';
         case 'CANCELLED': return '취소됨';
         case 'PENDING': return '예약 대기 중';
         case 'ACCEPTED': return '승인됨';

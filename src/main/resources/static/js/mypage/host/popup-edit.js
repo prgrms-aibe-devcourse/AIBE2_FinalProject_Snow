@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', async () => {
+
+    await loadComponents();
+    initializeLayout();
+
     const pathParts = window.location.pathname.split("/");
     const popupId = pathParts[pathParts.indexOf("popup") + 1];
 
@@ -11,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const form = document.getElementById('popup-edit-form');
     const selectedTags = new Set();
 
-    // ✅ 태그 버튼 토글
+    //  태그 버튼 토글
     document.querySelectorAll(".tag-btn").forEach(btn => {
         btn.addEventListener("click", () => {
             const tagId = parseInt(btn.dataset.id, 10);

@@ -350,7 +350,7 @@ class ProviderManager {
         if (reservation.status !== 'REJECTED' && reservation.status !== 'CANCELLED') {
             const btnChat = document.createElement('button');
             btnChat.className = 'chat-floating';
-            btnChat.innerHTML = '💬';
+            btnChat.innerHTML = '';
             btnChat.addEventListener('click', () => this.openChat(reservation.id));
             body.appendChild(btnChat);
         }
@@ -365,14 +365,14 @@ class ProviderManager {
 
             const btnAccept = document.createElement('button');
             btnAccept.className = 'action-btn btn-accept';
-            btnAccept.innerHTML = '<span>✓</span><span>수락</span>';
+            btnAccept.innerHTML = '<span>수락</span>';
             btnAccept.addEventListener('click', () => {
                 this.handleReservationAction('accept', reservation.id, reservation.popupTitle);
             });
 
             const btnReject = document.createElement('button');
             btnReject.className = 'action-btn btn-reject';
-            btnReject.innerHTML = '<span>✗</span><span>거절</span>';
+            btnReject.innerHTML = '<span>거절</span>';
             btnReject.addEventListener('click', () => {
                 this.handleReservationAction('reject', reservation.id, reservation.popupTitle);
             });
