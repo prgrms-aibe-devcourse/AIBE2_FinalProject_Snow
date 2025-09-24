@@ -1,196 +1,3 @@
-/* ========================================
-   1. 기본 레이아웃
-======================================== */
-.admin-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 24px;
-    background-color: #ffffff;
-    min-height: calc(100vh - 96px);
-    box-sizing: border-box;
-}
-
-/* 데스크톱 중앙 정렬 */
-@media (min-width: 1201px) {
-    body {
-        background-color: #f5f5f5;
-    }
-    .admin-container {
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        margin: 20px auto;
-    }
-}
-
-/* ========================================
-   2. 공통 카드 스타일
-======================================== */
-.page-header,
-.filter-container,
-#tableContainer {
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    border: 1px solid #f3f4f6;
-    box-sizing: border-box;
-    margin-bottom: 24px;
-}
-
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 28px;
-    margin-bottom: 32px;
-}
-
-.page-header h1 {
-    margin: 0;
-    color: #1f2937;
-    font-size: 28px;
-    font-weight: 700;
-}
-
-/* ========================================
-   3. 통계 및 필터 영역
-======================================== */
-.stats-container {
-    display: flex;
-    gap: 20px;
-}
-
-.stat-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 16px 24px;
-    background: #f3f4f6;
-    border-radius: 14px;
-    border: 1px solid #e5e7eb;
-    box-sizing: border-box;
-}
-
-.stat-label {
-    font-size: 16px;
-    color: #374151;
-    margin-bottom: 8px;
-    font-weight: 500;
-}
-
-.stat-value {
-    font-size: 28px;
-    font-weight: 700;
-    color: #dc3545;
-}
-
-.filter-container {
-    display: flex;
-    gap: 20px;
-    align-items: end;
-    padding: 28px;
-    flex-wrap: wrap;
-}
-
-.filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    box-sizing: border-box;
-}
-
-.filter-group label {
-    font-size: 18px;
-    font-weight: 600;
-    color: #374151;
-}
-
-.filter-group select,
-.filter-group input {
-    padding: 20px;
-    border: 2px solid #d1d5db;
-    border-radius: 12px;
-    font-size: 18px;
-    min-width: 160px;
-    min-height: 56px;
-    transition: border-color 0.2s;
-    box-sizing: border-box;
-}
-
-.filter-group select:focus,
-.filter-group input:focus {
-    outline: none;
-    border-color: #4B5AE4;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-/* ========================================
-   4. 버튼 스타일
-======================================== */
-.btn {
-    padding: 20px 40px;
-    border-radius: 14px;
-    border: none;
-    font-weight: 600;
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-decoration: none;
-    display: inline-block;
-    text-align: center;
-    box-sizing: border-box;
-    min-height: 56px;
-}
-
-.btn-primary {
-    background: #4B5AE4;
-    color: white;
-}
-
-.btn-primary:hover {
-    background: #5855eb;
-}
-
-.btn-secondary {
-    background: #f3f4f6;
-    color: #374151;
-}
-
-.btn-secondary:hover {
-    background: #e5e7eb;
-}
-
-.btn-success {
-    background: #10b981;
-    color: white;
-}
-
-.btn-success:hover {
-    background: #059669;
-}
-
-.btn-danger {
-    background: #ef4444;
-    color: white;
-}
-
-.btn-danger:hover {
-    background: #dc2626;
-}
-
-.btn-sm {
-    padding: 12px 20px;
-    font-size: 16px;
-    min-height: 44px;
-}
-
-/* ========================================
-   5. 테이블 스타일
-======================================== */
-#tableContainer {
-    overflow: hidden;
-}
-
 .loading, .no-data, .error-message {
     text-align: center;
     padding: 60px 28px;
@@ -202,11 +9,12 @@
     color: #dc3545;
 }
 
+/* 테이블 스타일 - 줄바꿈 방지 및 컬럼 너비 고정 */
 .requests-table {
     width: 100%;
     border-collapse: collapse;
     background: white;
-    table-layout: fixed;
+    table-layout: fixed; /* 고정 레이아웃으로 컬럼 너비 제어 */
 }
 
 .requests-table th,
@@ -216,9 +24,46 @@
     border-bottom: 1px solid #e5e7eb;
     vertical-align: middle;
     font-size: 16px;
-    white-space: nowrap;
+    white-space: nowrap; /* 줄바꿈 방지 */
     overflow: hidden;
-    text-overflow: ellipsis;
+    text-overflow: ellipsis; /* 긴 텍스트는 ... 처리 */
+}
+
+/* 컬럼별 너비 설정 */
+.requests-table th:nth-child(1), /* 이메일 */
+.requests-table td:nth-child(1) {
+    width: 20%;
+}
+
+.requests-table th:nth-child(2), /* 요청 역할 */
+.requests-table td:nth-child(2) {
+    width: 12%;
+}
+
+.requests-table th:nth-child(3), /* 업체명 */
+.requests-table td:nth-child(3) {
+    width: 15%;
+}
+
+.requests-table th:nth-child(4), /* 상태 */
+.requests-table td:nth-child(4) {
+    width: 10%;
+}
+
+.requests-table th:nth-child(5), /* 요청일 */
+.requests-table td:nth-child(5) {
+    width: 15%;
+}
+
+.requests-table th:nth-child(6), /* 처리일 */
+.requests-table td:nth-child(6) {
+    width: 15%;
+}
+
+.requests-table th:nth-child(7), /* 처리 */
+.requests-table td:nth-child(7) {
+    width: 13%;
+    white-space: normal; /* 버튼은 줄바꿈 허용 */
 }
 
 .requests-table th {
@@ -244,118 +89,7 @@
     background-color: #f0f0f0;
 }
 
-/* 테이블 컬럼 너비 설정 */
-.requests-table th:nth-child(1), .requests-table td:nth-child(1) { width: 20%; } /* 이메일 */
-.requests-table th:nth-child(2), .requests-table td:nth-child(2) { width: 12%; } /* 요청 역할 */
-.requests-table th:nth-child(3), .requests-table td:nth-child(3) { width: 15%; } /* 업체명 */
-.requests-table th:nth-child(4), .requests-table td:nth-child(4) { width: 10%; } /* 상태 */
-.requests-table th:nth-child(5), .requests-table td:nth-child(5) { width: 15%; } /* 요청일 */
-.requests-table th:nth-child(6), .requests-table td:nth-child(6) { width: 15%; } /* 처리일 */
-.requests-table th:nth-child(7), .requests-table td:nth-child(7) { width: 13%; white-space: normal; } /* 처리 */
-
-/* ========================================
-   6. 배지 스타일
-======================================== */
-.status-badge {
-    display: inline-block;
-    padding: 8px 16px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    text-align: center;
-    min-width: 80px;
-    box-sizing: border-box;
-    white-space: nowrap;
-}
-
-.status-badge.pending {
-    background-color: #fef3c7;
-    color: #92400e;
-    border: 1px solid #fbbf24;
-}
-
-.status-badge.approved {
-    background-color: #d1fae5;
-    color: #065f46;
-    border: 1px solid #10b981;
-}
-
-.status-badge.rejected {
-    background-color: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #ef4444;
-}
-
-.role-badge {
-    display: inline-block;
-    padding: 6px 8px;
-    border-radius: 10px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    box-sizing: border-box;
-    white-space: nowrap;
-}
-
-.role-badge.host {
-    background-color: #dbeafe;
-    color: #1d4ed8;
-}
-
-.role-badge.provider {
-    background-color: #f3e8ff;
-    color: #7c3aed;
-}
-
-/* ========================================
-   7. 페이지네이션
-======================================== */
-.pagination {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 32px;
-}
-
-.pagination-wrapper {
-    display: flex;
-    gap: 8px;
-}
-
-.page-btn {
-    padding: 12px 16px;
-    border: 2px solid #d1d5db;
-    background: white;
-    color: #374151;
-    cursor: pointer;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
-    transition: all 0.2s;
-    min-height: 44px;
-    box-sizing: border-box;
-}
-
-.page-btn:hover {
-    background-color: #f3f4f6;
-    border-color: #9ca3af;
-}
-
-.page-btn.active {
-    background-color: #4B5AE4;
-    color: white;
-    border-color: #4B5AE4;
-}
-
-.page-btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-    background-color: #f9fafb;
-}
-
-/* ========================================
-   8. 모달 스타일
-======================================== */
+/* 모달 스타일 */
 .modal {
     display: none;
     position: fixed;
@@ -403,7 +137,7 @@
     font-weight: bold;
     color: #6b7280;
     cursor: pointer;
-    line-height: 1;
+: 1;
     transition: color 0.2s;
 }
 
@@ -416,225 +150,62 @@
     box-sizing: border-box;
 }
 
-/* ========================================
-   9. 상세보기 모달 내용
-======================================== */
+/* 상세 정보 스타일 */
 .request-detail {
     width: 100%;
 }
 
 .detail-section {
-    margin-bottom: 24px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #e1e5e9;
+    margin-bottom: 32px;
+    border-bottom: 1px solid #f3f4f6;
+    padding-bottom: 24px;
+    box-sizing: border-box;
 }
 
 .detail-section:last-child {
     border-bottom: none;
     margin-bottom: 0;
+    padding-bottom: 0;
 }
 
 .detail-section h3 {
-    color: #2c3e50;
-    margin-bottom: 16px;
-    font-size: 18px;
-    font-weight: 600;
+    margin: 0 0 20px 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1f2937;
+    border-bottom: 2px solid #f3f4f6;
+    padding-bottom: 12px;
 }
 
-.detail-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 12px;
-}
-
-.detail-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.detail-item.full-width {
-    grid-column: 1 / -1;
-}
-
-.detail-item label {
-    font-weight: 600;
-    color: #495057;
-    font-size: 14px;
-}
-
-.detail-item span,
-.detail-text {
-    color: #2c3e50;
-    word-break: break-word;
-}
-
-.detail-text {
-    background: #f8f9fa;
-    padding: 12px;
-    border-radius: 6px;
-    border-left: 4px solid #4B5AE4;
-    white-space: pre-wrap;
-}
-
-.admin-comment-section {
-    margin: 16px 0;
-}
-
-.admin-comment-section label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #495057;
-    font-size: 16px;
-}
-
-.admin-comment-section textarea {
-    width: 100%;
-    min-height: 100px;
-    padding: 12px;
-    border: 2px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 14px;
-    font-family: inherit;
-    resize: vertical;
-    box-sizing: border-box;
-    transition: border-color 0.2s ease;
-}
-
-.admin-comment-section textarea:focus {
-    outline: none;
-    border-color: #4B5AE4;
-    box-shadow: 0 0 0 3px rgba(75, 90, 228, 0.1);
-}
-
-.action-buttons {
-    display: flex;
-    gap: 16px;
-    justify-content: flex-end;
-    margin-top: 32px;
-    padding-top: 24px;
-    border-top: 1px solid #e5e7eb;
-    box-sizing: border-box;
-}
-
-.reason-text {
-    background: #fef2f2;
-    padding: 16px;
-    border-radius: 12px;
-    border-left: 4px solid #ef4444;
-    margin-top: 12px;
-    line-height: 1.6;
+.detail-section p {
+    margin: 12px 0;
+: 1.6;
     font-size: 16px;
     color: #374151;
-    box-sizing: border-box;
 }
 
-/* ========================================
-   10. 첨부파일 스타일
-======================================== */
+.detail-section p strong {
+    font-weight: 600;
+    color: #1f2937;
+    display: inline-block;
+    min-width: 120px;
+}
+
+/* 문서 목록 스타일 */
 .documents-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
     margin-top: 16px;
 }
 
 .document-item {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    padding: 16px;
-    border: 1px solid #e1e5e9;
-    border-radius: 8px;
-    background-color: #f8f9fa;
-    transition: all 0.2s ease;
-    box-sizing: border-box;
-}
-
-.document-item:hover {
-    border-color: #4B5AE4;
-    background-color: #f0f8ff;
-}
-
-.document-info {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    flex: 1;
-}
-
-.file-icon {
-    font-size: 24px;
-    min-width: 32px;
-    text-align: center;
-}
-
-.file-details {
-    flex: 1;
-    min-width: 0;
-}
-
-.file-name {
-    font-weight: 600;
-    color: #2c3e50;
-    margin-bottom: 4px;
-    word-break: break-all;
-    font-size: 16px;
-}
-
-.file-meta {
-    display: flex;
-    gap: 12px;
     align-items: center;
-    flex-wrap: wrap;
-}
-
-.file-type {
-    background: #4B5AE4;
-    color: white;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-
-.business-number {
-    color: #6c757d;
-    font-size: 13px;
-    background: #e9ecef;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-weight: 500;
-}
-
-.image-preview {
-    margin-left: 12px;
-    flex-shrink: 0;
-}
-
-.image-preview img {
-    cursor: pointer;
-    transition: transform 0.2s ease;
-    border: 2px solid #dee2e6;
-    border-radius: 6px;
-}
-
-.image-preview img:hover {
-    transform: scale(1.05);
-    border-color: #4B5AE4;
-}
-
-.no-files {
-    text-align: center;
-    padding: 20px;
-    color: #6c757d;
-    font-style: italic;
-    font-size: 16px;
+    padding: 16px;
     background: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    border: 1px solid #e5e7eb;
+    box-sizing: border-box;
 }
 
 .download-link {
@@ -650,72 +221,31 @@
     text-decoration: underline;
 }
 
-/* ========================================
-   11. 이미지 모달
-======================================== */
-.image-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-}
-
-.image-modal-content {
-    position: relative;
-    background: white;
+/* 반려 사유 텍스트 */
+.reason-text {
+    background: #fef2f2;
+    padding: 16px;
     border-radius: 12px;
-    max-width: 90vw;
-    max-height: 90vh;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.image-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 20px;
-    border-bottom: 1px solid #e1e5e9;
-    background: #f8f9fa;
-}
-
-.image-modal-header h3 {
-    margin: 0;
-    color: #2c3e50;
+    border-left: 4px solid #ef4444;
+    margin-top: 12px;
+: 1.6;
     font-size: 16px;
-    font-weight: 600;
+    color: #374151;
+    box-sizing: border-box;
 }
 
-.image-modal-close {
-    background: none;
-    border: none;
-    font-size: 24px;
-    color: #6c757d;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    transition: background-color 0.2s ease;
+/* 액션 버튼 영역 */
+.action-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: flex-end;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #e5e7eb;
+    box-sizing: border-box;
 }
 
-.image-modal-close:hover {
-    background-color: #e9ecef;
-    color: #495057;
-}
-
-.image-modal-body {
-    padding: 20px;
-    text-align: center;
-}
-
-/* ========================================
-   12. 공통 유틸리티
-======================================== */
+/* 로딩 스피너 - layout.css와 동일 */
 .loading {
     display: inline-block;
     width: 24px;
@@ -730,6 +260,7 @@
     to { transform: rotate(360deg); }
 }
 
+/* 알림 메시지 - layout.css와 동일 */
 .alert {
     padding: 20px 24px;
     border-radius: 14px;
@@ -755,121 +286,4 @@
     background: #dbeafe;
     color: #1e40af;
     border: 1px solid #93c5fd;
-}
-
-/* ========================================
-   13. 모바일 반응형
-======================================== */
-@media (max-width: 768px) {
-    .admin-container {
-        padding: 16px;
-    }
-
-    .page-header {
-        flex-direction: column;
-        gap: 20px;
-        align-items: flex-start;
-        padding: 20px;
-    }
-
-    .page-header h1 {
-        font-size: 24px;
-    }
-
-    .stats-container {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .filter-container {
-        flex-direction: column;
-        gap: 16px;
-        padding: 20px;
-    }
-
-    .filter-group {
-        width: 100%;
-    }
-
-    .filter-group select,
-    .filter-group input {
-        width: 100%;
-        min-width: unset;
-    }
-
-    .requests-table {
-        font-size: 14px;
-    }
-
-    .requests-table th,
-    .requests-table td {
-        padding: 12px 6px;
-        font-size: 12px;
-    }
-
-    /* 모바일에서 컬럼 너비 재조정 */
-    .requests-table th:nth-child(1), .requests-table td:nth-child(1) { width: 25%; white-space: normal; }
-    .requests-table th:nth-child(2), .requests-table td:nth-child(2) { width: 15%; }
-    .requests-table th:nth-child(3), .requests-table td:nth-child(3) { width: 20%; white-space: normal; }
-    .requests-table th:nth-child(7), .requests-table td:nth-child(7) { width: 15%; }
-
-    .modal-content {
-        width: 95%;
-        margin: 20px auto;
-        border-radius: 16px;
-    }
-
-    .modal-header,
-    .modal-body {
-        padding: 20px;
-    }
-
-    .action-buttons {
-        flex-direction: column;
-    }
-
-    .btn {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .pagination {
-        flex-wrap: wrap;
-        gap: 4px;
-    }
-
-    .page-btn {
-        padding: 8px 12px;
-        font-size: 14px;
-        min-height: 36px;
-    }
-
-    .document-item {
-        flex-direction: column;
-        gap: 12px;
-        align-items: stretch;
-    }
-
-    .document-info {
-        align-items: flex-start;
-    }
-
-    .image-preview {
-        margin-left: 0;
-        align-self: center;
-    }
-
-    .detail-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .image-modal-content {
-        margin: 20px;
-        max-width: calc(100vw - 40px);
-        max-height: calc(100vh - 40px);
-    }
-
-    .image-modal-body {
-        padding: 10px;
-    }
 }

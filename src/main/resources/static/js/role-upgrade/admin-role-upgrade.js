@@ -236,9 +236,9 @@ class AdminRoleUpgradeManager {
 
         // 이전 페이지
         if (data.first) {
-            html += '<button class="page-btn" disabled>이전</button>';
+            html += '<button class="page-button" disabled>이전</button>';
         } else {
-            html += `<button class="page-btn" onclick="adminManager.changePage(${data.number - 1})">이전</button>`;
+            html += `<button class="page-button" onclick="adminManager.changePage(${data.number - 1})">이전</button>`;
         }
 
         // 페이지 번호들
@@ -247,14 +247,14 @@ class AdminRoleUpgradeManager {
 
         for (let i = startPage; i <= endPage; i++) {
             const activeClass = i === data.number ? 'active' : '';
-            html += `<button class="page-btn ${activeClass}" onclick="adminManager.changePage(${i})">${i + 1}</button>`;
+            html += `<button class="page-button ${activeClass}" onclick="adminManager.changePage(${i})">${i + 1}</button>`;
         }
 
         // 다음 페이지
         if (data.last) {
-            html += '<button class="page-btn" disabled>다음</button>';
+            html += '<button class="page-button" disabled>다음</button>';
         } else {
-            html += `<button class="page-btn" onclick="adminManager.changePage(${data.number + 1})">다음</button>`;
+            html += `<button class="page-button" onclick="adminManager.changePage(${data.number + 1})">다음</button>`;
         }
 
         html += '</div>';
@@ -382,14 +382,14 @@ class AdminRoleUpgradeManager {
 
                 <div class="action-buttons">
                     ${canProcess ? `
-                        <button class="btn btn-success" onclick="adminManager.processRequest(true)">
+                        <button class="button button-success" onclick="adminManager.processRequest(true)">
                             승인
                         </button>
-                        <button class="btn btn-danger" onclick="adminManager.processRequest(false)">
+                        <button class="button button-danger" onclick="adminManager.processRequest(false)">
                             반려
                         </button>
                     ` : ''}
-                    <button class="btn btn-secondary" onclick="adminManager.closeModal()">
+                    <button class="button button-secondary" onclick="adminManager.closeModal()">
                         닫기
                     </button>
                 </div>
