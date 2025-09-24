@@ -230,7 +230,7 @@
     margin-right: 10px;
     border: none;
     border-radius: 6px;
-    background: #79f;
+    background: #5f7de6;
     color: #fff;
     cursor: pointer;
     transition: background 0.2s;
@@ -240,6 +240,29 @@
     background: #5f7de6;
 }
 
+.button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+}
+.button-primary {
+    background: #4B5AE4;
+    color: white;
+    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+}
+.button-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+}
 /* 알림 세팅 */
 .notification-setting-item {
     display: flex;

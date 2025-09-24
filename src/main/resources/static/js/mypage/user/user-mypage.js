@@ -177,14 +177,14 @@ document.addEventListener('DOMContentLoaded', async function () {
             <button class="modal-close" id="close-btn" style="position:absolute; top:12px; right:16px; font-size:24px; border:none; background:none; cursor:pointer;">&times;</button>
             <h2 style="margin-bottom:16px; font-size:20px;">팝업 제보하기</h2>
             <form id="popup-report-form" style="display:flex; flex-direction:column; gap:12px; text-align:left;">
-              <label>브랜드명<input type="text" name="brandName" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:8px;"></label>
-              <label>팝업명*<input type="text" name="popupName" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:8px;"></label>
-              <label>주소*<input type="text" name="address" required style="width:100%; padding:8px; border:1px solid #ccc; border-radius:8px;"></label>
-              <label>시작일<input type="date" name="startDate" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:8px;"></label>
-              <label>종료일<input type="date" name="endDate" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:8px;"></label>
-              <label>추가 정보<textarea name="extraInfo" rows="3" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:8px;"></textarea></label>
+              <label>브랜드명<input type="text" name="brandName" class="form-input"></label>
+              <label>팝업명*<input type="text" name="popupName" required class="form-input"></label>
+              <label>주소*<input type="text" name="address" required class="form-input"></label>
+              <label>시작일<input type="date" name="startDate" class="form-input"></label>
+              <label>종료일<input type="date" name="endDate" class="form-input"></label>
+              <label>추가 정보<textarea name="extraInfo" rows="3" class="form-input"></textarea></label>
               <label>이미지 업로드<input type="file" name="images" accept="image/*" multiple style="width:100%; padding:8px;"></label>
-              <button type="submit" class="submit-btn" style="padding:10px; border:none; background:#79f; color:#fff; border-radius:8px; cursor:pointer;">제출</button>
+              <button type="submit" class="button button-primary">제출</button>
             </form>
           </div>
         `;
