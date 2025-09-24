@@ -8,7 +8,7 @@
     margin-bottom: 24px;
 }
 
-/* ===== 블록 제목 (호스트 페이지와 통일) ===== */
+/* ===== 블록 제목  ===== */
 .block-title {
     background: #2563eb !important;
     border-radius: 12px !important;
@@ -27,11 +27,11 @@
     padding: 16px 0;
 }
 
-/* ===== 팝업 헤더 (호스트 페이지와 통일) ===== */
+/* ===== 팝업 헤더  ===== */
 .popup-header {
     display: flex;
     align-items: center;
-    background: #2563eb !important;
+    background: #4B5AE4 !important;
     padding: 20px;
     border-radius: 16px;
     color: white;
@@ -116,6 +116,7 @@
 .tab-content {
     display: none;
     animation: fadeIn 0.3s ease;
+    padding: 20px;
 }
 
 .tab-content.active {
@@ -467,7 +468,7 @@
 }
 
 .save-settings-btn {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    background: #14229c !important;
     color: white;
     border: none;
     border-radius: 12px;

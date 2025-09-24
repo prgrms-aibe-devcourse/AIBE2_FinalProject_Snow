@@ -167,37 +167,36 @@ class SpaceListManager {
         card.className = 'space-card';
 
         const imageUrl = this.getThumbUrl(space);
-        const imageHtml = `<img class="thumb" src="${imageUrl}" alt="썸네일">`;
 
         card.innerHTML = `
-      <div class="space-header">
-        <div>
-          <h4 class="space-title">${space.title || '(제목 없음)'}</h4>
-          <div class="space-details">
-            <div>등록자: ${space.ownerName || '-'}</div>
-            <div>임대료: ${this.formatRentalFee(space.rentalFee)}</div>
-            <div>주소: ${space.address || '-'}</div>
-            <div>면적: ${space.areaSize || '-'} m²</div>
-            <div class="actions-inline">
-              <button class="link" data-act="detail" data-id="${id}">상세정보</button>
-              <button class="link" data-act="inquire" data-id="${id}">문의하기</button>
-              <button class="link" data-act="report"  data-id="${id}">신고</button>
-            </div>
+      <div class="space-title">${space.title || '(제목 없음)'}</div>
+      
+      <div class="space-body">
+        <img class="thumb" src="${imageUrl}" alt="썸네일">
+        <div class="space-details">
+          <div>등록자: ${space.ownerName || '-'}</div>
+          <div>임대료: ${this.formatRentalFee(space.rentalFee)}</div>
+          <div>주소: ${space.address || '-'}</div>
+          <div>면적: ${space.areaSize || '-'} m²</div>
+          <div class="actions-inline">
+            <button class="link" data-act="detail" data-id="${id}">상세정보</button>
+            <button class="link" data-act="report" data-id="${id}">신고</button>
           </div>
         </div>
-        ${imageHtml}
       </div>
+      
       <div class="space-meta">
         <span>등록일: ${this.formatDate(space.createdAt)}</span>
         <div class="space-actions">
           ${space.mine ? `
-            <button class="action-btn edit"   data-act="edit"   data-id="${id}">수정</button>
+            <button class="action-btn edit" data-act="edit" data-id="${id}">수정</button>
             <button class="action-btn delete" data-act="delete" data-id="${id}">삭제</button>
           ` : ''}
         </div>
       </div>
     `;
 
+        // 이미지 에러 처리
         const imgEl = card.querySelector('.thumb');
         if (imgEl) {
             imgEl.onerror = function () {
@@ -206,6 +205,7 @@ class SpaceListManager {
             };
         }
 
+        // 이벤트 처리
         card.addEventListener('click', (e) => {
             const btn = e.target.closest('[data-act]');
             if (!btn) return;
@@ -230,7 +230,6 @@ class SpaceListManager {
                     this.reportSpace(targetId);
                     break;
             }
-
         });
 
         return card;

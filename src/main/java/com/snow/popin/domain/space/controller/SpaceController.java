@@ -140,7 +140,7 @@ public class SpaceController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         User me = userUtil.getCurrentUser();
-        spaceService.delete(me, id);
+        spaceService.deleteSpace(me, id);
         return ResponseEntity.ok().build();
     }
 

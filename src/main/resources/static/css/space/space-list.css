@@ -23,17 +23,15 @@
     margin: 0 auto;
 }
 
-/* ===== 페이지 헤더 (호스트 페이지와 통일) ===== */
 .page-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    padding: 16px 0;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
 }
 
 .page-title {
-    background: #2563eb !important;
+    background: #4B5AE4 !important;
     border-radius: 12px !important;
     padding: 20px !important;
     margin: 0 !important;
@@ -43,12 +41,13 @@
     font-weight: 600 !important;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
     flex: 1;
-    text-align: center;
-    margin-right: 16px !important;
+    text-align: left;
+    margin-right: 0px !important;
+    width: 100%;
 }
 
 .register-btn {
-    background: #1e40af !important;
+    background: #14229c !important;
     color: white;
     text-decoration: none;
     padding: 12px 20px;
@@ -58,6 +57,8 @@
     transition: all 0.2s ease;
     box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3) !important;
     flex-shrink: 0;
+    align-self: flex-end;
+    margin-bottom: 16px;
 }
 
 .register-btn:hover {
@@ -105,7 +106,7 @@
 
 .search-btn {
     padding: 12px 24px;
-    background: #4B5AE4 !important;
+    background: #14229c !important;
     color: white;
     border: none;
     border-radius: 12px;
@@ -194,7 +195,7 @@
 }
 
 .apply-btn {
-    background: #10b981;
+    background: #14229c;
     color: white;
 }
 
@@ -304,65 +305,76 @@
     gap: 16px;
 }
 
-/* ===== 공간 카드 ===== */
+/* ===== 공간 카드  ===== */
 .space-card {
     background: white;
     border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e5e7eb;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: all 0.2s ease;
 }
 
 .space-card:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
 }
 
-.space-header {
-    display: flex;
-    gap: 16px;
-    padding: 20px;
-}
-
-.space-header > div:first-child {
-    flex: 1;
-}
-
+/*  제목  */
 .space-title {
     font-size: 18px;
-    font-weight: 600;
-    color: #111827;
-    margin: 0 0 12px 0;
-    line-height: 1.3;
+    font-weight: 700;
+    color: black;
+    padding: 16px;
+    margin: 0;
+    border-bottom: 1px solid #f0f0f0;
 }
 
+/*  본문: 이미지(왼쪽) + 정보들(오른쪽) */
+.space-body {
+    display: flex;
+    padding: 16px;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+/* 왼쪽 이미지 */
+.space-body .thumb {
+    flex: 0 0 140px;
+    width: 140px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* 오른쪽 정보들 */
 .space-details {
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-bottom: 16px;
+    margin-bottom: 0;
 }
 
 .space-details > div {
     font-size: 14px;
-    color: #6b7280;
-    display: flex;
-    align-items: center;
-    padding: 8px 12px;
-    background: #f9fafb;
-    border-radius: 6px;
-    border: 1px solid #f3f4f6;
+    color: #555;
+    padding: 0;
+    margin: 0;
+    background: none;
+    border: none;
 }
 
+/* 등록자 강조 */
 .space-details > div:first-child {
-    color: #111827;
-    font-weight: 500;
     background: #dbeafe !important;
-    border-color: rgba(37, 99, 235, 0.2) !important;
+    color: #111827 !important;
+    font-weight: 500 !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+    width: fit-content;
 }
 
-/* ===== 인라인 액션 (호스트 페이지와 통일) ===== */
+/* 액션 링크들 */
 .actions-inline {
     display: flex;
     gap: 12px;
@@ -370,15 +382,16 @@
 }
 
 .actions-inline .link {
-    background: none;
-    border: none;
     color: #2563eb !important;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 4px 0;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    text-decoration: none;
     border-bottom: 1px solid transparent;
     transition: all 0.2s ease;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
 }
 
 .actions-inline .link:hover {
@@ -386,33 +399,16 @@
     border-bottom-color: #1e40af !important;
 }
 
-/* ===== 썸네일 ===== */
-.thumb {
-    width: 100px;
-    height: 80px;
-    object-fit: cover;
-    object-position: center;
-    border-radius: 8px;
-    flex-shrink: 0;
-    background: #f9fafb !important;
-    border: 1px solid #e5e7eb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.thumb[src=""] {
-    background: #f9fafb !important;
-}
-
-/* ===== 카드 하단 메타 정보 ===== */
+/* 3. 등록일 (하단) */
 .space-meta {
+    border-top: 1px solid #f0f0f0;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #666;
+    background: #fafbfc;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
-    border-top: 1px solid #f3f4f6;
-    background: #fafbfc;
 }
 
 .space-meta > span {
@@ -447,13 +443,14 @@
 }
 
 .action-btn.delete {
-    background: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #fecaca;
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
 }
 
 .action-btn.delete:hover {
-    background: #fecaca;
+    background: #e5e7eb;
+    color: #374151;
     transform: translateY(-1px);
 }
 
@@ -507,6 +504,21 @@
         gap: 8px;
         text-align: center;
     }
+
+    /* 모바일에서 카드 레이아웃 조정 */
+    .space-body {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .space-body .thumb {
+        width: 100%;
+        height: 160px;
+    }
+
+    .space-details {
+        gap: 8px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -532,35 +544,35 @@
         padding: 16px !important;
     }
 
-    .space-header {
+    .space-title {
+        font-size: 16px;
+        padding: 12px;
+    }
+
+    .space-body {
         flex-direction: column;
+        padding: 12px;
         gap: 12px;
-        padding: 16px;
     }
 
-    .thumb {
+    .space-body .thumb {
         width: 100%;
-        height: 120px;
-    }
-
-    .space-details {
-        gap: 6px;
+        height: 140px;
     }
 
     .space-details > div {
-        padding: 6px 10px;
         font-size: 13px;
     }
 
-    .actions-inline {
-        justify-content: space-between;
+    .space-details > div:first-child {
+        padding: 6px 10px !important;
     }
 
     .space-meta {
         flex-direction: column;
         gap: 12px;
         align-items: stretch;
-        padding: 12px 16px;
+        padding: 12px;
     }
 
     .space-actions {
