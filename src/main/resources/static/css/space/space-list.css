@@ -443,13 +443,14 @@
 }
 
 .action-btn.delete {
-    background: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #fecaca;
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
 }
 
 .action-btn.delete:hover {
-    background: #fecaca;
+    background: #e5e7eb;
+    color: #374151;
     transform: translateY(-1px);
 }
 
