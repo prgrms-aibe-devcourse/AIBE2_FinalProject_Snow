@@ -144,6 +144,33 @@ class PopupListManager {
             this.handleSubFilterClick(e);
         });
 
+        // 지역 필터 드래그 스크롤 기능
+        const regionFilterTabs = document.getElementById('region-filter-tabs');
+        if (regionFilterTabs) {
+            let isDown = false, startX, scrollLeft;
+            regionFilterTabs.addEventListener('mousedown', (e) => {
+                isDown = true;
+                regionFilterTabs.classList.add('active-drag');
+                startX = e.pageX - regionFilterTabs.offsetLeft;
+                scrollLeft = regionFilterTabs.scrollLeft;
+            });
+            regionFilterTabs.addEventListener('mouseleave', () => {
+                isDown = false;
+                regionFilterTabs.classList.remove('active-drag');
+            });
+            regionFilterTabs.addEventListener('mouseup', () => {
+                isDown = false;
+                regionFilterTabs.classList.remove('active-drag');
+            });
+            regionFilterTabs.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - regionFilterTabs.offsetLeft;
+                const walk = (x - startX) * 2;
+                regionFilterTabs.scrollLeft = scrollLeft - walk;
+            });
+        }
+
         // 커스텀 날짜 선택기 이벤트
         document.getElementById('apply-custom-date')?.addEventListener('click', () => {
             this.applyCustomDate();

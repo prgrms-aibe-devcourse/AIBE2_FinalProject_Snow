@@ -329,10 +329,17 @@
     white-space: nowrap;
     -ms-overflow-style: none;
     scrollbar-width: none;
+    cursor: grab;
+    user-select: none;
 }
 
 .sub-filter-tabs::-webkit-scrollbar {
     display: none;
+}
+
+/* 드래그 중일 때 커서 변경 */
+.sub-filter-tabs.active-drag {
+    cursor: grabbing;
 }
 
 .sub-tab-item {
@@ -346,6 +353,8 @@
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
+    flex-shrink: 0;
+    pointer-events: auto;
 }
 
 .sub-tab-item.active {
@@ -353,6 +362,11 @@
     background-color: #eef2ff;
     color: #4338ca;
     font-weight: 700;
+}
+
+.sub-tab-item:hover {
+    border-color: #4B5AE4;
+    background-color: #f8f9ff;
 }
 
 /* 커스텀 날짜 선택기 */
@@ -436,6 +450,15 @@
         padding: 8px 16px;
         font-size: 13px;
     }
+
+    .sub-filter-tabs {
+        gap: 6px;
+    }
+
+    .sub-tab-item {
+        padding: 5px 12px;
+        font-size: 12px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -467,6 +490,15 @@
         padding: 6px 12px;
         font-size: 12px;
     }
+
+    .sub-filter-tabs {
+        gap: 4px;
+    }
+
+    .sub-tab-item {
+        padding: 4px 10px;
+        font-size: 11px;
+    }
 }
 
 @media (max-width: 375px) {
@@ -489,6 +521,11 @@
 
     .card-info {
         font-size: 11px;
+    }
+
+    .sub-tab-item {
+        padding: 4px 8px;
+        font-size: 10px;
     }
 }
 
