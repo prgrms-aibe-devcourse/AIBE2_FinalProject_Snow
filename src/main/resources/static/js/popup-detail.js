@@ -214,10 +214,11 @@ class PopupDetailManager {
     renderScheduleInfo() {
         // 기간 표시
         const periodEl = document.getElementById('popup-period');
-        if (periodEl) {
-            // periodText가 있으면 사용, 없으면 직접 생성
+        if (periodEl && this.popupData) {
+            // 기간 텍스트 생성
+            let periodText;
             if (this.popupData.periodText) {
-                periodEl.textContent = this.popupData.periodText;
+                periodText = this.popupData.periodText;
             } else {
                 const startDate = new Date(this.popupData.startDate).toLocaleDateString('ko-KR', {
                     year: 'numeric',
@@ -231,9 +232,47 @@ class PopupDetailManager {
                     day: '2-digit'
                 }).replace(/\. /g, '.').replace(/\.$/, '');
 
-                periodEl.textContent = `${startDate} ~ ${endDate}`;
+                periodText = `${startDate} - ${endDate}`;
             }
+
+            // 상태 배지 생성
+            const statusBadge = this.createInlineStatusBadge(this.popupData.status);
+
+            // 기간과 상태 배지를 함께 표시
+            periodEl.innerHTML = `
+            <span class="period-text">${periodText}</span>
+            ${statusBadge}
+        `;
         }
+    }
+
+    // 인라인 상태 배지 생성 메서드
+    createInlineStatusBadge(status) {
+        const statusInfo = this.getStatusInfo(status);
+        return `<span class="status-badge-inline ${statusInfo.className}">${statusInfo.text}</span>`;
+    }
+
+    // 상태 정보 반환 메서드
+    getStatusInfo(status) {
+        const statusMap = {
+            'PLANNED': {
+                text: '오픈예정',
+                className: 'planned'
+            },
+            'ONGOING': {
+                text: '진행중',
+                className: 'ongoing'
+            },
+            'ENDED': {
+                text: '종료',
+                className: 'ended'
+            }
+        };
+
+        return statusMap[status] || {
+            text: status,
+            className: 'ongoing'
+        };
     }
 
     // 태그와 상태 표시 렌더링
@@ -241,12 +280,6 @@ class PopupDetailManager {
         const tagsEl = document.getElementById('popup-tags');
         if (tagsEl) {
             tagsEl.innerHTML = '';
-
-            // 상태 태그 추가
-            if (this.popupData.status) {
-                const statusTag = this.createStatusTag(this.popupData.status);
-                tagsEl.appendChild(statusTag);
-            }
 
             // 기존 태그들 추가
             if (this.popupData.tags && this.popupData.tags.length > 0) {
@@ -259,14 +292,6 @@ class PopupDetailManager {
                 });
             }
         }
-    }
-
-    // 상태 태그 생성 메서드
-    createStatusTag(status) {
-        const tag = document.createElement('span');
-        tag.className = `status-tag status-${status.toLowerCase()}`;
-        tag.textContent = this.getStatusText(status);
-        return tag;
     }
 
     // 운영시간 렌더링
