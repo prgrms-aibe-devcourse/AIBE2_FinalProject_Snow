@@ -64,7 +64,7 @@ public class AiRecommendationService {
             // 입력값 검증 및 최소값 보장
             if (userId == null || userId <= 0) {
                 log.warn("잘못된 사용자 ID: {}", userId);
-                return getPopularPopupsAsFallback(Math.max(limit, MIN_RECOMMENDATIONS));
+                return AiRecommendationResponseDto.failure("잘못된 사용자 정보로 인해 AI 추천을 제공할 수 없습니다.");
             }
 
             // limit을 최소 4개 이상으로 보장
@@ -80,14 +80,14 @@ public class AiRecommendationService {
             if (userPreference.getInterests().isEmpty() &&
                     (userPreference.getReservationHistory() == null || userPreference.getReservationHistory().isEmpty())) {
                 log.info("사용자 {}의 선호도 데이터 부족, 인기 팝업으로 대체", userId);
-                return getPopularPopupsAsFallback(adjustedLimit);
+                return AiRecommendationResponseDto.failure("사용자 선호도 데이터가 부족하여 AI 추천을 제공할 수 없습니다.");
             }
 
             // 현재 진행중인 팝업 목록 조회
             List<Popup> availablePopups = popupRepository.findByStatus(PopupStatus.ONGOING);
             if (availablePopups.size() < MIN_RECOMMENDATIONS) {
                 log.warn("진행중인 팝업이 {}개 미만 ({}개), 인기 팝업으로 대체", MIN_RECOMMENDATIONS, availablePopups.size());
-                return getPopularPopupsAsFallback(adjustedLimit);
+                return AiRecommendationResponseDto.failure("추천 가능한 팝업이 부족하여 AI 추천을 제공할 수 없습니다.");
             }
 
             // AI 프롬프트 생성 및 호출
@@ -98,7 +98,7 @@ public class AiRecommendationService {
 
             if (!StringUtils.hasText(aiResponse)) {
                 log.warn("AI 응답이 비어있음, 인기 팝업으로 대체");
-                return getPopularPopupsAsFallback(adjustedLimit);
+                return AiRecommendationResponseDto.failure("AI 응답을 받지 못하여 추천을 제공할 수 없습니다.");
             }
 
             log.info("AI 응답 수신 - 길이: {} 문자", aiResponse.length());
@@ -114,7 +114,7 @@ public class AiRecommendationService {
 
         } catch (Exception e) {
             log.error("사용자 {} AI 추천 처리 중 오류", userId, e);
-            return getPopularPopupsAsFallback(Math.max(limit, MIN_RECOMMENDATIONS));
+            return AiRecommendationResponseDto.failure("AI 추천 처리 중 오류가 발생했습니다.");
         }
     }
 
@@ -235,7 +235,7 @@ public class AiRecommendationService {
 
             if (recommendedIds.size() < MIN_RECOMMENDATIONS) {
                 log.error("최종 추천 개수가 최소값 미달: {}개", recommendedIds.size());
-                return getPopularPopupsAsFallback(expectedCount);
+                return AiRecommendationResponseDto.failure("AI 응답 파싱 결과가 부족하여 추천을 제공할 수 없습니다.");
             }
 
             log.info("=== AI 응답 파싱 완료 - {}개 팝업 추천 성공 ===", recommendedIds.size());
@@ -243,7 +243,7 @@ public class AiRecommendationService {
 
         } catch (Exception e) {
             log.error("AI 응답 파싱 중 오류", e);
-            return getPopularPopupsAsFallback(expectedCount);
+            return AiRecommendationResponseDto.failure("AI 응답 파싱 중 오류가 발생했습니다.");
         }
     }
 
@@ -387,32 +387,6 @@ public class AiRecommendationService {
         }
 
         return "다양한 카테고리의 인기 팝업들을 개인 취향에 맞게 추천드립니다.";
-    }
-
-    /**
-     * 대체 추천 (인기 팝업)
-     */
-    private AiRecommendationResponseDto getPopularPopupsAsFallback(int limit) {
-        try {
-            int adjustedLimit = Math.max(limit, MIN_RECOMMENDATIONS);
-            Pageable pageable = PageRequest.of(0, adjustedLimit);
-            var popularPopups = popupRepository.findPopularActivePopups(pageable);
-
-            List<Long> popupIds = popularPopups.getContent().stream()
-                    .map(Popup::getId)
-                    .limit(adjustedLimit)
-                    .collect(Collectors.toList());
-
-            log.info("인기 팝업 폴백 - {}개 반환", popupIds.size());
-
-            return AiRecommendationResponseDto.success(
-                    popupIds,
-                    "현재 인기있는 다양한 팝업들을 추천드립니다."
-            );
-        } catch (Exception e) {
-            log.error("인기 팝업 조회 실패", e);
-            return AiRecommendationResponseDto.failure("추천 팝업을 찾을 수 없습니다.");
-        }
     }
 
     private UserPreferenceDto analyzeUserPreferences(Long userId) {

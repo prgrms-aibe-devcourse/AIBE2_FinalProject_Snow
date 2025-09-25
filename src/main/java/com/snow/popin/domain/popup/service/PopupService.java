@@ -159,9 +159,10 @@ public class PopupService {
             List<PopupSummaryResponseDto> pagedDtos = start < popupDtos.size() ?
                     popupDtos.subList(start, end) : List.of();
 
-            Page<PopupSummaryResponseDto> popupPage = new PageImpl<>(
-                    pagedDtos, pageable, popupDtos.size()
-            );
+            List<Popup> pagedEntities = start < recommendedPopups.size()
+                    ? recommendedPopups.subList(start, Math.min(start + pageable.getPageSize(), recommendedPopups.size()))
+                    : List.of();
+            Page<Popup> popupPage = new PageImpl<>(pagedEntities, pageable, recommendedPopups.size());
 
             log.info("AI 추천 완료 - 총 {}개 추천, 이유: {}",
                     recommendedPopups.size(), aiRecommendation.getReasoning());

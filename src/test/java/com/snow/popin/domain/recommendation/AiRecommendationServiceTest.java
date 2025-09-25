@@ -110,6 +110,9 @@ class AiRecommendationServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
         when(popupRepository.findByStatus(PopupStatus.ONGOING)).thenReturn(testPopups);
         when(geminiAiService.generateText(anyString())).thenReturn("추천 팝업 ID: [1,2,3]\n추천 이유: 기본 추천입니다.");
+        when(popupRepository.findPopularActivePopups(any())).thenReturn(
+                new PageImpl<>(testPopups, PageRequest.of(0, limit), testPopups.size())
+        );
 
         // When
         AiRecommendationResponseDto result = aiRecommendationService.getPersonalizedRecommendations(userId, limit);

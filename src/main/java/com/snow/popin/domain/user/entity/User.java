@@ -89,23 +89,4 @@ public class User extends BaseEntity {
                 .map(userInterest -> userInterest.getCategory().getName())
                 .collect(Collectors.toList());
     }
-
-    /**
-     * 사용자의 관심 카테고리 ID 목록 조회
-     */
-    public List<Long> getInterestCategoryIds() {
-        return this.interests.stream()
-                .map(userInterest -> userInterest.getCategory().getId())
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 특정 카테고리에 관심이 있는지 확인
-     */
-    public boolean hasInterestInCategory(Long categoryId) {
-        return this.interests.stream()
-                .anyMatch(userInterest -> userInterest.getCategory().getId().equals(categoryId));
-    }
-
-
 }

@@ -339,7 +339,7 @@ class PopupListManager {
         if (isLoggedIn) {
             const userName = await this.getCurrentUserName();
             this.aiMessage.innerHTML = `
-                <h3>${userName}님을 위한 맞춤 추천</h3>
+                 <h3>${this.escapeHtml(userName)}님을 위한 맞춤 추천</h3>
                 <p>취향과 관심사를 분석해서 딱 맞는 팝업스토어를 추천해드릴게요</p>
             `;
         } else {
@@ -454,10 +454,12 @@ class PopupListManager {
     createAIPopupCard(popup) {
         const card = document.createElement('div');
         card.className = 'popup-card ai-recommended';
-        card.dataset.id = popup.id;
+        const popupId = encodeURIComponent(String(popup?.id ?? ''));
+        card.dataset.id = popupId;
 
         const fallbackImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNjY3ZWVhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+';
         const imageUrl = popup.thumbnailUrl || popup.mainImageUrl || fallbackImage;
+        const safeImageUrl = this.isSafeUrl(imageUrl) ? imageUrl : fallbackImage;
 
         // 날짜 포맷팅
         const dateRange = popup.period || this.formatDateRange(popup.startDate, popup.endDate);
@@ -467,7 +469,7 @@ class PopupListManager {
 
         card.innerHTML = `
             <div class="card-image-wrapper">
-                <img src="${imageUrl}" 
+                <img src="${safeImageUrl}" 
                      alt="${this.escapeHtml(popup.title)}" 
                      class="card-image"
                      loading="lazy"
