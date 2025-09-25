@@ -195,6 +195,21 @@
     background: #5856F0;
 }
 
+.reservation-btn.ended,
+.reservation-btn:disabled {
+    background: #9ca3af !important;
+    color: #f3f4f6 !important;
+    cursor: not-allowed !important;
+    opacity: 0.7;
+}
+
+.reservation-btn.ended:hover,
+.reservation-btn:disabled:hover {
+    background: #9ca3af !important;
+    color: #f3f4f6 !important;
+}
+
+
 /* 위치 섹션 */
 .location-section {
     padding: 20px;
