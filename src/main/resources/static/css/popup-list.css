@@ -1,3 +1,133 @@
+/* AI 추천 새로고침 버튼 스타일 */
+.ai-refresh-container {
+    padding: 0 16px 16px;
+    text-align: center;
+}
+
+.ai-refresh-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.ai-refresh-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+.ai-refresh-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+.ai-refresh-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+/* 로딩 중일 때 애니메이션 */
+.ai-refresh-btn.loading {
+    pointer-events: none;
+}
+
+.ai-refresh-btn.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 캐시 상태 표시기 */
+.cache-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #6b7280;
+    margin-left: 8px;
+}
+
+.cache-indicator.cached {
+    color: #059669;
+}
+
+.cache-indicator.expired {
+    color: #dc2626;
+}
+
+.cache-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: currentColor;
+    opacity: 0.7;
+}
+
+/* AI 메시지 업데이트 */
+.ai-message {
+    text-align: center;
+    padding: 20px;
+    margin: 16px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    position: relative;
+}
+
+.ai-message h3 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.ai-message p {
+    margin: 0 0 16px 0;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.ai-message .login-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #4B5AE4;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.ai-message .login-btn:hover {
+    background: #3B4BD1;
+    color: white;
+}
+
 /* 공지사항 배너 */
 .announcement-banner {
     background-color: #eef2ff;
@@ -259,46 +389,6 @@
     background: #3B4BD1;
 }
 
-/* AI 메시지 */
-.ai-message {
-    text-align: center;
-    padding: 20px;
-    margin: 16px;
-    background: #f8f9fa;
-    border-radius: 12px;
-}
-
-.ai-message h3 {
-    margin: 0 0 8px 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: #1f2937;
-}
-
-.ai-message p {
-    margin: 0 0 16px 0;
-    color: #6b7280;
-    font-size: 14px;
-    line-height: 1.5;
-}
-
-.ai-message .login-btn {
-    display: inline-block;
-    padding: 10px 20px;
-    background: #4B5AE4;
-    color: white;
-    text-decoration: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    transition: background-color 0.2s ease;
-}
-
-.ai-message .login-btn:hover {
-    background: #3B4BD1;
-    color: white;
-}
-
 /* AI 추천 카드 */
 .popup-card.ai-recommended {
     border: 2px solid #4B5AE420;
@@ -323,7 +413,7 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* 반응형 - 작은 화면에서 더 컴팩트하게 */
+/* 반응형 디자인 */
 @media (max-width: 768px) {
     .ai-message {
         padding: 16px;
@@ -335,6 +425,15 @@
     }
 
     .ai-message p {
+        font-size: 13px;
+    }
+
+    .ai-refresh-container {
+        padding: 0 12px 12px;
+    }
+
+    .ai-refresh-btn {
+        padding: 8px 16px;
         font-size: 13px;
     }
 }
@@ -362,6 +461,11 @@
     .apply-date-btn {
         padding: 6px 12px;
         font-size: 13px;
+    }
+
+    .ai-refresh-btn {
+        padding: 6px 12px;
+        font-size: 12px;
     }
 }
 

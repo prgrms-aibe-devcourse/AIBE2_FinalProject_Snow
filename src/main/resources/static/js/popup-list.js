@@ -21,6 +21,12 @@ class PopupListManager {
         this.statusFilterContainer = null;
         this.statusFilterSelect = null;
         this.aiMessage = null;
+
+        this.aiRecommendationCache = null;
+        this.cacheTimestamp = null;
+        this.cacheExpiry = 10 * 60 * 1000; // 10분 (밀리초)
+        this.cacheKey = 'ai_popup_recommendations';
+        this.cacheTimestampKey = 'ai_popup_recommendations_timestamp';
     }
 
     // 페이지 초기화
@@ -115,6 +121,118 @@ class PopupListManager {
             <div id="popup-grid" class="popup-grid"></div>
             <div id="loading-indicator" class="loading-indicator" style="display: none;"></div>
         `;
+    }
+
+    // 캐시가 유효한지 확인
+    isCacheValid() {
+        // 메모리 캐시 확인
+        if (this.aiRecommendationCache && this.cacheTimestamp) {
+            const now = Date.now();
+            if (now - this.cacheTimestamp < this.cacheExpiry) {
+                return true;
+            }
+        }
+
+        // LocalStorage 캐시 확인
+        try {
+            const cachedData = localStorage.getItem(this.cacheKey);
+            const cachedTimestamp = localStorage.getItem(this.cacheTimestampKey);
+
+            if (cachedData && cachedTimestamp) {
+                const timestamp = parseInt(cachedTimestamp);
+                const now = Date.now();
+
+                if (now - timestamp < this.cacheExpiry) {
+                    // 메모리 캐시도 업데이트
+                    this.aiRecommendationCache = JSON.parse(cachedData);
+                    this.cacheTimestamp = timestamp;
+                    return true;
+                }
+            }
+        } catch (error) {
+            console.warn('캐시 확인 중 오류:', error);
+        }
+
+        return false;
+    }
+
+    // 캐시에서 데이터 가져오기
+    getCachedData() {
+        if (this.aiRecommendationCache) {
+            return this.aiRecommendationCache;
+        }
+
+        try {
+            const cachedData = localStorage.getItem(this.cacheKey);
+            if (cachedData) {
+                this.aiRecommendationCache = JSON.parse(cachedData);
+                return this.aiRecommendationCache;
+            }
+        } catch (error) {
+            console.warn('캐시 데이터 조회 중 오류:', error);
+        }
+
+        return null;
+    }
+
+    // 데이터를 캐시에 저장
+    setCacheData(data) {
+        const timestamp = Date.now();
+
+        // 메모리 캐시 저장
+        this.aiRecommendationCache = data;
+        this.cacheTimestamp = timestamp;
+
+        // LocalStorage 캐시 저장
+        try {
+            localStorage.setItem(this.cacheKey, JSON.stringify(data));
+            localStorage.setItem(this.cacheTimestampKey, timestamp.toString());
+            console.log('AI 추천 데이터 캐시 저장 완료');
+        } catch (error) {
+            console.warn('캐시 저장 중 오류:', error);
+        }
+    }
+
+    // 캐시 무효화
+    invalidateCache() {
+        // 메모리 캐시 초기화
+        this.aiRecommendationCache = null;
+        this.cacheTimestamp = null;
+        this.aiRecommendationsLoaded = false;
+
+        // LocalStorage 캐시 제거
+        try {
+            localStorage.removeItem(this.cacheKey);
+            localStorage.removeItem(this.cacheTimestampKey);
+            console.log('AI 추천 캐시 무효화 완료');
+        } catch (error) {
+            console.warn('캐시 무효화 중 오류:', error);
+        }
+    }
+
+    // 사용자별 캐시 키 생성 (사용자가 다르면 다른 캐시)
+    getUserSpecificCacheKey() {
+        try {
+            const userId = apiService.getCurrentUserId();
+            const isLoggedIn = apiService.isLoggedIn();
+
+            if (isLoggedIn && userId) {
+                return `${this.cacheKey}_user_${userId}`;
+            } else {
+                return `${this.cacheKey}_anonymous`;
+            }
+        } catch (error) {
+            return `${this.cacheKey}_default`;
+        }
+    }
+
+    // 사용자별 캐시 확인 및 적용
+    applyUserSpecificCache() {
+        const userCacheKey = this.getUserSpecificCacheKey();
+        const userTimestampKey = `${userCacheKey}_timestamp`;
+
+        this.cacheKey = userCacheKey;
+        this.cacheTimestampKey = userTimestampKey;
     }
 
     // 초기 탭 상태 설정
@@ -219,11 +337,16 @@ class PopupListManager {
             await this.showAIMessage();
             this.statusFilterContainer.style.display = 'none';
             this.regionDateFilterContainer.style.display = 'none';
-            this.loadAIRecommendations();
+
+            // 캐시된 데이터가 있으면 바로 로드, 없으면 API 호출
+            await this.loadAIRecommendations();
         }
         // 다른 탭들
         else {
             this.hideAIMessage();
+
+            // AI 추천이 아닌 다른 탭으로 이동시에는 aiRecommendationsLoaded만 false로
+            // 캐시는 유지
             this.aiRecommendationsLoaded = false;
 
             if (newMode === 'latest') {
@@ -348,12 +471,31 @@ class PopupListManager {
     // AI 추천 로드
     async loadAIRecommendations() {
         // 중복 호출 방지
-        if (this.isFetching || this.aiRecommendationsLoaded) {
-            console.log('AI 추천 이미 로드됨 또는 로딩 중');
+        if (this.isFetching) {
+            console.log('AI 추천 이미 로딩 중');
             return;
         }
 
         console.log('AI 추천 로드 시작');
+
+        // 사용자별 캐시 키 적용
+        this.applyUserSpecificCache();
+
+        // 캐시 확인
+        if (this.isCacheValid()) {
+            console.log('캐시된 AI 추천 데이터 사용');
+            const cachedData = this.getCachedData();
+
+            if (cachedData && cachedData.length > 0) {
+                this.clearGrid();
+                this.renderAIRecommendations(cachedData);
+                this.aiRecommendationsLoaded = true;
+                this.hasMore = false;
+                return;
+            }
+        }
+
+        // 캐시가 없거나 만료된 경우 API 호출
         this.isFetching = true;
         this.clearGrid();
         this.showLoading();
@@ -364,18 +506,16 @@ class PopupListManager {
                 size: 20
             };
 
-            // API 호출
+            console.log('AI 추천 API 호출');
             const response = await apiService.getAIRecommendedPopups(params);
             console.log('AI 추천 API 응답:', response);
 
-            // 응답 검증
             if (!response) {
                 console.warn('AI 추천 API 응답이 null');
                 this.showNoAIResults();
                 return;
             }
 
-            // 추천 결과 추출
             let recommendations = [];
             if (response.content && Array.isArray(response.content)) {
                 recommendations = response.content;
@@ -389,26 +529,40 @@ class PopupListManager {
                 return;
             }
 
-            // 결과 렌더링
             if (recommendations.length > 0) {
+                // 캐시에 저장
+                this.setCacheData(recommendations);
+
+                // 화면에 렌더링
                 this.renderAIRecommendations(recommendations);
-                console.log(`AI 추천 ${recommendations.length}개 로드 완료`);
+                console.log(`AI 추천 ${recommendations.length}개 로드 및 캐시 저장 완료`);
             } else {
                 console.log('AI 추천 결과 없음');
                 this.showNoAIResults();
             }
 
             this.aiRecommendationsLoaded = true;
-            this.hasMore = false; // AI 추천은 한 번만 로드
+            this.hasMore = false;
 
         } catch (error) {
             console.error('AI 추천 로드 실패:', error);
             this.showAIError();
+
+            // 에러 시 캐시 무효화
+            this.invalidateCache();
         } finally {
             this.isFetching = false;
             this.hideLoading();
         }
     }
+
+    // AI 추천 강제 새로고침
+    async refreshAIRecommendations() {
+        console.log('AI 추천 강제 새로고침');
+        this.invalidateCache();
+        await this.loadAIRecommendations();
+    }
+
 
     // AI 추천 렌더링
     renderAIRecommendations(recommendations) {
