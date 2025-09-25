@@ -87,7 +87,7 @@ public class PopupController {
         return ResponseEntity.ok(response);
     }
 
-    // AI 추천 팝업 조회 (현재는 인기 팝업으로 대체)
+    // AI 추천 팝업 조회
     @GetMapping("/ai-recommended")
     public ResponseEntity<PopupListResponseDto> getAIRecommendedPopups(
             @RequestParam(defaultValue = "0") int page,

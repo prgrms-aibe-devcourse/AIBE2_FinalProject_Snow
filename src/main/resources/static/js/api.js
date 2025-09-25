@@ -398,7 +398,7 @@ apiService.getPopup = async function(popupId) {
     return await this.get(`/popups/${encodeURIComponent(popupId)}`);
 };
 
-// 추천 팝업 조회 (현재는 인기 팝업으로 대체)
+// AI 추천 팝업 조회
 apiService.getAIRecommendedPopups = async function(params = {}) {
     const query = createQueryString(params);
     return await this.get(`/popups/ai-recommended${query}`);
