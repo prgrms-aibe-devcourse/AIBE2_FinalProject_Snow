@@ -122,7 +122,6 @@
     color: #000000;
     font-size: 16px;
     line-height: 1.4;
-    align-items: center;
     padding-right: 8px;
 }
 
@@ -242,19 +241,23 @@
 }
 
 .reservation-btn.ended,
-.reservation-btn:disabled {
-    background: #9ca3af !important;
-    color: #f3f4f6 !important;
-    cursor: not-allowed !important;
+.reservation-btn:disabled,
+.reservation-btn[aria-disabled="true"],
+.reservation-btn.disabled {
+    background: #9ca3af;
+    color: #f3f4f6;
+    cursor: not-allowed;
+    pointer-events: none;
     opacity: 0.7;
 }
 
 .reservation-btn.ended:hover,
-.reservation-btn:disabled:hover {
-    background: #9ca3af !important;
-    color: #f3f4f6 !important;
+.reservation-btn:disabled:hover,
+.reservation-btn[aria-disabled="true"]:hover,
+.reservation-btn.disabled:hover {
+    background: #9ca3af;
+    color: #f3f4f6;
 }
-
 
 /* 위치 섹션 */
 .location-section {
