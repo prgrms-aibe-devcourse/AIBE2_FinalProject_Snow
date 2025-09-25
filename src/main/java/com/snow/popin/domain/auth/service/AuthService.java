@@ -7,6 +7,7 @@ import com.snow.popin.domain.category.repository.CategoryRepository;
 import com.snow.popin.domain.category.repository.UserInterestRepository;
 import com.snow.popin.domain.user.constant.Role;
 import com.snow.popin.domain.category.entity.UserInterest;
+import com.snow.popin.domain.user.constant.UserStatus;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.domain.user.repository.UserRepository;
 import com.snow.popin.global.constant.ErrorCode;
@@ -152,6 +153,7 @@ public class AuthService implements UserDetailsService {
                 .phone(request.getPhone())
                 .authProvider(AuthProvider.LOCAL)
                 .role(Role.USER)
+                .status(UserStatus.ACTIVE)
                 .build();
     }
 

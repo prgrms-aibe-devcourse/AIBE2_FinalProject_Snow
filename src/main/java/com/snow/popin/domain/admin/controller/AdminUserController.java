@@ -5,6 +5,8 @@ import com.snow.popin.domain.admin.service.AdminRoleUpgradeService;
 import com.snow.popin.domain.user.constant.Role;
 import com.snow.popin.domain.user.dto.UserDetailResponse;
 import com.snow.popin.domain.user.dto.UserSearchResponse;
+import com.snow.popin.domain.user.dto.UserStatusUpdateRequest;
+import com.snow.popin.domain.user.dto.UserStatusUpdateResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -15,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.Map;
 
 @RestController
@@ -41,7 +44,6 @@ public class AdminUserController {
                 searchType, keyword, role, pageable.getPageNumber());
 
         Page<UserSearchResponse> users = adminUserService.searchUser(searchType, keyword, role, pageable);
-
         return ResponseEntity.ok(users);
     }
 
@@ -53,19 +55,28 @@ public class AdminUserController {
         log.info("회원 상세 정보 조회 요청 - userId: {}", userId);
 
         UserDetailResponse res = adminUserService.getUserDetailById(userId);
-
         return ResponseEntity.ok(res);
+    }
+
+    /**
+     * 사용자 상태 변경
+     */
+    @PutMapping("/{userId}/status")
+    public ResponseEntity<UserStatusUpdateResponse> updateUserStatus(
+            @PathVariable Long userId,
+            @Valid @RequestBody UserStatusUpdateRequest request){
+        UserStatusUpdateResponse response = adminUserService.updateUserStatus(userId, request.getStatus());
+        return ResponseEntity.ok(response);
     }
 
     /**
      * 전체 회원 수 조회
      */
-    @GetMapping("/count")
+            @GetMapping("/count")
     public ResponseEntity<Map<String, Long>> getTotalUserCount(){
         log.info("전체 회원 수 조회 요청");
 
         Long total = adminUserService.getTotalUserCount();
-
         return ResponseEntity.ok(Map.of("totalCount", total));
     }
 
@@ -77,7 +88,6 @@ public class AdminUserController {
         log.info("역할별 회원 수 조회 요청");
 
         Map<String, Long> roleState = adminUserService.getUserCountByRole();
-
         return ResponseEntity.ok(roleState);
     }
 
@@ -89,7 +99,6 @@ public class AdminUserController {
         log.info("계정 전환 요청 개수 조회");
 
         Long count = adminRoleService.getPendingRequestCount();
-
         return ResponseEntity.ok(count);
     }
 }

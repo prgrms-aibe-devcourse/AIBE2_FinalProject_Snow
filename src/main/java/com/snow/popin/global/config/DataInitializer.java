@@ -34,6 +34,7 @@ import com.snow.popin.domain.roleupgrade.entity.RoleUpgrade;
 import com.snow.popin.domain.roleupgrade.repository.RoleUpgradeRepository;
 import com.snow.popin.domain.space.entity.Space;
 import com.snow.popin.domain.space.repository.SpaceRepository;
+import com.snow.popin.domain.user.constant.UserStatus; // 누락된 import 추가
 import com.snow.popin.domain.user.repository.UserRepository;
 import com.snow.popin.domain.user.constant.Role;
 import com.snow.popin.domain.user.entity.User;
@@ -54,7 +55,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@Profile("dev")
+@Profile({"dev"})
 public class DataInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
@@ -75,6 +76,8 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        log.info("=== DataInitializer 실행 시작 ===");
+
         createDataIfNotExists("유저", userRepository.count(), this::createDummyUsers);
         createDataIfNotExists("장소", venueRepository.count(), this::createDummyVenues);
         createDataIfNotExists("미션", missionSetRepository.count(), this::createDummyMissions);
@@ -85,41 +88,71 @@ public class DataInitializer implements CommandLineRunner {
         createDataIfNotExists("알림설정", notificationSettingRepository.count(), this::createDummyNotificationSettings);
         createDataIfNotExists("알림", notificationRepository.count(), this::createDummyNotifications);
         fixExistingPopupsVenue();
+
+        log.info("=== DataInitializer 실행 완료 ===");
     }
 
     // 공통 데이터 생성 로직
     private void createDataIfNotExists(String dataType, long count, Runnable createAction) {
         if (count > 0) {
-            log.info("{} 더미 데이터가 이미 존재하여 생성하지 않습니다.", dataType);
+            log.info("{} 더미 데이터가 이미 존재하여 생성하지 않습니다. (현재 {}개)", dataType, count);
             return;
         }
         log.info("{} 더미 데이터를 생성합니다.", dataType);
-        createAction.run();
-        log.info("{} 더미 데이터 생성 완료", dataType);
+        try {
+            createAction.run();
+            log.info("{} 더미 데이터 생성 완료", dataType);
+        } catch (Exception e) {
+            log.error("{} 더미 데이터 생성 실패: {}", dataType, e.getMessage(), e);
+        }
     }
 
     // 사용자 생성 공통 메소드
     private User createUserIfNotExists(String email, String name, String nickname, String phone, Role role) {
         return userRepository.findByEmail(email)
-                .orElseGet(() -> userRepository.save(User.builder()
-                        .email(email)
-                        .password(passwordEncoder.encode("1234"))
-                        .name(name)
-                        .nickname(nickname)
-                        .phone(phone)
-                        .authProvider(AuthProvider.LOCAL)
-                        .role(role)
-                        .build()));
+                .orElseGet(() -> {
+                    try {
+                        User user = User.builder()
+                                .email(email)
+                                .password(passwordEncoder.encode("1234"))
+                                .name(name)
+                                .nickname(nickname)
+                                .phone(phone)
+                                .authProvider(AuthProvider.LOCAL)
+                                .role(role)
+                                .status(UserStatus.ACTIVE)
+                                .build();
+                        User savedUser = userRepository.save(user);
+                        log.info("사용자 생성 완료: {} ({})", savedUser.getEmail(), savedUser.getRole());
+                        return savedUser;
+                    } catch (Exception e) {
+                        log.error("사용자 생성 실패: {} - {}", email, e.getMessage());
+                        throw e;
+                    }
+                });
     }
 
     private void createDummyUsers() {
+        log.info("기본 더미 사용자들을 생성합니다...");
+
         List<UserData> userData = Arrays.asList(
                 new UserData("user1@test.com", "유저1이름", "유저닉네임1", "010-1234-1234", Role.USER),
                 new UserData("user2@test.com", "유저2이름", "유저닉네임2", "010-5678-5678", Role.USER),
-                new UserData("user3@test.com", "관리자1", "관리자1닉네임", "010-5678-5678", Role.ADMIN)
+                new UserData("admin@test.com", "관리자1", "관리자1닉네임", "010-9999-9999", Role.ADMIN),
+                new UserData("host1@test.com", "호스트1", "host1", "010-1111-1111", Role.HOST),
+                new UserData("provider1@test.com", "공간제공자1", "provider1", "010-2222-2222", Role.PROVIDER)
         );
 
-        userData.forEach(data -> createUserIfNotExists(data.email, data.name, data.nickname, data.phone, data.role));
+        userData.forEach(data -> {
+            try {
+                createUserIfNotExists(data.email, data.name, data.nickname, data.phone, data.role);
+            } catch (Exception e) {
+                log.error("사용자 생성 실패: {}", data.email, e);
+            }
+        });
+
+        long userCount = userRepository.count();
+        log.info("총 {}명의 사용자가 데이터베이스에 존재합니다.", userCount);
     }
 
     private void createDummyVenues() {
@@ -134,6 +167,7 @@ public class DataInitializer implements CommandLineRunner {
                 .collect(Collectors.toList());
 
         venueRepository.saveAll(venues);
+        log.info("{}개의 장소 데이터 생성 완료", venues.size());
     }
 
     private void createDummyMissions() {
@@ -306,9 +340,10 @@ public class DataInitializer implements CommandLineRunner {
                 log.info("팝업 {} venue 연결 완료: {}", popup.getTitle(), defaultVenue.getName());
             }
 
-            log.info("총 {}개 팝업의 venue 연결 완료", popupsWithoutVenue.size());
+            log.info("이 {}개 팝업의 venue 연결 완료", popupsWithoutVenue.size());
         }
     }
+
     private void createDummyInquiries() {
         User user1 = userRepository.findByEmail("user1@test.com").orElse(null);
         User user2 = userRepository.findByEmail("user2@test.com").orElse(null);
@@ -353,7 +388,7 @@ public class DataInitializer implements CommandLineRunner {
                 .collect(Collectors.toList());
 
         inquiryRepository.saveAll(inquiries);
-        log.info("신고 더미 데이터 생성 완료 - 총 {}건", inquiries.size());
+        log.info("신고 더미 데이터 생성 완료 - 이 {}건", inquiries.size());
     }
 
     private void createDummyRoleUpgrades() {

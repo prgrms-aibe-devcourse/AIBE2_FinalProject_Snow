@@ -1,16 +1,17 @@
 /**
- * 회원 관리 컨트롤러
+ * 회원 관리 컨트롤러 - popup-management와 동일한 구조로 수정
  */
 class UserManagementController {
     constructor() {
         this.api = new UserManagementApi();
         this.ui = new UserManagementUI();
         this.currentPage = 1;
+        this.currentFilters = {};
+        this.selectedUserId = null;
 
-        // 전역에서 접근 가능하도록 설정 (디버깅용)
+        // 전역에서 접근 가능하도록 설정 (popup-management와 동일한 패턴)
         window.userController = this;
 
-        // HTML에서 DOMContentLoaded로 초기화하므로 여기서는 바로 init 호출
         this.init();
     }
 
@@ -20,7 +21,7 @@ class UserManagementController {
     init() {
         console.log('UserManagementController 초기화 시작');
         this.checkAdminAuth();
-        this.bindEvents();
+        this.initEventListeners();
         this.loadInitialData();
         console.log('UserManagementController 초기화 완료');
     }
@@ -40,74 +41,74 @@ class UserManagementController {
     }
 
     /**
-     * 이벤트 바인딩
+     * 이벤트 리스너 초기화 - popup-management의 initEventListeners와 동일한 구조
      */
-    bindEvents() {
+    initEventListeners() {
         console.log('이벤트 바인딩 시작');
 
-        // 검색 버튼 클릭
-        if (this.ui.elements.searchBtn) {
-            this.ui.elements.searchBtn.addEventListener('click', () => {
-                this.performSearch(1);
-            });
+        // 검색 버튼
+        document.getElementById('searchBtn')?.addEventListener('click', () => this.search());
+        document.getElementById('resetBtn')?.addEventListener('click', () => this.reset());
+
+        // 엔터키로 검색
+        ['searchKeyword'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.search();
+                });
+            }
+        });
+
+        // 모달 이벤트 - popup-management와 동일한 구조
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        if (modalCloseBtn) {
+            modalCloseBtn.addEventListener('click', () => this.closeModal());
+        }
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => this.closeModal());
         }
 
-        // 리셋 버튼 클릭
-        if (this.ui.elements.resetBtn) {
-            this.ui.elements.resetBtn.addEventListener('click', () => {
-                this.resetSearch();
-            });
+        // 상태 변경 관련 이벤트 - 안전하게 체크 후 바인딩
+        const changeStatusBtn = document.getElementById('changeStatusBtn');
+        const confirmStatusBtn = document.getElementById('confirmStatusBtn');
+        const cancelStatusBtn = document.getElementById('cancelStatusBtn');
+        const statusModalCloseBtn = document.getElementById('statusModalCloseBtn');
+
+        if (changeStatusBtn) {
+            changeStatusBtn.addEventListener('click', () => this.openStatusModal());
+        }
+        if (confirmStatusBtn) {
+            confirmStatusBtn.addEventListener('click', () => this.confirmStatusChange());
+        }
+        if (cancelStatusBtn) {
+            cancelStatusBtn.addEventListener('click', () => this.closeStatusModal());
+        }
+        if (statusModalCloseBtn) {
+            statusModalCloseBtn.addEventListener('click', () => this.closeStatusModal());
         }
 
-        // 엔터키 검색
-        if (this.ui.elements.searchKeyword) {
-            this.ui.elements.searchKeyword.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.performSearch(1);
-                }
-            });
-        }
-
-        // 모달 닫기
-        if (this.ui.elements.closeModal) {
-            this.ui.elements.closeModal.addEventListener('click', () => {
-                console.log('모달 닫기 버튼 클릭됨');
-                this.ui.closeModal();
-            });
-        }
-
-        // 모달 배경 클릭으로 닫기
-        if (this.ui.elements.userDetailModal) {
-            this.ui.elements.userDetailModal.addEventListener('click', (e) => {
-                if (e.target === this.ui.elements.userDetailModal) {
-                    console.log('모달 배경 클릭됨');
-                    this.ui.closeModal();
-                }
-            });
-        }
-
-        // 사용자 상세보기 버튼 클릭 (이벤트 위임)
-        if (this.ui.elements.userTableBody) {
-            this.ui.elements.userTableBody.addEventListener('click', (e) => {
-                console.log('테이블 클릭 이벤트:', e.target);
-
-                if (e.target.classList.contains('detail-button')) {
-                    const userId = e.target.dataset.userId || e.target.getAttribute('data-user-id');
-                    console.log('상세보기 버튼 클릭됨 - 사용자 ID:', userId);
-
-                    if (userId) {
-                        this.showUserDetail(userId);
-                    } else {
-                        console.error('사용자 ID를 찾을 수 없습니다.');
-                        alert('사용자 ID를 찾을 수 없습니다.');
-                    }
-                }
-            });
-        } else {
-            console.error('userTableBody 요소를 찾을 수 없습니다.');
-        }
+        // 모든 모달이 처음에는 숨겨져 있도록 확실히 설정
+        this.ensureModalsAreClosed();
 
         console.log('이벤트 바인딩 완료');
+    }
+
+    /**
+     * 모든 모달이 닫혀있도록 확실히 설정
+     */
+    ensureModalsAreClosed() {
+        const detailModal = document.getElementById('detailModal');
+        const statusSelectModal = document.getElementById('statusSelectModal');
+
+        if (detailModal) {
+            detailModal.style.display = 'none';
+        }
+        if (statusSelectModal) {
+            statusSelectModal.style.display = 'none';
+        }
     }
 
     /**
@@ -121,7 +122,7 @@ class UserManagementController {
             this.ui.updateUpgradeRequestCount(upgradeRequestCount);
 
             // 초기 검색 (전체 목록)
-            this.performSearch(1);
+            this.search();
 
         } catch (error) {
             console.error('초기 데이터 로드 실패:', error);
@@ -129,21 +130,42 @@ class UserManagementController {
     }
 
     /**
-     * 검색 수행
-     * @param {number} page 페이지 번호
+     * 검색 실행 - popup-management의 search와 동일한 구조
      */
-    async performSearch(page = 1) {
-        console.log('검색 수행 - 페이지:', page);
+    search() {
+        this.currentFilters = this.ui.getSearchParams();
+        this.currentPage = 1;
+        this.loadUsers();
+    }
+
+    /**
+     * 필터 초기화 - popup-management의 reset과 동일한 구조
+     */
+    reset() {
+        this.ui.resetSearchForm();
+        this.currentFilters = {};
+        this.currentPage = 1;
+        this.loadUsers();
+    }
+
+    /**
+     * 페이지 이동 - popup-management의 goToPage와 동일한 구조
+     */
+    goToPage(page) {
         this.currentPage = page;
-        const searchParams = this.ui.getSearchParams();
-        console.log('검색 파라미터:', searchParams);
+        this.loadUsers();
+    }
 
-        this.ui.showLoading();
-
+    /**
+     * 사용자 목록 로드 - popup-management의 loadPopups와 동일한 구조
+     */
+    async loadUsers() {
         try {
+            this.ui.showLoading();
+
             const params = {
-                ...searchParams,
-                page: page - 1, // 백엔드는 0부터 시작
+                ...this.currentFilters,
+                page: this.currentPage - 1, // 백엔드는 0부터 시작
                 size: 10
             };
 
@@ -151,44 +173,87 @@ class UserManagementController {
             console.log('검색 결과:', data);
 
             this.ui.displaySearchResults(data);
-            this.ui.setupPagination(data, page, (newPage) => {
-                this.performSearch(newPage);
+            this.ui.setupPagination(data, this.currentPage, (newPage) => {
+                this.goToPage(newPage);
             });
 
         } catch (error) {
-            console.error('검색 실패:', error);
-            this.ui.showError('검색 중 오류가 발생했습니다.');
+            console.error('사용자 목록 로드 실패:', error);
+            this.ui.showError('사용자 목록을 불러오는데 실패했습니다.');
         } finally {
             this.ui.hideLoading();
         }
     }
 
     /**
-     * 검색 리셋
+     * 사용자 상세 보기 - popup-management의 viewDetail과 정확히 동일한 구조
      */
-    resetSearch() {
-        console.log('검색 리셋');
-        this.ui.resetSearchForm();
-        this.performSearch(1);
-    }
-
-    /**
-     * 사용자 상세 정보 표시
-     * @param {string} userId 사용자 ID
-     */
-    async showUserDetail(userId) {
-        console.log('사용자 상세 정보 조회 시작 - ID:', userId);
+    async viewDetail(userId) {
+        this.selectedUserId = userId;
 
         try {
             const user = await this.api.getUserDetail(userId);
             console.log('사용자 상세 정보 조회 성공:', user);
 
-            this.ui.showUserDetailModal(user);
+            this.ui.renderDetailModal(user);
 
         } catch (error) {
             console.error('사용자 상세 정보 조회 실패:', error);
             this.ui.showError('사용자 정보를 불러오는데 실패했습니다: ' + error.message);
         }
+    }
+
+    /**
+     * 상태 변경 모달 열기 - popup-management의 openStatusModal과 동일
+     */
+    openStatusModal() {
+        this.ui.openStatusModal();
+    }
+
+    /**
+     * 상태 변경 확인 - popup-management의 confirmStatusChange와 동일한 구조
+     */
+    async confirmStatusChange() {
+        const newStatus = document.getElementById('newStatusSelect').value;
+
+        if (!newStatus) {
+            alert('변경할 상태를 선택해주세요.');
+            return;
+        }
+
+        if (!confirm(`사용자 상태를 '${this.ui.getStatusText(newStatus)}'로 변경하시겠습니까?`)) {
+            return;
+        }
+
+        try {
+            const response = await this.api.updateUserStatus(this.selectedUserId, newStatus);
+            console.log('사용자 상태 변경 성공:', response);
+
+            alert('사용자 상태가 성공적으로 변경되었습니다.');
+
+            this.closeStatusModal();
+            this.closeModal();
+            this.loadUsers();
+
+        } catch (error) {
+            console.error('사용자 상태 변경 실패:', error);
+            alert('사용자 상태 변경에 실패했습니다: ' + error.message);
+        }
+    }
+
+    /**
+     * 상태 변경 모달 닫기 - popup-management의 closeStatusModal과 동일
+     */
+    closeStatusModal() {
+        this.ui.closeStatusModal();
+    }
+
+    /**
+     * 모달 닫기 - popup-management의 closeModal과 동일
+     */
+    closeModal() {
+        this.ui.closeModal();
+        this.selectedUserId = null;
     }
 
     /**
@@ -216,5 +281,50 @@ class UserManagementController {
             console.error('통계 정보 조회 실패:', error);
             throw error;
         }
+    }
+
+    /**
+     * 사용자 상태 토글 (기존 메서드 호환성을 위해 유지)
+     * @param {string} userId 사용자 ID
+     * @param {string} currentStatus 현재 상태
+     */
+    async toggleUserStatus(userId, currentStatus) {
+        console.log('사용자 상태 변경 요청 - userId:', userId, 'currentStatus:', currentStatus);
+
+        // 새로운 상태 결정
+        const newStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+        const action = newStatus === 'ACTIVE' ? '활성화' : '비활성화';
+
+        // 확인 메시지
+        if (!confirm(`이 사용자를 ${action}하시겠습니까?`)) {
+            return;
+        }
+
+        try {
+            // API 호출
+            const response = await this.api.updateUserStatus(userId, newStatus);
+            console.log('사용자 상태 변경 성공:', response);
+
+            // 성공 메시지
+            alert(`사용자가 ${action}되었습니다.`);
+
+            // 모달 닫기
+            this.closeModal();
+
+            // 목록 새로고침
+            this.loadUsers();
+
+        } catch (error) {
+            console.error('사용자 상태 변경 실패:', error);
+            this.ui.showError(`사용자 ${action}에 실패했습니다: ` + error.message);
+        }
+    }
+
+    /**
+     * 사용자 상세 정보 표시 (기존 호환성을 위해 유지)
+     * @param {string} userId 사용자 ID
+     */
+    async showUserDetail(userId) {
+        return this.viewDetail(userId);
     }
 }

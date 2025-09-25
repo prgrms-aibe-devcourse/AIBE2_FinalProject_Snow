@@ -1,8 +1,10 @@
 package com.snow.popin.domain.admin.service;
 
 import com.snow.popin.domain.user.constant.Role;
+import com.snow.popin.domain.user.constant.UserStatus;
 import com.snow.popin.domain.user.dto.UserDetailResponse;
 import com.snow.popin.domain.user.dto.UserSearchResponse;
+import com.snow.popin.domain.user.dto.UserStatusUpdateResponse;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.domain.user.repository.UserRepository;
 import com.snow.popin.global.constant.ErrorCode;
@@ -46,7 +48,7 @@ public class AdminUserService {
      */
     public UserDetailResponse getUserDetailByEmail(String email){
         User user = userRepo.findByEmail(email)
-                .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND));
 
         return UserDetailResponse.from(user);
     }
@@ -56,9 +58,32 @@ public class AdminUserService {
      */
     public UserDetailResponse getUserDetailById(Long id){
         User user = userRepo.findById(id)
-                .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND));
 
         return UserDetailResponse.from(user);
+    }
+
+    /**
+     * 사용자 상태 변경
+     */
+    @Transactional
+    public UserStatusUpdateResponse updateUserStatus(Long userId, UserStatus status){
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND));
+
+        // 관리자 계정은 비활성화 불가
+        if (user.getRole().name().equals("ADMIN")){
+            throw new GeneralException(ErrorCode.BAD_REQUEST, "관리자 계정은 비활성화 할 수 없습니다.");
+        }
+
+        user.updateStatus(status);
+        User savedUser = userRepo.save(user);
+
+        return UserStatusUpdateResponse.of(
+                savedUser.getId(),
+                savedUser.getName(),
+                savedUser.getStatus()
+        );
     }
 
     /**
@@ -82,7 +107,6 @@ public class AdminUserService {
 
         return roleState;
     }
-
 
     private Specification<User> createSearchSpecification(String searchType, String keyword, Role role) {
         return (root, query, criteriaBuilder) -> {

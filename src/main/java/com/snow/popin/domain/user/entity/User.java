@@ -4,6 +4,7 @@ import com.snow.popin.domain.auth.constant.AuthProvider;
 import com.snow.popin.domain.category.entity.Category;
 import com.snow.popin.domain.category.entity.UserInterest;
 import com.snow.popin.domain.user.constant.Role;
+import com.snow.popin.domain.user.constant.UserStatus;
 import com.snow.popin.global.common.BaseEntity;
 import lombok.*;
 
@@ -41,16 +42,16 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @Column(name = "is_hidden", nullable = false)
-    private Boolean isHidden = false;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserStatus status;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserInterest> interests = new ArrayList<>();
 
-
     @Builder
     public User(String email, String password, String name, String nickname,
-                String phone, AuthProvider authProvider, Role role) {
+                String phone, AuthProvider authProvider, Role role, UserStatus status) {
         this.email = email;
         this.password = password;
         this.name = name;
@@ -58,6 +59,12 @@ public class User extends BaseEntity {
         this.phone = phone;
         this.authProvider = authProvider;
         this.role = role != null ? role : Role.USER;
+        this.status = status != null ? status : UserStatus.ACTIVE;
+    }
+
+    public User(String email, String password, String name, String nickname,
+                String phone, AuthProvider authProvider, Role role) {
+        this(email, password, name, nickname, phone, authProvider, role, UserStatus.ACTIVE);
     }
 
     // 비즈니스 로직 메소드들
@@ -81,6 +88,10 @@ public class User extends BaseEntity {
     // Role 업데이트
     public void updateRole(Role newRole){
         this.role = newRole;
+    }
+
+    public void updateStatus(UserStatus status){
+        this.status = status;
     }
 
 }
