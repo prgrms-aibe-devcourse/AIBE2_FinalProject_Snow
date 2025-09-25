@@ -34,8 +34,7 @@ public class UserDetailResponse {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .role(user.getRole())
-                // TODO is_hidden 추가되면 수정
-                //.status(user.getStatus())
+                .status(user.getStatus())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();
