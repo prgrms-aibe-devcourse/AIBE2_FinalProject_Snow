@@ -42,11 +42,11 @@
                 <input type="text" id="titleFilter" placeholder="장소 제목">
             </div>
             <div class="filter-group">
-                <label for="isPublicFilter">상태:</label>
-                <select id="isPublicFilter">
+                <label for="isHiddenFilter">상태:</label>
+                <select id="isHiddenFilter">
                     <option value="">전체</option>
-                    <option value="true">공개</option>
-                    <option value="false">비공개</option>
+                    <option value="false">공개</option>
+                    <option value="true">숨김</option>
                 </select>
             </div>
             <button class="button button-primary" id="searchBtn">검색</button>
@@ -54,46 +54,37 @@
         </div>
 
         <!-- 테이블 영역 -->
-        <div class="table-container">
-            <div class="table-wrapper">
-                <table class="data-table" id="spacesTable">
-                    <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>제목</th>
-                        <th>소유자</th>
-                        <th>위치</th>
-                        <th>대여료</th>
-                        <th>상태</th>
-                        <th>등록일</th>
-                        <th>관리</th>
-                    </tr>
-                    </thead>
-                    <tbody id="spacesTableBody">
-                    <!-- 데이터가 동적으로 로드됩니다 -->
-                    </tbody>
-                </table>
+        <div class="table-container" id="tableContainer">
+            <div class="loading" id="searchLoading" style="display: none;">
+                데이터를 불러오는 중...
             </div>
 
-            <!-- 페이징 -->
-            <div class="pagination" id="pagination">
-                <!-- 페이징 버튼이 동적으로 생성됩니다 -->
-            </div>
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>장소명</th>
+                    <th>소유자</th>
+                    <th>위치</th>
+                    <th>임대료</th>
+                    <th>상태</th>
+                    <th>등록일</th>
+                    <th>관리</th>
+                </tr>
+                </thead>
+                <tbody id="spacesTableBody">
+                <!-- 데이터가 동적으로 로드됩니다 -->
+                </tbody>
+            </table>
         </div>
 
-        <!-- 로딩 표시 -->
-        <div class="loading" id="searchLoading" style="display: none;">
-            <div class="spinner"></div>
-            <span>검색 중...</span>
-        </div>
+        <!-- 페이지네이션 -->
+        <div class="pagination" id="pagination"></div>
+    </div>
 
-        <!-- 검색 결과 없음 -->
-        <div class="no-results" id="noResults" style="display: none;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 21h18"></path>
-                <path d="M5 21V7l8-4v18"></path>
-                <path d="M19 21V11l-6-4"></path>
-            </svg>
+    <!-- 검색 결과 없음 안내 -->
+    <div class="no-results" id="noResults" style="display: none;">
+        <div class="no-results-content">
             <h3>검색 결과가 없습니다</h3>
             <p>다른 검색 조건으로 다시 시도해보세요.</p>
         </div>
@@ -146,4 +137,5 @@
 <script src="/js/admin/popup-inquiry.js"></script>
 
 </body>
+
 </html>

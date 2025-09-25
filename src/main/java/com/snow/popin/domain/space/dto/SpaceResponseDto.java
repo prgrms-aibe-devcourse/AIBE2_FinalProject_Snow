@@ -29,6 +29,8 @@ public class SpaceResponseDto {
     private Boolean isPublic;
     private Boolean isOfficial;
 
+    private Boolean isHidden;
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
@@ -70,6 +72,7 @@ public class SpaceResponseDto {
                 .coverImageUrl(space.getCoverImageUrl())
                 .isPublic(space.getIsPublic())
                 .isOfficial(space.getIsOfficial())
+                .isHidden(space.getIsHidden())
                 .createdAt(space.getCreatedAt())
                 .updatedAt(space.getUpdatedAt())
                 .owner(OwnerInfo.builder()
