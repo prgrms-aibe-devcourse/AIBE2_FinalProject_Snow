@@ -24,11 +24,7 @@ class PopupListManager {
         this.aiMessage = null;
 
         // 캐시 관리
-        this.aiRecommendationCache = null;
-        this.cacheTimestamp = null;
-        this.cacheExpiry = 10 * 60 * 1000; // 10분 (밀리초)
-        this.cacheKey = 'ai_popup_recommendations';
-        this.cacheTimestampKey = 'ai_popup_recommendations_timestamp';
+        this.aiCache = new AIRecommendationCache();
     }
 
     // ===== 초기화 메서드들 =====
@@ -197,117 +193,9 @@ class PopupListManager {
         console.log('초기 탭 상태 설정 완료 - latest 모드 활성화');
     }
 
-    // ===== 캐시 관리 메서드들 =====
-
-    isCacheValid() {
-        // 메모리 캐시 확인
-        if (this.aiRecommendationCache && this.cacheTimestamp) {
-            const now = Date.now();
-            if (now - this.cacheTimestamp < this.cacheExpiry) {
-                return true;
-            }
-        }
-
-        // LocalStorage 캐시 확인
-        try {
-            const cachedData = localStorage.getItem(this.cacheKey);
-            const cachedTimestamp = localStorage.getItem(this.cacheTimestampKey);
-
-            if (cachedData && cachedTimestamp) {
-                const timestamp = parseInt(cachedTimestamp);
-                const now = Date.now();
-
-                if (now - timestamp < this.cacheExpiry) {
-                    // 메모리 캐시도 업데이트
-                    this.aiRecommendationCache = JSON.parse(cachedData);
-                    this.cacheTimestamp = timestamp;
-                    return true;
-                }
-            }
-        } catch (error) {
-            console.warn('캐시 확인 중 오류:', error);
-        }
-
-        return false;
-    }
-
-    getCachedData() {
-        if (this.aiRecommendationCache) {
-            return this.aiRecommendationCache;
-        }
-
-        try {
-            const cachedData = localStorage.getItem(this.cacheKey);
-            if (cachedData) {
-                this.aiRecommendationCache = JSON.parse(cachedData);
-                return this.aiRecommendationCache;
-            }
-        } catch (error) {
-            console.warn('캐시 데이터 조회 중 오류:', error);
-        }
-
-        return null;
-    }
-
-    setCacheData(data) {
-        const timestamp = Date.now();
-
-        // 메모리 캐시 저장
-        this.aiRecommendationCache = data;
-        this.cacheTimestamp = timestamp;
-
-        // LocalStorage 캐시 저장
-        try {
-            localStorage.setItem(this.cacheKey, JSON.stringify(data));
-            localStorage.setItem(this.cacheTimestampKey, timestamp.toString());
-            console.log('AI 추천 데이터 캐시 저장 완료');
-        } catch (error) {
-            console.warn('캐시 저장 중 오류:', error);
-        }
-    }
-
-    invalidateCache() {
-        // 메모리 캐시 초기화
-        this.aiRecommendationCache = null;
-        this.cacheTimestamp = null;
-        this.aiRecommendationsLoaded = false;
-
-        // LocalStorage 캐시 제거
-        try {
-            localStorage.removeItem(this.cacheKey);
-            localStorage.removeItem(this.cacheTimestampKey);
-            console.log('AI 추천 캐시 무효화 완료');
-        } catch (error) {
-            console.warn('캐시 무효화 중 오류:', error);
-        }
-    }
-
-    getUserSpecificCacheKey() {
-        try {
-            const userId = apiService.getCurrentUserId();
-            const isLoggedIn = apiService.isLoggedIn();
-
-            if (isLoggedIn && userId) {
-                return `${this.cacheKey}_user_${userId}`;
-            } else {
-                return `${this.cacheKey}_anonymous`;
-            }
-        } catch (error) {
-            return `${this.cacheKey}_default`;
-        }
-    }
-
-    applyUserSpecificCache() {
-        const userCacheKey = this.getUserSpecificCacheKey();
-        const userTimestampKey = `${userCacheKey}_timestamp`;
-
-        this.cacheKey = userCacheKey;
-        this.cacheTimestampKey = userTimestampKey;
-    }
-
     async refreshAIRecommendations() {
         console.log('AI 추천 강제 새로고침');
-        this.invalidateCache();
+        this.aiCache.invalidateCache();
         await this.loadAIRecommendations();
     }
 
@@ -453,13 +341,9 @@ class PopupListManager {
 
         console.log('AI 추천 로드 시작');
 
-        // 사용자별 캐시 키 적용
-        this.applyUserSpecificCache();
-
-        // 캐시 확인
-        if (this.isCacheValid()) {
+        if (this.aiCache.isCacheValid()) {
             console.log('캐시된 AI 추천 데이터 사용');
-            const cachedData = this.getCachedData();
+            const cachedData = this.aiCache.getCachedData();
 
             if (cachedData && cachedData.length > 0) {
                 this.clearGrid();
@@ -506,7 +390,7 @@ class PopupListManager {
 
             if (recommendations.length > 0) {
                 // 캐시에 저장
-                this.setCacheData(recommendations);
+                this.aiCache.setCacheData(recommendations);
 
                 // 화면에 렌더링
                 this.renderAIRecommendations(recommendations);
@@ -522,7 +406,7 @@ class PopupListManager {
         } catch (error) {
             console.error('AI 추천 로드 실패:', error);
             this.showAIError();
-            this.invalidateCache();
+            this.aiCache.invalidateCache();
         } finally {
             this.isFetching = false;
             this.hideLoading();
