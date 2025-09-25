@@ -41,6 +41,9 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Column(name = "is_hidden", nullable = false)
+    private Boolean isHidden = false;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserInterest> interests = new ArrayList<>();
 

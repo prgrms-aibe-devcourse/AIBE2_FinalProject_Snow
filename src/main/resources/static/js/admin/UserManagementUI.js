@@ -26,11 +26,23 @@ class UserManagementUI {
      * 검색 결과 표시
      * @param {Object} data 검색 결과 데이터
      */
+    /**
+     * 검색 결과 표시 (디버깅 강화 버전)
+     * @param {Object} data 검색 결과 데이터
+     */
     displaySearchResults(data) {
         this.elements.totalCount.textContent = data.totalElements;
 
         if (data.content && data.content.length > 0) {
-            this.elements.userTableBody.innerHTML = data.content.map(user => `
+            // 첫 번째 사용자 객체의 구조를 확인
+            console.log('사용자 데이터 구조:', data.content[0]);
+
+            this.elements.userTableBody.innerHTML = data.content.map(user => {
+                // 여러 가능한 ID 필드를 확인
+                const userId = user.id || user.userId || user.userNumber || user.seq;
+                console.log('사용자:', user.name, 'ID:', userId);
+
+                return `
                 <tr>
                     <td>${this.escapeHtml(user.name)}</td>
                     <td>${this.escapeHtml(user.nickname)}</td>
@@ -40,12 +52,18 @@ class UserManagementUI {
                     <td>${this.formatDate(user.createdAt)}</td>
                     <td><span class="status-badge ${user.status === 'ACTIVE' ? 'active' : 'inactive'}">${user.status === 'ACTIVE' ? '활성' : '비활성'}</span></td>
                     <td>
-                        <button type="button" class="button button-sm button-primary" data-user-id="${user.userId}">상세보기</button>
+                        <button type="button" class="button button-sm button-primary detail-button" 
+                                data-user-id="${userId}" 
+                                onclick="console.log('버튼 클릭, ID:', '${userId}'); window.userController.showUserDetail('${userId}');">
+                            상세보기
+                        </button>
                     </td>
                 </tr>
-            `).join('');
+            `;
+            }).join('');
 
             this.showSearchResults();
+            console.log('테이블 렌더링 완료, 사용자 수:', data.content.length);
         } else {
             this.showNoResults();
         }

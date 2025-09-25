@@ -49,7 +49,7 @@ public class AdminUserController {
      * 회원 상세 정보 조회
      */
     @GetMapping("/{userId}")
-    public ResponseEntity<UserDetailResponse> getUesrDetail(@PathVariable Long userId){
+    public ResponseEntity<UserDetailResponse> getUserDetail(@PathVariable Long userId){
         log.info("회원 상세 정보 조회 요청 - userId: {}", userId);
 
         UserDetailResponse res = adminUserService.getUserDetailById(userId);
