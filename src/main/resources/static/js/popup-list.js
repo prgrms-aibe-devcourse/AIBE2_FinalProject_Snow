@@ -15,6 +15,7 @@ class PopupListManager {
         this.customEndDate = null;
         this.isCustomDateMode = false;
 
+        // DOM 요소들
         this.grid = null;
         this.loadingIndicator = null;
         this.regionDateFilterContainer = null;
@@ -22,6 +23,7 @@ class PopupListManager {
         this.statusFilterSelect = null;
         this.aiMessage = null;
 
+        // 캐시 관리
         this.aiRecommendationCache = null;
         this.cacheTimestamp = null;
         this.cacheExpiry = 10 * 60 * 1000; // 10분 (밀리초)
@@ -29,15 +31,14 @@ class PopupListManager {
         this.cacheTimestampKey = 'ai_popup_recommendations_timestamp';
     }
 
-    // 페이지 초기화
+    // ===== 초기화 메서드들 =====
+
     async initialize() {
         try {
             await this.renderHTML();
             this.setupElements();
             this.setupEventListeners();
-            // 탭 상태 명시적 설정
             this.setInitialTabState();
-            // 초기 데이터 로드
             await this.loadInitialData();
         } catch (error) {
             console.error('팝업 리스트 페이지 초기화 실패:', error);
@@ -45,7 +46,6 @@ class PopupListManager {
         }
     }
 
-    // HTML 렌더링
     renderHTML() {
         document.getElementById('main-content').innerHTML = `
             <div class="announcement-banner">
@@ -123,137 +123,6 @@ class PopupListManager {
         `;
     }
 
-    // 캐시가 유효한지 확인
-    isCacheValid() {
-        // 메모리 캐시 확인
-        if (this.aiRecommendationCache && this.cacheTimestamp) {
-            const now = Date.now();
-            if (now - this.cacheTimestamp < this.cacheExpiry) {
-                return true;
-            }
-        }
-
-        // LocalStorage 캐시 확인
-        try {
-            const cachedData = localStorage.getItem(this.cacheKey);
-            const cachedTimestamp = localStorage.getItem(this.cacheTimestampKey);
-
-            if (cachedData && cachedTimestamp) {
-                const timestamp = parseInt(cachedTimestamp);
-                const now = Date.now();
-
-                if (now - timestamp < this.cacheExpiry) {
-                    // 메모리 캐시도 업데이트
-                    this.aiRecommendationCache = JSON.parse(cachedData);
-                    this.cacheTimestamp = timestamp;
-                    return true;
-                }
-            }
-        } catch (error) {
-            console.warn('캐시 확인 중 오류:', error);
-        }
-
-        return false;
-    }
-
-    // 캐시에서 데이터 가져오기
-    getCachedData() {
-        if (this.aiRecommendationCache) {
-            return this.aiRecommendationCache;
-        }
-
-        try {
-            const cachedData = localStorage.getItem(this.cacheKey);
-            if (cachedData) {
-                this.aiRecommendationCache = JSON.parse(cachedData);
-                return this.aiRecommendationCache;
-            }
-        } catch (error) {
-            console.warn('캐시 데이터 조회 중 오류:', error);
-        }
-
-        return null;
-    }
-
-    // 데이터를 캐시에 저장
-    setCacheData(data) {
-        const timestamp = Date.now();
-
-        // 메모리 캐시 저장
-        this.aiRecommendationCache = data;
-        this.cacheTimestamp = timestamp;
-
-        // LocalStorage 캐시 저장
-        try {
-            localStorage.setItem(this.cacheKey, JSON.stringify(data));
-            localStorage.setItem(this.cacheTimestampKey, timestamp.toString());
-            console.log('AI 추천 데이터 캐시 저장 완료');
-        } catch (error) {
-            console.warn('캐시 저장 중 오류:', error);
-        }
-    }
-
-    // 캐시 무효화
-    invalidateCache() {
-        // 메모리 캐시 초기화
-        this.aiRecommendationCache = null;
-        this.cacheTimestamp = null;
-        this.aiRecommendationsLoaded = false;
-
-        // LocalStorage 캐시 제거
-        try {
-            localStorage.removeItem(this.cacheKey);
-            localStorage.removeItem(this.cacheTimestampKey);
-            console.log('AI 추천 캐시 무효화 완료');
-        } catch (error) {
-            console.warn('캐시 무효화 중 오류:', error);
-        }
-    }
-
-    // 사용자별 캐시 키 생성 (사용자가 다르면 다른 캐시)
-    getUserSpecificCacheKey() {
-        try {
-            const userId = apiService.getCurrentUserId();
-            const isLoggedIn = apiService.isLoggedIn();
-
-            if (isLoggedIn && userId) {
-                return `${this.cacheKey}_user_${userId}`;
-            } else {
-                return `${this.cacheKey}_anonymous`;
-            }
-        } catch (error) {
-            return `${this.cacheKey}_default`;
-        }
-    }
-
-    // 사용자별 캐시 확인 및 적용
-    applyUserSpecificCache() {
-        const userCacheKey = this.getUserSpecificCacheKey();
-        const userTimestampKey = `${userCacheKey}_timestamp`;
-
-        this.cacheKey = userCacheKey;
-        this.cacheTimestampKey = userTimestampKey;
-    }
-
-    // 초기 탭 상태 설정
-    setInitialTabState() {
-        // 모든 탭에서 active 클래스 제거
-        document.querySelectorAll('.filter-tabs .tab-item').forEach(tab => {
-            tab.classList.remove('active');
-        });
-
-        const latestTab = document.querySelector('.filter-tabs .tab-item[data-mode="latest"]');
-        if (latestTab) {
-            latestTab.classList.add('active');
-        }
-
-        // 필터 모드를 latest로 설정
-        this.currentFilterMode = 'latest';
-
-        console.log('초기 탭 상태 설정 완료 - latest 모드 활성화');
-    }
-
-    // DOM 요소 설정
     setupElements() {
         this.grid = document.getElementById('popup-grid');
         this.loadingIndicator = document.getElementById('loading-indicator');
@@ -263,7 +132,6 @@ class PopupListManager {
         this.aiMessage = document.getElementById('ai-message');
     }
 
-    // 이벤트 리스너 설정
     setupEventListeners() {
         // 메인 필터 탭 이벤트
         document.querySelector('.filter-tabs').addEventListener('click', (e) => {
@@ -312,7 +180,139 @@ class PopupListManager {
         }, true);
     }
 
-    // 메인 필터 클릭 처리
+    setInitialTabState() {
+        // 모든 탭에서 active 클래스 제거
+        document.querySelectorAll('.filter-tabs .tab-item').forEach(tab => {
+            tab.classList.remove('active');
+        });
+
+        const latestTab = document.querySelector('.filter-tabs .tab-item[data-mode="latest"]');
+        if (latestTab) {
+            latestTab.classList.add('active');
+        }
+
+        // 필터 모드를 latest로 설정
+        this.currentFilterMode = 'latest';
+
+        console.log('초기 탭 상태 설정 완료 - latest 모드 활성화');
+    }
+
+    // ===== 캐시 관리 메서드들 =====
+
+    isCacheValid() {
+        // 메모리 캐시 확인
+        if (this.aiRecommendationCache && this.cacheTimestamp) {
+            const now = Date.now();
+            if (now - this.cacheTimestamp < this.cacheExpiry) {
+                return true;
+            }
+        }
+
+        // LocalStorage 캐시 확인
+        try {
+            const cachedData = localStorage.getItem(this.cacheKey);
+            const cachedTimestamp = localStorage.getItem(this.cacheTimestampKey);
+
+            if (cachedData && cachedTimestamp) {
+                const timestamp = parseInt(cachedTimestamp);
+                const now = Date.now();
+
+                if (now - timestamp < this.cacheExpiry) {
+                    // 메모리 캐시도 업데이트
+                    this.aiRecommendationCache = JSON.parse(cachedData);
+                    this.cacheTimestamp = timestamp;
+                    return true;
+                }
+            }
+        } catch (error) {
+            console.warn('캐시 확인 중 오류:', error);
+        }
+
+        return false;
+    }
+
+    getCachedData() {
+        if (this.aiRecommendationCache) {
+            return this.aiRecommendationCache;
+        }
+
+        try {
+            const cachedData = localStorage.getItem(this.cacheKey);
+            if (cachedData) {
+                this.aiRecommendationCache = JSON.parse(cachedData);
+                return this.aiRecommendationCache;
+            }
+        } catch (error) {
+            console.warn('캐시 데이터 조회 중 오류:', error);
+        }
+
+        return null;
+    }
+
+    setCacheData(data) {
+        const timestamp = Date.now();
+
+        // 메모리 캐시 저장
+        this.aiRecommendationCache = data;
+        this.cacheTimestamp = timestamp;
+
+        // LocalStorage 캐시 저장
+        try {
+            localStorage.setItem(this.cacheKey, JSON.stringify(data));
+            localStorage.setItem(this.cacheTimestampKey, timestamp.toString());
+            console.log('AI 추천 데이터 캐시 저장 완료');
+        } catch (error) {
+            console.warn('캐시 저장 중 오류:', error);
+        }
+    }
+
+    invalidateCache() {
+        // 메모리 캐시 초기화
+        this.aiRecommendationCache = null;
+        this.cacheTimestamp = null;
+        this.aiRecommendationsLoaded = false;
+
+        // LocalStorage 캐시 제거
+        try {
+            localStorage.removeItem(this.cacheKey);
+            localStorage.removeItem(this.cacheTimestampKey);
+            console.log('AI 추천 캐시 무효화 완료');
+        } catch (error) {
+            console.warn('캐시 무효화 중 오류:', error);
+        }
+    }
+
+    getUserSpecificCacheKey() {
+        try {
+            const userId = apiService.getCurrentUserId();
+            const isLoggedIn = apiService.isLoggedIn();
+
+            if (isLoggedIn && userId) {
+                return `${this.cacheKey}_user_${userId}`;
+            } else {
+                return `${this.cacheKey}_anonymous`;
+            }
+        } catch (error) {
+            return `${this.cacheKey}_default`;
+        }
+    }
+
+    applyUserSpecificCache() {
+        const userCacheKey = this.getUserSpecificCacheKey();
+        const userTimestampKey = `${userCacheKey}_timestamp`;
+
+        this.cacheKey = userCacheKey;
+        this.cacheTimestampKey = userTimestampKey;
+    }
+
+    async refreshAIRecommendations() {
+        console.log('AI 추천 강제 새로고침');
+        this.invalidateCache();
+        await this.loadAIRecommendations();
+    }
+
+    // ===== 이벤트 핸들러들 =====
+
     async handleFilterClick(e) {
         const selectedTab = e.target.closest('.tab-item');
         if (!selectedTab || this.isFetching) return;
@@ -337,16 +337,11 @@ class PopupListManager {
             await this.showAIMessage();
             this.statusFilterContainer.style.display = 'none';
             this.regionDateFilterContainer.style.display = 'none';
-
-            // 캐시된 데이터가 있으면 바로 로드, 없으면 API 호출
             await this.loadAIRecommendations();
         }
         // 다른 탭들
         else {
             this.hideAIMessage();
-
-            // AI 추천이 아닌 다른 탭으로 이동시에는 aiRecommendationsLoaded만 false로
-            // 캐시는 유지
             this.aiRecommendationsLoaded = false;
 
             if (newMode === 'latest') {
@@ -368,28 +363,71 @@ class PopupListManager {
         }
     }
 
-    // 상태 필터 변경 처리
     handleStatusChange(e) {
         if(this.isFetching) return;
         this.currentStatus = e.target.value;
         this.resetAndLoad();
     }
 
-    // AI 메시지 표시
+    handleSubFilterClick(e) {
+        const selectedSubTab = e.target.closest('.sub-tab-item');
+        if (!selectedSubTab || this.isFetching) return;
+
+        const region = selectedSubTab.dataset.region;
+        const date = selectedSubTab.dataset.date;
+
+        if (region) {
+            this.currentRegion = region;
+            document.querySelectorAll('#region-filter-tabs .sub-tab-item').forEach(tab =>
+                tab.classList.toggle('active', tab.dataset.region === region)
+            );
+            this.resetAndLoad();
+        }
+
+        if (date) {
+            if (date === 'custom') {
+                this.showCustomDatePicker();
+                return;
+            }
+
+            this.currentDateFilter = date;
+            this.isCustomDateMode = false;
+            this.customStartDate = null;
+            this.customEndDate = null;
+
+            document.querySelectorAll('#date-filter-tabs .sub-tab-item').forEach(tab =>
+                tab.classList.toggle('active', tab.dataset.date === date)
+            );
+
+            this.hideCustomDatePicker();
+            this.hideSelectedDateRange();
+            this.resetAndLoad();
+        }
+    }
+
+    handlePageScroll() {
+        if (this.currentFilterMode === 'ai-recommended') return;
+
+        const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+        if (scrollHeight - scrollTop - clientHeight < 200) {
+            this.loadMore();
+        }
+    }
+
+    // ===== AI 관련 메서드들 =====
+
     async showAIMessage() {
         if (!this.aiMessage) return;
 
         const isLoggedIn = this.checkLoginStatus();
 
         if (isLoggedIn) {
-            // 로그인한 사용자용 메시지 - API에서 실제 이름 가져오기
             const userName = await this.getCurrentUserName();
             this.aiMessage.innerHTML = `
                 <h3>${userName}님을 위한 맞춤 추천</h3>
                 <p>취향과 관심사를 분석해서 딱 맞는 팝업스토어를 추천해드릴게요</p>
             `;
         } else {
-            // 비로그인 사용자용 메시지
             this.aiMessage.innerHTML = `
                 <h3>로그인하고 나에게 딱 맞는 팝업을 찾아보세요</h3>
                 <p>AI가 당신의 취향을 분석해서 완벽한 팝업스토어를 추천해드립니다</p>
@@ -400,75 +438,12 @@ class PopupListManager {
         this.aiMessage.style.display = 'block';
     }
 
-    // AI 메시지 숨김
     hideAIMessage() {
         if (this.aiMessage) {
             this.aiMessage.style.display = 'none';
         }
     }
 
-    // 로그인 상태 확인
-    checkLoginStatus() {
-        try {
-            // 여러 방법으로 로그인 상태 확인
-            const token = localStorage.getItem('accessToken') ||
-                localStorage.getItem('authToken') ||
-                sessionStorage.getItem('accessToken') ||
-                sessionStorage.getItem('authToken');
-
-            const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
-
-            // API 서비스 체크
-            if (apiService && typeof apiService.isLoggedIn === 'function') {
-                return apiService.isLoggedIn();
-            }
-
-            // 토큰이나 userId 존재 여부로 판단
-            return !!(token || userId);
-        } catch (error) {
-            console.warn('로그인 상태 확인 실패:', error);
-            return false;
-        }
-    }
-
-    // 현재 사용자 이름 가져오기
-    async getCurrentUserName() {
-        try {
-            console.log('API를 통한 사용자 정보 조회 시작');
-
-            if (typeof apiService !== 'undefined' && apiService.getCurrentUser) {
-                const user = await apiService.getCurrentUser();
-                console.log('API에서 가져온 사용자 정보:', user);
-
-                if (user && user.nickname) {
-                    return user.nickname;
-                }
-            }
-
-            console.log('API에서 사용자 정보를 가져올 수 없음, localStorage 확인');
-
-            // 백업: localStorage에서 확인
-            const userInfo = localStorage.getItem('userInfo') || sessionStorage.getItem('userInfo');
-            if (userInfo) {
-                try {
-                    const parsed = JSON.parse(userInfo);
-                    console.log('저장된 사용자 정보:', parsed);
-                    // 여기도 닉네임을 먼저 확인
-                    if (parsed.nickname) return parsed.nickname;
-                } catch (e) {
-                    console.warn('사용자 정보 파싱 실패:', e);
-                }
-            }
-
-            return '회원';
-
-        } catch (error) {
-            console.error('사용자 정보 조회 실패:', error);
-            return '회원';
-        }
-    }
-
-    // AI 추천 로드
     async loadAIRecommendations() {
         // 중복 호출 방지
         if (this.isFetching) {
@@ -547,8 +522,6 @@ class PopupListManager {
         } catch (error) {
             console.error('AI 추천 로드 실패:', error);
             this.showAIError();
-
-            // 에러 시 캐시 무효화
             this.invalidateCache();
         } finally {
             this.isFetching = false;
@@ -556,15 +529,6 @@ class PopupListManager {
         }
     }
 
-    // AI 추천 강제 새로고침
-    async refreshAIRecommendations() {
-        console.log('AI 추천 강제 새로고침');
-        this.invalidateCache();
-        await this.loadAIRecommendations();
-    }
-
-
-    // AI 추천 렌더링
     renderAIRecommendations(recommendations) {
         const fragment = document.createDocumentFragment();
 
@@ -576,7 +540,6 @@ class PopupListManager {
         this.grid.appendChild(fragment);
     }
 
-    // AI 추천 팝업 카드 생성
     createAIPopupCard(popup) {
         const card = document.createElement('div');
         card.className = 'popup-card ai-recommended';
@@ -610,7 +573,6 @@ class PopupListManager {
         return card;
     }
 
-    // AI 추천 결과 없음 메시지
     showNoAIResults() {
         const isLoggedIn = this.checkLoginStatus();
 
@@ -635,7 +597,6 @@ class PopupListManager {
         }
     }
 
-    // AI 추천 에러 메시지
     showAIError() {
         this.grid.innerHTML = `
             <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px;">
@@ -649,219 +610,7 @@ class PopupListManager {
         `;
     }
 
-    // 날짜 범위 포맷팅
-    formatDateRange(startDate, endDate) {
-        if (!startDate || !endDate) return '날짜 미정';
-
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-
-        const formatDate = (date) => {
-            return `${date.getMonth() + 1}.${date.getDate()}`;
-        };
-
-        if (start.getTime() === end.getTime()) {
-            return formatDate(start);
-        }
-
-        return `${formatDate(start)} ~ ${formatDate(end)}`;
-    }
-
-    // HTML 이스케이프
-    escapeHtml(text) {
-        if (!text) return '';
-        return String(text).replace(/[&<>"']/g, function(match) {
-            const escapeMap = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;'
-            };
-            return escapeMap[match];
-        });
-    }
-
-    // 유틸리티 메서드들
-    clearGrid() {
-        if (this.grid) {
-            this.grid.innerHTML = '';
-        }
-    }
-
-    showLoading() {
-        if (this.loadingIndicator) {
-            this.loadingIndicator.style.display = 'flex';
-        }
-    }
-
-    hideLoading() {
-        if (this.loadingIndicator) {
-            this.loadingIndicator.style.display = 'none';
-        }
-    }
-
-    // 서브 필터 클릭 처리 (지역, 날짜)
-    handleSubFilterClick(e) {
-        const selectedSubTab = e.target.closest('.sub-tab-item');
-        if (!selectedSubTab || this.isFetching) return;
-
-        const region = selectedSubTab.dataset.region;
-        const date = selectedSubTab.dataset.date;
-
-        if (region) {
-            this.currentRegion = region;
-            document.querySelectorAll('#region-filter-tabs .sub-tab-item').forEach(tab =>
-                tab.classList.toggle('active', tab.dataset.region === region)
-            );
-            this.resetAndLoad();
-        }
-
-        if (date) {
-            if (date === 'custom') {
-                this.showCustomDatePicker();
-                return;
-            }
-
-            this.currentDateFilter = date;
-            this.isCustomDateMode = false;
-            this.customStartDate = null;
-            this.customEndDate = null;
-
-            document.querySelectorAll('#date-filter-tabs .sub-tab-item').forEach(tab =>
-                tab.classList.toggle('active', tab.dataset.date === date)
-            );
-
-            this.hideCustomDatePicker();
-            this.hideSelectedDateRange();
-            this.resetAndLoad();
-        }
-    }
-
-    showCustomDatePicker() {
-        document.querySelectorAll('#date-filter-tabs .sub-tab-item').forEach(tab =>
-            tab.classList.toggle('active', tab.dataset.date === 'custom')
-        );
-
-        document.getElementById('custom-date-inputs').style.display = 'block';
-
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('start-date').value = today;
-        document.getElementById('end-date').value = today;
-    }
-
-    hideCustomDatePicker() {
-        document.getElementById('custom-date-inputs').style.display = 'none';
-    }
-
-    applyCustomDate() {
-        const startDate = document.getElementById('start-date').value;
-        const endDate = document.getElementById('end-date').value;
-
-        if (!startDate || !endDate) {
-            alert('시작일과 마감일을 모두 선택해주세요.');
-            return;
-        }
-
-        if (new Date(startDate) > new Date(endDate)) {
-            alert('시작일은 마감일보다 이전이어야 합니다.');
-            return;
-        }
-
-        this.customStartDate = startDate;
-        this.customEndDate = endDate;
-        this.isCustomDateMode = true;
-        this.currentDateFilter = 'custom';
-
-        this.displaySelectedDateRange(startDate, endDate);
-        this.hideCustomDatePicker();
-        this.resetAndLoad();
-    }
-
-    displaySelectedDateRange(startDate, endDate) {
-        const dateRangeElement = document.getElementById('date-range-text');
-        const selectedDateDisplay = document.getElementById('selected-date-display');
-
-        if (dateRangeElement && selectedDateDisplay) {
-            const formattedStartDate = startDate.replace(/-/g, '.');
-            const formattedEndDate = endDate.replace(/-/g, '.');
-
-            if (startDate === endDate) {
-                dateRangeElement.textContent = formattedStartDate;
-            } else {
-                dateRangeElement.textContent = `${formattedStartDate} - ${formattedEndDate}`;
-            }
-
-            selectedDateDisplay.style.display = 'block';
-        }
-    }
-
-    hideSelectedDateRange() {
-        const selectedDateDisplay = document.getElementById('selected-date-display');
-        if (selectedDateDisplay) {
-            selectedDateDisplay.style.display = 'none';
-        }
-    }
-
-    resetRegionDateFilters() {
-        this.currentRegion = 'All';
-        this.currentDateFilter = 'All';
-        this.isCustomDateMode = false;
-        this.customStartDate = null;
-        this.customEndDate = null;
-
-        document.querySelectorAll('#region-filter-tabs .sub-tab-item').forEach(tab =>
-            tab.classList.toggle('active', tab.dataset.region === 'All')
-        );
-        document.querySelectorAll('#date-filter-tabs .sub-tab-item').forEach(tab =>
-            tab.classList.toggle('active', tab.dataset.date === 'All')
-        );
-
-        this.hideCustomDatePicker();
-        this.hideSelectedDateRange();
-    }
-
-    handlePageScroll() {
-        if (this.currentFilterMode === 'ai-recommended') return;
-
-        const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-        if (scrollHeight - scrollTop - clientHeight < 200) {
-            this.loadMore();
-        }
-    }
-
-    createPopupCard(popup) {
-        const fallbackImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNjY3ZWVhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+';
-        const safeSrc = this.isSafeUrl(popup.mainImageUrl) ? popup.mainImageUrl : fallbackImage;
-        const popupId = encodeURIComponent(String(popup?.id ?? ''));
-
-        return `
-            <div class="popup-card" data-id="${popupId}">
-                <div class="card-image-wrapper">
-                    <img src="${safeSrc}"
-                         alt="${this.escapeHtml(popup.title)}"
-                         class="card-image"
-                         loading="lazy"
-                         decoding="async"
-                         onerror="if(!this.dataset.errorHandled){this.onerror=null; this.src='${fallbackImage}'; this.dataset.errorHandled='true';}">
-                </div>
-                <div class="card-content">
-                    <h3 class="card-title">${this.escapeHtml(popup.title)}</h3>
-                    <p class="card-info">${this.escapeHtml(popup.period)}</p>
-                    <p class="card-info location">${this.escapeHtml(popup.region || '장소 미정')}</p>
-                </div>
-            </div>
-        `;
-    }
-
-    isSafeUrl(url) {
-        try {
-            const u = new URL(url, window.location.origin);
-            return u.protocol === 'http:' || u.protocol === 'https:';
-        } catch {
-            return false;
-        }
-    }
+    // ===== 일반 팝업 로드 관련 메서드들 =====
 
     async loadInitialData() {
         await this.fetchAndDisplayPopups(false);
@@ -879,7 +628,6 @@ class PopupListManager {
         await this.fetchAndDisplayPopups(false);
     }
 
-    // 데이터 가져오기 및 표시
     async fetchAndDisplayPopups(isLoadMore = false) {
         if (this.isFetching || !this.hasMore) return;
 
@@ -969,12 +717,242 @@ class PopupListManager {
         this.grid.insertAdjacentHTML('beforeend', cardsHTML);
     }
 
+    createPopupCard(popup) {
+        const fallbackImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNjY3ZWVhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+';
+        const safeSrc = this.isSafeUrl(popup.mainImageUrl) ? popup.mainImageUrl : fallbackImage;
+        const popupId = encodeURIComponent(String(popup?.id ?? ''));
+
+        return `
+            <div class="popup-card" data-id="${popupId}">
+                <div class="card-image-wrapper">
+                    <img src="${safeSrc}"
+                         alt="${this.escapeHtml(popup.title)}"
+                         class="card-image"
+                         loading="lazy"
+                         decoding="async"
+                         onerror="if(!this.dataset.errorHandled){this.onerror=null; this.src='${fallbackImage}'; this.dataset.errorHandled='true';}">
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">${this.escapeHtml(popup.title)}</h3>
+                    <p class="card-info">${this.escapeHtml(popup.period)}</p>
+                    <p class="card-info location">${this.escapeHtml(popup.region || '장소 미정')}</p>
+                </div>
+            </div>
+        `;
+    }
+
+    // ===== 날짜 필터 관련 메서드들 =====
+
+    showCustomDatePicker() {
+        document.querySelectorAll('#date-filter-tabs .sub-tab-item').forEach(tab =>
+            tab.classList.toggle('active', tab.dataset.date === 'custom')
+        );
+
+        document.getElementById('custom-date-inputs').style.display = 'block';
+
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('start-date').value = today;
+        document.getElementById('end-date').value = today;
+    }
+
+    hideCustomDatePicker() {
+        document.getElementById('custom-date-inputs').style.display = 'none';
+    }
+
+    applyCustomDate() {
+        const startDate = document.getElementById('start-date').value;
+        const endDate = document.getElementById('end-date').value;
+
+        if (!startDate || !endDate) {
+            alert('시작일과 마감일을 모두 선택해주세요.');
+            return;
+        }
+
+        if (new Date(startDate) > new Date(endDate)) {
+            alert('시작일은 마감일보다 이전이어야 합니다.');
+            return;
+        }
+
+        this.customStartDate = startDate;
+        this.customEndDate = endDate;
+        this.isCustomDateMode = true;
+        this.currentDateFilter = 'custom';
+
+        this.displaySelectedDateRange(startDate, endDate);
+        this.hideCustomDatePicker();
+        this.resetAndLoad();
+    }
+
+    displaySelectedDateRange(startDate, endDate) {
+        const dateRangeElement = document.getElementById('date-range-text');
+        const selectedDateDisplay = document.getElementById('selected-date-display');
+
+        if (dateRangeElement && selectedDateDisplay) {
+            const formattedStartDate = startDate.replace(/-/g, '.');
+            const formattedEndDate = endDate.replace(/-/g, '.');
+
+            if (startDate === endDate) {
+                dateRangeElement.textContent = formattedStartDate;
+            } else {
+                dateRangeElement.textContent = `${formattedStartDate} - ${formattedEndDate}`;
+            }
+
+            selectedDateDisplay.style.display = 'block';
+        }
+    }
+
+    hideSelectedDateRange() {
+        const selectedDateDisplay = document.getElementById('selected-date-display');
+        if (selectedDateDisplay) {
+            selectedDateDisplay.style.display = 'none';
+        }
+    }
+
+    resetRegionDateFilters() {
+        this.currentRegion = 'All';
+        this.currentDateFilter = 'All';
+        this.isCustomDateMode = false;
+        this.customStartDate = null;
+        this.customEndDate = null;
+
+        document.querySelectorAll('#region-filter-tabs .sub-tab-item').forEach(tab =>
+            tab.classList.toggle('active', tab.dataset.region === 'All')
+        );
+        document.querySelectorAll('#date-filter-tabs .sub-tab-item').forEach(tab =>
+            tab.classList.toggle('active', tab.dataset.date === 'All')
+        );
+
+        this.hideCustomDatePicker();
+        this.hideSelectedDateRange();
+    }
+
+    // ===== UI 관련 유틸리티 메서드들 =====
+
+    clearGrid() {
+        if (this.grid) {
+            this.grid.innerHTML = '';
+        }
+    }
+
+    showLoading() {
+        if (this.loadingIndicator) {
+            this.loadingIndicator.style.display = 'flex';
+        }
+    }
+
+    hideLoading() {
+        if (this.loadingIndicator) {
+            this.loadingIndicator.style.display = 'none';
+        }
+    }
+
     showNoResults() {
         this.grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #666;">표시할 팝업이 없습니다.</p>';
     }
 
     showError(message) {
         this.grid.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #ef4444;">${message}</p>`;
+    }
+
+    // ===== 기타 유틸리티 메서드들 =====
+
+    checkLoginStatus() {
+        try {
+            // 여러 방법으로 로그인 상태 확인
+            const token = localStorage.getItem('accessToken') ||
+                localStorage.getItem('authToken') ||
+                sessionStorage.getItem('accessToken') ||
+                sessionStorage.getItem('authToken');
+
+            const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
+
+            // API 서비스 체크
+            if (apiService && typeof apiService.isLoggedIn === 'function') {
+                return apiService.isLoggedIn();
+            }
+
+            // 토큰이나 userId 존재 여부로 판단
+            return !!(token || userId);
+        } catch (error) {
+            console.warn('로그인 상태 확인 실패:', error);
+            return false;
+        }
+    }
+
+    async getCurrentUserName() {
+        try {
+            console.log('API를 통한 사용자 정보 조회 시작');
+
+            if (typeof apiService !== 'undefined' && apiService.getCurrentUser) {
+                const user = await apiService.getCurrentUser();
+                console.log('API에서 가져온 사용자 정보:', user);
+
+                if (user && user.nickname) {
+                    return user.nickname;
+                }
+            }
+
+            console.log('API에서 사용자 정보를 가져올 수 없음, localStorage 확인');
+
+            // 백업: localStorage에서 확인
+            const userInfo = localStorage.getItem('userInfo') || sessionStorage.getItem('userInfo');
+            if (userInfo) {
+                try {
+                    const parsed = JSON.parse(userInfo);
+                    console.log('저장된 사용자 정보:', parsed);
+                    // 여기도 닉네임을 먼저 확인
+                    if (parsed.nickname) return parsed.nickname;
+                } catch (e) {
+                    console.warn('사용자 정보 파싱 실패:', e);
+                }
+            }
+
+            return '회원';
+
+        } catch (error) {
+            console.error('사용자 정보 조회 실패:', error);
+            return '회원';
+        }
+    }
+
+    formatDateRange(startDate, endDate) {
+        if (!startDate || !endDate) return '날짜 미정';
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        const formatDate = (date) => {
+            return `${date.getMonth() + 1}.${date.getDate()}`;
+        };
+
+        if (start.getTime() === end.getTime()) {
+            return formatDate(start);
+        }
+
+        return `${formatDate(start)} ~ ${formatDate(end)}`;
+    }
+
+    escapeHtml(text) {
+        if (!text) return '';
+        return String(text).replace(/[&<>"']/g, function(match) {
+            const escapeMap = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            };
+            return escapeMap[match];
+        });
+    }
+
+    isSafeUrl(url) {
+        try {
+            const u = new URL(url, window.location.origin);
+            return u.protocol === 'http:' || u.protocol === 'https:';
+        } catch {
+            return false;
+        }
     }
 
     cleanup() {
