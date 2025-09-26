@@ -87,20 +87,22 @@ public class PopupController {
         return ResponseEntity.ok(response);
     }
 
-    // AI 추천 팝업 조회 (현재는 인기 팝업으로 대체)
-    // TODO: 향후 실제 AI 추천 로직으로 교체 예정
+    // AI 추천 팝업 조회
     @GetMapping("/ai-recommended")
     public ResponseEntity<PopupListResponseDto> getAIRecommendedPopups(
-            @RequestHeader(value = "Authorization", required = false) String token,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "10") int size) {
 
-        log.info("AI 추천 팝업 조회 API 호출 - page: {}, size: {} (현재는 인기 팝업으로 대체)", page, size);
+        log.info("AI 추천 팝업 조회 - page: {}, size: {}", page, size);
 
-        String cleanToken = (token != null && token.startsWith("Bearer ")) ? token.substring(7) : token;
-        PopupListResponseDto response = popupService.getAIRecommendedPopups(cleanToken, page, size);
+        // 페이지/사이즈 검증
+        if (page < 0) page = 0;
+        if (size <= 0 || size > 50) size = 10;
 
-        return ResponseEntity.ok(response);
+        PopupListResponseDto result = popupService.getAIRecommendedPopups(page, size);
+
+        log.info("AI 추천 팝업 조회 완료 - 총 {}개", result.getTotalElements());
+        return ResponseEntity.ok(result);
     }
 
     // ===== 팝업 상세 조회 API =====
@@ -173,23 +175,5 @@ public class PopupController {
 
         List<PopupSummaryResponseDto> popups = popupService.getPopupsByRegion(region);
         return ResponseEntity.ok(popups);
-    }
-
-    // ===== 추천 팝업 API =====
-
-    // 카테고리별 추천 팝업 조회
-    @GetMapping("/recommended/by-categories")
-    public ResponseEntity<PopupListResponseDto> getRecommendedPopupsByCategories(
-            @RequestParam List<Long> categoryIds,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-
-        log.info("카테고리별 추천 팝업 조회 API 호출 - categoryIds: {}", categoryIds);
-
-        PopupListResponseDto response = (categoryIds == null || categoryIds.isEmpty())
-                ? popupService.getAIRecommendedPopups(null, page, size)
-                : popupService.getRecommendedPopupsBySelectedCategories(categoryIds, page, size);
-
-        return ResponseEntity.ok(response);
     }
 }

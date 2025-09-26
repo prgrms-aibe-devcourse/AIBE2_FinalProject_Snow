@@ -432,6 +432,107 @@ class PopupRepositoryTest {
         assertThat(totalCount).isEqualTo(3);
     }
 
+    @Test
+    @DisplayName("특정 상태의 팝업 조회 (AI 추천용)")
+    void findByStatus_AI추천용_테스트() {
+        // given
+        Venue venue = PopupTestDataBuilder.createVenue("강남구");
+        entityManager.persistAndFlush(venue);
+
+        Popup ongoingPopup1 = PopupTestDataBuilder.createPopup("진행중 팝업1", PopupStatus.ONGOING, venue);
+        Popup ongoingPopup2 = PopupTestDataBuilder.createPopup("진행중 팝업2", PopupStatus.ONGOING, venue);
+        Popup plannedPopup = PopupTestDataBuilder.createPopup("예정 팝업", PopupStatus.PLANNED, venue);
+
+        entityManager.persistAndFlush(ongoingPopup1);
+        entityManager.persistAndFlush(ongoingPopup2);
+        entityManager.persistAndFlush(plannedPopup);
+
+        // when
+        List<Popup> ongoingResults = popupRepository.findByStatus(PopupStatus.ONGOING);
+        List<Popup> plannedResults = popupRepository.findByStatus(PopupStatus.PLANNED);
+
+        // then
+        assertThat(ongoingResults).hasSize(2);
+        assertThat(ongoingResults).extracting("title")
+                .containsExactlyInAnyOrder("진행중 팝업1", "진행중 팝업2");
+
+        assertThat(plannedResults).hasSize(1);
+        assertThat(plannedResults.get(0).getTitle()).isEqualTo("예정 팝업");
+    }
+
+    @Test
+    @DisplayName("ID 목록으로 팝업 조회 (AI 추천 결과용)")
+    void findByIdIn_AI추천결과_테스트() {
+        // given
+        Venue venue = PopupTestDataBuilder.createVenue("강남구");
+        entityManager.persistAndFlush(venue);
+
+        Popup popup1 = PopupTestDataBuilder.createPopup("AI 추천 팝업1", PopupStatus.ONGOING, venue);
+        Popup popup2 = PopupTestDataBuilder.createPopup("AI 추천 팝업2", PopupStatus.ONGOING, venue);
+        Popup popup3 = PopupTestDataBuilder.createPopup("일반 팝업", PopupStatus.ONGOING, venue);
+
+        entityManager.persistAndFlush(popup1);
+        entityManager.persistAndFlush(popup2);
+        entityManager.persistAndFlush(popup3);
+
+        List<Long> aiRecommendedIds = Arrays.asList(popup1.getId(), popup2.getId());
+
+        // when
+        List<Popup> result = popupRepository.findByIdIn(aiRecommendedIds);
+
+        // then
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting("title")
+                .containsExactlyInAnyOrder("AI 추천 팝업1", "AI 추천 팝업2");
+
+        // 연관 엔티티도 함께 조회되는지 확인
+        assertThat(result.get(0).getVenue()).isNotNull();
+        assertThat(result.get(0).getVenue().getRegion()).isEqualTo("강남구");
+    }
+
+    @Test
+    @DisplayName("ID 목록으로 팝업 조회 - 빈 목록")
+    void findByIdIn_빈목록_테스트() {
+        // given
+        List<Long> emptyIds = Arrays.asList();
+
+        // when
+        List<Popup> result = popupRepository.findByIdIn(emptyIds);
+
+        // then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("ID 목록으로 팝업 조회 - 존재하지 않는 ID")
+    void findByIdIn_존재하지않는ID_테스트() {
+        // given
+        List<Long> nonExistentIds = Arrays.asList(999L, 998L);
+
+        // when
+        List<Popup> result = popupRepository.findByIdIn(nonExistentIds);
+
+        // then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("특정 상태의 팝업 조회 - 빈 결과")
+    void findByStatus_빈결과_테스트() {
+        // given
+        Venue venue = PopupTestDataBuilder.createVenue("강남구");
+        entityManager.persistAndFlush(venue);
+
+        Popup ongoingPopup = PopupTestDataBuilder.createPopup("진행중 팝업", PopupStatus.ONGOING, venue);
+        entityManager.persistAndFlush(ongoingPopup);
+
+        // when
+        List<Popup> result = popupRepository.findByStatus(PopupStatus.ENDED);
+
+        // then
+        assertThat(result).isEmpty();
+    }
+
     @TestConfiguration
     @EnableJpaAuditing
     static class TestConfig {

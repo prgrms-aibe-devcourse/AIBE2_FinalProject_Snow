@@ -41,6 +41,10 @@ public class PopupSummaryResponseDto {
     private String categoryName;
     private String categorySlug;
 
+    // 브랜드 정보
+    private Long brandId;
+    private String brandName;
+
     public static PopupSummaryResponseDto from(Popup popup) {
         return PopupSummaryResponseDto.builder()
                 .id(popup.getId())
@@ -68,6 +72,40 @@ public class PopupSummaryResponseDto {
                 .categoryId(popup.getCategory() != null ? popup.getCategory().getId() : null)
                 .categoryName(popup.getCategoryName())
                 .categorySlug(popup.getCategorySlug())
+                .brandId(popup.getBrandId())
+                .brandName(null)
+                .build();
+    }
+
+    public static PopupSummaryResponseDto fromWithBrand(Popup popup, String brandName) {
+        return PopupSummaryResponseDto.builder()
+                .id(popup.getId())
+                .title(popup.getTitle())
+                .summary(popup.getSummary())
+                .period(popup.getPeriodText())
+                .status(popup.getStatus())
+                .mainImageUrl(popup.getMainImageUrl())
+                .isFeatured(popup.getIsFeatured())
+                .reservationAvailable(popup.getReservationAvailable())
+                .waitlistAvailable(popup.getWaitlistAvailable())
+                .entryFee(popup.getEntryFee())
+                .isFreeEntry(popup.isFreeEntry())
+                .feeDisplayText(popup.getFeeDisplayText())
+                .viewCount(popup.getViewCount())
+                .createdAt(popup.getCreatedAt())
+                .updatedAt(popup.getUpdatedAt())
+                .images(popup.getImages().stream()
+                        .map(PopupImageResponseDto::from)
+                        .collect(Collectors.toList()))
+                .venueName(popup.getVenueName())
+                .venueAddress(popup.getVenueAddress())
+                .region(popup.getRegion())
+                .parkingAvailable(popup.getParkingAvailable())
+                .categoryId(popup.getCategory() != null ? popup.getCategory().getId() : null)
+                .categoryName(popup.getCategoryName())
+                .categorySlug(popup.getCategorySlug())
+                .brandId(popup.getBrandId())
+                .brandName(brandName)
                 .build();
     }
 }
