@@ -100,6 +100,10 @@
 /* 일정 정보 스타일 */
 .popup-schedule-simple {
     margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
 .schedule-item {
@@ -116,6 +120,9 @@
 .period-text {
     font-weight: 600;
     color: #000000;
+    font-size: 16px;
+    line-height: 1.4;
+    padding-right: 8px;
 }
 
 .days-text {
@@ -127,6 +134,44 @@
     font-weight: 400;
     color: #000000;
 }
+
+/* 상태 배지 */
+.status-badge-inline {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+/* 진행중 상태 - 파란색 계열 */
+.status-badge-inline.ongoing {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #1e40af;
+    border: 1px solid #93c5fd;
+    box-shadow: 0 1px 3px rgba(30, 64, 175, 0.1);
+}
+
+/* 오픈예정 상태 - 보라색 계열 */
+.status-badge-inline.planned {
+    background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+    color: #7c3aed;
+    border: 1px solid #c4b5fd;
+    box-shadow: 0 1px 3px rgba(124, 58, 237, 0.1);
+}
+
+/* 종료 상태 - 회색 계열 */
+.status-badge-inline.ended {
+    background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+    box-shadow: 0 1px 3px rgba(107, 114, 128, 0.1);
+}
+
 
 /* 상세 운영시간 스타일 */
 .operating-hours-title {
@@ -193,6 +238,25 @@
 
 .reservation-btn:hover {
     background: #5856F0;
+}
+
+.reservation-btn.ended,
+.reservation-btn:disabled,
+.reservation-btn[aria-disabled="true"],
+.reservation-btn.disabled {
+    background: #9ca3af;
+    color: #f3f4f6;
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.reservation-btn.ended:hover,
+.reservation-btn:disabled:hover,
+.reservation-btn[aria-disabled="true"]:hover,
+.reservation-btn.disabled:hover {
+    background: #9ca3af;
+    color: #f3f4f6;
 }
 
 /* 위치 섹션 */

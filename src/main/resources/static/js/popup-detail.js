@@ -101,6 +101,7 @@ class PopupDetailManager {
             this.popupData = await apiService.getPopup(this.popupId);
             await this.checkBookmarkStatus();
             this.renderPopupInfo();
+            this.updateReservationButtonState(); // 예약 버튼 상태 업데이트 추가
             this.renderOperatingHours();
             this.renderLocationInfo();
             this.renderDescriptionInfo();
@@ -112,6 +113,64 @@ class PopupDetailManager {
             this.showError();
         }
     }
+
+    // ===== 예약 버튼 상태 관리 =====
+
+    // 예약 버튼 상태 업데이트
+    updateReservationButtonState() {
+        const reservationBtn = document.getElementById('reservation-btn');
+        if (!reservationBtn || !this.popupData) return;
+
+        const popupStatus = this.popupData.status;
+        const isReservationAvailable = this.isReservationAvailable(popupStatus);
+
+        // 버튼 클래스 초기화
+        reservationBtn.className = 'reservation-btn';
+
+        if (isReservationAvailable) {
+            // 예약 가능한 상태: 버튼 활성화
+            reservationBtn.disabled = false;
+            reservationBtn.style.cursor = 'pointer';
+
+            // 상태별 스타일 적용
+            if (popupStatus === 'PLANNED') {
+                reservationBtn.classList.add('planned');
+                reservationBtn.textContent = '사전 예약하기';
+            } else if (popupStatus === 'ONGOING') {
+                reservationBtn.classList.add('ongoing');
+                reservationBtn.textContent = '예약하기';
+            }
+        } else {
+            // 예약 불가능한 상태: 버튼 비활성화
+            reservationBtn.disabled = true;
+            reservationBtn.classList.add('disabled');
+            reservationBtn.style.cursor = 'not-allowed';
+
+            if (popupStatus === 'ENDED') {
+                reservationBtn.textContent = '종료된 팝업';
+                reservationBtn.classList.add('ended');
+            } else {
+                reservationBtn.textContent = '예약 불가';
+            }
+        }
+    }
+
+    // 팝업 상태에 따른 예약 가능 여부 확인
+    isReservationAvailable(status) {
+        return status === 'PLANNED' || status === 'ONGOING';
+    }
+
+    // 상태 텍스트 변환 헬퍼 메서드
+    getStatusText(status) {
+        const statusMap = {
+            'PLANNED': '예정',
+            'ONGOING': '진행중',
+            'ENDED': '종료'
+        };
+        return statusMap[status] || status;
+    }
+
+    // ===== 기존 렌더링 메서드들 =====
 
     // 북마크 상태 확인 함수 추가
     async checkBookmarkStatus() {
@@ -147,28 +206,19 @@ class PopupDetailManager {
         // 기간 정보
         this.renderScheduleInfo();
 
-        // 태그
-        const tagsEl = document.getElementById('popup-tags');
-        if (tagsEl) {
-            tagsEl.innerHTML = '';
-            this.popupData.tags.forEach(tag => {
-                const span = document.createElement('span');
-                span.className = 'tag';
-                span.textContent = `#${tag}`;
-                span.addEventListener('click', () => searchByTag(String(tag)));
-                tagsEl.appendChild(span);
-            });
-        }
+        // 태그와 상태 표시
+        this.renderTagsAndStatus();
     }
 
     // 일정 정보 렌더링
     renderScheduleInfo() {
         // 기간 표시
         const periodEl = document.getElementById('popup-period');
-        if (periodEl) {
-            // periodText가 있으면 사용, 없으면 직접 생성
+        if (periodEl && this.popupData) {
+            // 기간 텍스트 생성
+            let periodText;
             if (this.popupData.periodText) {
-                periodEl.textContent = this.popupData.periodText;
+                periodText = this.popupData.periodText;
             } else {
                 const startDate = new Date(this.popupData.startDate).toLocaleDateString('ko-KR', {
                     year: 'numeric',
@@ -182,7 +232,64 @@ class PopupDetailManager {
                     day: '2-digit'
                 }).replace(/\. /g, '.').replace(/\.$/, '');
 
-                periodEl.textContent = `${startDate} ~ ${endDate}`;
+                periodText = `${startDate} - ${endDate}`;
+            }
+
+            // 상태 배지 생성
+            const statusBadge = this.createInlineStatusBadge(this.popupData.status);
+
+            // 기간과 상태 배지를 함께 표시
+            periodEl.innerHTML = `
+            <span class="period-text">${periodText}</span>
+            ${statusBadge}
+        `;
+        }
+    }
+
+    // 인라인 상태 배지 생성 메서드
+    createInlineStatusBadge(status) {
+        const statusInfo = this.getStatusInfo(status);
+        return `<span class="status-badge-inline ${statusInfo.className}">${statusInfo.text}</span>`;
+    }
+
+    // 상태 정보 반환 메서드
+    getStatusInfo(status) {
+        const statusMap = {
+            'PLANNED': {
+                text: '오픈예정',
+                className: 'planned'
+            },
+            'ONGOING': {
+                text: '진행중',
+                className: 'ongoing'
+            },
+            'ENDED': {
+                text: '종료',
+                className: 'ended'
+            }
+        };
+
+        return statusMap[status] || {
+            text: status,
+            className: 'ongoing'
+        };
+    }
+
+    // 태그와 상태 표시 렌더링
+    renderTagsAndStatus() {
+        const tagsEl = document.getElementById('popup-tags');
+        if (tagsEl) {
+            tagsEl.innerHTML = '';
+
+            // 기존 태그들 추가
+            if (this.popupData.tags && this.popupData.tags.length > 0) {
+                this.popupData.tags.forEach(tag => {
+                    const span = document.createElement('span');
+                    span.className = 'tag';
+                    span.textContent = `#${tag}`;
+                    span.addEventListener('click', () => searchByTag(String(tag)));
+                    tagsEl.appendChild(span);
+                });
             }
         }
     }
@@ -302,6 +409,115 @@ class PopupDetailManager {
             .replace(/\r\n/g, '<br>');
     }
 
+    // ===== 이벤트 핸들러들 =====
+
+    // 예약하기 처리
+    handleReservation() {
+        if (!this.popupData) {
+            alert('팝업 정보를 불러오는 중입니다.');
+            return;
+        }
+
+        // 버튼이 비활성화된 상태면 클릭 무시
+        const reservationBtn = document.getElementById('reservation-btn');
+        if (reservationBtn && reservationBtn.disabled) {
+            return;
+        }
+
+        // 예약 가능 상태 확인
+        if (!this.isReservationAvailable(this.popupData.status)) {
+            alert('현재 예약할 수 없는 팝업입니다.');
+            return;
+        }
+
+        // 외부 링크가 있으면 외부 링크로 이동, 없으면 내부 예약 페이지로 이동
+        if (this.popupData.reservationLink) {
+            window.open(this.popupData.reservationLink, '_blank');
+        } else {
+            // 내부 예약 페이지로 이동
+            window.location.href = `/popup/${this.popupId}/reservation`;
+        }
+    }
+
+    // 북마크 처리
+    async handleBookmark() {
+        try {
+            if (this.isBookmarked) {
+                await apiService.removeBookmark(this.popupId);
+                this.isBookmarked = false;
+                this.updateBookmarkButton();
+                alert('북마크가 해제되었습니다.');
+            } else {
+                await apiService.addBookmark(this.popupId);
+                this.isBookmarked = true;
+                this.updateBookmarkButton();
+                alert('북마크에 추가되었습니다.');
+            }
+        } catch (error) {
+            console.error('북마크 처리 실패:', error);
+            alert('북마크 처리 중 오류가 발생했습니다.');
+        }
+    }
+
+    // 북마크 버튼 업데이트
+    updateBookmarkButton() {
+        const bookmarkBtn = document.getElementById('bookmark-btn');
+        if (bookmarkBtn) {
+            const svg = bookmarkBtn.querySelector('svg');
+            if (this.isBookmarked) {
+                svg.setAttribute('fill', 'currentColor');
+                bookmarkBtn.style.color = '#4B5AE4';
+            } else {
+                svg.setAttribute('fill', 'none');
+                bookmarkBtn.style.color = '';
+            }
+        }
+    }
+
+    // 주소 복사
+    async handleCopyAddress() {
+        if (!this.popupData.venueAddress) {
+            this.showToast('복사할 주소가 없습니다.');
+            return;
+        }
+
+        const success = await apiService.copyToClipboard(this.popupData.venueAddress);
+
+        if (success) {
+            this.showToast('주소가 클립보드에 복사되었습니다.');
+
+            const copyBtn = document.getElementById('copy-address-btn');
+            if (copyBtn) {
+                copyBtn.classList.add('copied');
+                setTimeout(() => copyBtn.classList.remove('copied'), 2000);
+            }
+        } else {
+            this.showToast('주소 복사에 실패했습니다.');
+        }
+    }
+
+    // 리뷰 작성 처리
+    async handleWriteReview() {
+        // 사용자 로그인 체크
+        const userId = await this.getOrFetchUserId();
+        if (!userId) {
+            alert('로그인이 필요한 서비스입니다.');
+            window.location.href = '/login';
+            return;
+        }
+
+        // 리뷰 작성 페이지로 이동
+        window.location.href = `/reviews/popup/${this.popupId}/create`;
+    }
+
+    // 더 많은 리뷰 로드
+    handleLoadMoreReviews() {
+        // 전체 리뷰 목록 페이지로 이동
+        window.location.href = `/reviews/popup/${this.popupId}`;
+    }
+
+    // ===== 지도 관련 메서드들 =====
+
     // 지도 초기화
     initializeLocationMap() {
         console.log('[지도 초기화] 시작');
@@ -384,27 +600,7 @@ class PopupDetailManager {
         this.showToast(message);
     }
 
-    // 주소 복사
-    async handleCopyAddress() {
-        if (!this.popupData.venueAddress) {
-            this.showToast('복사할 주소가 없습니다.');
-            return;
-        }
-
-        const success = await apiService.copyToClipboard(this.popupData.venueAddress);
-
-        if (success) {
-            this.showToast('주소가 클립보드에 복사되었습니다.');
-
-            const copyBtn = document.getElementById('copy-address-btn');
-            if (copyBtn) {
-                copyBtn.classList.add('copied');
-                setTimeout(() => copyBtn.classList.remove('copied'), 2000);
-            }
-        } else {
-            this.showToast('주소 복사에 실패했습니다.');
-        }
-    }
+    // ===== 유틸리티 메서드들 =====
 
     showToast(message) {
         let toast = document.getElementById('toast');
@@ -628,75 +824,6 @@ class PopupDetailManager {
         return window.location.origin + '/images/default-popup.png';
     }
 
-    // 북마크 처리
-    async handleBookmark() {
-        try {
-            if (this.isBookmarked) {
-                await apiService.removeBookmark(this.popupId);
-                this.isBookmarked = false;
-                this.updateBookmarkButton();
-                alert('북마크가 해제되었습니다.');
-            } else {
-                await apiService.addBookmark(this.popupId);
-                this.isBookmarked = true;
-                this.updateBookmarkButton();
-                alert('북마크에 추가되었습니다.');
-            }
-        } catch (error) {
-            console.error('북마크 처리 실패:', error);
-            alert('북마크 처리 중 오류가 발생했습니다.');
-        }
-    }
-
-    // 북마크 버튼 업데이트
-    updateBookmarkButton() {
-        const bookmarkBtn = document.getElementById('bookmark-btn');
-        if (bookmarkBtn) {
-            const svg = bookmarkBtn.querySelector('svg');
-            if (this.isBookmarked) {
-                svg.setAttribute('fill', 'currentColor');
-                bookmarkBtn.style.color = '#4B5AE4';
-            } else {
-                svg.setAttribute('fill', 'none');
-                bookmarkBtn.style.color = '';
-            }
-        }
-    }
-
-    // 예약하기 처리
-    handleReservation() {
-        if (!this.popupData) {
-            alert('팝업 정보를 불러오는 중입니다.');
-            return;
-        }
-
-        if (this.popupData.reservationLink) {
-            window.open(this.popupData.reservationLink, '_blank');
-        } else {
-            alert('예약 기능은 준비 중입니다.');
-        }
-    }
-
-    // 리뷰 작성 처리
-    async handleWriteReview() {
-        // 사용자 로그인 체크
-        const userId = await this.getOrFetchUserId();
-        if (!userId) {
-            alert('로그인이 필요한 서비스입니다.');
-            window.location.href = '/login';
-            return;
-        }
-
-        // 리뷰 작성 페이지로 이동
-        window.location.href = `/reviews/popup/${this.popupId}/create`;
-    }
-
-    // 더 많은 리뷰 로드
-    handleLoadMoreReviews() {
-        // 전체 리뷰 목록 페이지로 이동
-        window.location.href = `/reviews/popup/${this.popupId}`;
-    }
-
     // 사용자 ID 확보
     async getOrFetchUserId() {
         try {
@@ -735,6 +862,8 @@ class PopupDetailManager {
         div.textContent = String(text ?? '');
         return div.innerHTML;
     }
+
+    // ===== 화면 상태 관리 =====
 
     // 로딩 표시
     showLoading() {
