@@ -48,10 +48,11 @@ public class AdminSpaceService {
 
         // 공개 장소 수
         long visibleSpaces = spaceRepo.countByIsHidden(false);
+        stats.put("visibleSpaces", visibleSpaces);
 
         // 비공개 장소 수
         long hiddenSpaces  = totalSpaces - visibleSpaces;
-        stats.put("privateSpaces", visibleSpaces);
+        stats.put("privateSpaces", hiddenSpaces);
 
         return stats;
     }
@@ -143,6 +144,4 @@ public class AdminSpaceService {
             log.info("장소 비활성화 완료 - spaceId: {}, title: {}", spaceId, space.getTitle());
         }
     }
-
-
 }
