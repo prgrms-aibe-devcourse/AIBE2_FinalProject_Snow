@@ -9,10 +9,9 @@ class SpaceManagementUI {
             publicSpaces: document.getElementById('publicSpaces'),
             privateSpaces: document.getElementById('privateSpaces'),
 
-            // 필터
             ownerFilter: document.getElementById('ownerFilter'),
             titleFilter: document.getElementById('titleFilter'),
-            isPublicFilter: document.getElementById('isPublicFilter'),
+            isHiddenFilter: document.getElementById('isHiddenFilter'),  // ★ 변경된 부분
             searchBtn: document.getElementById('searchBtn'),
             resetBtn: document.getElementById('resetBtn'),
 
@@ -72,7 +71,7 @@ class SpaceManagementUI {
 
         // 데이터 검증
         if (!spacesData || !spacesData.content || spacesData.content.length === 0) {
-            console.log('📭 데이터가 없어서 "결과 없음" 표시');
+            console.log('🔭 데이터가 없어서 "결과 없음" 표시');
             this.showNoResults();
             return;
         }
@@ -93,7 +92,7 @@ class SpaceManagementUI {
     }
 
     /**
-     * 장소 행 생성
+     * 장소 행 생성 - ★ 버튼 로직 수정
      */
     createSpaceRow(space) {
         const row = document.createElement('tr');
@@ -108,14 +107,23 @@ class SpaceManagementUI {
             return new Intl.NumberFormat('ko-KR').format(price) + '원';
         };
 
-        // ✅ 목록 데이터에서는 SpaceListResponseDto 구조 사용
         const getOwnerName = (space) => {
-            return space.ownerName || '-';  // SpaceListResponseDto에서는 ownerName이 직접 제공됨
+            return space.ownerName || '-';
         };
 
         const getLocation = (space) => {
-            return space.address || '-';    // SpaceListResponseDto에서는 address가 직접 제공됨
+            return space.address || '-';
         };
+
+        const getStatusBadge = (space) => {
+            const isHidden = space.isHidden || false;
+            return {
+                class: isHidden ? 'private' : 'public',
+                text: isHidden ? '숨김' : '공개'
+            };
+        };
+
+        const status = getStatusBadge(space);
 
         row.innerHTML = `
         <td>${space.id}</td>
@@ -124,24 +132,20 @@ class SpaceManagementUI {
         <td>${getLocation(space)}</td>
         <td>${formatPrice(space.rentalFee)}</td>
         <td>
-            <span class="status-badge ${space.isPublic ? 'public' : 'private'}">
-                ${space.isPublic ? '공개' : '비공개'}
+            <span class="status-badge ${status.class}">
+                ${status.text}
             </span>
         </td>
         <td>${formatDate(space.createdAt)}</td>
         <td>
             <div class="action-buttons">
-                <button class="button button-sm button-primary" data-space-id="${space.id}">
+                <button class="button button-sm button-primary detail-button" data-space-id="${space.id}">
                     상세보기
                 </button>
-                ${space.isPublic ?
-            `<button class="button button-warning" data-space-id="${space.id}">
-                        비활성화
-                    </button>` :
-            `<button class="button button-success" data-space-id="${space.id}">
-                        활성화
-                    </button>`
-        }
+                <button class="button ${space.isHidden ? 'button-success' : 'button-warning'} toggle-visibility-button" 
+                        data-space-id="${space.id}" data-is-hidden="${space.isHidden}">
+                    ${space.isHidden ? '활성화' : '비활성화'}
+                </button>
             </div>
         </td>
     `;
@@ -180,8 +184,8 @@ class SpaceManagementUI {
 
         for (let i = startPage; i <= endPage; i++) {
             paginationHTML += `
-                <button class="${i === currentPage ? 'active' : ''}" 
-                        onclick="spaceManagementController.loadPage(${i})">
+                <button onclick="spaceManagementController.loadPage(${i})" 
+                        ${i === currentPage ? 'class="active"' : ''}>
                     ${i + 1}
                 </button>
             `;
@@ -200,18 +204,22 @@ class SpaceManagementUI {
     }
 
     /**
-     * 장소 상세 모달 표시
+     * 장소 상세 정보 표시 - ★ isHidden 로직 변경
      */
-
     showSpaceDetail(space) {
+        console.log('🔍 장소 상세 정보 표시:', space);
+
         const modal = this.elements.spaceDetailModal;
         const content = this.elements.spaceDetailContent;
 
-        if (!modal || !content) return;
+        if (!modal || !content) {
+            console.error('모달 요소를 찾을 수 없습니다');
+            return;
+        }
 
         const formatDate = (dateString) => {
             if (!dateString) return '-';
-            return new Date(dateString).toLocaleString('ko-KR');
+            return new Date(dateString).toLocaleDateString('ko-KR');
         };
 
         const formatPrice = (price) => {
@@ -219,175 +227,194 @@ class SpaceManagementUI {
             return new Intl.NumberFormat('ko-KR').format(price) + '원';
         };
 
-        // ✅ 수정된 부분: 올바른 속성명 사용
-        const getOwnerName = (space) => {
-            if (space.owner && space.owner.name) return space.owner.name;
-            if (space.owner && space.owner.email) return space.owner.email;
-            return '-';
-        };
-
-        const getLocation = (space) => {
-            // venue 정보가 있는 경우
-            if (space.venue) {
-                if (space.venue.roadAddress) return space.venue.roadAddress;
-                if (space.venue.jibunAddress) return space.venue.jibunAddress;
-            }
-            // 임시 호환 필드가 있는 경우
-            if (space.address) return space.address;
-            return '-';
-        };
+        const statusText = space.isHidden ? '숨김' : '공개';
+        const statusClass = space.isHidden ? 'private' : 'public';
 
         content.innerHTML = `
-        <div class="space-detail">
-            <div class="detail-section">
-                <h4>기본 정보</h4>
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <span class="detail-label">ID</span>
-                        <span class="detail-value">${space.id}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">제목</span>
-                        <span class="detail-value">${space.title || '-'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">상태</span>
-                        <span class="detail-value">
-                            <span class="status-badge ${space.isPublic ? 'public' : 'private'}">
-                                ${space.isPublic ? '공개' : '비공개'}
-                            </span>
-                        </span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">소유자</span>
-                        <span class="detail-value">${getOwnerName(space)}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">위치</span>
-                        <span class="detail-value">${getLocation(space)}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">가격</span>
-                        <span class="detail-value">${formatPrice(space.rentalFee)}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">등록일</span>
-                        <span class="detail-value">${formatDate(space.createdAt)}</span>
+            <div class="space-detail">
+                <div class="detail-section">
+                    <h4>기본 정보</h4>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>장소명:</label>
+                            <span>${space.title || '-'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>소유자:</label>
+                            <span>${space.owner?.name || '-'} (${space.owner?.email || '-'})</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>면적:</label>
+                            <span>${space.areaSize || '-'}㎡</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>임대료:</label>
+                            <span>${formatPrice(space.rentalFee)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>연락처:</label>
+                            <span>${space.contactPhone || '-'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>상태:</label>
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
                     </div>
                 </div>
+
+                <div class="detail-section">
+                    <h4>위치 정보</h4>
+                    <div class="detail-item">
+                        <label>주소:</label>
+                        <span>${space.address || '-'}</span>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>운영 기간</h4>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>시작일:</label>
+                            <span>${formatDate(space.startDate)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>종료일:</label>
+                            <span>${formatDate(space.endDate)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>설명</h4>
+                    <div class="detail-description">
+                        ${space.description || '설명이 없습니다.'}
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>등록 정보</h4>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>등록일:</label>
+                            <span>${formatDate(space.createdAt)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>수정일:</label>
+                            <span>${formatDate(space.updatedAt)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                ${space.coverImageUrl ? `
+                <div class="detail-section">
+                    <h4>대표 이미지</h4>
+                    <img src="${space.coverImageUrl}" alt="장소 이미지" style="max-width: 100%; height: auto;">
+                </div>
+                ` : ''}
             </div>
-            ${space.description ? `
-            <div class="detail-section">
-                <h4>설명</h4>
-                <p>${space.description}</p>
-            </div>
-            ` : ''}
-        </div>
-    `;
+        `;
 
         modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
     }
 
     /**
-     * 확인 모달 표시
+     * 로딩 표시
+     */
+    showLoading(show = true) {
+        const loading = this.elements.searchLoading;
+        const tableContainer = document.getElementById('tableContainer');
+
+        if (loading) {
+            loading.style.display = show ? 'block' : 'none';
+        }
+
+        if (tableContainer) {
+            const table = tableContainer.querySelector('.data-table');
+            if (table) {
+                table.style.display = show ? 'none' : 'table';
+            }
+        }
+    }
+
+    /**
+     * 결과 없음 표시
+     */
+    showNoResults() {
+        if (this.elements.noResults) {
+            this.elements.noResults.style.display = 'block';
+        }
+        const tableContainer = document.getElementById('tableContainer');
+        if (tableContainer) {
+            const table = tableContainer.querySelector('.data-table');
+            if (table) {
+                table.style.display = 'none';
+            }
+        }
+    }
+
+    /**
+     * 결과 없음 숨기기
+     */
+    hideNoResults() {
+        if (this.elements.noResults) {
+            this.elements.noResults.style.display = 'none';
+        }
+        const tableContainer = document.getElementById('tableContainer');
+        if (tableContainer) {
+            const table = tableContainer.querySelector('.data-table');
+            if (table) {
+                table.style.display = 'table';
+            }
+        }
+    }
+
+    /**
+     * 확인 대화상자 표시
      */
     showConfirm(title, message, action) {
-        this.currentAction = action;
+        const modal = this.elements.confirmModal;
+        const titleEl = this.elements.confirmTitle;
+        const messageEl = this.elements.confirmMessage;
 
-        if (this.elements.confirmTitle) {
-            this.elements.confirmTitle.textContent = title;
-        }
-        if (this.elements.confirmMessage) {
-            this.elements.confirmMessage.textContent = message;
-        }
-        if (this.elements.confirmModal) {
-            this.elements.confirmModal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
+        if (titleEl) titleEl.textContent = title;
+        if (messageEl) messageEl.textContent = message;
+
+        this.currentAction = action;
+        if (modal) modal.style.display = 'flex';
     }
 
     /**
      * 성공 메시지 표시
      */
     showSuccess(message) {
-        alert(message); // 간단한 구현, 나중에 토스트 메시지로 교체 가능
+        alert(message); // 간단한 구현
+    }
+
+    /**
+     * 에러 메시지 표시
+     */
+    showError(message) {
+        alert(message); // 간단한 구현
     }
 
     /**
      * 모달 닫기
      */
     closeModal() {
-        const modals = [this.elements.spaceDetailModal, this.elements.confirmModal];
-        modals.forEach(modal => {
-            if (modal) {
-                modal.style.display = 'none';
-            }
+        [this.elements.spaceDetailModal, this.elements.confirmModal].forEach(modal => {
+            if (modal) modal.style.display = 'none';
         });
-        document.body.style.overflow = 'auto';
         this.currentAction = null;
+        this.currentSpaceId = null;
     }
 
     /**
-     * 로딩 표시/숨기기
+     * 확인된 액션 실행
      */
-    showLoading(show = true) {
-        console.log('🔄 로딩 상태:', show);
-
-        if (show) {
-            if (this.elements.searchLoading) {
-                this.elements.searchLoading.style.display = 'flex';
-                console.log('✅ 로딩 표시');
-            } else {
-                console.warn('⚠️ searchLoading 요소를 찾을 수 없음');
-            }
-            if (this.elements.spacesTableBody) {
-                this.elements.spacesTableBody.innerHTML = '';
-            }
-            this.hideNoResults();
-        } else {
-            this.hideLoading();
+    executeConfirmedAction() {
+        if (this.currentAction && typeof this.currentAction === 'function') {
+            this.currentAction();
         }
-    }
-
-    /**
-     * 로딩 숨기기
-     */
-    hideLoading() {
-        if (this.elements.searchLoading) {
-            this.elements.searchLoading.style.display = 'none';
-            console.log('✅ 로딩 숨김');
-        }
-    }
-
-    /**
-     * 검색 결과 없음 표시
-     */
-    showNoResults() {
-        console.log('📭 "결과 없음" 표시');
-        if (this.elements.noResults) {
-            this.elements.noResults.style.display = 'block';
-        }
-        if (this.elements.pagination) {
-            this.elements.pagination.innerHTML = '';
-        }
-    }
-
-    /**
-     * 검색 결과 없음 숨기기
-     */
-    hideNoResults() {
-        if (this.elements.noResults) {
-            this.elements.noResults.style.display = 'none';
-        }
-    }
-
-    /**
-     * 필터 초기화
-     */
-    resetFilters() {
-        if (this.elements.ownerFilter) this.elements.ownerFilter.value = '';
-        if (this.elements.titleFilter) this.elements.titleFilter.value = '';
-        if (this.elements.isPublicFilter) this.elements.isPublicFilter.value = '';
+        this.closeModal();
     }
 }

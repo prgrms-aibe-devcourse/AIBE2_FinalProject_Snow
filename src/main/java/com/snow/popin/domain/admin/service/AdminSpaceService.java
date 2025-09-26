@@ -1,5 +1,6 @@
 package com.snow.popin.domain.admin.service;
 
+import com.snow.popin.domain.space.dto.AdminSpaceListResponseDto;
 import com.snow.popin.domain.space.dto.SpaceListResponseDto;
 import com.snow.popin.domain.space.dto.SpaceResponseDto;
 import com.snow.popin.domain.space.entity.Space;
@@ -37,6 +38,7 @@ public class AdminSpaceService {
     /**
      * 장소 통계 조회
      */
+    // TODO 공개, 비공개, 진행중, 완료 로 나누기
     public Map<String, Object> getSpaceStats(){
         Map<String, Object> stats = new HashMap<>();
 
@@ -44,13 +46,13 @@ public class AdminSpaceService {
         long totalSpaces = spaceRepo.count();
         stats.put("totalSpaces", totalSpaces);
 
-        // TODO is_hidden() 생길 시 활성화
-        // 공개 장소 수 is_hidden() false
-        // long publicSpaces = spaceRepo.countByIsHidden(false)
+        // 공개 장소 수
+        long visibleSpaces = spaceRepo.countByIsHidden(false);
+        stats.put("visibleSpaces", visibleSpaces);
 
         // 비공개 장소 수
-        //long privateSpaces = totalSpaces - publicSpaces;
-        //stats.put("privateSpaces", privateSpaces);
+        long hiddenSpaces  = totalSpaces - visibleSpaces;
+        stats.put("privateSpaces", hiddenSpaces);
 
         return stats;
     }
@@ -58,9 +60,8 @@ public class AdminSpaceService {
     /**
      * 장소 목록 조회 (관리자용 - JpaSpecificationExecutor 사용)
      */
-    // TODO isPublic -> isHidden 으로 바꾸기
-    public Page<SpaceListResponseDto> getSpaces(String owner, String title, Boolean isPublic, Pageable pageable) {
-        log.debug("장소 목록 조회 + 필터링 - owner: {}, title: {}, isPublic: {}", owner, title, isPublic);
+    public Page<AdminSpaceListResponseDto> getSpaces(String owner, String title, Boolean isHidden, Pageable pageable) {
+        log.debug("장소 목록 조회 + 필터링 - owner: {}, title: {}, isPublic: {}", owner, title, isHidden);
 
         // Specification 직접 작성 (팝업 방식과 동일)
         Specification<Space> spec = (root, query, criteriaBuilder) -> {
@@ -95,8 +96,8 @@ public class AdminSpaceService {
             }
 
             // 공개 상태 필터
-            if (isPublic != null) {
-                predicates.add(criteriaBuilder.equal(root.get("isPublic"), isPublic));
+            if (isHidden != null) {
+                predicates.add(criteriaBuilder.equal(root.get("isHidden"), isHidden));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
@@ -108,7 +109,7 @@ public class AdminSpaceService {
 
         Page<Space> spaces = spaceRepo.findAll(spec, sortedPageable);
 
-        return spaces.map(space -> SpaceListResponseDto.from(space, null));
+        return spaces.map(AdminSpaceListResponseDto::from);
     }
 
     /**
@@ -126,6 +127,21 @@ public class AdminSpaceService {
     /**
      * 장소 비활성화 (관리자용)
      */
+    @Transactional
+    public void toggleSpaceVisibility(Long spaceId){
+        log.info("관리자 장소 상태 토글 요청 - spaceId: {}", spaceId);
 
+        Space space = spaceRepo.findById(spaceId)
+                .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND, "장소를 찾을 수 없습니다. ID:" + spaceId));
 
+        boolean hidden = space.getIsHidden();
+
+        if (hidden) {
+            space.show();
+            log.info("장소 활성화 완료 - spaceId: {}, title: {}", spaceId, space.getTitle());
+        } else {
+            space.hide();
+            log.info("장소 비활성화 완료 - spaceId: {}, title: {}", spaceId, space.getTitle());
+        }
+    }
 }

@@ -1,5 +1,5 @@
 package com.snow.popin.domain.popup.entity;
 
 public enum PopupStatus {
-    PLANNED, ONGOING, ENDED
+    PLANNED, ONGOING, ENDED, HIDDEN
 }

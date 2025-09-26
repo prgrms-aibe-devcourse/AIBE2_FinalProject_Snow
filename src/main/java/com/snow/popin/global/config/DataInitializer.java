@@ -18,6 +18,11 @@ import com.snow.popin.domain.mypage.host.entity.Host;
 import com.snow.popin.domain.mypage.host.entity.HostRole;
 import com.snow.popin.domain.mypage.host.repository.BrandRepository;
 import com.snow.popin.domain.mypage.host.repository.HostRepository;
+import com.snow.popin.domain.notification.constant.NotificationType;
+import com.snow.popin.domain.notification.entity.Notification;
+import com.snow.popin.domain.notification.entity.NotificationSetting;
+import com.snow.popin.domain.notification.repository.NotificationRepository;
+import com.snow.popin.domain.notification.repository.NotificationSettingRepository;
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.entity.PopupStatus;
 import com.snow.popin.domain.popup.repository.PopupRepository;
@@ -29,6 +34,7 @@ import com.snow.popin.domain.roleupgrade.entity.RoleUpgrade;
 import com.snow.popin.domain.roleupgrade.repository.RoleUpgradeRepository;
 import com.snow.popin.domain.space.entity.Space;
 import com.snow.popin.domain.space.repository.SpaceRepository;
+import com.snow.popin.domain.user.constant.UserStatus; // 누락된 import 추가
 import com.snow.popin.domain.user.repository.UserRepository;
 import com.snow.popin.domain.user.constant.Role;
 import com.snow.popin.domain.user.entity.User;
@@ -49,7 +55,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@Profile("dev")
+@Profile({"dev"})
 public class DataInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
@@ -65,9 +71,13 @@ public class DataInitializer implements CommandLineRunner {
     private final RoleUpgradeRepository roleUpgradeRepository;
     private final SpaceRepository spaceRepository;
     private final MapRepository venueRepository;
+    private final NotificationRepository notificationRepository;
+    private final NotificationSettingRepository notificationSettingRepository;
 
     @Override
     public void run(String... args) throws Exception {
+        log.info("=== DataInitializer 실행 시작 ===");
+
         createDataIfNotExists("유저", userRepository.count(), this::createDummyUsers);
         createDataIfNotExists("장소", venueRepository.count(), this::createDummyVenues);
         createDataIfNotExists("미션", missionSetRepository.count(), this::createDummyMissions);
@@ -75,42 +85,74 @@ public class DataInitializer implements CommandLineRunner {
         createDataIfNotExists("신고", inquiryRepository.count(), this::createDummyInquiries);
         createDataIfNotExists("역할승격", roleUpgradeRepository.count(), this::createDummyRoleUpgrades);
         createDataIfNotExists("공간", spaceRepository.count(), this::createDummySpaces);
+        createDataIfNotExists("알림설정", notificationSettingRepository.count(), this::createDummyNotificationSettings);
+        createDataIfNotExists("알림", notificationRepository.count(), this::createDummyNotifications);
         fixExistingPopupsVenue();
+
+        log.info("=== DataInitializer 실행 완료 ===");
     }
 
     // 공통 데이터 생성 로직
     private void createDataIfNotExists(String dataType, long count, Runnable createAction) {
         if (count > 0) {
-            log.info("{} 더미 데이터가 이미 존재하여 생성하지 않습니다.", dataType);
+            log.info("{} 더미 데이터가 이미 존재하여 생성하지 않습니다. (현재 {}개)", dataType, count);
             return;
         }
         log.info("{} 더미 데이터를 생성합니다.", dataType);
-        createAction.run();
-        log.info("{} 더미 데이터 생성 완료", dataType);
+        try {
+            createAction.run();
+            log.info("{} 더미 데이터 생성 완료", dataType);
+        } catch (Exception e) {
+            log.error("{} 더미 데이터 생성 실패: {}", dataType, e.getMessage(), e);
+        }
     }
 
     // 사용자 생성 공통 메소드
     private User createUserIfNotExists(String email, String name, String nickname, String phone, Role role) {
         return userRepository.findByEmail(email)
-                .orElseGet(() -> userRepository.save(User.builder()
-                        .email(email)
-                        .password(passwordEncoder.encode("1234"))
-                        .name(name)
-                        .nickname(nickname)
-                        .phone(phone)
-                        .authProvider(AuthProvider.LOCAL)
-                        .role(role)
-                        .build()));
+                .orElseGet(() -> {
+                    try {
+                        User user = User.builder()
+                                .email(email)
+                                .password(passwordEncoder.encode("1234"))
+                                .name(name)
+                                .nickname(nickname)
+                                .phone(phone)
+                                .authProvider(AuthProvider.LOCAL)
+                                .role(role)
+                                .status(UserStatus.ACTIVE)
+                                .build();
+                        User savedUser = userRepository.save(user);
+                        log.info("사용자 생성 완료: {} ({})", savedUser.getEmail(), savedUser.getRole());
+                        return savedUser;
+                    } catch (Exception e) {
+                        log.error("사용자 생성 실패: {} - {}", email, e.getMessage());
+                        throw e;
+                    }
+                });
     }
 
     private void createDummyUsers() {
+        log.info("기본 더미 사용자들을 생성합니다...");
+
         List<UserData> userData = Arrays.asList(
                 new UserData("user1@test.com", "유저1이름", "유저닉네임1", "010-1234-1234", Role.USER),
                 new UserData("user2@test.com", "유저2이름", "유저닉네임2", "010-5678-5678", Role.USER),
-                new UserData("user3@test.com", "관리자1", "관리자1닉네임", "010-5678-5678", Role.ADMIN)
+                new UserData("admin@test.com", "관리자1", "관리자1닉네임", "010-9999-9999", Role.ADMIN),
+                new UserData("host1@test.com", "호스트1", "host1", "010-1111-1111", Role.HOST),
+                new UserData("provider1@test.com", "공간제공자1", "provider1", "010-2222-2222", Role.PROVIDER)
         );
 
-        userData.forEach(data -> createUserIfNotExists(data.email, data.name, data.nickname, data.phone, data.role));
+        userData.forEach(data -> {
+            try {
+                createUserIfNotExists(data.email, data.name, data.nickname, data.phone, data.role);
+            } catch (Exception e) {
+                log.error("사용자 생성 실패: {}", data.email, e);
+            }
+        });
+
+        long userCount = userRepository.count();
+        log.info("총 {}명의 사용자가 데이터베이스에 존재합니다.", userCount);
     }
 
     private void createDummyVenues() {
@@ -125,6 +167,7 @@ public class DataInitializer implements CommandLineRunner {
                 .collect(Collectors.toList());
 
         venueRepository.saveAll(venues);
+        log.info("{}개의 장소 데이터 생성 완료", venues.size());
     }
 
     private void createDummyMissions() {
@@ -297,9 +340,10 @@ public class DataInitializer implements CommandLineRunner {
                 log.info("팝업 {} venue 연결 완료: {}", popup.getTitle(), defaultVenue.getName());
             }
 
-            log.info("총 {}개 팝업의 venue 연결 완료", popupsWithoutVenue.size());
+            log.info("이 {}개 팝업의 venue 연결 완료", popupsWithoutVenue.size());
         }
     }
+
     private void createDummyInquiries() {
         User user1 = userRepository.findByEmail("user1@test.com").orElse(null);
         User user2 = userRepository.findByEmail("user2@test.com").orElse(null);
@@ -344,7 +388,7 @@ public class DataInitializer implements CommandLineRunner {
                 .collect(Collectors.toList());
 
         inquiryRepository.saveAll(inquiries);
-        log.info("신고 더미 데이터 생성 완료 - 총 {}건", inquiries.size());
+        log.info("신고 더미 데이터 생성 완료 - 이 {}건", inquiries.size());
     }
 
     private void createDummyRoleUpgrades() {
@@ -417,6 +461,77 @@ public class DataInitializer implements CommandLineRunner {
                 .collect(Collectors.toList());
 
         venueRepository.saveAll(venues);
+    }
+
+    /**
+     * 알림 설정 더미 데이터 생성
+     */
+    private void createDummyNotificationSettings() {
+        List<User> users = userRepository.findAll();
+
+        for (User user : users) {
+            if (notificationSettingRepository.findByUser(user).isEmpty()) {
+                NotificationSetting setting = NotificationSetting.createDefault(user);
+                notificationSettingRepository.save(setting);
+                log.info("사용자 {}의 알림 설정 생성 완료", user.getEmail());
+            }
+        }
+    }
+
+    /**
+     * 알림 더미 데이터 생성
+     */
+    private void createDummyNotifications() {
+        List<User> users = userRepository.findAll();
+        if (users.isEmpty()) {
+            log.warn("사용자가 없어 알림 데이터를 생성할 수 없습니다.");
+            return;
+        }
+
+        // 알림 데이터 정의
+        List<NotificationData> notificationDataList = Arrays.asList(
+                // RESERVATION 타입 알림
+                new NotificationData("예약 확정 알림", "가짜 팝업1 예약이 확정되었습니다.", NotificationType.RESERVATION, "/popup/1"),
+                new NotificationData("예약 취소 알림", "가짜 팝업2 예약이 취소되었습니다.", NotificationType.RESERVATION, "/popup/2"),
+                new NotificationData("예약 확인 필요", "내일 방문 예정인 팝업이 있습니다. 확인해주세요.", NotificationType.RESERVATION, "/mypage/reservations"),
+
+                // SYSTEM 타입 알림
+                new NotificationData("시스템 점검 안내", "오늘 밤 12시~2시 서버 점검이 진행됩니다.", NotificationType.SYSTEM, "/notice"),
+                new NotificationData("업데이트 알림", "새로운 기능이 추가되었습니다. 확인해보세요!", NotificationType.SYSTEM, "/"),
+                new NotificationData("약관 변경 안내", "이용약관이 변경되었습니다.", NotificationType.SYSTEM, "/terms"),
+
+                // EVENT 타입 알림
+                new NotificationData("특별 이벤트", "신규 회원 대상 특별 할인 이벤트가 시작되었습니다!", NotificationType.EVENT, "/event/1"),
+                new NotificationData("미션 완료 알림", "팝업 미션을 모두 완료하셨습니다. 리워드를 받아가세요!", NotificationType.EVENT, "/mission/reward"),
+                new NotificationData("새 팝업 오픈", "관심 지역에 새로운 팝업이 오픈했습니다.", NotificationType.EVENT, "/popup/new")
+        );
+
+        // 각 사용자에게 랜덤하게 알림 생성
+        for (User user : users) {
+            // 사용자당 3-7개의 알림 생성
+            int notificationCount = 3 + (int) (Math.random() * 5);
+
+            for (int i = 0; i < notificationCount; i++) {
+                NotificationData data = notificationDataList.get(i % notificationDataList.size());
+
+                Notification notification = Notification.builder()
+                        .user(user)
+                        .title(data.title)
+                        .message(data.message)
+                        .type(data.type)
+                        .link(data.link)
+                        .build();
+
+                // 일부 알림은 읽음 처리
+                if (Math.random() < 0.3) { // 30% 확률로 읽음 처리
+                    notification.markAsRead();
+                }
+
+                notificationRepository.save(notification);
+            }
+
+            log.info("사용자 {}에게 {}개의 알림 생성 완료", user.getEmail(), notificationCount);
+        }
     }
 
     // 헬퍼 메소드들
@@ -499,6 +614,15 @@ public class DataInitializer implements CommandLineRunner {
         SpaceData(User owner, String title, String description, int areaSize, int rentalFee, String contactPhone, String coverImageUrl) {
             this.owner = owner; this.title = title; this.description = description;
             this.areaSize = areaSize; this.rentalFee = rentalFee; this.contactPhone = contactPhone; this.coverImageUrl = coverImageUrl;
+        }
+    }
+
+    private static class NotificationData {
+        final String title, message, link;
+        final NotificationType type;
+
+        NotificationData(String title, String message, NotificationType type, String link) {
+            this.title = title; this.message = message; this.type = type; this.link = link;
         }
     }
 }

@@ -27,11 +27,7 @@ public interface SpaceRepository extends JpaRepository<Space, Long>, JpaSpecific
     //검색용 또는 통계 추가 할 것
 
     // 통계용 메서드들
-    long countByIsPublic(boolean isPublic);
-    long countByCreatedAtAfter(LocalDateTime date);
-    // N+1 문제 방지를 위한 fetch join 쿼리 (필요시 사용)
-    @Query("SELECT s FROM Space s JOIN FETCH s.owner WHERE s.id = :id")
-    Optional<Space> findByIdWithOwner(@Param("id") Long id);
+    long countByIsHidden(boolean isHidden);
 
     //검색용 쿼리
     @Query("SELECT s FROM Space s WHERE " +

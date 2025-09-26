@@ -1,119 +1,118 @@
-// /js/admin/popup-management.js
-
+// 팝업 관리 클래스
 class PopupManagement {
     constructor() {
         this.currentPage = 1;
         this.pageSize = 10;
         this.currentFilters = {};
         this.selectedPopupId = null;
-        this.categories = [];
+        this.categories = []; // 카테고리 목록
 
-        this.init();
-    }
-
-    init() {
-        this.checkAdminAuth();
-        this.bindEvents();
+        this.initEventListeners();
         this.loadCategories();
         this.loadPopups();
-        this.loadStats();
     }
 
-    checkAdminAuth() {
-        const token = localStorage.getItem('authToken');
-        const userRole = localStorage.getItem('userRole');
-
-        if (!token || userRole !== 'ADMIN') {
-            alert('관리자만 접근할 수 있습니다.');
-            window.location.href = '/templates/auth/login.html';
-        }
-    }
-
-    bindEvents() {
-        // 검색 및 필터
+    // 이벤트 리스너 초기화
+    initEventListeners() {
+        // 검색 버튼
         document.getElementById('searchBtn').addEventListener('click', () => this.search());
-        document.getElementById('resetBtn').addEventListener('click', () => this.resetFilters());
-        document.getElementById('searchKeyword').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.search();
+        document.getElementById('resetBtn').addEventListener('click', () => this.reset());
+
+        // 엔터키로 검색
+        ['statusFilter', 'categoryFilter', 'searchKeyword'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.search();
+                });
+            }
         });
 
-        // 모달
-        document.getElementById('modalCloseBtn').addEventListener('click', () => this.closeModal());
+        // 모달 이벤트
         document.getElementById('closeModalBtn').addEventListener('click', () => this.closeModal());
         document.getElementById('rejectModalCloseBtn').addEventListener('click', () => this.closeRejectModal());
         document.getElementById('cancelRejectBtn').addEventListener('click', () => this.closeRejectModal());
 
-        // 액션 버튼
+        // 액션 버튼들
         document.getElementById('approveBtn').addEventListener('click', () => this.approvePopup());
         document.getElementById('rejectBtn').addEventListener('click', () => this.openRejectModal());
         document.getElementById('suspendBtn').addEventListener('click', () => this.suspendPopup());
         document.getElementById('confirmRejectBtn').addEventListener('click', () => this.confirmReject());
 
-        // 모달 외부 클릭 시 닫기
-        window.addEventListener('click', (e) => {
-            if (e.target === document.getElementById('detailModal')) this.closeModal();
-            if (e.target === document.getElementById('rejectModal')) this.closeRejectModal();
-        });
+        // 상태 변경 버튼 이벤트 추가
+        document.getElementById('changeStatusBtn')?.addEventListener('click', () => this.openStatusModal());
+        document.getElementById('confirmStatusBtn')?.addEventListener('click', () => this.confirmStatusChange());
+        document.getElementById('cancelStatusBtn')?.addEventListener('click', () => this.closeStatusModal());
+        document.getElementById('statusModalCloseBtn')?.addEventListener('click', () => this.closeStatusModal());
     }
 
+    // 인증 헤더 반환
     getAuthHeaders() {
+        const token = localStorage.getItem('accessToken') || localStorage.getItem('authToken');
         return {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
         };
     }
 
-    // 카테고리 로드 및 설정
+    // 카테고리 로드
     async loadCategories() {
         try {
-            const response = await fetch('/api/auth/categories', {
-                headers: {'Content-Type': 'application/json'}
+            const response = await fetch('/api/categories', {
+                headers: this.getAuthHeaders()
             });
 
             if (response.ok) {
-                const data = await response.json();
-                this.categories = data.success && data.data ? data.data : this.getDefaultCategories();
-            } else {
-                this.categories = this.getDefaultCategories();
+                this.categories = await response.json();
+                this.populateCategoryFilter(); // 필터 옵션 업데이트
             }
         } catch (error) {
             console.error('카테고리 로드 실패:', error);
-            this.categories = this.getDefaultCategories();
         }
-        this.populateCategoryFilter();
     }
 
-    getDefaultCategories() {
-        return [
-            {id: 1, name: '푸드', slug: 'FOOD'},
-            {id: 2, name: '패션', slug: 'FASHION'},
-            {id: 3, name: '뷰티', slug: 'BEAUTY'},
-            {id: 4, name: '라이프스타일', slug: 'LIFESTYLE'},
-            {id: 5, name: '문화/예술', slug: 'CULTURE'},
-            {id: 6, name: '스포츠', slug: 'SPORTS'},
-            {id: 7, name: '기술/IT', slug: 'TECH'},
-            {id: 8, name: '기타', slug: 'OTHER'}
-        ];
-    }
-
+    // 카테고리 필터 옵션 채우기
     populateCategoryFilter() {
-        const categoryFilter = document.getElementById('categoryFilter');
+        const categorySelect = document.getElementById('categoryFilter');
+        if (!categorySelect || !this.categories) return;
 
-        // 기존 옵션 제거 (전체 옵션 제외)
-        while (categoryFilter.children.length > 1) {
-            categoryFilter.removeChild(categoryFilter.lastChild);
-        }
-
-        // 카테고리 옵션 추가
+        // 기존 옵션 유지하고 새 옵션 추가
+        let html = '<option value="">전체</option>';
         this.categories.forEach(category => {
-            const option = document.createElement('option');
-            option.value = category.slug || category.name;
-            option.textContent = category.name;
-            categoryFilter.appendChild(option);
+            html += `<option value="${category.slug}">${category.name}</option>`;
         });
+
+        categorySelect.innerHTML = html;
     }
 
-    // 데이터 로드
+    // 검색 실행
+    search() {
+        this.currentFilters = {
+            status: document.getElementById('statusFilter').value,
+            category: document.getElementById('categoryFilter')?.value || '',
+            keyword: document.getElementById('searchKeyword').value
+        };
+        this.currentPage = 1;
+        this.loadPopups();
+    }
+
+    // 필터 초기화
+    reset() {
+        document.getElementById('statusFilter').value = '';
+        document.getElementById('categoryFilter') && (document.getElementById('categoryFilter').value = '');
+        document.getElementById('searchKeyword').value = '';
+        this.currentFilters = {};
+        this.currentPage = 1;
+        this.loadPopups();
+    }
+
+    // 페이지 이동
+    goToPage(page) {
+        this.currentPage = page;
+        this.loadPopups();
+    }
+
+    // 통계 로드
     async loadStats() {
         try {
             const response = await fetch('/api/admin/popups/stats', {
@@ -214,7 +213,7 @@ class PopupManagement {
         document.getElementById('tableContainer').innerHTML = tableHTML;
     }
 
-// 페이지네이션
+    // 페이지네이션
     renderPagination(pageInfo) {
         const {number, totalPages, first, last} = pageInfo;
 
@@ -238,118 +237,107 @@ class PopupManagement {
         document.getElementById('pagination').innerHTML = html;
     }
 
-
-    goToPage(page) {
-        this.currentPage = page;
-        this.loadPopups();
-    }
-
-    // 검색 및 필터
-    search() {
-        const filters = {
-            status: document.getElementById('statusFilter').value,
-            category: document.getElementById('categoryFilter').value,
-            keyword: document.getElementById('searchKeyword').value.trim()
-        };
-
-        this.currentFilters = Object.fromEntries(
-            Object.entries(filters).filter(([key, value]) => value)
-        );
-
-        this.currentPage = 1;
-        this.loadPopups();
-    }
-
-    resetFilters() {
-        document.getElementById('statusFilter').value = '';
-        document.getElementById('categoryFilter').value = '';
-        document.getElementById('searchKeyword').value = '';
-
-        this.currentFilters = {};
-        this.currentPage = 1;
-        this.loadPopups();
-    }
-
-    // 상세보기 및 모달
+    // 팝업 상세 보기
     async viewDetail(popupId) {
+        this.selectedPopupId = popupId;
+
         try {
             const response = await fetch(`/api/admin/popups/${popupId}`, {
                 headers: this.getAuthHeaders()
             });
 
-            if (!response.ok) throw new Error('팝업 상세 정보 로드 실패');
+            if (!response.ok) throw new Error('팝업 상세 조회 실패');
 
             const popup = await response.json();
-            this.showDetailModal(popup);
+            this.renderDetailModal(popup);
+            this.updateActionButtons(popup.status);
+            document.getElementById('detailModal').style.display = 'block';
 
         } catch (error) {
-            console.error('팝업 상세 정보 로드 실패:', error);
+            console.error('팝업 상세 조회 실패:', error);
             alert('팝업 상세 정보를 불러오는데 실패했습니다.');
         }
     }
 
-    showDetailModal(popup) {
-        this.selectedPopupId = popup.id;
-        document.getElementById('modalBody').innerHTML = this.buildDetailHTML(popup);
-        this.updateActionButtons(popup.status);
-        document.getElementById('detailModal').style.display = 'block';
-    }
-
-    buildDetailHTML(popup) {
-        const locationText = popup.venueName || popup.venueAddress || '장소 정보 없음';
-
-        return `
-    <div class="popup-detail-content">
+    renderDetailModal(popup) {
+        document.getElementById('modalBody').innerHTML = `
+    <div class="detail-info">
         <div class="detail-section">
             <h3>기본 정보</h3>
             <div class="detail-grid">
                 <div class="detail-item">
-                    <label>팝업 ID:</label>
-                    <div class="detail-value">${popup.id}</div>
+                    <span class="detail-label">팝업 ID:</span>
+                    <span class="detail-value">${popup.id}</span>
                 </div>
                 <div class="detail-item">
-                    <label>팝업명:</label>
-                    <div class="detail-value">${popup.title}</div>
+                    <span class="detail-label">팝업명:</span>
+                    <span class="detail-value">${popup.title}</span>
                 </div>
                 <div class="detail-item">
-                    <label>브랜드:</label>
-                    <div class="detail-value">${popup.brandName || '미등록'}</div>
+                    <span class="detail-label">브랜드:</span>
+                    <span class="detail-value">${popup.brandName || '미등록'}</span>
                 </div>
                 <div class="detail-item">
-                    <label>주최자:</label>
-                    <div class="detail-value">${popup.hostName || '정보 없음'}</div>
+                    <span class="detail-label">카테고리:</span>
+                    <span class="detail-value">${popup.categoryName || this.getCategoryText(popup.category) || '미분류'}</span>
                 </div>
                 <div class="detail-item">
-                    <label>카테고리:</label>
-                    <div class="detail-value">${popup.categoryName || this.getCategoryText(popup.category) || '미분류'}</div>
-                </div>
-                <div class="detail-item">
-                    <label>장소:</label>
-                    <div class="detail-value">${locationText}</div>
-                </div>
-                <div class="detail-item">
-                    <label>상태:</label>
-                    <div class="detail-value">
-                        <span class="status-badge ${popup.status.toLowerCase()}">
-                            ${this.getStatusText(popup.status)}
-                        </span>
-                    </div>
-                </div>
-                <div class="detail-item">
-                    <label>기간:</label>
-                    <div class="detail-value">
-                        ${this.formatDate(popup.startDate)} ~ ${this.formatDate(popup.endDate)}
-                    </div>
+                    <span class="detail-label">상태:</span>
+                    <span class="status-badge ${popup.status.toLowerCase()}">${this.getStatusText(popup.status)}</span>
                 </div>
             </div>
         </div>
 
         <div class="detail-section">
-            <h3>상세 설명</h3>
-            <div class="detail-value" style="white-space: pre-wrap; : 1.6;">
-                ${popup.description || '설명이 없습니다.'}
+            <h3>운영 기간</h3>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">시작일:</span>
+                    <span class="detail-value">${this.formatDate(popup.startDate)}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">종료일:</span>
+                    <span class="detail-value">${this.formatDate(popup.endDate)}</span>
+                </div>
             </div>
         </div>
+
+        <div class="detail-section">
+            <h3>장소 정보</h3>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">장소명:</span>
+                    <span class="detail-value">${popup.venueName || '-'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">주소:</span>
+                    <span class="detail-value">${popup.venueAddress || '-'}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h3>등록 정보</h3>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">등록일:</span>
+                    <span class="detail-value">${this.formatDate(popup.createdAt)}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">최종 수정:</span>
+                    <span class="detail-value">${this.formatDate(popup.updatedAt)}</span>
+                </div>
+            </div>
+        </div>
+
+        ${popup.description ? `
+            <div class="detail-section">
+                <h3>설명</h3>
+                <div class="detail-value description">
+                    ${popup.description}
+                </div>
+            </div>
+        ` : ''}
 
         ${popup.rejectReason ? `
             <div class="detail-section">
@@ -367,18 +355,26 @@ class PopupManagement {
         const buttons = {
             approveBtn: document.getElementById('approveBtn'),
             rejectBtn: document.getElementById('rejectBtn'),
-            suspendBtn: document.getElementById('suspendBtn')
+            suspendBtn: document.getElementById('suspendBtn'),
+            changeStatusBtn: document.getElementById('changeStatusBtn')
         };
 
         // 모든 버튼 숨김
-        Object.values(buttons).forEach(btn => btn.style.display = 'none');
+        Object.values(buttons).forEach(btn => {
+            if (btn) btn.style.display = 'none';
+        });
 
         // 상태별 버튼 표시
         if (status === 'PENDING') {
-            buttons.approveBtn.style.display = 'block';
-            buttons.rejectBtn.style.display = 'block';
-        } else if (['APPROVED', 'ACTIVE'].includes(status)) {
-            buttons.suspendBtn.style.display = 'block';
+            buttons.approveBtn && (buttons.approveBtn.style.display = 'block');
+            buttons.rejectBtn && (buttons.rejectBtn.style.display = 'block');
+        } else if (['APPROVED', 'ACTIVE', 'ONGOING'].includes(status)) {
+            buttons.suspendBtn && (buttons.suspendBtn.style.display = 'block');
+        }
+
+        // 상태 변경 버튼은 항상 표시 (PENDING과 REJECTED 제외)
+        if (!['PENDING'].includes(status) && buttons.changeStatusBtn) {
+            buttons.changeStatusBtn.style.display = 'block';
         }
     }
 
@@ -460,6 +456,74 @@ class PopupManagement {
         }
     }
 
+    // === 새로 추가된 상태 변경 기능 ===
+    openStatusModal() {
+        // 상태 선택 모달 표시
+        document.getElementById('statusSelectModal').style.display = 'block';
+        this.populateStatusOptions();
+    }
+
+    populateStatusOptions() {
+        const statusSelect = document.getElementById('newStatusSelect');
+        if (!statusSelect) return;
+
+        // PopupStatus enum에 맞는 4개 상태만
+        const statusOptions = [
+            { value: 'PLANNED', text: '계획중' },
+            { value: 'ONGOING', text: '진행중' },
+            { value: 'ENDED', text: '종료됨' },
+            { value: 'HIDDEN', text: '숨김' }
+        ];
+
+        statusSelect.innerHTML = '<option value="">상태를 선택하세요</option>';
+        statusOptions.forEach(option => {
+            statusSelect.innerHTML += `<option value="${option.value}">${option.text}</option>`;
+        });
+    }
+
+    async confirmStatusChange() {
+        const newStatus = document.getElementById('newStatusSelect').value;
+
+        if (!newStatus) {
+            alert('변경할 상태를 선택해주세요.');
+            return;
+        }
+
+        if (!confirm(`팝업 상태를 '${this.getStatusText(newStatus)}'로 변경하시겠습니까?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/popups/${this.selectedPopupId}/status`, {
+                method: 'PUT',
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify({status: newStatus})
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '상태 변경 실패');
+            }
+
+            const result = await response.json();
+            alert('팝업 상태가 성공적으로 변경되었습니다.');
+
+            this.closeStatusModal();
+            this.closeModal();
+            this.loadPopups();
+
+        } catch (error) {
+            console.error('팝업 상태 변경 실패:', error);
+            alert('팝업 상태 변경에 실패했습니다: ' + error.message);
+        }
+    }
+
+    closeStatusModal() {
+        document.getElementById('statusSelectModal').style.display = 'none';
+        document.getElementById('newStatusSelect').value = '';
+    }
+
+    // 모달 닫기
     closeModal() {
         document.getElementById('detailModal').style.display = 'none';
         this.selectedPopupId = null;
@@ -473,34 +537,23 @@ class PopupManagement {
     getStatusText(status) {
         const statusMap = {
             'PLANNED': '계획중',
-            'ACTIVE': '진행중',
-            'COMPLETED': '완료됨',
-            'CANCELLED': '취소됨',
-            'PENDING': '대기중',
-            'APPROVED': '승인됨',
-            'REJECTED': '거부됨'
+            'ONGOING': '진행중',
+            'ENDED': '종료됨',
+            'HIDDEN': '숨김'
         };
         return statusMap[status] || status;
     }
 
     getCategoryText(category) {
+        // 실제 카테고리 데이터에서 찾기
         const found = this.categories.find(cat =>
             cat.slug === category || cat.name === category
         );
 
         if (found) return found.name;
 
-        const categoryMap = {
-            'FOOD': '푸드',
-            'FASHION': '패션',
-            'BEAUTY': '뷰티',
-            'LIFESTYLE': '라이프스타일',
-            'CULTURE': '문화/예술',
-            'SPORTS': '스포츠',
-            'TECH': '기술/IT',
-            'OTHER': '기타'
-        };
-        return categoryMap[category] || category;
+        // 카테고리를 찾지 못한 경우 slug 그대로 반환
+        return category || '미분류';
     }
 
     formatDate(dateString) {

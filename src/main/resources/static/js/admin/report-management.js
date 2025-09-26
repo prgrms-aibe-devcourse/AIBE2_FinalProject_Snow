@@ -84,7 +84,7 @@ class ReportManagement {
 
     // 역할 승격 요청 통계 API 호출
     async getUpgradeRequestCounts() {
-        const response = await fetch('/api/admin/role-upgrade/pending-count', {
+        const response = await fetch('/api/admin/users/upgrade-requests/count', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -96,7 +96,9 @@ class ReportManagement {
             throw new Error(`API 호출 실패: ${response.status}`);
         }
 
-        return await response.json();
+        // AdminUserController에서 Long을 직접 반환하므로 객체 형태로 변환
+        const count = await response.json();
+        return { pendingCount: count };
     }
 
     // 리뷰 신고 대기중 개수 계산 (별도 API가 없으므로 전체에서 계산)
@@ -123,7 +125,7 @@ class ReportManagement {
 
     // JWT 토큰 가져오기
     getToken() {
-        return localStorage.getItem('accessToken') || '';
+        return localStorage.getItem('authToken') || localStorage.getItem('accessToken') || '';
     }
 
     // 수동 새로고침 함수 (외부에서 호출 가능)

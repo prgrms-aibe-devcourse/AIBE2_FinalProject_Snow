@@ -11,7 +11,6 @@ public class PopupStatsResponse {
     private Long planning;      // 계획 중인 팝업 수
     private Long ongoing;       // 진행중인 팝업 수
     private Long completed;    // 완료된 팝업 수
-    // TODO is_hidden 생성 후 활성화
    // private Long cancelled;    // 취소된 팝업 수
 
 }

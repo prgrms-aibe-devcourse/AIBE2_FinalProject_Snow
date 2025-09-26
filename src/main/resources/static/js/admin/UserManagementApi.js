@@ -87,7 +87,6 @@ class UserManagementApi {
     async getUpgradeRequestCount() {
         try {
             const token = this.getStoredToken();
-            // 백엔드 컨트롤러의 실제 경로로 수정
             const response = await fetch('/api/admin/users/upgrade-requests/count', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -152,6 +151,45 @@ class UserManagementApi {
             return await response.json();
         } catch (error) {
             console.error('역할별 회원 수 조회 실패:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * 사용자 상태 변경
+     * @param {string} userId 사용자 ID
+     * @param {string} status 새로운 상태 ('ACTIVE' 또는 'INACTIVE')
+     * @returns {Promise<Object>} 변경 결과
+     */
+    async updateUserStatus(userId, status) {
+        try {
+            const token = this.getStoredToken();
+            console.log('사용자 상태 변경 API 호출 - userId:', userId, 'status:', status);
+
+            const response = await fetch(`${this.baseURL}/${userId}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    status: status
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+                const errorMessage = errorData?.message || `상태 변경 실패: ${response.status} ${response.statusText}`;
+                throw new Error(errorMessage);
+            }
+
+            const result = await response.json();
+            console.log('사용자 상태 변경 API 응답:', result);
+
+            return result;
+
+        } catch (error) {
+            console.error('사용자 상태 변경 API 실패:', error);
             throw error;
         }
     }

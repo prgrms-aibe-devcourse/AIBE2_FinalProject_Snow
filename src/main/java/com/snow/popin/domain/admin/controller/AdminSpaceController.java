@@ -1,6 +1,7 @@
 package com.snow.popin.domain.admin.controller;
 
 import com.snow.popin.domain.admin.service.AdminSpaceService;
+import com.snow.popin.domain.space.dto.AdminSpaceListResponseDto;
 import com.snow.popin.domain.space.dto.SpaceListResponseDto;
 import com.snow.popin.domain.space.dto.SpaceResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -39,15 +41,15 @@ public class AdminSpaceController {
      * 장소 목록 조회 (관리자용)
      */
     @GetMapping
-    public ResponseEntity<Page<SpaceListResponseDto>> getSpace(
+    public ResponseEntity<Page<AdminSpaceListResponseDto>> getSpace(
             @RequestParam(required = false) String owner,
             @RequestParam(required = false) String title,
-            @RequestParam(required = false) Boolean isPublic,
+            @RequestParam(required = false) Boolean isHidden,
             @PageableDefault(size = 20, sort = "createdAt")Pageable pageable ){
-        log.info("관리자 장소 대여 목록 조회 요청 - owner: {}, title: {}, isPublic: {}, 페이지: {}",
-                owner, title, isPublic, pageable.getPageNumber());
+        log.info("관리자 장소 대여 목록 조회 요청 - owner: {}, title: {}, isHidden: {}, 페이지: {}",
+                owner, title, isHidden, pageable.getPageNumber());
 
-        Page<SpaceListResponseDto> spaces = adminSpaceService.getSpaces(owner, title, isPublic, pageable);
+        Page<AdminSpaceListResponseDto> spaces = adminSpaceService.getSpaces(owner, title, isHidden, pageable);
         return ResponseEntity.ok(spaces);
     }
 
@@ -65,4 +67,15 @@ public class AdminSpaceController {
     /**
      * 장소 비활성화 (관리자용)
      */
+    @PutMapping("/{spaceId}/toggle-visibility")
+    public ResponseEntity<Map<String, Object>> toggleSpaceVisibility(@PathVariable Long spaceId){
+        adminSpaceService.toggleSpaceVisibility(spaceId);
+
+        // JSON 응답 반환
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "장소 상태가 변경되었습니다.");
+
+        return ResponseEntity.ok(response);
+    }
 }

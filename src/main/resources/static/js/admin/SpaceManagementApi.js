@@ -7,16 +7,16 @@ class SpaceManagementApi {
     }
 
     /**
-     * JWT 토큰 가져오기
+     * 토큰 가져오기
      */
     getToken() {
-        return localStorage.getItem('authToken');
+        return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
     }
 
     /**
      * 장소 통계 조회
      */
-    async getStats() {
+    async getSpaceStats() {
         try {
             const response = await fetch(`${this.baseURL}/stats`, {
                 method: 'GET',
@@ -38,29 +38,22 @@ class SpaceManagementApi {
     }
 
     /**
-     * 장소 목록 조회 (필터링 및 페이징 지원)
-     */
-    /**
-     * 장소 목록 조회 (필터링 및 페이징 지원)
+     * 장소 목록 조회 (관리자용) - isPublic → isHidden 파라미터 변경
      */
     async getSpaces(params = {}) {
         try {
             const queryParams = new URLSearchParams();
 
-            // 필터 파라미터 추가
+            // 페이징
+            if (params.page !== undefined) queryParams.append('page', params.page);
+            if (params.size !== undefined) queryParams.append('size', params.size);
+
+            // 필터링 - isPublic → isHidden으로 변경
             if (params.owner) queryParams.append('owner', params.owner);
             if (params.title) queryParams.append('title', params.title);
-            if (params.isPublic !== undefined && params.isPublic !== '') {
-                queryParams.append('isPublic', params.isPublic);
-            }
+            if (params.isHidden !== undefined) queryParams.append('isHidden', params.isHidden);
 
-            // 페이징 파라미터 추가
-            if (params.page !== undefined) queryParams.append('page', params.page);
-            if (params.size) queryParams.append('size', params.size);
-            if (params.sort) queryParams.append('sort', params.sort);
-
-            console.log('🔍 API 요청 URL:', `${this.baseURL}?${queryParams.toString()}`);
-            console.log('🔍 API 요청 파라미터:', params);
+            console.log('🌐 API 요청 URL:', `${this.baseURL}?${queryParams.toString()}`);
 
             const response = await fetch(`${this.baseURL}?${queryParams.toString()}`, {
                 method: 'GET',
@@ -81,9 +74,8 @@ class SpaceManagementApi {
         }
     }
 
-
     /**
-     * 장소 상세 조회
+     * 장소 상세 조회 (관리자용)
      */
     async getSpaceDetail(spaceId) {
         try {
@@ -106,14 +98,12 @@ class SpaceManagementApi {
         }
     }
 
-
     /**
-     * 장소 비활성화 (관리자용)
-     * TODO: 백엔드에서 구현 예정
+     * 장소 상태 토글 (관리자용) - 새로 추가된 메소드
      */
-    async hideSpace(spaceId) {
+    async toggleSpaceVisibility(spaceId) {
         try {
-            const response = await fetch(`${this.baseURL}/${spaceId}/hide`, {
+            const response = await fetch(`${this.baseURL}/${spaceId}/toggle-visibility`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${this.getToken()}`,
@@ -127,32 +117,7 @@ class SpaceManagementApi {
 
             return await response.json();
         } catch (error) {
-            console.error('장소 비활성화 실패:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * 장소 활성화 (관리자용)
-     * TODO: 백엔드에서 구현 예정
-     */
-    async showSpace(spaceId) {
-        try {
-            const response = await fetch(`${this.baseURL}/${spaceId}/show`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${this.getToken()}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('장소 활성화 실패:', error);
+            console.error('장소 상태 토글 실패:', error);
             throw error;
         }
     }

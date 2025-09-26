@@ -1,5 +1,5 @@
 /**
- * 회원 관리 UI 클래스
+ * 회원 관리 UI 클래스 - popup-management와 정확히 동일한 구조로 수정
  */
 class UserManagementUI {
     constructor() {
@@ -15,22 +15,51 @@ class UserManagementUI {
             searchLoading: document.getElementById('searchLoading'),
             noResults: document.getElementById('noResults'),
             searchResults: document.querySelector('.search-results'),
-            userDetailModal: document.getElementById('userDetailModal'),
-            userDetailContent: document.getElementById('userDetailContent'),
-            closeModal: document.getElementById('closeModal'),
+            // popup-management와 동일한 모달 구조
+            detailModal: document.getElementById('detailModal'),
+            modalBody: document.getElementById('modalBody'),
+            modalCloseBtn: document.getElementById('modalCloseBtn'),
+            closeModalBtn: document.getElementById('closeModalBtn'),
+            statusSelectModal: document.getElementById('statusSelectModal'),
             upgradeRequestCount: document.getElementById('upgradeRequestCount')
         };
+
+        // 선택된 사용자 ID (popup-management와 동일한 패턴)
+        this.selectedUserId = null;
+
+        // 모든 모달을 확실히 닫아놓기
+        this.initializeModals();
+    }
+
+    /**
+     * 모달들을 초기 상태로 설정
+     */
+    initializeModals() {
+        // 모든 모달이 처음에는 숨겨져 있도록 확실히 설정
+        if (this.elements.detailModal) {
+            this.elements.detailModal.style.display = 'none';
+        }
+        if (this.elements.statusSelectModal) {
+            this.elements.statusSelectModal.style.display = 'none';
+        }
+
+        console.log('모달 초기화 완료');
     }
 
     /**
      * 검색 결과 표시
-     * @param {Object} data 검색 결과 데이터
      */
     displaySearchResults(data) {
         this.elements.totalCount.textContent = data.totalElements;
 
         if (data.content && data.content.length > 0) {
-            this.elements.userTableBody.innerHTML = data.content.map(user => `
+            console.log('사용자 데이터 구조:', data.content[0]);
+
+            this.elements.userTableBody.innerHTML = data.content.map(user => {
+                const userId = user.id || user.userId || user.userNumber || user.seq;
+                console.log('사용자:', user.name, 'ID:', userId);
+
+                return `
                 <tr>
                     <td>${this.escapeHtml(user.name)}</td>
                     <td>${this.escapeHtml(user.nickname)}</td>
@@ -40,22 +69,152 @@ class UserManagementUI {
                     <td>${this.formatDate(user.createdAt)}</td>
                     <td><span class="status-badge ${user.status === 'ACTIVE' ? 'active' : 'inactive'}">${user.status === 'ACTIVE' ? '활성' : '비활성'}</span></td>
                     <td>
-                        <button type="button" class="button button-sm button-primary" data-user-id="${user.userId}">상세보기</button>
+                        <button type="button" class="button button-sm button-primary detail-button" 
+                                data-user-id="${userId}" 
+                                onclick="userController.viewDetail('${userId}');">
+                            상세보기
+                        </button>
                     </td>
                 </tr>
-            `).join('');
+            `;
+            }).join('');
 
             this.showSearchResults();
+            console.log('테이블 렌더링 완료, 사용자 수:', data.content.length);
         } else {
             this.showNoResults();
         }
     }
 
     /**
+     * 사용자 상세보기 모달 표시 - popup-management의 viewDetail과 정확히 동일한 구조
+     */
+    viewDetail(userId) {
+        this.selectedUserId = userId;
+        // 여기서는 컨트롤러가 API 호출 후 renderDetailModal을 호출함
+    }
+
+    /**
+     * 상세 모달 렌더링 - popup-management의 renderDetailModal과 정확히 동일한 구조
+     */
+    renderDetailModal(user) {
+        console.log('사용자 상세 모달 표시:', user);
+
+        const isAdmin = user.role === 'ADMIN';
+        const userId = user.id || user.userId || user.userNumber || user.seq;
+
+        // popup-management의 renderDetailModal과 정확히 동일한 구조
+        this.elements.modalBody.innerHTML = `
+            <div class="detail-info">
+                <div class="detail-section">
+                    <h3>기본 정보</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">이름:</span>
+                            <span class="detail-value">${this.escapeHtml(user.name)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">닉네임:</span>
+                            <span class="detail-value">${this.escapeHtml(user.nickname)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">이메일:</span>
+                            <span class="detail-value">${this.escapeHtml(user.email)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">전화번호:</span>
+                            <span class="detail-value">${this.escapeHtml(user.phone || '-')}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">역할:</span>
+                            <span class="detail-value">
+                                <span class="role-badge ${user.role.toLowerCase()}">${this.getRoleText(user.role)}</span>
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">상태:</span>
+                            <span class="detail-value">
+                                <span class="status-badge ${user.status === 'ACTIVE' ? 'active' : 'inactive'}">${user.status === 'ACTIVE' ? '활성' : '비활성'}</span>
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">가입일:</span>
+                            <span class="detail-value">${this.formatDate(user.createdAt)}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // popup-management와 동일한 방식으로 액션 버튼 업데이트
+        this.updateActionButtons(user.status, isAdmin, userId);
+
+        // 모달 표시
+        this.elements.detailModal.style.display = 'block';
+    }
+
+    /**
+     * popup-management의 updateActionButtons와 정확히 동일한 방식
+     */
+    updateActionButtons(status, isAdmin, userId) {
+        const buttons = {
+            changeStatusBtn: document.getElementById('changeStatusBtn'),
+            closeModalBtn: document.getElementById('closeModalBtn')
+        };
+
+        // 모든 버튼 숨김
+        Object.values(buttons).forEach(btn => {
+            if (btn) btn.style.display = 'none';
+        });
+
+        // 관리자가 아닌 경우에만 상태 변경 버튼 표시
+        if (!isAdmin && buttons.changeStatusBtn) {
+            buttons.changeStatusBtn.style.display = 'block';
+        }
+
+        // 닫기 버튼은 항상 표시
+        if (buttons.closeModalBtn) {
+            buttons.closeModalBtn.style.display = 'block';
+        }
+    }
+
+    /**
+     * 상태 변경 모달 열기 - popup-management의 openStatusModal과 동일
+     */
+    openStatusModal() {
+        document.getElementById('statusSelectModal').style.display = 'block';
+        this.populateStatusOptions();
+    }
+
+    /**
+     * 상태 옵션 채우기 - popup-management의 populateStatusOptions과 유사
+     */
+    populateStatusOptions() {
+        const statusSelect = document.getElementById('newStatusSelect');
+        if (!statusSelect) return;
+
+        // 사용자 상태 옵션 (ACTIVE/INACTIVE만)
+        const statusOptions = [
+            { value: 'ACTIVE', text: '활성' },
+            { value: 'INACTIVE', text: '비활성' }
+        ];
+
+        statusSelect.innerHTML = '<option value="">상태를 선택하세요</option>';
+        statusOptions.forEach(option => {
+            statusSelect.innerHTML += `<option value="${option.value}">${option.text}</option>`;
+        });
+    }
+
+    /**
+     * 상태 변경 모달 닫기 - popup-management의 closeStatusModal과 동일
+     */
+    closeStatusModal() {
+        document.getElementById('statusSelectModal').style.display = 'none';
+        document.getElementById('newStatusSelect').value = '';
+    }
+
+    /**
      * 페이징 설정
-     * @param {Object} data 페이징 데이터
-     * @param {number} currentPage 현재 페이지
-     * @param {Function} onPageClick 페이지 클릭 콜백
      */
     setupPagination(data, currentPage, onPageClick) {
         const totalPages = data.totalPages;
@@ -87,74 +246,24 @@ class UserManagementUI {
 
         this.elements.pagination.innerHTML = paginationHtml;
 
-        // 페이지 버튼 이벤트 바인딩
-        this.elements.pagination.querySelectorAll('.page-button').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+        // 페이지 버튼 클릭 이벤트
+        this.elements.pagination.addEventListener('click', (e) => {
+            if (e.target.classList.contains('page-button')) {
                 const page = parseInt(e.target.dataset.page);
-                onPageClick(page);
-            });
+                if (page && page !== currentPage) {
+                    onPageClick(page);
+                }
+            }
         });
     }
 
     /**
-     * 사용자 상세 정보 모달 표시
-     * @param {Object} user 사용자 정보
-     */
-    showUserDetailModal(user) {
-        this.elements.userDetailContent.innerHTML = `
-            <div class="user-detail">
-                <div class="detail-row">
-                    <label>이름:</label>
-                    <span>${this.escapeHtml(user.name)}</span>
-                </div>
-                <div class="detail-row">
-                    <label>닉네임:</label>
-                    <span>${this.escapeHtml(user.nickname)}</span>
-                </div>
-                <div class="detail-row">
-                    <label>이메일:</label>
-                    <span>${this.escapeHtml(user.email)}</span>
-                </div>
-                <div class="detail-row">
-                    <label>전화번호:</label>
-                    <span>${this.escapeHtml(user.phone || '-')}</span>
-                </div>
-                <div class="detail-row">
-                    <label>역할:</label>
-                    <span class="role-badge ${user.role.toLowerCase()}">${this.getRoleText(user.role)}</span>
-                </div>
-                <div class="detail-row">
-                    <label>상태:</label>
-                    <span class="status-badge ${user.status === 'ACTIVE' ? 'active' : 'inactive'}">${user.status === 'ACTIVE' ? '활성' : '비활성'}</span>
-                </div>
-                <div class="detail-row">
-                    <label>가입일:</label>
-                    <span>${this.formatDate(user.createdAt)}</span>
-                </div>
-                <div class="detail-row">
-                    <label>최근 로그인:</label>
-                    <span>${user.lastLoginAt ? this.formatDate(user.lastLoginAt) : '-'}</span>
-                </div>
-                ${user.interestTags && user.interestTags.length > 0 ? `
-                <div class="detail-row">
-                    <label>관심사:</label>
-                    <div class="interest-tags">
-                        ${user.interestTags.map(tag => `<span class="tag">${this.escapeHtml(tag)}</span>`).join('')}
-                    </div>
-                </div>
-                ` : ''}
-            </div>
-        `;
-
-        // CSS의 flexbox 속성을 활용하기 위해 display: flex로 설정
-        this.elements.userDetailModal.style.display = 'flex';
-    }
-
-    /**
-     * 모달 닫기
+     * 모달 닫기 - popup-management의 closeModal과 동일
      */
     closeModal() {
-        this.elements.userDetailModal.style.display = 'none';
+        console.log('모달 닫기 실행');
+        this.elements.detailModal.style.display = 'none';
+        this.selectedUserId = null;
     }
 
     /**
@@ -162,8 +271,8 @@ class UserManagementUI {
      */
     showLoading() {
         this.elements.searchLoading.style.display = 'block';
-        this.elements.searchResults.style.display = 'none';
         this.elements.noResults.style.display = 'none';
+        this.elements.searchResults.style.display = 'none';
     }
 
     /**
@@ -182,25 +291,24 @@ class UserManagementUI {
     }
 
     /**
-     * 검색 결과 없음 표시
+     * 결과 없음 표시
      */
     showNoResults() {
-        this.elements.searchResults.style.display = 'none';
         this.elements.noResults.style.display = 'block';
+        this.elements.searchResults.style.display = 'none';
     }
 
     /**
      * 검색 폼 리셋
      */
     resetSearchForm() {
-        this.elements.searchType.value = 'name';
+        this.elements.searchType.value = '';
         this.elements.searchKeyword.value = '';
         this.elements.roleFilter.value = '';
     }
 
     /**
-     * 계정 전환 요청 개수 업데이트
-     * @param {number} count 요청 개수
+     * 계정 전환 요청 수 업데이트
      */
     updateUpgradeRequestCount(count) {
         if (this.elements.upgradeRequestCount) {
@@ -210,23 +318,13 @@ class UserManagementUI {
 
     /**
      * 에러 메시지 표시
-     * @param {string} message 에러 메시지
      */
     showError(message) {
         alert(message);
     }
 
     /**
-     * 성공 메시지 표시
-     * @param {string} message 성공 메시지
-     */
-    showSuccess(message) {
-        alert(message);
-    }
-
-    /**
      * 검색 파라미터 가져오기
-     * @returns {Object} 검색 파라미터
      */
     getSearchParams() {
         return {
@@ -234,6 +332,17 @@ class UserManagementUI {
             keyword: this.elements.searchKeyword.value.trim(),
             role: this.elements.roleFilter.value
         };
+    }
+
+    /**
+     * 상태 텍스트 반환 - popup-management의 getStatusText와 유사
+     */
+    getStatusText(status) {
+        const statusMap = {
+            'ACTIVE': '활성',
+            'INACTIVE': '비활성'
+        };
+        return statusMap[status] || status;
     }
 
     // 유틸리티 메서드들

@@ -75,7 +75,7 @@ class SpaceManagementController {
 
         if (this.ui.elements.confirmBtn) {
             this.ui.elements.confirmBtn.addEventListener('click', () => {
-                this.executeConfirmedAction();
+                this.ui.executeConfirmedAction();
             });
         }
 
@@ -90,33 +90,22 @@ class SpaceManagementController {
             }
         });
 
-        // ★ 상세보기 버튼 이벤트 처리 추가 (이벤트 위임 방식)
+        // ★ 테이블 버튼 이벤트 처리 (이벤트 위임 방식) - 수정된 부분
         if (this.ui.elements.spacesTableBody) {
             this.ui.elements.spacesTableBody.addEventListener('click', (e) => {
-                // 상세보기 버튼 클릭
-                if (e.target.classList.contains('detail-button') || e.target.closest('.detail-button')) {
-                    const button = e.target.classList.contains('detail-button') ? e.target : e.target.closest('.detail-button');
-                    const spaceId = button.dataset.spaceId;
-                    if (spaceId) {
-                        this.showSpaceDetail(spaceId);
-                    }
-                }
+                const target = e.target;
+                const spaceId = target.getAttribute('data-space-id');
 
-                // 활성화/비활성화 버튼 클릭
-                if (e.target.classList.contains('button-warning') || e.target.closest('.button-warning')) {
-                    const button = e.target.classList.contains('button-warning') ? e.target : e.target.closest('.button-warning');
-                    const spaceId = button.dataset.spaceId || button.getAttribute('onclick')?.match(/\d+/)?.[0];
-                    if (spaceId) {
-                        this.hideSpace(spaceId);
-                    }
-                }
+                if (!spaceId) return;
 
-                if (e.target.classList.contains('button-success') || e.target.closest('.button-success')) {
-                    const button = e.target.classList.contains('button-success') ? e.target : e.target.closest('.button-success');
-                    const spaceId = button.dataset.spaceId || button.getAttribute('onclick')?.match(/\d+/)?.[0];
-                    if (spaceId) {
-                        this.showSpace(spaceId);
-                    }
+                // 상세보기 버튼
+                if (target.classList.contains('detail-button')) {
+                    this.showSpaceDetail(spaceId);
+                }
+                // 상태 토글 버튼 - 새로 수정된 부분
+                else if (target.classList.contains('toggle-visibility-button')) {
+                    const isHidden = target.getAttribute('data-is-hidden') === 'true';
+                    this.toggleSpaceVisibility(spaceId, isHidden);
                 }
             });
         }
@@ -127,27 +116,15 @@ class SpaceManagementController {
      */
     async loadInitialData() {
         try {
-            // 통계 데이터 로드
-            await this.loadStats();
+            // 통계 로드
+            const stats = await this.api.getSpaceStats();
+            this.ui.updateStats(stats);
 
             // 장소 목록 로드
             await this.loadSpaces();
         } catch (error) {
             console.error('초기 데이터 로드 실패:', error);
-            this.api.handleError(error);
-        }
-    }
-
-    /**
-     * 통계 데이터 로드
-     */
-    async loadStats() {
-        try {
-            const stats = await this.api.getStats();
-            this.ui.updateStats(stats);
-        } catch (error) {
-            console.error('통계 로드 실패:', error);
-            // 통계 로드 실패는 전체 페이지 동작을 막지 않음
+            this.ui.showError('데이터를 불러오는데 실패했습니다.');
         }
     }
 
@@ -158,17 +135,16 @@ class SpaceManagementController {
         try {
             this.ui.showLoading(true);
 
-            const filters = this.getFilters();
             const params = {
-                ...filters,
                 page: this.currentPage,
-                size: this.pageSize
+                size: this.pageSize,
+                ...this.getFilters()
             };
 
+            console.log('🔍 장소 목록 로드 요청:', params);
             const data = await this.api.getSpaces(params);
             console.log('📦 API 응답 데이터:', data);
 
-            // ★ 수정된 부분: renderSpaces → renderSpacesTable
             this.ui.renderSpacesTable(data);
 
             this.ui.showLoading(false);
@@ -180,23 +156,18 @@ class SpaceManagementController {
     }
 
     /**
-     * ★ 장소 상세 정보 표시 (수정된 부분 - 로딩 제거)
+     * ★ 장소 상세 정보 표시
      */
     async showSpaceDetail(spaceId) {
         try {
-            // ❌ 제거: this.ui.showLoading(true); - 이것이 기존 목록을 사라지게 만드는 원인
-
             console.log('🔍 장소 상세 정보 로드 시작:', spaceId);
 
             const space = await this.api.getSpaceDetail(spaceId);
             console.log('✅ 장소 상세 정보 로드 완료:', space);
 
             this.ui.showSpaceDetail(space);
-
-            // ❌ 제거: this.ui.showLoading(false); - 불필요한 로딩 해제
         } catch (error) {
             console.error('장소 상세 정보 로드 실패:', error);
-            // ❌ 제거: this.ui.showLoading(false);
             this.api.handleError(error);
         }
     }
@@ -210,13 +181,13 @@ class SpaceManagementController {
     }
 
     /**
-     * 초기화
+     * 초기화 - isPublic → isHidden으로 변경
      */
     reset() {
         // 필터 초기화
         if (this.ui.elements.ownerFilter) this.ui.elements.ownerFilter.value = '';
         if (this.ui.elements.titleFilter) this.ui.elements.titleFilter.value = '';
-        if (this.ui.elements.isPublicFilter) this.ui.elements.isPublicFilter.value = '';
+        if (this.ui.elements.isHiddenFilter) this.ui.elements.isHiddenFilter.value = '';
 
         this.currentPage = 0;
         this.loadSpaces();
@@ -231,7 +202,7 @@ class SpaceManagementController {
     }
 
     /**
-     * 필터 값 가져오기
+     * 필터 값 가져오기 - isPublic → isHidden으로 변경
      */
     getFilters() {
         const filters = {};
@@ -244,88 +215,51 @@ class SpaceManagementController {
             filters.title = this.ui.elements.titleFilter.value;
         }
 
-        if (this.ui.elements.isPublicFilter?.value) {
-            filters.isPublic = this.ui.elements.isPublicFilter.value === 'true';
+        // ★ isPublic → isHidden 로직 변경
+        if (this.ui.elements.isHiddenFilter?.value) {
+            filters.isHidden = this.ui.elements.isHiddenFilter.value === 'true';
         }
 
         return filters;
     }
 
     /**
-     * 장소 숨기기 (비활성화)
+     * 장소 상태 토글 (활성화/비활성화) - 새로 추가된 메소드
      */
-    async hideSpace(spaceId) {
+    async toggleSpaceVisibility(spaceId, currentlyHidden) {
+        const action = currentlyHidden ? '활성화' : '비활성화';
+        const message = `이 장소를 ${action}하시겠습니까?`;
+
         this.ui.showConfirm(
-            '장소 비활성화',
-            '이 장소를 비활성화하시겠습니까?',
-            () => this.executeHideSpace(spaceId)
+            `장소 ${action}`,
+            message,
+            () => this.executeToggleVisibility(spaceId, currentlyHidden)
         );
     }
 
     /**
-     * 장소 보이기 (활성화)
+     * 장소 상태 토글 실행 - 새로 추가된 메소드
      */
-    async showSpace(spaceId) {
-        this.ui.showConfirm(
-            '장소 활성화',
-            '이 장소를 활성화하시겠습니까?',
-            () => this.executeShowSpace(spaceId)
-        );
-    }
-
-    /**
-     * 장소 비활성화 실행
-     */
-    async executeHideSpace(spaceId) {
+    async executeToggleVisibility(spaceId, currentlyHidden) {
         try {
-            await this.api.hideSpace(spaceId);
-            this.ui.showSuccess('장소가 비활성화되었습니다.');
-            this.loadSpaces();
-            this.loadStats();
-        } catch (error) {
-            console.error('장소 비활성화 실패:', error);
-            this.api.handleError(error);
-        }
-    }
+            await this.api.toggleSpaceVisibility(spaceId);
 
-    /**
-     * 장소 활성화 실행
-     */
-    async executeShowSpace(spaceId) {
-        try {
-            await this.api.showSpace(spaceId);
-            this.ui.showSuccess('장소가 활성화되었습니다.');
-            this.loadSpaces();
-            this.loadStats();
-        } catch (error) {
-            console.error('장소 활성화 실패:', error);
-            this.api.handleError(error);
-        }
-    }
+            const action = currentlyHidden ? '활성화' : '비활성화';
+            this.ui.showSuccess(`장소가 ${action}되었습니다.`);
 
-    /**
-     * 확인된 액션 실행
-     */
-    executeConfirmedAction() {
-        if (this.ui.currentAction) {
-            this.ui.currentAction();
-            this.ui.closeModal();
+            // 목록 새로고침
+            await this.loadSpaces();
+        } catch (error) {
+            console.error('장소 상태 변경 실패:', error);
+            this.api.handleError(error);
         }
     }
 }
 
-// 전역 참조를 위한 인스턴스 생성
+// 전역 변수로 컨트롤러 인스턴스 생성
 let spaceManagementController;
 
-// DOM 로드 완료 후 초기화
+// DOM 로드 완료 시 초기화
 document.addEventListener('DOMContentLoaded', () => {
     spaceManagementController = new SpaceManagementController();
 });
-
-// 전역 함수로 노출 (onclick 이벤트용)
-window.spaceManagementController = {
-    showSpaceDetail: (spaceId) => spaceManagementController?.showSpaceDetail(spaceId),
-    hideSpace: (spaceId) => spaceManagementController?.hideSpace(spaceId),
-    showSpace: (spaceId) => spaceManagementController?.showSpace(spaceId),
-    loadPage: (page) => spaceManagementController?.loadPage(page)
-};
