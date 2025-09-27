@@ -7,6 +7,7 @@ class PopupReservationManager {
         this.selectedDate = null;
         this.selectedTimeSlot = null;
         this.timeSlots = [];
+        this.paymentManager = null; // 결제 매니저
     }
 
     // 페이지 초기화
@@ -69,7 +70,6 @@ class PopupReservationManager {
     // 팝업 데이터 로드
     async loadPopupData() {
         try {
-            // API 호출 (기존 popup-detail과 동일한 방식)
             this.popupData = await apiService.getPopup(this.popupId);
             this.renderPopupInfo();
         } catch (error) {
@@ -108,7 +108,7 @@ class PopupReservationManager {
             popupImage.alt = this.popupData.title;
 
             popupImage.onerror = function() {
-                this.onerror = null; // 무한루프 방지
+                this.onerror = null;
                 this.src = fallbackImage;
             };
         }
@@ -122,7 +122,6 @@ class PopupReservationManager {
             popupLocation.textContent = location || '위치 정보 없음';
         }
 
-        // 페이지 제목 업데이트
         const pageTitle = document.getElementById('page-title');
         if (pageTitle && this.popupData) {
             pageTitle.textContent = `${this.popupData.title} 예약하기 - POPIN`;
@@ -134,11 +133,9 @@ class PopupReservationManager {
         const dateInput = document.getElementById('reservation-date');
         if (!dateInput) return;
 
-        // 오늘 날짜로 최소값 설정
         const today = new Date().toISOString().split('T')[0];
         dateInput.min = today;
 
-        // 예약 가능한 날짜가 있으면 최대값 설정
         if (this.availableDates.length > 0) {
             const maxDate = this.availableDates[this.availableDates.length - 1];
             dateInput.max = maxDate;
@@ -155,7 +152,6 @@ class PopupReservationManager {
         this.selectedDate = dateString;
         this.selectedTimeSlot = null;
 
-        // 선택된 날짜가 예약 가능한 날짜인지 확인
         if (!this.availableDates.includes(dateString)) {
             this.showDateError('선택하신 날짜는 예약이 불가능합니다.');
             this.clearTimeSlots();
@@ -220,7 +216,6 @@ class PopupReservationManager {
 
         container.innerHTML = `<div class="time-slots-grid">${slotsHTML}</div>`;
 
-        // 시간 슬롯 클릭 이벤트 추가
         container.querySelectorAll('.time-slot:not(.unavailable)').forEach(slot => {
             slot.addEventListener('click', () => this.selectTimeSlot(slot));
         });
@@ -228,12 +223,10 @@ class PopupReservationManager {
 
     // 시간 슬롯 선택
     selectTimeSlot(slotElement) {
-        // 이전 선택 해제
         document.querySelectorAll('.time-slot.selected').forEach(el => {
             el.classList.remove('selected');
         });
 
-        // 새 선택 적용
         slotElement.classList.add('selected');
 
         this.selectedTimeSlot = {
@@ -245,7 +238,7 @@ class PopupReservationManager {
         this.updateSubmitButton();
     }
 
-    // 폼 제출 처리
+    // ===== 예약 제출 처리 (결제 연동) =====
     async handleSubmit() {
         if (!this.validateForm()) {
             return;
@@ -255,18 +248,14 @@ class PopupReservationManager {
         const originalText = submitBtn.textContent;
 
         try {
-            // 버튼 로딩 상태
             submitBtn.disabled = true;
             submitBtn.textContent = '예약 중...';
 
             // 날짜 형식 수정
             let timeString = this.selectedTimeSlot.startTime;
-
-            // "15:00" 형식이면 ":00" 추가, "15:00:00" 형식이면 그대로 사용
             if (timeString.length === 5) {
                 timeString += ':00';
             }
-
             const reservationDateTime = `${this.selectedDate}T${timeString}`;
 
             // 예약 데이터 구성
@@ -294,19 +283,107 @@ class PopupReservationManager {
             }
 
             const result = await response.json();
-            this.showSuccessModal();
+            console.log('예약 생성 성공:', result);
+
+            // ===== 결제 분기 처리 =====
+            if (this.popupData.entryFee && this.popupData.entryFee > 0) {
+                // 유료 팝업: 결제 진행
+                this.initiatePayment(result, reservationData);
+            } else {
+                // 무료 팝업: 바로 성공 모달
+                this.showSuccessModal();
+            }
 
         } catch (error) {
             console.error('예약 실패:', error);
             alert(error.message || '예약 처리 중 오류가 발생했습니다.');
         } finally {
-            // 버튼 원상복구
             submitBtn.disabled = false;
             submitBtn.textContent = originalText;
         }
     }
 
-    // 폼 전체 validation
+    // ===== 결제 시작 (Payment.js 연동) =====
+    initiatePayment(reservationResult, reservationData) {
+        // 기존 예약 폼 숨기기
+        document.getElementById('reservation-content').style.display = 'none';
+
+        // 결제 UI 생성 및 표시
+        this.createPaymentSection(reservationResult, reservationData);
+
+        // 결제 매니저 초기화
+        this.initializePaymentManager(reservationResult, reservationData);
+    }
+
+    // 결제 UI 생성
+    createPaymentSection(reservationResult, reservationData) {
+        const container = document.querySelector('.main-content');
+
+        const paymentHTML = PaymentUIBuilder.createPaymentSection({
+            reservationData: reservationResult,
+            popupData: this.popupData,
+            selectedDate: this.selectedDate,
+            selectedTimeSlot: this.selectedTimeSlot,
+            partySize: parseInt(document.getElementById('party-size').value),
+            customerName: document.getElementById('name').value.trim()
+        });
+
+        container.insertAdjacentHTML('beforeend', paymentHTML);
+
+        // 결제 섹션으로 스크롤
+        document.getElementById('payment-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 결제 매니저 초기화
+    initializePaymentManager(reservationResult, reservationData) {
+        const reservationId = reservationResult.id || reservationResult.reservationId;
+        const partySize = parseInt(document.getElementById('party-size').value);
+        const totalAmount = this.popupData.entryFee * partySize;
+
+        // PaymentManager 인스턴스 생성
+        this.paymentManager = new PaymentManager({
+            reservationId: reservationId,
+            amount: totalAmount,
+            itemName: this.popupData.title,
+            onSuccess: (reservationId) => this.handlePaymentSuccess(reservationId),
+            onError: (errorMessage) => this.handlePaymentError(errorMessage),
+            onCancel: (message) => this.handlePaymentCancel(message)
+        });
+
+        window.currentPaymentManager = this.paymentManager;
+    }
+
+    // ===== 결제 콜백 처리 =====
+    handlePaymentSuccess(reservationId) {
+        console.log('결제 성공 처리:', reservationId);
+
+        // 결제 섹션 숨기기
+        const paymentSection = document.getElementById('payment-section');
+        if (paymentSection) {
+            paymentSection.style.display = 'none';
+        }
+
+        // 성공 메시지와 함께 예약 완료 모달 표시
+        alert('결제가 완료되었습니다!');
+        this.showSuccessModal();
+    }
+
+    handlePaymentError(errorMessage) {
+        console.error('결제 실패:', errorMessage);
+        alert('결제에 실패했습니다: ' + errorMessage);
+    }
+
+    handlePaymentCancel(message) {
+        console.log('결제 취소:', message);
+        alert(message);
+
+        // 필요시 예약 페이지로 돌아가기 옵션 제공
+        if (confirm('예약 페이지로 돌아가시겠습니까?')) {
+            window.location.reload();
+        }
+    }
+
+    // ===== 기존 validation 메서드들 유지 =====
     validateForm() {
         const isNameValid = this.validateName();
         const isPhoneValid = this.validatePhone();
@@ -317,7 +394,6 @@ class PopupReservationManager {
         return isNameValid && isPhoneValid && isPartySizeValid && isDateValid && isTimeValid;
     }
 
-    // 각 필드 validation 메서드들
     validateName() {
         const nameInput = document.getElementById('name');
         const errorEl = document.getElementById('name-error');
@@ -396,7 +472,7 @@ class PopupReservationManager {
         return true;
     }
 
-    // 유틸리티 메서드들
+    // ===== 유틸리티 메서드들 유지 =====
     formatPhoneNumber(e) {
         let value = e.target.value.replace(/[^0-9]/g, '');
 
@@ -486,6 +562,9 @@ class PopupReservationManager {
 
     // 컴포넌트 정리
     cleanup() {
+        if (this.paymentManager) {
+            this.paymentManager.cleanup();
+        }
     }
 }
 

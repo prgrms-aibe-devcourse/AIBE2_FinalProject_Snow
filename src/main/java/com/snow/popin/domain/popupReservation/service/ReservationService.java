@@ -46,7 +46,7 @@ public class ReservationService {
     public Long createReservation(User currentUser, Long popupId, ReservationRequestDto dto) {
         Popup popup = validatePopupForReservation(popupId);
 
-        if (reservationRepository.existsByPopupAndUser(popup, currentUser)) {
+        if (reservationRepository.existsActiveReservationByPopupAndUser(popup, currentUser)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 예약한 팝업입니다.");
         }
 
@@ -167,6 +167,7 @@ public class ReservationService {
         validateCancellationDeadline(reservation, settings);
 
         reservation.cancel();
+        reservationRepository.save(reservation);
 
         log.info("예약 취소: reservationId={}, userId={}", reservationId, currentUser.getId());
     }
