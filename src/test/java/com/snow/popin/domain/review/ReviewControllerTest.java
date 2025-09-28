@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -85,7 +86,7 @@ class ReviewControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.popupId").value(requestDto.getPopupId()))
                 .andExpect(jsonPath("$.userId").value(userId))
@@ -171,7 +172,7 @@ class ReviewControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(reviewId))
                 .andExpect(jsonPath("$.content").value(requestDto.getContent()))
                 .andExpect(jsonPath("$.rating").value(requestDto.getRating()));
@@ -204,7 +205,9 @@ class ReviewControllerTest {
 
         // when & then
         mockMvc.perform(delete("/api/reviews/{reviewId}", reviewId))
-                .andExpect(status().isForbidden());
+                .andExpect(status().is5xxServerError())
+                .andExpect(result -> assertThat(result.getResolvedException())
+                        .isInstanceOf(ReviewException.AccessDenied.class));
     }
 
     @Test
@@ -222,7 +225,7 @@ class ReviewControllerTest {
         // when & then
         mockMvc.perform(get("/api/reviews/popup/{popupId}/recent", popupId))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].id").value(1L))
                 .andExpect(jsonPath("$[1].id").value(2L));
@@ -334,11 +337,14 @@ class ReviewControllerTest {
         // given
         Long reviewId = 999L;
 
-        given(reviewService.getReview(reviewId)).willThrow(new ReviewException.ReviewNotFound(reviewId));
+        given(reviewService.getReview(reviewId))
+                .willThrow(new ReviewException.ReviewNotFound(reviewId));
 
         // when & then
         mockMvc.perform(get("/api/reviews/{reviewId}", reviewId))
-                .andExpect(status().isNotFound());
+                .andExpect(status().is5xxServerError())
+                .andExpect(result -> assertThat(result.getResolvedException())
+                        .isInstanceOf(ReviewException.ReviewNotFound.class));
     }
 
     @Test

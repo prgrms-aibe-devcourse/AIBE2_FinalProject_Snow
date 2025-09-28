@@ -57,6 +57,7 @@ class ReviewServiceTest {
     void createReview_Success() {
         // given
         Long userId = 1L;
+        Long reviewId = 100L;
         ReviewCreateRequestDto requestDto = createReviewCreateRequestDto();
         User mockUser = createTestUser(userId);
         Popup mockPopup = createTestPopup(requestDto.getPopupId());
@@ -67,24 +68,26 @@ class ReviewServiceTest {
                 requestDto.getContent(),
                 requestDto.getRating()
         );
+        ReflectionTestUtils.setField(mockReview, "id", reviewId);
 
         given(popupRepository.findById(requestDto.getPopupId())).willReturn(Optional.of(mockPopup));
         given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
-        given(reviewRepository.existsByPopupIdAndUserId(requestDto.getPopupId(), userId)).willReturn(false);
         given(reviewRepository.save(any(Review.class))).willReturn(mockReview);
-        given(reviewRepository.findById(mockReview.getId())).willReturn(Optional.of(mockReview));
+
+        given(reviewRepository.findById(reviewId)).willReturn(Optional.of(mockReview));
 
         // when
         ReviewResponseDto result = reviewService.createReview(userId, requestDto);
 
         // then
-        assertThat(result.getId()).isEqualTo(mockReview.getId());
+        assertThat(result.getId()).isEqualTo(reviewId);
         assertThat(result.getContent()).isEqualTo(requestDto.getContent());
         assertThat(result.getRating()).isEqualTo(requestDto.getRating());
         assertThat(result.getPopupId()).isEqualTo(requestDto.getPopupId());
         assertThat(result.getUserId()).isEqualTo(userId);
 
         verify(reviewRepository).save(any(Review.class));
+        verify(reviewRepository).findById(reviewId);
     }
 
     @Test
@@ -132,13 +135,15 @@ class ReviewServiceTest {
 
         given(popupRepository.findById(requestDto.getPopupId())).willReturn(Optional.of(mockPopup));
         given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
-        given(reviewRepository.existsByPopupIdAndUserId(requestDto.getPopupId(), userId)).willReturn(true);
+
+        given(reviewRepository.save(any(Review.class)))
+                .willThrow(new org.springframework.dao.DataIntegrityViolationException("Duplicate key"));
 
         // when & then
         assertThatThrownBy(() -> reviewService.createReview(userId, requestDto))
                 .isInstanceOf(ReviewException.DuplicateReview.class);
 
-        verify(reviewRepository, never()).save(any(Review.class));
+        verify(reviewRepository).save(any(Review.class));
     }
 
     @Test
