@@ -73,21 +73,53 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         const cancelBtn = e.target.closest('.js-cancel');
         if (cancelBtn) {
-            if (!confirm('예약을 취소하시겠습니까?')) return;
+            const reservationId = Number(cancelBtn.dataset.id);
+            const reservation = all.find(r => r.id === reservationId);
+
+            let confirmMessage = '예약을 취소하시겠습니까?';
+
+            // 결제된 예약인 경우 환불 안내 추가
+            if (reservation && reservation.paymentAmount && reservation.paymentAmount > 0) {
+                confirmMessage = `예약을 취소하시겠습니까?\n\n 결제 금액: ${reservation.paymentAmount.toLocaleString()}원\n🔄 환불 처리: 자동으로 진행됩니다\n⏰ 환불 소요 시간: 1-3영업일`;
+            }
+
+            if (!confirm(confirmMessage)) return;
+
             cancelBtn.disabled = true;
+            cancelBtn.textContent = '취소 중...';
+
             try {
                 await apiService.put(`/reservations/${cancelBtn.dataset.id}/cancel`);
 
                 // 메모리 갱신
-                const id = Number(cancelBtn.dataset.id);
-                updateStatusLocal(id, 'CANCELLED', '예약취소');
+                updateStatusLocal(reservationId, 'CANCELLED', '예약취소');
 
                 // 현재 필터 기준으로 다시 렌더
                 applyFilter(currentStatus);
-                alert('취소되었습니다.');
+
+                // 성공 메시지도 결제 여부에 따라 구분
+                if (reservation && reservation.paymentAmount && reservation.paymentAmount > 0) {
+                    alert(' 예약이 취소되었습니다.\n 환불 처리가 완료되었습니다.\n\n결제 수단에 따라 환불까지 1-3영업일이 소요될 수 있습니다.');
+                } else {
+                    alert(' 예약이 취소되었습니다.');
+                }
+
             } catch (e2) {
-                alert(e2?.response?.data?.message || '취소에 실패했습니다.');
+                console.error('예약 취소 실패:', e2);
+
+                let errorMessage = '취소에 실패했습니다.';
+
+                if (e2?.response?.data?.message) {
+                    if (e2.response.data.message.includes('환불')) {
+                        errorMessage = '환불 처리 중 오류가 발생했습니다.\n고객센터에 문의해주세요.\n\n오류: ' + e2.response.data.message;
+                    } else {
+                        errorMessage = e2.response.data.message;
+                    }
+                }
+
+                alert(errorMessage);
                 cancelBtn.disabled = false;
+                cancelBtn.textContent = '예약 취소';
             }
         }
     });

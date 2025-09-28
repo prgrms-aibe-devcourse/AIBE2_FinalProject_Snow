@@ -3,6 +3,7 @@ package com.snow.popin.domain.popupReservation.service;
 import com.snow.popin.domain.mypage.host.entity.Brand;
 import com.snow.popin.domain.mypage.host.repository.BrandRepository;
 import com.snow.popin.domain.mypage.host.repository.HostRepository;
+import com.snow.popin.domain.payment.service.PaymentService;
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.entity.PopupHours;
 import com.snow.popin.domain.popup.repository.PopupHoursRepository;
@@ -14,6 +15,7 @@ import com.snow.popin.domain.popupReservation.repository.ReservationRepository;
 import com.snow.popin.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +41,9 @@ public class ReservationService {
     private final PopupHoursRepository popupHoursRepository;
     private final PopupReservationSettingsService settingsService;
 
+    @Autowired//순환참조 방지
+    private PaymentService paymentService;
+
     /**
      * 팝업 예약 생성
      */
@@ -46,7 +51,7 @@ public class ReservationService {
     public Long createReservation(User currentUser, Long popupId, ReservationRequestDto dto) {
         Popup popup = validatePopupForReservation(popupId);
 
-        if (reservationRepository.existsByPopupAndUser(popup, currentUser)) {
+        if (reservationRepository.existsActiveReservationByPopupAndUser(popup, currentUser)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 예약한 팝업입니다.");
         }
 
@@ -152,7 +157,7 @@ public class ReservationService {
     }
 
     /**
-     * 예약 취소
+     * 예약 취소 (환불 포함)
      */
     @Transactional
     public void cancelReservation(Long reservationId, User currentUser) {
@@ -166,9 +171,59 @@ public class ReservationService {
         PopupReservationSettings settings = settingsService.getSettings(reservation.getPopup().getId());
         validateCancellationDeadline(reservation, settings);
 
-        reservation.cancel();
+        // 결제된 경우 환불 처리
+        boolean refundProcessed = false;
+        if (reservation.isPaymentCompleted()) {
+            log.info("결제된 예약 취소 - 환불 처리 시작: reservationId={}, amount={}",
+                    reservationId, reservation.getPaymentAmount());
 
-        log.info("예약 취소: reservationId={}, userId={}", reservationId, currentUser.getId());
+            refundProcessed = paymentService.processRefund(reservationId);
+
+            if (!refundProcessed) {
+                log.error("환불 처리 실패: reservationId={}", reservationId);
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                        "환불 처리 중 오류가 발생했습니다. 고객센터에 문의해주세요.");
+            }
+
+            log.info("환불 처리 완료: reservationId={}", reservationId);
+        }
+
+        // 예약 상태를 취소로 변경
+        reservation.cancel();
+        reservationRepository.save(reservation);
+
+
+        log.info("예약 취소 완료: reservationId={}, userId={}, refunded={}",
+                reservationId, currentUser.getId(), refundProcessed);
+    }
+
+    /**
+     * 환불 가능 여부 체크 (예약 취소 가능 시간 내에서만)
+     */
+    public boolean isRefundable(Long reservationId, User currentUser) {
+        try {
+            Reservation reservation = reservationRepository.findById(reservationId)
+                    .orElse(null);
+
+            if (reservation == null || !reservation.getUser().getId().equals(currentUser.getId())) {
+                return false;
+            }
+
+            if (!reservation.isPaymentCompleted()) {
+                return false;
+            }
+
+            PopupReservationSettings settings = settingsService.getSettings(reservation.getPopup().getId());
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime cancellationDeadline = reservation.getReservationDate()
+                    .minusHours(settings.getCancellationDeadlineHours());
+
+            return now.isBefore(cancellationDeadline);
+
+        } catch (Exception e) {
+            log.error("환불 가능 여부 체크 실패: reservationId={}", reservationId, e);
+            return false;
+        }
     }
 
     /**

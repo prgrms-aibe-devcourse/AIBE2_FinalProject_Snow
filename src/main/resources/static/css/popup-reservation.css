@@ -383,6 +383,128 @@
     transform: translateY(-1px);
 }
 
+/* ===== 결제 관련 스타일 추가 ===== */
+
+#payment-section {
+    background: white;
+    padding: 24px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+}
+
+.payment-summary {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+
+.payment-summary h3 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.summary-item:last-child {
+    border-bottom: none;
+}
+
+.summary-item.total {
+    font-weight: 700;
+    padding-top: 16px;
+    margin-top: 12px;
+    border-top: 2px solid #1f2937;
+    border-bottom: none;
+}
+
+.summary-item.total span:last-child {
+    color: #e53e3e;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.payment-methods {
+    margin-bottom: 32px;
+}
+
+.payment-methods h3 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.payment-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.payment-btn {
+    padding: 18px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #374151;
+    transition: all 0.2s ease;
+}
+
+.payment-btn:hover:not(:disabled) {
+    border-color: #4B5AE4;
+    background: #f0f1ff;
+    transform: translateY(-1px);
+}
+
+.payment-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.payment-btn img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.payment-actions {
+    text-align: center;
+    padding-top: 24px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.payment-actions .btn-secondary {
+    padding: 12px 24px;
+    font-size: 14px;
+    border-radius: 8px;
+    background: #f9fafb;
+    border: 1px solid #d1d5db;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.payment-actions .btn-secondary:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
 /* 반응형 디자인 */
 @media (max-width: 375px) {
     .popup-header-section {

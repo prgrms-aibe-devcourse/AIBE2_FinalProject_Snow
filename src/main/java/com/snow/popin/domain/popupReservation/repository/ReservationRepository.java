@@ -47,6 +47,16 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
      */
     boolean existsByPopupAndUser(Popup popup, User currentUser);
 
+    /**
+     * 취소되지 않은 활성 예약 존재 여부 확인
+     */
+    @Query("SELECT COUNT(r) > 0 FROM Reservation r " +
+            "WHERE r.popup = :popup " +
+            "AND r.user = :user " +
+            "AND r.status <> com.snow.popin.domain.popupReservation.entity.ReservationStatus.CANCELLED")
+    boolean existsActiveReservationByPopupAndUser(@Param("popup") Popup popup, @Param("user") User user);
+
+
     // 특정 팝업의 특정 시간대 예약 개수 조회
     @Query("SELECT COUNT(r) FROM Reservation r WHERE r.popup = :popup " +
             "AND r.reservationDate >= :startTime AND r.reservationDate < :endTime " +
