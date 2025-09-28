@@ -13,7 +13,7 @@ public class PaymentResponseDto {
 
     private Boolean success;
     private String tid;
-    private String redirectUrl;  // 백엔드에서 사용하는 필드명
+    private String redirectUrl;
     private String message;
     private String errorCode;
 

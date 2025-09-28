@@ -40,7 +40,7 @@ class PaymentManager {
             const result = await response.json();
 
             if (result.success) {
-                this.openKakaoPayWindow(result.paymentUrl);
+                this.openKakaoPayWindow(result.redirectUrl);
             } else {
                 throw new Error(result.message || '카카오페이 결제 준비 실패');
             }
@@ -103,7 +103,7 @@ class PaymentManager {
         //     const result = await response.json();
         //
         //     if (result.success) {
-        //         this.openNaverPayWindow(result.paymentUrl);
+        //         this.openNaverPayWindow(result.redirectUrl);
         //     } else {
         //         throw new Error(result.message || '네이버페이 결제 준비 실패');
         //     }
