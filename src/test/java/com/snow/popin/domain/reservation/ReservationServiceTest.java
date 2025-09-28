@@ -13,6 +13,7 @@ import com.snow.popin.domain.popupReservation.dto.ReservationRequestDto;
 import com.snow.popin.domain.popupReservation.dto.ReservationResponseDto;
 import com.snow.popin.domain.popupReservation.dto.TimeSlotDto;
 import com.snow.popin.domain.popupReservation.entity.Reservation;
+import com.snow.popin.domain.popupReservation.repository.ReservationQueryDslRepository;
 import com.snow.popin.domain.popupReservation.repository.ReservationRepository;
 import com.snow.popin.domain.popupReservation.service.ReservationService;
 import com.snow.popin.domain.user.entity.User;
@@ -48,6 +49,9 @@ public class ReservationServiceTest {
     private ReservationRepository reservationRepository;
 
     @Mock
+    private ReservationQueryDslRepository reservationQueryDslRepository;
+
+    @Mock
     private PopupRepository popupRepository;
 
     @Mock
@@ -75,7 +79,7 @@ public class ReservationServiceTest {
         when(popupRepository.findById(anyLong())).thenReturn(Optional.of(popup));
         when(reservationRepository.existsByPopupAndUser(any(Popup.class), any(User.class))).thenReturn(false);
         when(popupHoursRepository.findByPopupIdAndDayOfWeek(anyLong(), any(Integer.class))).thenReturn(List.of(createTestPopupHours(popup)));
-        when(reservationRepository.countByPopupAndReservationDateBetween(any(Popup.class), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(0L);
+        when(reservationQueryDslRepository.countByPopupAndReservationDateBetween(any(Popup.class), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(0L);
 
         // thenAnswer를 사용하여 save 메소드가 호출될 때 동적으로 ID를 설정
         when(reservationRepository.save(any(Reservation.class))).thenAnswer((Answer<Reservation>) invocation -> {
