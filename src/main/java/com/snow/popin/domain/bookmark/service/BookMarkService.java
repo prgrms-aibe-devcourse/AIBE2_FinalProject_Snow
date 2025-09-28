@@ -3,6 +3,7 @@ package com.snow.popin.domain.bookmark.service;
 import com.snow.popin.domain.bookmark.dto.BookMarkListResponseDto;
 import com.snow.popin.domain.bookmark.dto.BookMarkResponseDto;
 import com.snow.popin.domain.bookmark.entity.BookMark;
+import com.snow.popin.domain.bookmark.repository.BookMarkQueryDslRepository;
 import com.snow.popin.domain.bookmark.repository.BookMarkRepository;
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.repository.PopupRepository;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 public class BookMarkService {
 
     private final BookMarkRepository bookMarkRepository;
+    private final BookMarkQueryDslRepository bookMarkQueryDslRepository;
     private final PopupRepository popupRepository;
 
     // 북마크 추가
@@ -91,7 +93,7 @@ public class BookMarkService {
         log.info("사용자 북마크 목록 조회 - userId: {}, page: {}, size: {}", userId, page, size);
 
         Pageable pageable = createPageable(page, size);
-        Page<BookMark> bookmarkPage = bookMarkRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+        Page<BookMark> bookmarkPage = bookMarkQueryDslRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
 
         List<BookMarkResponseDto> bookmarkDtos = bookmarkPage.getContent()
                 .stream()
@@ -119,7 +121,7 @@ public class BookMarkService {
 
     // 사용자가 북마크한 팝업 ID 목록 조회
     public List<Long> getUserBookmarkedPopupIds(Long userId) {
-        return bookMarkRepository.findPopupIdsByUserId(userId);
+        return bookMarkQueryDslRepository.findPopupIdsByUserId(userId);
     }
 
     private Pageable createPageable(int page, int size) {
