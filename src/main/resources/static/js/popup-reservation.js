@@ -140,10 +140,19 @@ class PopupReservationManager {
 
             dateInput.min = popupStartDate > today ? popupStartDate : today;
 
-            dateInput.max = popupEndDate;
+            dateInput.min = popupStartDate > today ? popupStartDate : today;
+            if (this.availableDates.length > 0) {
+                const lastAvailableDate = this.availableDates[this.availableDates.length - 1];
+                dateInput.max = lastAvailableDate < popupEndDate ? lastAvailableDate : popupEndDate;
+            } else {
+                dateInput.max = popupEndDate;
+            }
         } else {
             const today = new Date().toISOString().split('T')[0];
             dateInput.min = today;
+            if (this.availableDates.length > 0) {
+                dateInput.max = this.availableDates[this.availableDates.length - 1];
+            }
         }
     }
 
