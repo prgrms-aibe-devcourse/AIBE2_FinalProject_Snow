@@ -4,6 +4,7 @@ import com.snow.popin.domain.mypage.host.entity.Brand;
 import com.snow.popin.domain.mypage.host.repository.BrandRepository;
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.entity.PopupStatus;
+import com.snow.popin.domain.popup.repository.PopupQueryDslRepository;
 import com.snow.popin.domain.popup.repository.PopupRepository;
 import com.snow.popin.domain.popupReservation.repository.ReservationRepository;
 import com.snow.popin.domain.recommendation.dto.AiRecommendationResponseDto;
@@ -40,6 +41,9 @@ class AiRecommendationServiceTest {
 
     @Mock
     private PopupRepository popupRepository;
+
+    @Mock
+    private PopupQueryDslRepository popupQueryDslRepository;
 
     @Mock
     private ReservationRepository reservationRepository;
@@ -110,7 +114,7 @@ class AiRecommendationServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
         when(popupRepository.findByStatus(PopupStatus.ONGOING)).thenReturn(testPopups);
         when(geminiAiService.generateText(anyString())).thenReturn("추천 팝업 ID: [1,2,3]\n추천 이유: 기본 추천입니다.");
-        when(popupRepository.findPopularActivePopups(any())).thenReturn(
+        when(popupQueryDslRepository.findPopularActivePopups(any())).thenReturn(
                 new PageImpl<>(testPopups, PageRequest.of(0, limit), testPopups.size())
         );
 
@@ -133,7 +137,7 @@ class AiRecommendationServiceTest {
         when(reservationRepository.findByUser(testUser)).thenReturn(Collections.emptyList());
         when(popupRepository.findByStatus(PopupStatus.ONGOING)).thenReturn(testPopups);
         when(geminiAiService.generateText(anyString())).thenReturn(null); // API 실패
-        when(popupRepository.findPopularActivePopups(any())).thenReturn(
+        when(popupQueryDslRepository.findPopularActivePopups(any())).thenReturn(
                 new PageImpl<>(testPopups, PageRequest.of(0, limit), testPopups.size())
         );
 
@@ -157,7 +161,7 @@ class AiRecommendationServiceTest {
         when(reservationRepository.findByUser(testUser)).thenReturn(Collections.emptyList());
         when(popupRepository.findByStatus(PopupStatus.ONGOING)).thenReturn(testPopups);
         when(geminiAiService.generateText(anyString())).thenReturn(invalidResponse);
-        when(popupRepository.findPopularActivePopups(any())).thenReturn(
+        when(popupQueryDslRepository.findPopularActivePopups(any())).thenReturn(
                 new PageImpl<>(testPopups, PageRequest.of(0, limit), testPopups.size())
         );
 
@@ -179,7 +183,7 @@ class AiRecommendationServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
         when(reservationRepository.findByUser(testUser)).thenReturn(Collections.emptyList());
         when(popupRepository.findByStatus(PopupStatus.ONGOING)).thenReturn(Collections.emptyList());
-        when(popupRepository.findPopularActivePopups(any())).thenReturn(
+        when(popupQueryDslRepository.findPopularActivePopups(any())).thenReturn(
                 new PageImpl<>(Collections.emptyList(), PageRequest.of(0, limit), 0)
         );
 
@@ -200,7 +204,7 @@ class AiRecommendationServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
         when(popupRepository.findByStatus(PopupStatus.ONGOING)).thenThrow(new RuntimeException("DB 오류"));
-        when(popupRepository.findPopularActivePopups(any())).thenReturn(
+        when(popupQueryDslRepository.findPopularActivePopups(any())).thenReturn(
                 new PageImpl<>(testPopups, PageRequest.of(0, limit), testPopups.size())
         );
 

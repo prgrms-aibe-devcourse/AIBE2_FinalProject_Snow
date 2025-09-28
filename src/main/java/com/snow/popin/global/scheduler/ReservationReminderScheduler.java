@@ -4,6 +4,7 @@ import com.snow.popin.domain.notification.constant.NotificationType;
 import com.snow.popin.domain.notification.service.NotificationService;
 import com.snow.popin.domain.popupReservation.entity.Reservation;
 import com.snow.popin.domain.popupReservation.entity.ReservationStatus;
+import com.snow.popin.domain.popupReservation.repository.ReservationQueryDslRepository;
 import com.snow.popin.domain.popupReservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import java.util.List;
 public class ReservationReminderScheduler {
 
     private final ReservationRepository reservationRepository;
+    private final ReservationQueryDslRepository reservationQueryDslRepository;
     private final NotificationService notificationService;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -40,11 +42,11 @@ public class ReservationReminderScheduler {
         String target1dStr = target1d.format(FORMATTER);
 
         // 30분 전 알림
-        List<Reservation> reservations30m = reservationRepository.findByReservationMinute(target30mStr);
+        List<Reservation> reservations30m = reservationQueryDslRepository.findByReservationMinute(target30mStr);
         sendNotifications(reservations30m, "예약 임박", "30분 후 예약하신 일정이 시작됩니다.");
 
         // 하루 전 알림
-        List<Reservation> reservations1d = reservationRepository.findByReservationMinute(target1dStr);
+        List<Reservation> reservations1d = reservationQueryDslRepository.findByReservationMinute(target1dStr);
         sendNotifications(reservations1d, "예약 하루 전", "예약하신 일정이 내일 시작됩니다.");
     }
 

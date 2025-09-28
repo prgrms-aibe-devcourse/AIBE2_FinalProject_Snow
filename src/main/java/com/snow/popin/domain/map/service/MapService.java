@@ -1,8 +1,10 @@
 package com.snow.popin.domain.map.service;
 
 import com.snow.popin.domain.map.dto.PopupMapResponseDto;
+import com.snow.popin.domain.map.repository.MapQueryDslRepository;
 import com.snow.popin.domain.map.repository.MapRepository;
 import com.snow.popin.domain.popup.entity.Popup;
+import com.snow.popin.domain.popup.repository.PopupQueryDslRepository;
 import com.snow.popin.domain.popup.repository.PopupRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,15 +21,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MapService {
 
-    private final MapRepository mapRepository;
-    private final PopupRepository popupRepository;
+    private final MapQueryDslRepository mapQueryDslRepository;
+    private final PopupQueryDslRepository popupQueryDslRepository;
 
     // 현재 활성화된 팝업이 있는 지역 목록 조회
     public List<String> getAllRegions() {
         log.info("지역 목록 조회 시작");
 
         try {
-            List<String> regions = mapRepository.findDistinctRegionsWithActivePopups();
+            List<String> regions = mapQueryDslRepository.findDistinctRegionsWithActivePopups();
             log.info("지역 목록 조회 완료 - 총 {}개 지역", regions.size());
             return regions;
         } catch (Exception e) {
@@ -40,7 +42,7 @@ public class MapService {
     public List<String> getRegionsWithCoordinates() {
         log.info("좌표 기반 지역 목록 조회 시작");
 
-        List<String> regions = mapRepository.findDistinctRegionsWithCoordinates();
+        List<String> regions = mapQueryDslRepository.findDistinctRegionsWithCoordinates();
         log.info("좌표 기반 지역 목록 조회 완료 - 총 {}개 지역", regions.size());
         return regions;
     }
@@ -53,7 +55,7 @@ public class MapService {
             categoryIds = null;
         }
 
-        List<Popup> popups = popupRepository.findPopupsForMap(region, categoryIds);
+        List<Popup> popups = popupQueryDslRepository.findPopupsForMap(region, categoryIds);
 
         List<PopupMapResponseDto> mapPopups = popups.stream()
                 .map(PopupMapResponseDto::from)
@@ -76,7 +78,7 @@ public class MapService {
             return List.of();
         }
 
-        List<Popup> popups = popupRepository.findPopupsInBounds(
+        List<Popup> popups = popupQueryDslRepository.findPopupsInBounds(
                 southWestLat, southWestLng, northEastLat, northEastLng);
 
         List<PopupMapResponseDto> mapPopups = popups.stream()
@@ -98,7 +100,7 @@ public class MapService {
             return List.of();
         }
 
-        List<Popup> popups = popupRepository.findPopupsWithinRadius(latitude, longitude, radiusKm);
+        List<Popup> popups = popupQueryDslRepository.findPopupsWithinRadius(latitude, longitude, radiusKm);
 
         List<PopupMapResponseDto> mapPopups = popups.stream()
                 .map(PopupMapResponseDto::from)
@@ -115,7 +117,7 @@ public class MapService {
     public Map<String, Long> getMapPopupStatsByCategory(String region) {
         log.info("카테고리별 지도 팝업 통계 조회 - 지역: {}", region);
 
-        List<Object[]> results = popupRepository.findMapPopupStatsByCategory(region);
+        List<Object[]> results = popupQueryDslRepository.findMapPopupStatsByCategory(region);
 
         Map<String, Long> stats = results.stream()
                 .collect(Collectors.toMap(
@@ -134,7 +136,7 @@ public class MapService {
     public Map<String, Long> getMapPopupStatsByRegion() {
         log.info("지역별 지도 팝업 통계 조회 시작");
 
-        List<Object[]> results = popupRepository.findMapPopupStatsByRegion();
+        List<Object[]> results = popupQueryDslRepository.findMapPopupStatsByRegion();
 
         Map<String, Long> stats = results.stream()
                 .collect(Collectors.toMap(

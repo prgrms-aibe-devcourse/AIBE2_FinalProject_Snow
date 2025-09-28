@@ -30,6 +30,9 @@ public class Popup extends BaseEntity {
     @JoinColumn(name = "venue_id")
     private Venue venue;
 
+    @Column(name = "title_search")
+    private String titleSearch;
+
     private String title;
     private String summary;
     private String description;
@@ -240,11 +243,16 @@ public class Popup extends BaseEntity {
         this.isFeatured = featured;
     }
 
+    public void setTitle(String title) {
+        this.title = title;
+        this.titleSearch = title != null ? title.toLowerCase().trim() : null;
+    }
+
     //  생성 메서드
     public static Popup create(Long brandId, PopupRegisterRequestDto dto) {
         Popup popup = new Popup();
         popup.brandId = brandId;
-        popup.title = dto.getTitle();
+        popup.setTitle(dto.getTitle());
         popup.summary = dto.getSummary();
         popup.description = dto.getDescription();
         popup.startDate = dto.getStartDate();
@@ -262,7 +270,7 @@ public class Popup extends BaseEntity {
 
     //  수정 메서드
     public void update(PopupRegisterRequestDto dto) {
-        this.title = dto.getTitle();
+        this.setTitle(dto.getTitle());
         this.summary = dto.getSummary();
         this.description = dto.getDescription();
         this.startDate = dto.getStartDate();

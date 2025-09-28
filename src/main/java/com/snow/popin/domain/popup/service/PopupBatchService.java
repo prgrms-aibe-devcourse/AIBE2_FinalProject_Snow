@@ -3,6 +3,7 @@ package com.snow.popin.domain.popup.service;
 import com.snow.popin.domain.mission.repository.MissionRepository;
 import com.snow.popin.domain.mission.repository.MissionSetRepository;
 import com.snow.popin.domain.popup.entity.Popup;
+import com.snow.popin.domain.popup.repository.PopupQueryDslRepository;
 import com.snow.popin.domain.popup.repository.PopupRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 public class PopupBatchService {
 
     private final PopupRepository popupRepository;
+    private final PopupQueryDslRepository popupQueryDslRepository;
     private final MissionSetRepository missionSetRepository;
 
     //매일 자정, 팝업의 상태를 자동으로 업데이트합니다.
@@ -31,7 +33,7 @@ public class PopupBatchService {
         int updatedCount = 0;
 
         // PLANNED -> ONGOING 업데이트
-        List<Popup> popupsToStart = popupRepository.findPopupsToUpdateToOngoing(today);
+        List<Popup> popupsToStart = popupQueryDslRepository.findPopupsToUpdateToOngoing(today);
         for (Popup popup : popupsToStart) {
             if (popup.updateStatus()) {
                 updatedCount++;
@@ -45,7 +47,7 @@ public class PopupBatchService {
         }
 
         // ONGOING -> ENDED 업데이트
-        List<Popup> popupsToEnd = popupRepository.findPopupsToUpdateToEnded(today);
+        List<Popup> popupsToEnd = popupQueryDslRepository.findPopupsToUpdateToEnded(today);
         for (Popup popup : popupsToEnd) {
             if (popup.updateStatus()) {
                 updatedCount++;

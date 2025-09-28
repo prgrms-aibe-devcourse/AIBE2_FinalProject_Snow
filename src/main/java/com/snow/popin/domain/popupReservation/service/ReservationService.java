@@ -11,6 +11,7 @@ import com.snow.popin.domain.popup.repository.PopupRepository;
 import com.snow.popin.domain.popupReservation.dto.*;
 import com.snow.popin.domain.popupReservation.entity.PopupReservationSettings;
 import com.snow.popin.domain.popupReservation.entity.Reservation;
+import com.snow.popin.domain.popupReservation.repository.ReservationQueryDslRepository;
 import com.snow.popin.domain.popupReservation.repository.ReservationRepository;
 import com.snow.popin.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
+    private final ReservationQueryDslRepository reservationQueryDslRepository;
     private final PopupRepository popupRepository;
     private final HostRepository hostRepository;
     private final BrandRepository brandRepository;
@@ -51,7 +53,7 @@ public class ReservationService {
     public Long createReservation(User currentUser, Long popupId, ReservationRequestDto dto) {
         Popup popup = validatePopupForReservation(popupId);
 
-        if (reservationRepository.existsActiveReservationByPopupAndUser(popup, currentUser)) {
+        if (reservationQueryDslRepository.existsActiveReservationByPopupAndUser(popup, currentUser)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 예약한 팝업입니다.");
         }
 
@@ -119,7 +121,7 @@ public class ReservationService {
             LocalDateTime slotStart = LocalDateTime.of(date, currentTime);
             LocalDateTime slotEnd = LocalDateTime.of(date, slotEndTime);
 
-            long currentReservations = reservationRepository.sumPartySizeByPopupAndReservationDateBetween(
+            long currentReservations = reservationQueryDslRepository.sumPartySizeByPopupAndReservationDateBetween(
                     popup, slotStart, slotEnd
             );
 
@@ -322,7 +324,7 @@ public class ReservationService {
                 LocalTime slotStart = current;
                 LocalTime slotEnd = current.plusMinutes(settings.getTimeSlotInterval());
 
-                long reservedCount = reservationRepository.sumPartySizeByPopupAndReservationDateBetween(
+                long reservedCount = reservationQueryDslRepository.sumPartySizeByPopupAndReservationDateBetween(
                         popup, date.atTime(slotStart), date.atTime(slotEnd));
 
                 int remaining = settings.getMaxCapacityPerSlot() - (int) reservedCount;

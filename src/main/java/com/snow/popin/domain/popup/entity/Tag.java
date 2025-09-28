@@ -20,10 +20,14 @@ public class Tag extends BaseEntity {
     @Column(name = "name", nullable = false, unique = true, length = 100)
     private String name;
 
+    @Column(name = "name_search")
+    private String nameSearch;
+
     @ManyToMany(mappedBy = "tags")
     private Set<Popup> popups;
 
-    public void updateName(String name) {
+    public void setName(String name) {
         this.name = name;
+        this.nameSearch = name != null ? name.toLowerCase().trim() : null;
     }
 }

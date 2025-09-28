@@ -5,6 +5,7 @@ import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.repository.PopupRepository;
 import com.snow.popin.domain.popupReservation.entity.Reservation;
 import com.snow.popin.domain.popupReservation.entity.ReservationStatus;
+import com.snow.popin.domain.popupReservation.repository.ReservationQueryDslRepository;
 import com.snow.popin.domain.popupReservation.repository.ReservationRepository;
 import com.snow.popin.domain.popupstat.dto.PopupStatsResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class PopupStatsService {
 
     private final PopupRepository popupRepository;
     private final ReservationRepository reservationRepository;
+    private final ReservationQueryDslRepository reservationQueryDslRepository;
     private final UserMissionRepository userMissionRepository;
 
     /**
@@ -68,15 +70,15 @@ public class PopupStatsService {
             LocalDateTime dayStart = date.atStartOfDay();
             LocalDateTime dayEnd = date.atTime(23, 59, 59);
 
-            Long reservationCount = reservationRepository.countByPopupAndReservedAtBetweenAndStatus(
+            Long reservationCount = reservationQueryDslRepository.countByPopupAndReservedAtBetweenAndStatus(
                     popup, dayStart, dayEnd, ReservationStatus.RESERVED
             );
 
-            Long canceledCount = reservationRepository.countByPopupAndReservedAtBetweenAndStatus(
+            Long canceledCount = reservationQueryDslRepository.countByPopupAndReservedAtBetweenAndStatus(
                     popup, dayStart, dayEnd, ReservationStatus.CANCELLED
             );
 
-            Long visitorCount = reservationRepository.countByPopupAndReservedAtBetweenAndStatus(
+            Long visitorCount = reservationQueryDslRepository.countByPopupAndReservedAtBetweenAndStatus(
                     popup, dayStart, dayEnd, ReservationStatus.VISITED
             );
 
