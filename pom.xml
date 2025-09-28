@@ -83,9 +83,9 @@
             <groupId>com.querydsl</groupId>
             <artifactId>querydsl-apt</artifactId>
             <version>${querydsl.version}</version>
+            <classifier>jpa</classifier>
             <scope>provided</scope>
         </dependency>
-
         <dependency>
             <groupId>nz.net.ultraq.thymeleaf</groupId>
             <artifactId>thymeleaf-layout-dialect</artifactId>

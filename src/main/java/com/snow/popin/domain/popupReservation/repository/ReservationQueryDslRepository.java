@@ -108,18 +108,18 @@ public class ReservationQueryDslRepository {
     /**
      * 특정 팝업의 특정 날짜 예약 목록 조회
      */
-    // ReservationQueryDslRepository에서 누락
     public List<Reservation> findByPopupAndReservationDate(Popup popup, LocalDateTime date) {
+        LocalDateTime startOfDay = date.toLocalDate().atStartOfDay();
+        LocalDateTime nextDayStart = startOfDay.plusDays(1);
+
         return queryFactory
                 .selectFrom(reservation)
                 .leftJoin(reservation.user).fetchJoin()
                 .leftJoin(reservation.popup).fetchJoin()
                 .where(
                         reservation.popup.eq(popup)
-                                .and(reservation.reservationDate.between(
-                                        date.toLocalDate().atStartOfDay(),
-                                        date.toLocalDate().atTime(23, 59, 59)
-                                ))
+                                .and(reservation.reservationDate.goe(startOfDay))
+                                .and(reservation.reservationDate.lt(nextDayStart))
                 )
                 .orderBy(reservation.reservationDate.asc())
                 .fetch();
