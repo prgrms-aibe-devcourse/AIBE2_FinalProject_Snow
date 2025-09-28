@@ -1,6 +1,7 @@
 package com.snow.popin.domain.map.service;
 
 import com.snow.popin.domain.map.dto.PopupMapResponseDto;
+import com.snow.popin.domain.map.repository.MapQueryDslRepository;
 import com.snow.popin.domain.map.repository.MapRepository;
 import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.popup.repository.PopupQueryDslRepository;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MapService {
 
-    private final MapRepository mapRepository;
+    private final MapQueryDslRepository mapQueryDslRepository;
     private final PopupQueryDslRepository popupQueryDslRepository;
 
     // 현재 활성화된 팝업이 있는 지역 목록 조회
@@ -28,7 +29,7 @@ public class MapService {
         log.info("지역 목록 조회 시작");
 
         try {
-            List<String> regions = mapRepository.findDistinctRegionsWithActivePopups();
+            List<String> regions = mapQueryDslRepository.findDistinctRegionsWithActivePopups();
             log.info("지역 목록 조회 완료 - 총 {}개 지역", regions.size());
             return regions;
         } catch (Exception e) {
@@ -41,7 +42,7 @@ public class MapService {
     public List<String> getRegionsWithCoordinates() {
         log.info("좌표 기반 지역 목록 조회 시작");
 
-        List<String> regions = mapRepository.findDistinctRegionsWithCoordinates();
+        List<String> regions = mapQueryDslRepository.findDistinctRegionsWithCoordinates();
         log.info("좌표 기반 지역 목록 조회 완료 - 총 {}개 지역", regions.size());
         return regions;
     }
