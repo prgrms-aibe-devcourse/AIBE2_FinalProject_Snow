@@ -3,12 +3,17 @@ package com.snow.popin.domain.payment.controller;
 import com.snow.popin.domain.payment.dto.PaymentRequestDto;
 import com.snow.popin.domain.payment.dto.PaymentResponseDto;
 import com.snow.popin.domain.payment.service.PaymentService;
+import com.snow.popin.domain.popupReservation.service.ReservationService;
+import com.snow.popin.domain.user.entity.User;
+import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import javax.validation.constraints.Positive;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -17,6 +22,8 @@ import javax.servlet.http.HttpSession;
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private final ReservationService reservationService;
+    private final UserUtil userUtil;
 
     /**
      * 팝업 예약 결제 준비
@@ -211,14 +218,71 @@ public class PaymentController {
     public ResponseEntity<String> naverPayFailGet(
             @RequestParam(value = "code", required = false) String errorCode,
             @RequestParam(value = "message", required = false) String errorMessage) {
-        // POST와 동일한 로직
         return naverPayFail(errorCode, errorMessage);
     }
 
     @GetMapping("/naver/cancel")
     @ResponseBody
     public ResponseEntity<String> naverPayCancelGet() {
-        // POST와 동일한 로직
         return naverPayCancel();
+    }
+    /**
+     * 결제 환불 처리
+     */
+    @PostMapping("/refund/{reservationId}")
+    public ResponseEntity<?> processRefund(
+            @PathVariable @Positive Long reservationId)
+    {
+
+        try {
+            log.info("환불 요청: reservationId={}", reservationId);
+
+            boolean success = paymentService.processRefund(reservationId);
+
+            if (success) {
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "환불이 완료되었습니다.",
+                        "reservationId", reservationId
+                ));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "환불 처리에 실패했습니다.",
+                        "reservationId", reservationId
+                ));
+            }
+
+        } catch (Exception e) {
+            log.error("환불 처리 중 오류 발생: reservationId={}", reservationId, e);
+            return ResponseEntity.status(500).body(Map.of(
+                    "success", false,
+                    "message", "환불 처리 중 오류가 발생했습니다: " + e.getMessage(),
+                    "reservationId", reservationId
+            ));
+        }
+    }
+
+    /**
+     * 환불 가능 여부 확인
+     */
+    @GetMapping("/refund/check/{reservationId}")
+    public ResponseEntity<?> checkRefundable(@PathVariable @Positive Long reservationId) {
+        try {
+            User currentUser = userUtil.getCurrentUser();
+            boolean isRefundable = reservationService.isRefundable(reservationId, currentUser);
+
+            return ResponseEntity.ok(Map.of(
+                    "refundable", isRefundable,
+                    "reservationId", reservationId
+            ));
+
+        } catch (Exception e) {
+            log.error("환불 가능 여부 확인 중 오류: reservationId={}", reservationId, e);
+            return ResponseEntity.badRequest().body(Map.of(
+                    "refundable", false,
+                    "message", e.getMessage()
+            ));
+        }
     }
 }

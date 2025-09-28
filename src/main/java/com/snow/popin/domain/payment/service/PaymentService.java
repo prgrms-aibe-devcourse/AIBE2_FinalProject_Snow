@@ -313,6 +313,163 @@ public class PaymentService {
             return false;
         }
     }
+    /**
+     * 카카오페이 환불 처리
+     */
+    public boolean refundKakaoPayment(Long reservationId) {
+        try {
+            Reservation reservation = reservationRepository.findById(reservationId)
+                    .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
+
+            if (!reservation.isPaymentCompleted()) {
+                log.warn("결제가 완료되지 않은 예약입니다. reservationId: {}", reservationId);
+                return false;
+            }
+
+            String tid = reservation.getPaymentTid();
+            if (tid == null || tid.isEmpty()) {
+                log.error("결제 TID가 없습니다. reservationId: {}", reservationId);
+                return false;
+            }
+
+            // 카카오페이 환불 API 호출
+            String url = "https://kapi.kakao.com/v1/payment/cancel";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "KakaoAK " + kakaoPayAdminKey);
+            headers.set("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
+
+            Map<String, Object> params = new HashMap<>();
+            params.put("cid", "TC0ONETIME");
+            params.put("tid", tid);
+            params.put("cancel_amount", reservation.getPaymentAmount());
+            params.put("cancel_tax_free_amount", 0);
+            params.put("cancel_vat_amount", reservation.getPaymentAmount() / 11);
+
+            String body = buildFormData(params);
+            HttpEntity<String> entity = new HttpEntity<>(body, headers);
+
+            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, entity, Map.class);
+            Map<String, Object> result = response.getBody();
+
+            // 카카오페이 API 응답 검증
+            if (result != null && result.get("aid") != null) {
+                // 환불 성공 - aid가 있으면 성공
+                String aid = (String) result.get("aid");
+
+                reservation.markPaymentRefunded();
+                reservationRepository.save(reservation);
+
+                log.info("카카오페이 환불 완료: reservationId={}, tid={}, aid={}, amount={}",
+                        reservationId, tid, aid, reservation.getPaymentAmount());
+                return true;
+
+            } else {
+                // 환불 실패 - API 응답 이상
+                log.error("카카오페이 환불 API 응답 이상: reservationId={}, response={}",
+                        reservationId, result);
+                return false;
+            }
+
+        } catch (Exception e) {
+            log.error("카카오페이 환불 실패: reservationId={}", reservationId, e);
+            return false;
+        }
+    }
+
+
+    /**
+     * 네이버페이 환불 처리
+     */
+    public boolean refundNaverPayment(Long reservationId) {
+        try {
+            Reservation reservation = reservationRepository.findById(reservationId)
+                    .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
+
+            if (!reservation.isPaymentCompleted()) {
+                log.warn("결제가 완료되지 않은 예약입니다. reservationId: {}", reservationId);
+                return false;
+            }
+
+            String paymentId = reservation.getPaymentTid();
+            if (paymentId == null || paymentId.isEmpty()) {
+                log.error("결제 ID가 없습니다. reservationId: {}", reservationId);
+                return false;
+            }
+
+            // 네이버페이 환불 API 호출
+            String url = "https://dev.apis.naver.com/naverpay-partner/naverpay/payments/v2.2/apply/cancel";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Content-Type", "application/json;charset=UTF-8");
+            headers.set("X-Naver-Client-Id", naverPayClientId);
+            headers.set("X-Naver-Client-Secret", naverPayClientSecret);
+
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("paymentId", paymentId);
+            requestBody.put("cancelAmount", reservation.getPaymentAmount());
+            requestBody.put("cancelReason", "사용자 예약 취소");
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, entity, Map.class);
+            Map<String, Object> result = response.getBody();
+
+            if (result != null && "Success".equals(result.get("code"))) {
+                // 환불 성공 처리
+                reservation.markPaymentRefunded();
+                reservationRepository.save(reservation);
+
+                log.info("네이버페이 환불 완료: reservationId={}, paymentId={}, amount={}",
+                        reservationId, paymentId, reservation.getPaymentAmount());
+                return true;
+            } else {
+                String errorMessage = result != null ? (String) result.get("message") : "알 수 없는 오류";
+                log.error("네이버페이 환불 실패: reservationId={}, error={}", reservationId, errorMessage);
+                return false;
+            }
+
+        } catch (Exception e) {
+            log.error("네이버페이 환불 실패: reservationId={}", reservationId, e);
+            return false;
+        }
+    }
+
+    /**
+     * 통합 환불 처리 (결제 방법에 따라 자동 분기)
+     */
+    public boolean processRefund(Long reservationId) {
+        try {
+            Reservation reservation = reservationRepository.findById(reservationId)
+                    .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
+
+            if (!reservation.isPaymentCompleted()) {
+                log.info("결제되지 않은 예약이므로 환불할 필요가 없습니다. reservationId: {}", reservationId);
+                return true;
+            }
+
+            String paymentMethod = reservation.getPaymentMethod();
+            if (paymentMethod == null) {
+                log.error("결제 방법 정보가 없습니다. reservationId: {}", reservationId);
+                return false;
+            }
+
+            switch (paymentMethod.toUpperCase()) {
+                case "KAKAO_PAY":
+                    return refundKakaoPayment(reservationId);
+                case "NAVER_PAY":
+                    return refundNaverPayment(reservationId);
+                default:
+                    log.error("지원하지 않는 결제 방법입니다. reservationId={}, paymentMethod={}",
+                            reservationId, paymentMethod);
+                    return false;
+            }
+
+        } catch (Exception e) {
+            log.error("환불 처리 중 오류 발생: reservationId={}", reservationId, e);
+            return false;
+        }
+    }
 
     private String buildFormData(Map<String, Object> params) {
         StringBuilder sb = new StringBuilder();
