@@ -8,6 +8,8 @@ import com.snow.popin.domain.space.service.FileStorageService;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,9 +50,9 @@ public class HostController {
      * @return 팝업 응답 DTO 리스트
      */
     @GetMapping("/popups")
-    public ResponseEntity<List<PopupRegisterResponseDto>> getMyPopups() {
+    public ResponseEntity<Page<PopupRegisterResponseDto>> getMyPopups(Pageable pageable) {
         User currentUser = userUtil.getCurrentUser();
-        return ResponseEntity.ok(hostService.getMyPopups(currentUser));
+        return ResponseEntity.ok(hostService.getMyPopups(currentUser, pageable));
     }
     /**
      * 내가 등록한 팝업 상세 조회

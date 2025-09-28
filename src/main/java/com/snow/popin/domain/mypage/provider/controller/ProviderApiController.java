@@ -1,5 +1,6 @@
 package com.snow.popin.domain.mypage.provider.controller;
 
+import com.snow.popin.domain.space.dto.SpaceListResponseDto;
 import com.snow.popin.domain.space.entity.Space;
 import com.snow.popin.domain.mypage.provider.service.ProviderService;
 import com.snow.popin.global.util.UserUtil;
@@ -19,8 +20,7 @@ import java.util.List;
 @RequestMapping("/api/provider")
 public class ProviderApiController {
 
-    private final ProviderService service;
-    private final UserUtil userUtil;
+    private final ProviderService providerservice;
 
     /**
      * 내가 등록한 공간 리스트 조회
@@ -28,7 +28,7 @@ public class ProviderApiController {
      * @return 내가 등록한 공간 리스트
      */
     @GetMapping("/spaces")
-    public ResponseEntity<List<Space>> loadMySpaceInProfile() {
-        return ResponseEntity.ok(service.findMySpaces());
+    public ResponseEntity<List<SpaceListResponseDto>> loadMySpaceInProfile() {
+        return ResponseEntity.ok(providerservice.findMySpaces());
     }
 }

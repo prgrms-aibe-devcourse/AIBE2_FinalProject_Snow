@@ -226,7 +226,8 @@ public interface PopupRepository extends JpaRepository<Popup, Long>, JpaSpecific
 
     // ===== 관리용 메서드들 =====
 
-    List<Popup> findByBrandId(Long brandId);
+    @Query("SELECT p FROM Popup p WHERE p.brandId = :brandId ORDER BY p.createdAt DESC")
+    Page<Popup> findByBrandId(@Param("brandId") Long brandId, Pageable pageable);
 
     Optional<Popup> findFirstByTitle(String title);
 

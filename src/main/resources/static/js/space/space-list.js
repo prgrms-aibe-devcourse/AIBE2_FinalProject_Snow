@@ -22,7 +22,7 @@ class SpaceListManager {
     async initialize() {
         try {
             this.showLoading();
-            const spaces = await apiService.listSpaces();
+            const spaces = (await apiService.listSpaces()).content || await apiService.listSpaces();
             this.allSpaces = spaces;
             this.currentSpaces = spaces;
             this.renderSpaces(spaces);
@@ -281,7 +281,7 @@ class SpaceListManager {
 
     formatRentalFee(amount) {
         if (!amount && amount !== 0) return '-';
-        return `${amount} 만원`;
+        return `${amount} 원 / 일`;
     }
 
     showError(message) {

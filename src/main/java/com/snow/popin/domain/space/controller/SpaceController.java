@@ -12,6 +12,7 @@ import com.snow.popin.domain.user.repository.UserRepository;
 import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -41,9 +42,9 @@ public class SpaceController {
      * @return 모든 공간 리스트
      */
     @GetMapping
-    public List<SpaceListResponseDto> listAllSpaces() {
+    public List<SpaceListResponseDto> listAllSpaces(Pageable pageable) {
         User me = userUtil.getCurrentUser();
-        return spaceService.listAll(me);
+        return spaceService.listAll(me, pageable);
     }
 
     /**
@@ -166,25 +167,6 @@ public class SpaceController {
         User me = userUtil.getCurrentUser();
         spaceService.hideSpace(me, id); // 신고 시 숨김 처리
         return ResponseEntity.ok(Map.of("message", "신고가 접수되어 해당 공간이 숨겨졌습니다."));
-    }
-
-    /**
-     * 공간 숨김 처리 (신고 시)
-     *
-     * @param reporter 신고자
-     * @param spaceId  공간 ID
-     */
-    @Transactional
-    public void hideSpace(User reporter, Long spaceId) {
-
-        Space space = spaceRepository.findById(spaceId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 공간이 존재하지 않습니다."));
-
-        if (space.isOwner(reporter)) {
-            throw new IllegalArgumentException("자신의 공간은 신고할 수 없습니다.");
-        }
-
-        space.hide();
     }
 
     /**

@@ -12,21 +12,107 @@ function translateStatus(status) {
 }
 
 const HostPage = {
+    currentPage: 0,
+    totalPages: 0,
+    allPopups: [],
+
     async init() {
         try {
-            const [hostInfo, myPopups, myReservations] = await Promise.all([
+            const [hostInfo, myReservations] = await Promise.all([
                 apiService.get('/hosts/me'),
-                apiService.get('/hosts/popups'),
                 apiService.get('/space-reservations/my-requests')
             ]);
 
             this.renderHostInfo(hostInfo);
-            this.renderPopups(myPopups);
             this.renderReservations(myReservations);
             this.setupEditButtons(hostInfo);
+
+            // 팝업은 별도로 로드 (첫 페이지)
+            await this.loadPopups(0);
+            this.setupLoadMoreButton();
         } catch (err) {
             console.error('HostPage init 실패:', err);
             alert('데이터 로딩 중 오류가 발생했습니다.');
+        }
+    },
+
+    async loadPopups(page = 0) {
+        try {
+            const response = await apiService.get(`/hosts/popups?page=${page}&size=5`);
+            const popups = response.content || response;
+
+            if (page === 0) {
+                this.allPopups = popups;
+            } else {
+                this.allPopups.push(...popups);
+            }
+
+            this.currentPage = response.number || page;
+            this.totalPages = response.totalPages || 1;
+
+            this.renderPopups(this.allPopups);
+
+            if (page === 0) {
+                this.setupLoadMoreButton();
+            }
+
+            setTimeout(() => {
+                this.updateLoadMoreButton();
+            }, 100);
+
+        } catch (err) {
+            console.error('팝업 로딩 실패:', err);
+        }
+    },
+
+    setupLoadMoreButton() {
+        const listEl = document.getElementById('my-popup-list');
+        const container = listEl.parentNode;
+
+        const existingBtn = document.getElementById('load-more-popups');
+        if (existingBtn) {
+            existingBtn.remove();
+        }
+
+        const loadMoreBtn = document.createElement('button');
+        loadMoreBtn.id = 'load-more-popups';
+        loadMoreBtn.className = 'load-more-btn';
+        loadMoreBtn.textContent = '더보기';
+        loadMoreBtn.style.cssText = `
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            display: none;
+        `;
+
+        loadMoreBtn.addEventListener('click', () => {
+            this.loadPopups(this.currentPage + 1);
+        });
+
+        loadMoreBtn.addEventListener('mouseenter', () => {
+            loadMoreBtn.style.background = '#e9ecef';
+        });
+
+        loadMoreBtn.addEventListener('mouseleave', () => {
+            loadMoreBtn.style.background = '#f8f9fa';
+        });
+
+        container.appendChild(loadMoreBtn);
+    },
+
+    updateLoadMoreButton() {
+        const loadMoreBtn = document.getElementById('load-more-popups');
+        if (loadMoreBtn) {
+            if (this.currentPage + 1 < this.totalPages) {
+                loadMoreBtn.style.display = 'block';
+            } else {
+                loadMoreBtn.style.display = 'none';
+            }
         }
     },
 

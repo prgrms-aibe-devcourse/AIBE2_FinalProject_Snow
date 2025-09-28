@@ -1,5 +1,6 @@
 package com.snow.popin.domain.mypage.provider.service;
 
+import com.snow.popin.domain.space.dto.SpaceListResponseDto;
 import com.snow.popin.domain.space.entity.Space;
 import com.snow.popin.domain.space.repository.SpaceRepository;
 import com.snow.popin.domain.spacereservation.repository.SpaceReservationRepository;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * ProviderService
@@ -31,8 +33,13 @@ public class ProviderService {
      *
      * @return 현재 로그인한 사용자가 등록한 공간 리스트
      */
-    public List<Space> findMySpaces() {
-        User owner = userUtil.getCurrentUser();
-        return spaceRepository.findByOwner(owner);
+    @Transactional(readOnly = true)
+    public List<SpaceListResponseDto> findMySpaces() {
+        User me = userUtil.getCurrentUser();
+        List<Space> spaces = spaceRepository.findByOwnerAndIsHiddenFalseOrderByCreatedAtDescWithJoins(me);
+        return spaces.stream()
+                .map(space -> SpaceListResponseDto.from(space, me))
+                .collect(Collectors.toList());
     }
+
 }

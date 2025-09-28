@@ -17,6 +17,8 @@ import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.global.constant.ErrorCode;
 import com.snow.popin.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -88,14 +90,12 @@ public class HostService {
      * @return 팝업 응답 DTO 리스트
      */
     @Transactional(readOnly = true)
-    public List<PopupRegisterResponseDto> getMyPopups(User user) {
+    public Page<PopupRegisterResponseDto> getMyPopups(User user, Pageable pageable) {
         Host host = hostRepository.findByUser(user)
                 .orElseThrow(() -> new GeneralException(ErrorCode.UNAUTHORIZED));
 
-        return popupRepository.findByBrandId(host.getBrand().getId())
-                .stream()
-                .map(PopupRegisterResponseDto::fromEntity)
-                .collect(Collectors.toList());
+        return popupRepository.findByBrandId(host.getBrand().getId(), pageable)
+                .map(PopupRegisterResponseDto::fromEntity);
     }
     /**
      * 내가 등록한 팝업 상세 조회

@@ -11,6 +11,7 @@ import com.snow.popin.domain.space.repository.SpaceRepository;
 import com.snow.popin.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,8 +81,8 @@ public class SpaceService {
      * @return 공개된 공간 리스트
      */
     @Transactional(readOnly = true)
-    public List<SpaceListResponseDto> listAll(User me) {
-        return spaceRepository.findByIsPublicTrueAndIsHiddenFalseOrderByCreatedAtDesc()
+    public List<SpaceListResponseDto> listAll(User me, Pageable pageable) {
+        return spaceRepository.findByIsPublicTrueAndIsHiddenFalseOrderByCreatedAtDesc(pageable)
                 .stream()
                 .map(space -> SpaceListResponseDto.from(space, me))
                 .collect(Collectors.toList());
@@ -236,7 +237,7 @@ public class SpaceService {
                                                    Integer minArea, Integer maxArea) {
         log.debug("Searching spaces with filters - keyword: {}, location: {}", keyword, location);
 
-        List<Space> spaces = spaceRepository.searchSpaces(keyword, location, minArea, maxArea);
+        List<Space> spaces = spaceRepository.searchSpacesWithJoins(keyword, location, minArea, maxArea);
 
         return spaces.stream()
                 .map(space -> SpaceListResponseDto.from(space, me))
