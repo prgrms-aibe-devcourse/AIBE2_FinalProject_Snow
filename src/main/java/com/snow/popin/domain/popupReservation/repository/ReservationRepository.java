@@ -33,12 +33,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     List<Reservation> findByPopup(Popup popup);
 
     /**
-     * 특정 시간 범위 내의 예약 조회 (예: 예약 30분 전 확인용)
-     */
-    @Query("SELECT r FROM Reservation r WHERE FUNCTION('DATE_FORMAT', r.reservationDate, '%Y-%m-%d %H:%i') = :target")
-    List<Reservation> findByReservationMinute(@Param("target") String targetMinute);
-
-    /**
      * 특정 팝업과 사용자에 대해 예약 존재 여부 확인
      *
      * @param popup 팝업
@@ -47,28 +41,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
      */
     boolean existsByPopupAndUser(Popup popup, User currentUser);
 
-    //통계용 메서드
-
     /**
      * 팝업별 상태별 예약 목록 조회 (시간대별 통계용)
      */
     List<Reservation> findByPopupAndStatus(Popup popup, ReservationStatus status);
-
-    /**
-     * 사용자 ID로 예약 이력 조회 (최신순)
-     */
-    @Query("SELECT r FROM Reservation r WHERE r.user.id = :userId ORDER BY r.reservationDate DESC")
-    List<Reservation> findByUserIdOrderByReservationDateDesc(@Param("userId") Long userId);
-
-    /**
-     * 사용자의 방문 완료된 예약 이력 조회
-     */
-    @Query("SELECT r FROM Reservation r WHERE r.user.id = :userId AND r.status = 'VISITED' ORDER BY r.reservationDate DESC")
-    List<Reservation> findVisitedReservationsByUserId(@Param("userId") Long userId);
-
-    /**
-     * 특정 카테고리의 예약 이력 조회
-     */
-    @Query("SELECT r FROM Reservation r JOIN r.popup p WHERE r.user.id = :userId AND p.category.id = :categoryId ORDER BY r.reservationDate DESC")
-    List<Reservation> findByUserIdAndCategoryId(@Param("userId") Long userId, @Param("categoryId") Long categoryId);
 }

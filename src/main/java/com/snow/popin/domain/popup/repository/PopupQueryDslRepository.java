@@ -362,7 +362,11 @@ public class PopupQueryDslRepository {
      * 반경 내 팝업 조회
      */
     public List<Popup> findPopupsWithinRadius(double lat, double lng, double radiusKm) {
-        List<Popup> allPopups = queryFactory
+        // 대략적인 경계 박스 계산으로 1차 필터링
+        double latDelta = radiusKm / 111.0; // 1도 ≈ 111km
+        double lngDelta = radiusKm / (111.0 * Math.cos(Math.toRadians(lat)));
+
+        List<Popup> candidates = queryFactory
                 .selectFrom(popup)
                 .leftJoin(popup.venue, venue).fetchJoin()
                 .leftJoin(popup.category, category).fetchJoin()
@@ -370,10 +374,12 @@ public class PopupQueryDslRepository {
                         popup.status.in(PopupStatus.ONGOING, PopupStatus.PLANNED)
                                 .and(venue.latitude.isNotNull())
                                 .and(venue.longitude.isNotNull())
+                                .and(venue.latitude.between(lat - latDelta, lat + latDelta))
+                                .and(venue.longitude.between(lng - lngDelta, lng + lngDelta))
                 )
                 .fetch();
 
-        return allPopups.stream()
+        return candidates.stream()
                 .filter(p -> calculateDistance(lat, lng,
                         p.getVenue().getLatitude(), p.getVenue().getLongitude()) <= radiusKm)
                 .sorted((p1, p2) -> Double.compare(

@@ -9,8 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static com.snow.popin.domain.popupReservation.entity.QReservation.reservation;
@@ -26,18 +26,17 @@ public class ReservationQueryDslRepository {
      * 특정 시간 범위 내의 예약 조회 (예: 예약 30분 전 확인용)
      */
     public List<Reservation> findByReservationMinute(String targetMinute) {
-        String nativeQuery =
-                "SELECT r.* FROM reservations r " +
-                        "WHERE DATE_FORMAT(r.reservation_date, '%Y-%m-%d %H:%i') = ?1";
+        LocalDateTime targetDateTime = LocalDateTime.parse(targetMinute + ":00",
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-        Query query = entityManager.createNativeQuery(nativeQuery, Reservation.class);
-        query.setParameter(1, targetMinute);
-
-        @SuppressWarnings("unchecked")
-        List<Reservation> results = query.getResultList();
-        return results;
+        return queryFactory
+                .selectFrom(reservation)
+                .where(reservation.reservationDate.between(
+                        targetDateTime.withSecond(0),
+                        targetDateTime.withSecond(59).withNano(999999999)
+                ))
+                .fetch();
     }
-
     /**
      * 취소되지 않은 활성 예약 존재 여부 확인
      */
@@ -109,9 +108,12 @@ public class ReservationQueryDslRepository {
     /**
      * 특정 팝업의 특정 날짜 예약 목록 조회
      */
+    // ReservationQueryDslRepository에서 누락
     public List<Reservation> findByPopupAndReservationDate(Popup popup, LocalDateTime date) {
         return queryFactory
                 .selectFrom(reservation)
+                .leftJoin(reservation.user).fetchJoin()
+                .leftJoin(reservation.popup).fetchJoin()
                 .where(
                         reservation.popup.eq(popup)
                                 .and(reservation.reservationDate.between(

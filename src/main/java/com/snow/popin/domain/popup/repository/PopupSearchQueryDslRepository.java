@@ -15,6 +15,8 @@ import javax.persistence.Query;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.snow.popin.domain.category.entity.QCategory.category;
+import static com.snow.popin.domain.map.entity.QVenue.venue;
 import static com.snow.popin.domain.popup.entity.QPopup.popup;
 import static com.snow.popin.domain.popup.entity.QTag.tag;
 
@@ -34,18 +36,17 @@ public class PopupSearchQueryDslRepository {
         }
 
         String lowerQuery = query.toLowerCase().trim();
-        BooleanBuilder builder = new BooleanBuilder();
-
-        builder.and(
-                popup.title.lower().contains(lowerQuery)
-                        .or(popup.tags.any().name.lower().contains(lowerQuery))
-        );
 
         List<Popup> content = queryFactory
                 .selectDistinct(popup)
                 .from(popup)
                 .leftJoin(popup.tags, tag)
-                .where(builder)
+                .leftJoin(popup.venue, venue).fetchJoin() // N+1 방지
+                .leftJoin(popup.category, category).fetchJoin() // N+1 방지
+                .where(
+                        popup.title.lower().contains(lowerQuery)
+                                .or(tag.name.lower().contains(lowerQuery))
+                )
                 .orderBy(popup.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -55,7 +56,10 @@ public class PopupSearchQueryDslRepository {
                 .select(popup.countDistinct())
                 .from(popup)
                 .leftJoin(popup.tags, tag)
-                .where(builder)
+                .where(
+                        popup.title.lower().contains(lowerQuery)
+                                .or(tag.name.lower().contains(lowerQuery))
+                )
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
