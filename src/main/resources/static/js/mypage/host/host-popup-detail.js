@@ -61,24 +61,25 @@ const HostPopupDetailPage = {
 
         const editBtn = document.querySelector('.btn-edit');
         if (editBtn) {
-            editBtn.addEventListener('click', () => {
+            editBtn.onclick = () => {
                 window.location.href = `/mypage/host/popup/${popup.id}/edit`;
-            });
+            };
         }
 
         const deleteBtn = document.querySelector('.btn-delete');
         if (deleteBtn) {
-            deleteBtn.addEventListener('click', async () => {
+            deleteBtn.onclick = async () => {
                 if (!confirm("정말 삭제하시겠습니까?")) return;
                 try {
                     await apiService.delete(`/hosts/popups/${popup.id}`);
                     alert("팝업이 삭제되었습니다.");
-                    window.location.href = "";
+                    window.location.href = "/mypage/host";
+                    return;
                 } catch (err) {
                     console.error("삭제 실패:", err);
                     alert("팝업 삭제에 실패했습니다.");
                 }
-            });
+            };
         }
     },
 

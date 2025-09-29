@@ -49,6 +49,7 @@ public class SpaceService {
                 dto.getLongitude(),
                 dto.getParkingAvailable()
         );
+        venue.setRegionFromAddress();
         venueRepository.save(venue);
 
         String imageUrl = fileStorageService.save(dto.getImage());
@@ -155,6 +156,7 @@ public class SpaceService {
                     dto.getParkingAvailable()
             );
         }
+        venue.setRegionFromAddress();
         venueRepository.save(venue);
 
         String imageUrl = space.getCoverImageUrl();

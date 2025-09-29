@@ -101,7 +101,9 @@ class SpaceDetailManager {
         modal.classList.remove("hidden");
 
         try {
-            const popups = await apiService.get("/hosts/popups");
+            const response = await apiService.get("/hosts/popups");
+            const popups = response.content || response.data || []
+
             const select = document.getElementById("popupSelect");
             select.innerHTML = '<option value="">팝업을 선택하세요</option>';
 

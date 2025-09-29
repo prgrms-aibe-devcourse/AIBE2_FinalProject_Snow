@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', async () => {
-
     await loadComponents();
     initializeLayout();
 
@@ -15,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const form = document.getElementById('popup-edit-form');
     const selectedTags = new Set();
 
-    //  태그 버튼 토글
+    // 태그 버튼 토글
     document.querySelectorAll(".tag-btn").forEach(btn => {
         btn.addEventListener("click", () => {
             const tagId = parseInt(btn.dataset.id, 10);
@@ -29,7 +28,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
+    setupImagePreview();
+
     try {
+        // 기존 팝업 데이터 불러오기
         const popup = await apiService.get(`/hosts/popups/${popupId}`);
 
         form.title.value = popup.title || "";
@@ -42,15 +44,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         form.reservationLink.value = popup.reservationLink || "";
         form.waitlistAvailable.checked = !!popup.waitlistAvailable;
         form.notice.value = popup.notice || "";
-        form.mainImageUrl.value = popup.mainImageUrl || "";
         form.isFeatured.checked = !!popup.isFeatured;
 
-        //  카테고리 세팅
+        if (popup.mainImageUrl) {
+            const preview = document.getElementById("mainImagePreview");
+            const img = document.createElement("img");
+            img.src = popup.mainImageUrl;
+            img.style.width = '100px';
+            img.style.height = '100px';
+            img.style.objectFit = 'cover';
+            img.style.borderRadius = '8px';
+            img.style.border = '1px solid #e5e7eb';
+            preview.appendChild(img);
+            document.getElementById("mainImageUrl").value = popup.mainImageUrl;
+        }
+
         if (popup.categoryId) {
             form.categoryId.value = popup.categoryId;
         }
 
-        //  태그 세팅
         if (popup.tagIds && popup.tagIds.length > 0) {
             popup.tagIds.forEach(id => {
                 selectedTags.add(id);
@@ -59,45 +71,195 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
+        // 운영시간 초기값 세팅
+        if (popup.hours && popup.hours.length > 0) {
+            popup.hours.forEach(hour => {
+                addHourItem(hour);
+            });
+        }
+
     } catch (err) {
         console.error('팝업 상세 불러오기 실패:', err);
         alert('데이터 로딩 실패');
     }
 
+    // 저장 이벤트
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const payload = {
-            title: form.title.value?.trim() || "",
-            summary: form.summary.value?.trim() || "",
-            description: form.description.value?.trim() || "",
-            startDate: form.startDate.value || "",
-            endDate: form.endDate.value || "",
-            entryFee: parseInt(form.entryFee.value) || 0,
-            reservationAvailable: !!form.reservationAvailable.checked,
-            reservationLink: form.reservationLink.value?.trim() || "",
-            waitlistAvailable: !!form.waitlistAvailable.checked,
-            notice: form.notice.value?.trim() || "",
-            mainImageUrl: form.mainImageUrl.value?.trim() || "",
-            isFeatured: !!form.isFeatured.checked,
-            categoryId: parseInt(form.categoryId.value) || null,
-            tagIds: Array.from(selectedTags)
-        };
-
-        //  undefined 제거
-        Object.keys(payload).forEach(key => {
-            if (payload[key] === undefined) {
-                delete payload[key];
-            }
-        });
-
         try {
-            await apiService.put(`/hosts/popups/${popupId}`, payload);
+            const formData = await collectFormData();
+            formData.tagIds = Array.from(selectedTags);
+
+            await apiService.put(`/hosts/popups/${popupId}`, formData);
+
             alert('팝업이 수정되었습니다.');
-            window.location.href = `/mypage/host/popup/${popupId}`;
+            window.location.href = '/mypage/host';
         } catch (err) {
             console.error('팝업 수정 실패:', err);
             alert('수정 실패');
         }
     });
+
+    // 운영시간 추가 버튼 이벤트
+    const addHourBtn = document.getElementById("add-hour-btn");
+    if (addHourBtn) {
+        addHourBtn.addEventListener("click", () => addHourItem());
+    }
 });
+
+/* ====== 재사용 함수들 ====== */
+
+function addHourItem(hour) {
+    const container = document.getElementById("hours-container");
+    const item = document.createElement("div");
+    item.className = "hour-item";
+
+    const days = ["월","화","수","목","금","토","일"];
+    const dayButtons = days.map((day, i) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "day-btn";
+        btn.textContent = day;
+        btn.dataset.value = i;
+        btn.addEventListener("click", () => btn.classList.toggle("active"));
+        if (hour && hour.dayOfWeek === i) btn.classList.add("active");
+        return btn;
+    });
+
+    const dayGroup = document.createElement("div");
+    dayGroup.className = "day-buttons";
+    dayButtons.forEach(b => dayGroup.appendChild(b));
+
+    const timeInputs = document.createElement("div");
+    timeInputs.className = "time-inputs";
+    timeInputs.innerHTML = `
+        <input type="time" class="open-time" required value="${hour?.openTime || ''}">
+        <span> ~ </span>
+        <input type="time" class="close-time" required value="${hour?.closeTime || ''}">
+    `;
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.textContent = "삭제";
+    removeBtn.className = "remove-btn";
+    removeBtn.addEventListener("click", () => item.remove());
+
+    item.append(dayGroup, timeInputs, removeBtn);
+    container.appendChild(item);
+}
+
+function setupImagePreview() {
+    const mainImageFile = document.getElementById('mainImageFile');
+    const mainImagePreview = document.getElementById('mainImagePreview');
+    if (mainImageFile) {
+        mainImageFile.addEventListener('change', e => handleImagePreview(e.target.files, mainImagePreview, true));
+    }
+
+    const extraImageFiles = document.getElementById('extraImageFiles');
+    const extraImagePreview = document.getElementById('extraImagePreview');
+    if (extraImageFiles) {
+        extraImageFiles.addEventListener('change', e => handleImagePreview(e.target.files, extraImagePreview, false));
+    }
+}
+
+function handleImagePreview(files, container, isSingle = false) {
+    if (isSingle) container.innerHTML = '';
+    Array.from(files).forEach(file => {
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.width = '100px';
+                img.style.height = '100px';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '8px';
+                img.style.border = '1px solid #e5e7eb';
+                container.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+async function uploadImage(file) {
+    if (!file) return '';
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+        const response = await fetch('/api/hosts/upload/image', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${apiService.getStoredToken()}` },
+            body: formData
+        });
+        if (!response.ok) throw new Error('이미지 업로드 실패');
+        const result = await response.json();
+        return result.imageUrl;
+    } catch (error) {
+        console.error('이미지 업로드 오류:', error);
+        throw error;
+    }
+}
+
+async function collectFormData() {
+    const hours = [];
+    document.querySelectorAll(".hour-item").forEach(item => {
+        const openTime = item.querySelector(".open-time")?.value;
+        const closeTime = item.querySelector(".close-time")?.value;
+        if (openTime && closeTime) {
+            item.querySelectorAll(".day-btn.active").forEach(btn => {
+                hours.push({
+                    dayOfWeek: parseInt(btn.dataset.value),
+                    openTime,
+                    closeTime
+                });
+            });
+        }
+    });
+
+    let mainImageUrl = document.getElementById('mainImageUrl')?.value || '';
+    const mainImageFile = document.getElementById('mainImageFile')?.files[0];
+    if (mainImageFile) {
+        try {
+            mainImageUrl = await uploadImage(mainImageFile);
+        } catch (error) {
+            console.error('대표 이미지 업로드 실패:', error);
+            alert('대표 이미지 업로드에 실패했습니다.');
+        }
+    }
+
+    let imageUrls = [];
+    const extraImageFiles = document.getElementById('extraImageFiles')?.files;
+    if (extraImageFiles && extraImageFiles.length > 0) {
+        try {
+            for (let i = 0; i < extraImageFiles.length; i++) {
+                const file = extraImageFiles[i];
+                const uploadedUrl = await uploadImage(file);
+                if (uploadedUrl) imageUrls.push(uploadedUrl);
+            }
+        } catch (error) {
+            console.error('추가 이미지 업로드 실패:', error);
+            alert('일부 추가 이미지 업로드에 실패했습니다.');
+        }
+    }
+
+    return {
+        title: document.getElementById("title")?.value?.trim() || '',
+        summary: document.getElementById("summary")?.value?.trim() || '',
+        description: document.getElementById("description")?.value?.trim() || '',
+        startDate: document.getElementById("startDate")?.value || '',
+        endDate: document.getElementById("endDate")?.value || '',
+        entryFee: parseInt(document.getElementById("entryFee")?.value) || 0,
+        reservationAvailable: document.getElementById("reservationAvailable")?.checked || false,
+        reservationLink: document.getElementById("reservationLink")?.value?.trim() || '',
+        waitlistAvailable: document.getElementById("waitlistAvailable")?.checked || false,
+        notice: document.getElementById("notice")?.value?.trim() || '',
+        mainImageUrl: mainImageUrl,
+        isFeatured: document.getElementById("isFeatured")?.checked || false,
+        imageUrls: imageUrls,
+        hours: hours,
+        categoryId: parseInt(document.getElementById("categoryId")?.value) || null
+    };
+}

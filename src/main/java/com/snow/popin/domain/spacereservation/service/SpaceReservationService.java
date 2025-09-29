@@ -177,8 +177,6 @@ public class SpaceReservationService {
         }
 
         reservation.accept();
-        Space space = reservation.getSpace();
-        space.hide();
 
         notificationService.createNotification(
                 reservation.getHost().getId(),
@@ -193,7 +191,6 @@ public class SpaceReservationService {
             Venue venue = reservation.getSpace().getVenue();
             if (venue != null) {
                 popup.setVenue(venue);
-                popup.setStatus(PopupStatus.ONGOING);
             }
         }
 
