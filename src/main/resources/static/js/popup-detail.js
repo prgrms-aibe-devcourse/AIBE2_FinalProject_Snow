@@ -203,7 +203,7 @@ class PopupDetailManager {
         if (mainImg) {
             const defaultImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDYwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjNEI1QUU0Ii8+Cjx0ZXh0IHg9IjMwMCIgeT0iMTUwIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSI0OCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIj7wn46qPC90ZXh0Pgo8L3N2Zz4=';
 
-            mainImg.src = this.popupData.thumbnailUrl || defaultImage;
+            mainImg.src = this.popupData.mainImageUrl || defaultImage;
             mainImg.alt = this.popupData.title;
         }
 
