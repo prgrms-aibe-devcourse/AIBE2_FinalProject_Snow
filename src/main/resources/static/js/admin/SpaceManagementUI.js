@@ -142,7 +142,7 @@ class SpaceManagementUI {
                 <button class="button button-sm button-primary detail-button" data-space-id="${space.id}">
                     상세보기
                 </button>
-                <button class="button ${space.isHidden ? 'button-success' : 'button-warning'} toggle-visibility-button" 
+                <button class="button button-success toggle-visibility-button" 
                         data-space-id="${space.id}" data-is-hidden="${space.isHidden}">
                     ${space.isHidden ? '활성화' : '비활성화'}
                 </button>
