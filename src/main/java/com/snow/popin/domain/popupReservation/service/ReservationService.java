@@ -43,7 +43,7 @@ public class ReservationService {
     private final PopupHoursRepository popupHoursRepository;
     private final PopupReservationSettingsService settingsService;
 
-    @Autowired//순환참조 방지
+    @Autowired
     private PaymentService paymentService;
 
     /**
@@ -51,9 +51,12 @@ public class ReservationService {
      */
     @Transactional
     public Long createReservation(User currentUser, Long popupId, ReservationRequestDto dto) {
+        log.info("[ReservationService] 예약 생성 요청: popupId={}, userId={}", popupId, currentUser.getId());
+
         Popup popup = validatePopupForReservation(popupId);
 
         if (reservationQueryDslRepository.existsActiveReservationByPopupAndUser(popup, currentUser)) {
+            log.warn("[ReservationService] 이미 예약된 팝업: popupId={}, userId={}", popupId, currentUser.getId());
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 예약한 팝업입니다.");
         }
 
@@ -68,7 +71,7 @@ public class ReservationService {
 
         Reservation saved = reservationRepository.save(reservation);
 
-        log.info("예약 생성 완료: reservationId={}, popupId={}, userId={}, partySize={}",
+        log.info("[ReservationService] 예약 생성 완료: reservationId={}, popupId={}, userId={}, partySize={}",
                 saved.getId(), popupId, currentUser.getId(), dto.getPartySize());
 
         return saved.getId();
@@ -78,6 +81,8 @@ public class ReservationService {
      * 예약 가능한 시간 슬롯 조회
      */
     public List<TimeSlotDto> getAvailableTimeSlots(Long popupId, LocalDate date) {
+        log.info("[ReservationService] 예약 가능 슬롯 조회 요청: popupId={}, date={}", popupId, date);
+
         Popup popup = validatePopupForReservation(popupId);
         PopupReservationSettings settings = settingsService.getSettings(popupId);
 
@@ -86,17 +91,18 @@ public class ReservationService {
         );
 
         if (operatingHours.isEmpty()) {
+            log.info("[ReservationService] 운영 시간 없음: popupId={}, date={}", popupId, date);
             return new ArrayList<>();
         }
 
         List<TimeSlotDto> timeSlots = new ArrayList<>();
-
         for (PopupHours hours : operatingHours) {
             timeSlots.addAll(generateTimeSlotsForOperatingHours(
                     popup, settings, date, hours.getOpenTime(), hours.getCloseTime()
             ));
         }
 
+        log.info("[ReservationService] 예약 가능 슬롯 조회 완료: popupId={}, date={}, count={}", popupId, date, timeSlots.size());
         return timeSlots;
     }
 
@@ -114,9 +120,7 @@ public class ReservationService {
 
         while (currentTime.isBefore(endTime)) {
             LocalTime slotEndTime = currentTime.plusMinutes(timeInterval);
-            if (slotEndTime.isAfter(endTime)) {
-                break;
-            }
+            if (slotEndTime.isAfter(endTime)) break;
 
             LocalDateTime slotStart = LocalDateTime.of(date, currentTime);
             LocalDateTime slotEnd = LocalDateTime.of(date, slotEndTime);
@@ -146,13 +150,8 @@ public class ReservationService {
     private boolean isTimeSlotBookable(LocalDateTime slotStart, PopupReservationSettings settings) {
         LocalDateTime now = LocalDateTime.now();
 
-        if (slotStart.isBefore(now)) {
-            return false;
-        }
-
-        if (slotStart.toLocalDate().equals(now.toLocalDate()) && !settings.getAllowSameDayBooking()) {
-            return false;
-        }
+        if (slotStart.isBefore(now)) return false;
+        if (slotStart.toLocalDate().equals(now.toLocalDate()) && !settings.getAllowSameDayBooking()) return false;
 
         long daysUntilReservation = now.toLocalDate().until(slotStart.toLocalDate()).getDays();
         return daysUntilReservation <= settings.getAdvanceBookingDays();
@@ -163,39 +162,42 @@ public class ReservationService {
      */
     @Transactional
     public void cancelReservation(Long reservationId, User currentUser) {
+        log.info("[ReservationService] 예약 취소 요청: reservationId={}, userId={}", reservationId, currentUser.getId());
+
         Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "예약이 존재하지 않습니다."));
+                .orElseThrow(() -> {
+                    log.error("[ReservationService] 예약 취소 실패 - 예약 없음: reservationId={}", reservationId);
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "예약이 존재하지 않습니다.");
+                });
 
         if (!reservation.getUser().getId().equals(currentUser.getId())) {
+            log.warn("[ReservationService] 예약 취소 권한 없음: reservationId={}, userId={}", reservationId, currentUser.getId());
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "예약을 취소할 권한이 없습니다.");
         }
 
         PopupReservationSettings settings = settingsService.getSettings(reservation.getPopup().getId());
         validateCancellationDeadline(reservation, settings);
 
-        // 결제된 경우 환불 처리
         boolean refundProcessed = false;
         if (reservation.isPaymentCompleted()) {
-            log.info("결제된 예약 취소 - 환불 처리 시작: reservationId={}, amount={}",
+            log.info("[ReservationService] 환불 처리 시작: reservationId={}, amount={}",
                     reservationId, reservation.getPaymentAmount());
 
             refundProcessed = paymentService.processRefund(reservationId);
 
             if (!refundProcessed) {
-                log.error("환불 처리 실패: reservationId={}", reservationId);
+                log.error("[ReservationService] 환불 처리 실패: reservationId={}", reservationId);
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                        "환불 처리 중 오류가 발생했습니다. 고객센터에 문의해주세요.");
+                        "환불 처리 중 오류가 발생했습니다.");
             }
 
-            log.info("환불 처리 완료: reservationId={}", reservationId);
+            log.info("[ReservationService] 환불 처리 완료: reservationId={}", reservationId);
         }
 
-        // 예약 상태를 취소로 변경
         reservation.cancel();
         reservationRepository.save(reservation);
 
-
-        log.info("예약 취소 완료: reservationId={}, userId={}, refunded={}",
+        log.info("[ReservationService] 예약 취소 완료: reservationId={}, userId={}, refunded={}",
                 reservationId, currentUser.getId(), refundProcessed);
     }
 
@@ -204,16 +206,9 @@ public class ReservationService {
      */
     public boolean isRefundable(Long reservationId, User currentUser) {
         try {
-            Reservation reservation = reservationRepository.findById(reservationId)
-                    .orElse(null);
-
-            if (reservation == null || !reservation.getUser().getId().equals(currentUser.getId())) {
-                return false;
-            }
-
-            if (!reservation.isPaymentCompleted()) {
-                return false;
-            }
+            Reservation reservation = reservationRepository.findById(reservationId).orElse(null);
+            if (reservation == null || !reservation.getUser().getId().equals(currentUser.getId())) return false;
+            if (!reservation.isPaymentCompleted()) return false;
 
             PopupReservationSettings settings = settingsService.getSettings(reservation.getPopup().getId());
             LocalDateTime now = LocalDateTime.now();
@@ -223,7 +218,7 @@ public class ReservationService {
             return now.isBefore(cancellationDeadline);
 
         } catch (Exception e) {
-            log.error("환불 가능 여부 체크 실패: reservationId={}", reservationId, e);
+            log.error("[ReservationService] 환불 가능 여부 체크 실패: reservationId={}", reservationId, e);
             return false;
         }
     }
@@ -233,10 +228,10 @@ public class ReservationService {
      */
     private void validateCancellationDeadline(Reservation reservation, PopupReservationSettings settings) {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime reservationTime = reservation.getReservationDate();
-        LocalDateTime cancellationDeadline = reservationTime.minusHours(settings.getCancellationDeadlineHours());
+        LocalDateTime deadline = reservation.getReservationDate().minusHours(settings.getCancellationDeadlineHours());
 
-        if (now.isAfter(cancellationDeadline)) {
+        if (now.isAfter(deadline)) {
+            log.warn("[ReservationService] 취소 불가 - 마감 시간 경과: reservationId={}, deadline={}", reservation.getId(), deadline);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     String.format("예약 %d시간 전까지만 취소 가능합니다.", settings.getCancellationDeadlineHours()));
         }
@@ -246,25 +241,38 @@ public class ReservationService {
      * 내 예약 목록 조회
      */
     public List<ReservationResponseDto> getMyReservations(User currentUser) {
-        return reservationRepository.findByUser(currentUser)
+        log.info("[ReservationService] 내 예약 목록 조회: userId={}", currentUser.getId());
+
+        List<ReservationResponseDto> list = reservationRepository.findByUser(currentUser)
                 .stream()
                 .map(ReservationResponseDto::from)
                 .collect(Collectors.toList());
+
+        log.info("[ReservationService] 내 예약 목록 조회 완료: userId={}, count={}", currentUser.getId(), list.size());
+        return list;
     }
 
     /**
      * 팝업 예약 현황 조회 (호스트용)
      */
     public List<ReservationResponseDto> getPopupReservations(Long popupId, User currentUser) {
+        log.info("[ReservationService] 팝업 예약 현황 조회 요청: popupId={}, userId={}", popupId, currentUser.getId());
+
         validateHostPermission(popupId, currentUser);
 
         Popup popup = popupRepository.findById(popupId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "팝업이 존재하지 않습니다."));
+                .orElseThrow(() -> {
+                    log.error("[ReservationService] 팝업 예약 현황 조회 실패 - 팝업 없음: popupId={}", popupId);
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "팝업이 존재하지 않습니다.");
+                });
 
-        return reservationRepository.findByPopup(popup)
+        List<ReservationResponseDto> list = reservationRepository.findByPopup(popup)
                 .stream()
                 .map(ReservationResponseDto::from)
                 .collect(Collectors.toList());
+
+        log.info("[ReservationService] 팝업 예약 현황 조회 완료: popupId={}, count={}", popupId, list.size());
+        return list;
     }
 
     /**
@@ -272,47 +280,56 @@ public class ReservationService {
      */
     @Transactional
     public void markAsVisited(Long reservationId, User currentUser) {
+        log.info("[ReservationService] 방문 완료 처리 요청: reservationId={}, userId={}", reservationId, currentUser.getId());
+
         Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "예약이 존재하지 않습니다."));
+                .orElseThrow(() -> {
+                    log.error("[ReservationService] 방문 완료 처리 실패 - 예약 없음: reservationId={}", reservationId);
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "예약이 존재하지 않습니다.");
+                });
 
         validateHostPermission(reservation.getPopup().getId(), currentUser);
         reservation.markAsVisited();
 
-        log.info("방문 완료 처리: reservationId={}, handledBy={}", reservationId, currentUser.getId());
+        log.info("[ReservationService] 방문 완료 처리 성공: reservationId={}, handledBy={}", reservationId, currentUser.getId());
     }
 
     /**
      * 예약 가능한 날짜 목록 조회
      */
     public List<LocalDate> getAvailableDates(Long popupId) {
+        log.info("[ReservationService] 예약 가능 날짜 조회 요청: popupId={}", popupId);
+
         Popup popup = validatePopupForReservation(popupId);
         PopupReservationSettings settings = settingsService.getSettings(popupId);
 
         LocalDate startDate = calculateStartDate(popup, settings);
         LocalDate endDate = calculateEndDate(popup, settings);
 
-        List<LocalDate> availableDates = new ArrayList<>();
+        List<LocalDate> dates = new ArrayList<>();
         LocalDate current = startDate;
 
         while (!current.isAfter(endDate)) {
             if (hasOperatingHours(popupId, current)) {
-                availableDates.add(current);
+                dates.add(current);
             }
             current = current.plusDays(1);
         }
 
-        return availableDates;
+        log.info("[ReservationService] 예약 가능 날짜 조회 완료: popupId={}, count={}", popupId, dates.size());
+        return dates;
     }
 
     /**
      * 남은 자리를 포함한 예약 가능한 시간 슬롯 조회
      */
     public List<AvailableSlotDto> getAvailableSlots(Long popupId, LocalDate date) {
+        log.info("[ReservationService] 예약 가능 슬롯(인원 포함) 조회 요청: popupId={}, date={}", popupId, date);
+
         Popup popup = validatePopupForReservation(popupId);
         PopupReservationSettings settings = settingsService.getSettings(popupId);
 
         List<AvailableSlotDto> slots = new ArrayList<>();
-
         List<PopupHours> hoursList = popupHoursRepository.findByPopupIdAndDayOfWeek(
                 popupId, date.getDayOfWeek().getValue() % 7);
 
@@ -333,6 +350,8 @@ public class ReservationService {
                 current = slotEnd;
             }
         }
+
+        log.info("[ReservationService] 예약 가능 슬롯(인원 포함) 조회 완료: popupId={}, date={}, count={}", popupId, date, slots.size());
         return slots;
     }
 
@@ -340,9 +359,13 @@ public class ReservationService {
 
     private Popup validatePopupForReservation(Long popupId) {
         Popup popup = popupRepository.findById(popupId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "팝업이 존재하지 않습니다."));
+                .orElseThrow(() -> {
+                    log.error("[ReservationService] 팝업 조회 실패: popupId={}", popupId);
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "팝업이 존재하지 않습니다.");
+                });
 
         if (!popup.getReservationAvailable()) {
+            log.warn("[ReservationService] 예약 불가 팝업: popupId={}", popupId);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "해당 팝업은 예약을 받을 수 없습니다.");
         }
 
@@ -351,10 +374,12 @@ public class ReservationService {
 
     private void validateReservationRequest(ReservationRequestDto dto, PopupReservationSettings settings) {
         if (dto.getReservationDate() == null || dto.getReservationDate().isBefore(LocalDateTime.now())) {
+            log.warn("[ReservationService] 유효하지 않은 예약 일시: {}", dto.getReservationDate());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "예약 일시가 올바르지 않습니다.");
         }
 
         if (!settings.isValidPartySize(dto.getPartySize())) {
+            log.warn("[ReservationService] 유효하지 않은 예약 인원: partySize={}, maxPartySize={}", dto.getPartySize(), settings.getMaxPartySize());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     String.format("예약 인원은 1명 이상 %d명 이하여야 합니다.", settings.getMaxPartySize()));
         }
@@ -372,10 +397,13 @@ public class ReservationService {
                 .orElse(null);
 
         if (matchedSlot == null || !matchedSlot.isAvailable()) {
+            log.warn("[ReservationService] 예약 불가 슬롯 선택: popupId={}, date={}, time={}", popupId, date, time);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "선택한 시간은 예약이 불가능합니다.");
         }
 
         if (!matchedSlot.canAccommodate(dto.getPartySize())) {
+            log.warn("[ReservationService] 예약 인원 초과: popupId={}, date={}, time={}, 요청인원={}, 잔여={}",
+                    popupId, date, time, dto.getPartySize(), matchedSlot.getRemainingSlots());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     String.format("해당 시간대에는 %d명만 예약 가능합니다.", matchedSlot.getRemainingSlots()));
         }
@@ -383,13 +411,20 @@ public class ReservationService {
 
     private void validateHostPermission(Long popupId, User currentUser) {
         Popup popup = popupRepository.findById(popupId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "팝업이 존재하지 않습니다."));
+                .orElseThrow(() -> {
+                    log.error("[ReservationService] 팝업 조회 실패 (권한 확인): popupId={}", popupId);
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "팝업이 존재하지 않습니다.");
+                });
 
         Brand brand = brandRepository.findById(popup.getBrandId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "브랜드가 존재하지 않습니다."));
+                .orElseThrow(() -> {
+                    log.error("[ReservationService] 브랜드 조회 실패: brandId={}", popup.getBrandId());
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "브랜드가 존재하지 않습니다.");
+                });
 
         boolean isMember = hostRepository.existsByBrandAndUser(brand, currentUser.getId());
         if (!isMember) {
+            log.warn("[ReservationService] 호스트 권한 없음: popupId={}, userId={}", popupId, currentUser.getId());
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "권한이 없습니다.");
         }
     }
@@ -410,9 +445,8 @@ public class ReservationService {
     }
 
     private boolean hasOperatingHours(Long popupId, LocalDate date) {
-        List<PopupHours> hours = popupHoursRepository.findByPopupIdAndDayOfWeek(
+        return !popupHoursRepository.findByPopupIdAndDayOfWeek(
                 popupId, date.getDayOfWeek().getValue() % 7
-        );
-        return !hours.isEmpty();
+        ).isEmpty();
     }
 }

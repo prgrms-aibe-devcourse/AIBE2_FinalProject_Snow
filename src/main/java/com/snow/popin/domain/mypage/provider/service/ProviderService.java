@@ -3,7 +3,6 @@ package com.snow.popin.domain.mypage.provider.service;
 import com.snow.popin.domain.space.dto.SpaceListResponseDto;
 import com.snow.popin.domain.space.entity.Space;
 import com.snow.popin.domain.space.repository.SpaceRepository;
-import com.snow.popin.domain.spacereservation.repository.SpaceReservationRepository;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
@@ -36,10 +35,13 @@ public class ProviderService {
     @Transactional(readOnly = true)
     public List<SpaceListResponseDto> findMySpaces() {
         User me = userUtil.getCurrentUser();
+        log.info("[ProviderService] 내 공간 목록 조회 시작: userId={}, email={}", me.getId(), me.getEmail());
+
         List<Space> spaces = spaceRepository.findByOwnerAndIsHiddenFalseOrderByCreatedAtDescWithJoins(me);
+        log.info("[ProviderService] 내 공간 목록 조회 완료: userId={}, count={}", me.getId(), spaces.size());
+
         return spaces.stream()
                 .map(space -> SpaceListResponseDto.from(space, me))
                 .collect(Collectors.toList());
     }
-
 }

@@ -8,6 +8,7 @@ import com.snow.popin.domain.popupReservation.service.ReservationService;
 import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -29,6 +30,7 @@ import java.util.Map;
  * - 팝업별 예약 현황 조회 (호스트용)
  * - 방문 완료 처리
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/reservations")
 @RequiredArgsConstructor
@@ -50,8 +52,11 @@ public class ReservationController {
             @Valid @RequestBody ReservationRequestDto dto) {
 
         User currentUser = userUtil.getCurrentUser();
+        log.info("[ReservationController] 예약 생성 요청: popupId={}, userId={}", popupId, currentUser.getId());
+
         Long reservationId = reservationService.createReservation(currentUser, popupId, dto);
 
+        log.info("[ReservationController] 예약 생성 완료: reservationId={}, popupId={}, userId={}", reservationId, popupId, currentUser.getId());
         return ResponseEntity.ok(Map.of(
                 "reservationId", reservationId,
                 "message", "예약이 완료되었습니다.",
@@ -67,7 +72,11 @@ public class ReservationController {
     @GetMapping("/my")
     public ResponseEntity<List<ReservationResponseDto>> getMyReservations() {
         User currentUser = userUtil.getCurrentUser();
+        log.info("[ReservationController] 내 예약 목록 조회 요청: userId={}", currentUser.getId());
+
         List<ReservationResponseDto> reservations = reservationService.getMyReservations(currentUser);
+
+        log.info("[ReservationController] 내 예약 목록 조회 완료: userId={}, count={}", currentUser.getId(), reservations.size());
         return ResponseEntity.ok(reservations);
     }
 
@@ -79,8 +88,11 @@ public class ReservationController {
     @PutMapping("/{reservationId}/cancel")
     public ResponseEntity<?> cancelReservation(@PathVariable @Positive Long reservationId) {
         User currentUser = userUtil.getCurrentUser();
+        log.info("[ReservationController] 예약 취소 요청: reservationId={}, userId={}", reservationId, currentUser.getId());
+
         reservationService.cancelReservation(reservationId, currentUser);
 
+        log.info("[ReservationController] 예약 취소 완료: reservationId={}, userId={}", reservationId, currentUser.getId());
         return ResponseEntity.ok(Map.of(
                 "message", "예약이 취소되었습니다.",
                 "reservationId", reservationId
@@ -97,7 +109,11 @@ public class ReservationController {
     public ResponseEntity<List<ReservationResponseDto>> getPopupReservations(
             @PathVariable @Positive Long popupId) {
         User currentUser = userUtil.getCurrentUser();
+        log.info("[ReservationController] 팝업 예약 현황 조회 요청: popupId={}, userId={}", popupId, currentUser.getId());
+
         List<ReservationResponseDto> reservations = reservationService.getPopupReservations(popupId, currentUser);
+
+        log.info("[ReservationController] 팝업 예약 현황 조회 완료: popupId={}, count={}", popupId, reservations.size());
         return ResponseEntity.ok(reservations);
     }
 
@@ -110,8 +126,11 @@ public class ReservationController {
     @PutMapping("/{reservationId}/visit")
     public ResponseEntity<?> markAsVisited(@PathVariable @Positive Long reservationId) {
         User currentUser = userUtil.getCurrentUser();
+        log.info("[ReservationController] 예약 방문 완료 처리 요청: reservationId={}, userId={}", reservationId, currentUser.getId());
+
         reservationService.markAsVisited(reservationId, currentUser);
 
+        log.info("[ReservationController] 예약 방문 완료 처리 성공: reservationId={}, userId={}", reservationId, currentUser.getId());
         return ResponseEntity.ok(Map.of(
                 "message", "방문 완료로 처리되었습니다.",
                 "reservationId", reservationId
@@ -124,7 +143,11 @@ public class ReservationController {
     @GetMapping("/popups/{popupId}/available-dates")
     public ResponseEntity<List<LocalDate>> getAvailableDates(
             @PathVariable @Positive Long popupId) {
+        log.info("[ReservationController] 예약 가능 날짜 조회 요청: popupId={}", popupId);
+
         List<LocalDate> availableDates = reservationService.getAvailableDates(popupId);
+
+        log.info("[ReservationController] 예약 가능 날짜 조회 완료: popupId={}, count={}", popupId, availableDates.size());
         return ResponseEntity.ok(availableDates);
     }
 
@@ -136,7 +159,11 @@ public class ReservationController {
             @PathVariable @Positive Long popupId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @FutureOrPresent LocalDate date) {
 
+        log.info("[ReservationController] 예약 가능 시간 슬롯 조회 요청: popupId={}, date={}", popupId, date);
+
         List<TimeSlotDto> availableSlots = reservationService.getAvailableTimeSlots(popupId, date);
+
+        log.info("[ReservationController] 예약 가능 시간 슬롯 조회 완료: popupId={}, date={}, count={}", popupId, date, availableSlots.size());
         return ResponseEntity.ok(availableSlots);
     }
 
@@ -147,7 +174,12 @@ public class ReservationController {
     public ResponseEntity<List<AvailableSlotDto>> getAvailableSlots(
             @PathVariable Long popupId,
             @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return ResponseEntity.ok(reservationService.getAvailableSlots(popupId, date));
-    }
 
+        log.info("[ReservationController] 예약 가능 슬롯(인원 포함) 조회 요청: popupId={}, date={}", popupId, date);
+
+        List<AvailableSlotDto> slots = reservationService.getAvailableSlots(popupId, date);
+
+        log.info("[ReservationController] 예약 가능 슬롯(인원 포함) 조회 완료: popupId={}, date={}, count={}", popupId, date, slots.size());
+        return ResponseEntity.ok(slots);
+    }
 }

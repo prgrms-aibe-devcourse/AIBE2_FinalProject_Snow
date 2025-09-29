@@ -91,10 +91,28 @@
                     <textarea id="notice" name="notice"></textarea>
                 </div>
 
+                <!-- 대표 이미지 -->
                 <div class="form-group">
-                    <label for="mainImageUrl">대표 이미지 URL</label>
-                    <input type="text" id="mainImageUrl" name="mainImageUrl"/>
+                    <label for="mainImageFile">대표 이미지</label>
+                    <input type="file" id="mainImageFile" accept="image/*" />
+                    <input type="hidden" id="mainImageUrl" name="mainImageUrl" />
+                    <div id="mainImagePreview" class="image-preview"></div>
                 </div>
+
+                <!-- 추가 이미지 -->
+                <div class="form-group">
+                    <label>추가 이미지</label>
+                    <input type="file" id="extraImageFiles" accept="image/*" multiple />
+                    <div id="extraImagePreview" class="image-preview"></div>
+                </div>
+
+                <!-- 운영 시간 -->
+                <div class="form-group">
+                    <label>운영 시간</label>
+                    <div id="hours-container"></div>
+                    <button type="button" id="add-hour-btn" class="btn-secondary small">운영시간 추가</button>
+                </div>
+
 
                 <div class="form-group">
                     <label><input type="checkbox" id="isFeatured"/> 메인 노출 여부</label>

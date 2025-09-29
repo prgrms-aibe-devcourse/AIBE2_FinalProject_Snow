@@ -35,10 +35,15 @@ public class PopupReservationSettingsService {
      */
     @Cacheable(value = "popupReservationSettings", key = "#popupId")
     public PopupReservationSettings getSettings(Long popupId) {
+        log.info("[PopupReservationSettingsService] 예약 설정 조회 요청: popupId={}", popupId);
+
         PopupReservationSettings settings = settingsRepository.findByPopupId(popupId)
                 .orElseGet(() -> createDefaultSettings(popupId));
 
-        return applyDefaults(settings);
+        PopupReservationSettings applied = applyDefaults(settings);
+        log.info("[PopupReservationSettingsService] 예약 설정 조회 완료: popupId={}, interval={}, maxCapacity={}",
+                popupId, applied.getTimeSlotInterval(), applied.getMaxCapacityPerSlot());
+        return applied;
     }
 
     /**
@@ -46,19 +51,19 @@ public class PopupReservationSettingsService {
      */
     private PopupReservationSettings applyDefaults(PopupReservationSettings settings) {
         if (settings.getTimeSlotInterval() == null) {
-            settings.setTimeSlotInterval(30); // 기본 30분
+            settings.setTimeSlotInterval(30);
         }
         if (settings.getMaxCapacityPerSlot() == null) {
-            settings.setMaxCapacityPerSlot(10); // 기본 10명
+            settings.setMaxCapacityPerSlot(10);
         }
         if (settings.getMaxPartySize() == null) {
-            settings.setMaxPartySize(5); // 기본 5명
+            settings.setMaxPartySize(5);
         }
         if (settings.getAdvanceBookingDays() == null) {
-            settings.setAdvanceBookingDays(30); // 기본 30일 전까지 예약 가능
+            settings.setAdvanceBookingDays(30);
         }
         if (settings.getAllowSameDayBooking() == null) {
-            settings.setAllowSameDayBooking(true); // 기본 당일 예약 허용
+            settings.setAllowSameDayBooking(true);
         }
         return settings;
     }
@@ -67,9 +72,12 @@ public class PopupReservationSettingsService {
      * 예약 설정 조회 (DTO 형태, 권한 체크 포함)
      */
     public PopupCapacitySettingsDto getCapacitySettings(Long popupId, User currentUser) {
-        validateHostPermission(popupId, currentUser);
+        log.info("[PopupReservationSettingsService] 기본 예약 설정 조회 요청: popupId={}, userId={}", popupId, currentUser.getId());
 
+        validateHostPermission(popupId, currentUser);
         PopupReservationSettings settings = getSettings(popupId);
+
+        log.info("[PopupReservationSettingsService] 기본 예약 설정 조회 완료: popupId={}, userId={}", popupId, currentUser.getId());
         return PopupCapacitySettingsDto.from(settings);
     }
 
@@ -79,15 +87,16 @@ public class PopupReservationSettingsService {
     @Transactional
     @CacheEvict(value = "popupReservationSettings", key = "#popupId")
     public void updateBasicSettings(Long popupId, PopupCapacitySettingsDto dto, User currentUser) {
+        log.info("[PopupReservationSettingsService] 기본 예약 설정 수정 요청: popupId={}, userId={}, maxCapacity={}, interval={}",
+                popupId, currentUser.getId(), dto.getMaxCapacityPerSlot(), dto.getTimeSlotInterval());
+
         validateHostPermission(popupId, currentUser);
 
         PopupReservationSettings settings = getSettings(popupId);
         settings.updateBasicSettings(dto.getMaxCapacityPerSlot(), dto.getTimeSlotInterval());
 
         settingsRepository.save(settings);
-
-        log.info("팝업 예약 설정 업데이트: popupId={}, maxCapacity={}, timeInterval={}",
-                popupId, dto.getMaxCapacityPerSlot(), dto.getTimeSlotInterval());
+        log.info("[PopupReservationSettingsService] 기본 예약 설정 수정 완료: popupId={}, userId={}", popupId, currentUser.getId());
     }
 
     /**
@@ -95,15 +104,16 @@ public class PopupReservationSettingsService {
      */
     @Transactional
     public PopupReservationSettings createDefaultSettings(Long popupId) {
+        log.info("[PopupReservationSettingsService] 기본 예약 설정 생성 요청: popupId={}", popupId);
+
         Popup popup = popupRepository.findById(popupId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "팝업이 존재하지 않습니다."));
 
         PopupReservationSettings settings = PopupReservationSettings.createDefault(popup);
-        // 기본값 보정
         applyDefaults(settings);
 
         PopupReservationSettings saved = settingsRepository.save(settings);
-        log.info("팝업 기본 예약 설정 생성: popupId={}", popupId);
+        log.info("[PopupReservationSettingsService] 기본 예약 설정 생성 완료: popupId={}", popupId);
         return saved;
     }
 
@@ -119,6 +129,7 @@ public class PopupReservationSettingsService {
 
         boolean isMember = hostRepository.existsByBrandAndUser(brand, currentUser.getId());
         if (!isMember) {
+            log.warn("[PopupReservationSettingsService] 권한 없음: popupId={}, userId={}", popupId, currentUser.getId());
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "예약 설정을 변경할 권한이 없습니다.");
         }
     }

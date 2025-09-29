@@ -4,7 +4,6 @@ import com.snow.popin.domain.spacereservation.dto.SpaceReservationCreateRequestD
 import com.snow.popin.domain.spacereservation.dto.SpaceReservationListResponseDto;
 import com.snow.popin.domain.spacereservation.dto.SpaceReservationResponseDto;
 import com.snow.popin.domain.spacereservation.service.SpaceReservationService;
-import com.snow.popin.domain.user.entity.User;
 import com.snow.popin.global.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +36,9 @@ public class SpaceReservationController {
      */
     @PostMapping
     public ResponseEntity<?> createReservation(@Valid @RequestBody SpaceReservationCreateRequestDto dto) {
-        Long reservationId = reservationService.createReservation( dto);
+        log.info("[SpaceReservationController] 예약 요청 생성");
+        Long reservationId = reservationService.createReservation(dto);
+        log.info("[SpaceReservationController] 예약 요청 생성 완료: reservationId={}", reservationId);
         return ResponseEntity.ok(Map.of("id", reservationId));
     }
 
@@ -48,7 +49,10 @@ public class SpaceReservationController {
      */
     @GetMapping("/my-requests")
     public List<SpaceReservationListResponseDto> getMyRequests() {
-        return reservationService.getMyRequests();
+        log.info("[SpaceReservationController] 내가 신청한 예약 목록 조회 요청");
+        List<SpaceReservationListResponseDto> result = reservationService.getMyRequests();
+        log.info("[SpaceReservationController] 내가 신청한 예약 목록 조회 완료: count={}", result.size());
+        return result;
     }
 
     /**
@@ -58,7 +62,10 @@ public class SpaceReservationController {
      */
     @GetMapping("/my-spaces")
     public List<SpaceReservationListResponseDto> getMySpaceReservations() {
-        return reservationService.getMySpaceReservations();
+        log.info("[SpaceReservationController] 내 공간 예약 목록 조회 요청");
+        List<SpaceReservationListResponseDto> result = reservationService.getMySpaceReservations();
+        log.info("[SpaceReservationController] 내 공간 예약 목록 조회 완료: count={}", result.size());
+        return result;
     }
 
     /**
@@ -69,7 +76,10 @@ public class SpaceReservationController {
      */
     @GetMapping("/{id}")
     public SpaceReservationResponseDto getReservationDetail(@PathVariable Long id) {
-        return reservationService.getReservationDetail(id);
+        log.info("[SpaceReservationController] 예약 상세 조회 요청: reservationId={}", id);
+        SpaceReservationResponseDto dto = reservationService.getReservationDetail(id);
+        log.info("[SpaceReservationController] 예약 상세 조회 완료: reservationId={}", id);
+        return dto;
     }
 
     /**
@@ -80,7 +90,9 @@ public class SpaceReservationController {
      */
     @PutMapping("/{id}/accept")
     public ResponseEntity<?> acceptReservation(@PathVariable Long id) {
+        log.info("[SpaceReservationController] 예약 승인 요청: reservationId={}", id);
         reservationService.acceptReservation(id);
+        log.info("[SpaceReservationController] 예약 승인 완료: reservationId={}", id);
         return ResponseEntity.ok(Map.of("message", "예약이 승인되었습니다."));
     }
 
@@ -92,7 +104,9 @@ public class SpaceReservationController {
      */
     @PutMapping("/{id}/reject")
     public ResponseEntity<?> rejectReservation(@PathVariable Long id) {
+        log.info("[SpaceReservationController] 예약 거절 요청: reservationId={}", id);
         reservationService.rejectReservation(id);
+        log.info("[SpaceReservationController] 예약 거절 완료: reservationId={}", id);
         return ResponseEntity.ok(Map.of("message", "예약이 거절되었습니다."));
     }
 
@@ -104,7 +118,9 @@ public class SpaceReservationController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> cancelReservation(@PathVariable Long id) {
+        log.info("[SpaceReservationController] 예약 취소 요청: reservationId={}", id);
         reservationService.cancelReservation(id);
+        log.info("[SpaceReservationController] 예약 취소 완료: reservationId={}", id);
         return ResponseEntity.ok(Map.of("message", "예약이 취소되었습니다."));
     }
 
@@ -116,7 +132,9 @@ public class SpaceReservationController {
      */
     @DeleteMapping("/{id}/delete")
     public ResponseEntity<?> deleteReservation(@PathVariable Long id) {
+        log.info("[SpaceReservationController] 예약 삭제 요청: reservationId={}", id);
         reservationService.deleteReservation(id);
+        log.info("[SpaceReservationController] 예약 삭제 완료: reservationId={}", id);
         return ResponseEntity.ok(Map.of("message", "예약이 삭제되었습니다."));
     }
 }
