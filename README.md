@@ -137,6 +137,25 @@ Popin은 흩어져 있는 팝업스토어 정보를 한눈에 모아볼 수 있�
 
 </p>
 
+## 사용자 페이지
+<div align="center">
+  <img width="300" alt="image" src="https://github.com/user-attachments/assets/a672baa6-7f54-4923-b71f-9f65fea0d080" />
+  <img width="300" alt="image" src="https://github.com/user-attachments/assets/952c8745-d075-45b1-b04d-de0ce9322f23" />
+</div>
+<br/>
+<div align="center">
+  <img width="300" alt="image" src="https://github.com/user-attachments/assets/061e7c73-5a31-44d8-bfae-c93e3dc00ab6" />
+  <img width="300" alt="image" src="https://github.com/user-attachments/assets/0231d532-fb99-4c12-8547-fa0f5f1013cd" />
+</div>
+
+
+## 관리자 페이지
+<div align="center">
+  <img width="400" alt="image" src="https://github.com/user-attachments/assets/8a619803-1b2f-4012-afb9-ccc2ffe570d2" />
+  <img width="400" alt="image" src="https://github.com/user-attachments/assets/68dc6679-6b97-4afd-ab83-7660af6dc280" />
+</div>
+
+
 <br><br>
 
 ---
