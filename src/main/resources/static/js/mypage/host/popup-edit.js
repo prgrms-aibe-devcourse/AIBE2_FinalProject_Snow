@@ -62,7 +62,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (popup.categoryId) {
             const categorySelect = form.categoryId;
             categorySelect.value = popup.categoryId;
-            console.log("카테고리 설정:", popup.categoryId);
 
             Array.from(categorySelect.options).forEach(option => {
                 if (parseInt(option.value) === popup.categoryId) {
@@ -72,16 +71,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         if (popup.tagIds && Array.isArray(popup.tagIds) && popup.tagIds.length > 0) {
-            console.log("태그 설정:", popup.tagIds);
             popup.tagIds.forEach(tagId => {
                 selectedTags.add(tagId);
                 const btn = document.querySelector(`.tag-btn[data-id='${tagId}']`);
-                if (btn) {
-                    btn.classList.add("selected");
-                    console.log(`태그 ${tagId} 선택됨`);
-                }
+                if (btn) btn.classList.add("selected");
             });
-            console.log("최종 selectedTags:", Array.from(selectedTags));
         }
 
         // 운영시간 초기값 세팅
@@ -128,22 +122,23 @@ function addHourItem(hour) {
     const item = document.createElement("div");
     item.className = "hour-item";
 
+    // 요일 버튼
     const days = ["월","화","수","목","금","토","일"];
-    const dayButtons = days.map((day, i) => {
+    const dayGroup = document.createElement("div");
+    dayGroup.className = "day-buttons";
+
+    days.forEach((day, i) => {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "day-btn";
         btn.textContent = day;
         btn.dataset.value = i;
-        btn.addEventListener("click", () => btn.classList.toggle("active"));
         if (hour && hour.dayOfWeek === i) btn.classList.add("active");
-        return btn;
+        btn.addEventListener("click", () => btn.classList.toggle("active"));
+        dayGroup.appendChild(btn);
     });
 
-    const dayGroup = document.createElement("div");
-    dayGroup.className = "day-buttons";
-    dayButtons.forEach(b => dayGroup.appendChild(b));
-
+    // 시간 입력
     const timeInputs = document.createElement("div");
     timeInputs.className = "time-inputs";
     timeInputs.innerHTML = `
@@ -152,15 +147,21 @@ function addHourItem(hour) {
         <input type="time" class="close-time" required value="${hour?.closeTime || ''}">
     `;
 
+    // 삭제 버튼
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
     removeBtn.textContent = "삭제";
     removeBtn.className = "remove-btn";
     removeBtn.addEventListener("click", () => item.remove());
 
-    item.append(dayGroup, timeInputs, removeBtn);
+    // 등록 페이지랑 동일한 순서로 append
+    item.appendChild(dayGroup);
+    item.appendChild(timeInputs);
+    item.appendChild(removeBtn);
+
     container.appendChild(item);
 }
+
 
 function setupImagePreview() {
     const mainImageFile = document.getElementById('mainImageFile');
