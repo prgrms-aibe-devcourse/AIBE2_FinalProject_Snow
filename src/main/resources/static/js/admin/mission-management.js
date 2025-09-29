@@ -293,9 +293,9 @@ class MissionManagement {
         ${missions.length === 0 ? '<div class="no-data">등록된 미션이 없습니다.</div>' : missions.map(m => `
           <div class="mission-row">
             <div>
-              <div><strong>${this.escapeHtml(m.title || '(제목없음)')}</strong></div>
-              <div class="small mono">${(m.id || '').toString().replace(/-/g, '')}</div>
-              ${m.description ? `<div class="small" style="margin-top:4px;">${this.escapeHtml(m.description)}</div>` : ''}
+                <div><strong>제목: ${this.escapeHtml(m.title || '(제목없음)')}</strong></div>
+                ${m.description ? `<div class="small" style="margin-top:4px;">상세설명: ${this.escapeHtml(m.description)}</div>` : ''}
+                ${m.answer ? `<div class="small" style="margin-top:4px;">정답: ${this.escapeHtml(m.answer)}</div>` : ''}
             </div>
             <div class="action-buttons">
               <button class="button button-sm button-danger-outline" onclick="missionManagement.deleteMission('${m.id}')">삭제</button>
