@@ -10,7 +10,7 @@
 
 <table>
   <tr>
-    <th width="15%">구분</th>
+    <th width="10%">구분</th>
     <th width="17%">
       <a href="https://github.com/onejm">
         <img src="https://github.com/onejm.png" width="80px"/><br/>
@@ -43,7 +43,7 @@
     </th>
   </tr>
   <tr>
-    <td><b>역할</b></td>
+    <td>역할</td>
     <td>📝 기획 · 💻 개발</td>
     <td>📝 기획 · 💻 개발</td>
     <td>📝 기획 · 💻 개발</td>
@@ -51,7 +51,7 @@
     <td>📝 기획 · ✅ QA</td>
   </tr>
   <tr>
-    <td><b>주요 기여</b></td>
+    <td>주요 기여</td>
     <td>
       <ul>
         <li>와이어프레임 제작</li>
@@ -155,6 +155,11 @@ Popin은 흩어져 있는 팝업스토어 정보를 한눈에 모아볼 수 있�
   <img width="400" alt="image" src="https://github.com/user-attachments/assets/68dc6679-6b97-4afd-ab83-7660af6dc280" />
 </div>
 
+## 공간제공자 / 팝업 호스트 페이지
+<div align="center">
+  <img width="400" alt="image" src="https://github.com/user-attachments/assets/78339923-dbf8-47d0-92d5-a20d729c2036" />
+  
+</div>
 
 <br><br>
 
