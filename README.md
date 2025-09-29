@@ -7,18 +7,41 @@
 ---
 
 ## 팀 소개
-<a href="https://github.com/prgrms-aibe-devcourse/AIBE2_FinalProject_Snow/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=prgrms-aibe-devcourse/AIBE2_FinalProject_Snow" />
-</a>
+### 팀 소개
 
 <table>
   <tr>
     <th width="15%">구분</th>
-    <th width="17%">👑 한정민</th>
-    <th width="17%">백진우</th>
-    <th width="17%">양주희</th>
-    <th width="17%">유혜빈</th>
-    <th width="17%">류영선</th>
+    <th width="17%">
+      <a href="https://github.com/onejm">
+        <img src="https://github.com/onejm.png" width="80px"/><br/>
+      </a>
+      👑 한정민
+    </th>
+    <th width="17%">
+      <a href="https://github.com/yoohyebin">
+        <img src="https://github.com/yoohyebin.png" width="80px"/><br/>
+      </a>
+      유혜빈
+    </th>
+    <th width="17%">
+      <a href="https://github.com/dearjh36">
+        <img src="https://github.com/dearjh36.png" width="80px"/><br/>
+      </a>
+      양주희
+    </th>
+    <th width="17%">
+      <a href="https://github.com/beakjinu">
+        <img src="https://github.com/beakjinu.png" width="80px"/><br/>
+      </a>
+      백진우
+    </th>
+    <th width="17%">
+      <a href="https://github.com/sun-ryu">
+        <img src="https://github.com/sun-ryu.png" width="80px"/><br/>
+      </a>
+      류영선
+    </th>
   </tr>
   <tr>
     <td><b>역할</b></td>
@@ -84,6 +107,9 @@
     </td>
   </tr>
 </table>
+
+
+
 
 ---
 
