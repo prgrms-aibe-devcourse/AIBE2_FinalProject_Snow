@@ -115,7 +115,7 @@ public class HostService {
         Host host = hostRepository.findByUser(user)
                 .orElseThrow(() -> new GeneralException(ErrorCode.UNAUTHORIZED));
 
-        Popup popup = popupRepository.findById(id)
+        Popup popup = popupRepository.findByIdWithTagsAndCategory(id)
                 .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND));
 
         if (!popup.getBrandId().equals(host.getBrand().getId())) {

@@ -60,15 +60,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         if (popup.categoryId) {
-            form.categoryId.value = popup.categoryId;
+            const categorySelect = form.categoryId;
+            categorySelect.value = popup.categoryId;
+            console.log("카테고리 설정:", popup.categoryId);
+
+            Array.from(categorySelect.options).forEach(option => {
+                if (parseInt(option.value) === popup.categoryId) {
+                    option.selected = true;
+                }
+            });
         }
 
-        if (popup.tagIds && popup.tagIds.length > 0) {
-            popup.tagIds.forEach(id => {
-                selectedTags.add(id);
-                const btn = document.querySelector(`.tag-btn[data-id='${id}']`);
-                if (btn) btn.classList.add("selected");
+        if (popup.tagIds && Array.isArray(popup.tagIds) && popup.tagIds.length > 0) {
+            console.log("태그 설정:", popup.tagIds);
+            popup.tagIds.forEach(tagId => {
+                selectedTags.add(tagId);
+                const btn = document.querySelector(`.tag-btn[data-id='${tagId}']`);
+                if (btn) {
+                    btn.classList.add("selected");
+                    console.log(`태그 ${tagId} 선택됨`);
+                }
             });
+            console.log("최종 selectedTags:", Array.from(selectedTags));
         }
 
         // 운영시간 초기값 세팅

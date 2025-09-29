@@ -41,4 +41,10 @@ public interface PopupRepository extends JpaRepository<Popup, Long>, JpaSpecific
 
     long countByStatus(PopupStatus status);
     long count();
+
+    @Query("SELECT p FROM Popup p " +
+            "LEFT JOIN FETCH p.tags " +
+            "LEFT JOIN FETCH p.category " +
+            "WHERE p.id = :id")
+    Optional<Popup> findByIdWithTagsAndCategory(@Param("id") Long id);
 }

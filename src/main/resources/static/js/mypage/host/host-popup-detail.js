@@ -11,6 +11,7 @@ const HostPopupDetailPage = {
 
         try {
             const popup = await apiService.get(`/hosts/popups/${popupId}`);
+            console.log("불러온 팝업 데이터:", popup);
             this.renderPopupDetail(popup);
         } catch (err) {
             console.error("팝업 상세 불러오기 실패:", err);
@@ -39,6 +40,10 @@ const HostPopupDetailPage = {
             const element = document.getElementById(id);
             if (element) element.textContent = value;
         });
+
+        this.renderCategory(popup);
+
+        this.renderTags(popup);
 
         const imageElement = document.getElementById("popup-image");
         if (imageElement) {
@@ -80,6 +85,70 @@ const HostPopupDetailPage = {
                     alert("팝업 삭제에 실패했습니다.");
                 }
             };
+        }
+    },
+
+    renderCategory(popup) {
+        const categoryElement = document.getElementById('popup-category');
+        if (!categoryElement) return;
+
+        const categoryNames = {
+            1: "패션",
+            2: "반려동물",
+            3: "게임",
+            4: "캐릭터/IP",
+            5: "문화/컨텐츠",
+            6: "연예",
+            7: "여행/레저/스포츠"
+        };
+
+        let categoryText = '-';
+
+        // category 객체가 있으면 그것 사용
+        if (popup.category && popup.category.name) {
+            categoryText = popup.category.name;
+        }
+        // categoryId로 매핑
+        else if (popup.categoryId) {
+            categoryText = categoryNames[popup.categoryId] || `카테고리 ${popup.categoryId}`;
+        }
+
+        categoryElement.textContent = categoryText;
+    },
+
+    renderTags(popup) {
+        const tagsElement = document.getElementById('popup-tags');
+        if (!tagsElement) return;
+
+        const tagNames = {
+            1: "할인",
+            2: "한정판",
+            3: "체험존",
+            4: "콜라보",
+            5: "신제품"
+        };
+
+        let tagsHTML = '';
+
+        // tags 배열이 있으면 사용
+        if (popup.tags && Array.isArray(popup.tags) && popup.tags.length > 0) {
+            tagsHTML = popup.tags.map(tag => {
+                const tagName = tag.name || tagNames[tag.id] || `태그${tag.id}`;
+                return `<span class="tag-badge">${tagName}</span>`;
+            }).join('');
+        }
+        // tagIds 배열로 매핑
+        else if (popup.tagIds && Array.isArray(popup.tagIds) && popup.tagIds.length > 0) {
+            tagsHTML = popup.tagIds.map(tagId => {
+                const tagName = tagNames[tagId] || `태그${tagId}`;
+                return `<span class="tag-badge">${tagName}</span>`;
+            }).join('');
+        }
+
+        if (tagsHTML) {
+            tagsElement.innerHTML = tagsHTML;
+        } else {
+            tagsElement.textContent = '-';
         }
     },
 

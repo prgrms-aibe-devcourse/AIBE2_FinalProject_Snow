@@ -212,4 +212,19 @@
         width: 100%;
         min-width: auto;
     }
+    /* 태그 뱃지 스타일 */
+    .tag-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        background-color: #e0f2fe;
+        color: #0369a1;
+        border-radius: 12px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin: 2px;
+    }
+
+    #popup-tags {
+        margin-top: 2px;
+    }
 }
