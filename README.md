@@ -140,7 +140,82 @@ Popin은 흩어져 있는 팝업스토어 정보를 한눈에 모아볼 수 있�
 <br><br>
 
 ---
+### 사용 기술
+
+| 구분 | 기술 |
+|------|------|
+| **Backend** | Spring Boot 2.7.1 · Spring Web (REST API) · Spring Data JPA (Hibernate) · MySQL (운영 DB: AWS RDS) · H2 (테스트 DB) |
+| **보안 / 인증** | Spring Security · JWT (jjwt) |
+| **API 문서화** | Springdoc OpenAPI (Swagger UI) |
+| **유틸리티** | ModelMapper (Entity ↔ DTO 변환) · Lombok (보일러플레이트 코드 제거) · ZXing (QR 코드 생성) |
+| **테스트** | JUnit5 · Mockito · k6 (부하/성능 테스트) |
+| **개발 편의** | Spring Boot Devtools (핫 리로드) |
+| **Frontend** | HTML · CSS · JavaScript (REST API 연동) |
+| **Infra / Deployment** | AWS EC2 · Docker · AWS RDS (MySQL) · CloudWatch |
+| **외부 API / 서비스** | Kakao Pay API · Naver Pay API · Kakao Map API · Google Gemini API |
+| **협업 및 도구** | GitHub · Jira · Notion · Figma (와이어프레임) · FigJam (IA 설계) · Draw.io (ERD) · Swagger UI (API 테스트) · Slack |
+
+
+
+<br><br>
+
+---
 ## 시스템 아키텍처
 <img width="804" height="450" alt="image" src="https://github.com/user-attachments/assets/20827d3f-b1de-41bc-8a4b-e86808f62388" />
 
+<br><br><br>
+
+---
+
+
+## 실행 환경 설정
+
+프로젝트 실행을 위해 `src/main/resources/application.properties` 파일에 아래 내용을 추가하세요.  
+(민감 정보는 실제 값으로 교체해야 합니다.)
 </div>
+
+```properties
+spring.application.name=popin
+
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url=jdbc:mysql://localhost:3306/popin?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+spring.datasource.username=YOUR_DB_USERNAME
+spring.datasource.password=YOUR_DB_PASSWORD
+
+spring.jpa.properties.hibernate.show_sql=true
+spring.jpa.properties.hibernate.format_sql=true
+logging.level.org.hibernate.type.descriptor.sql=trace
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.database-platform=org.hibernate.dialect.MySQL8Dialect
+
+uploadPath=/your/project/path/uploads
+
+jwt.secret=YOUR_JWT_SECRET
+spring.profiles.active=dev
+logging.level.com.snow.popin=DEBUG
+logging.level.org.springframework.security=DEBUG
+
+server.port=8080
+app.host-url=http://localhost:${server.port}
+
+server.error.whitelabel.enabled=false
+server.servlet.encoding.charset=UTF-8
+server.servlet.encoding.enabled=true
+server.servlet.encoding.force=true
+spring.web.resources.cache.period=0
+
+# Gemini AI API 설정
+ai.gemini.api.key=YOUR_GEMINI_API_KEY
+ai.gemini.api.url=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent
+ai.gemini.timeout=30000
+
+# 결제 연동 (Kakao / Naver Pay)
+kakao.pay.admin.key=YOUR_KAKAO_ADMIN_KEY
+kakao.pay.cid=TC0ONETIME
+
+naver.pay.client.id=YOUR_NAVER_CLIENT_ID
+naver.pay.client.secret=YOUR_NAVER_CLIENT_SECRET
+
+payment.success.url=http://localhost:8080/payment/success
+payment.fail.url=http://localhost:8080/payment/fail
+payment.cancel.url=http://localhost:8080/payment/cancel
