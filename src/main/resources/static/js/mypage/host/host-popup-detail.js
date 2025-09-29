@@ -1,18 +1,21 @@
 const HostPopupDetailPage = {
+    popupId: null,
+
     async init() {
         const pathParts = window.location.pathname.split("/");
-        const popupId = pathParts[pathParts.indexOf("popup") + 1];
+        this.popupId = pathParts[pathParts.indexOf("popup") + 1];
 
-        if (!popupId) {
+        if (!this.popupId) {
             alert("popupId가 없습니다.");
             window.history.back();
             return;
         }
 
         try {
-            const popup = await apiService.get(`/hosts/popups/${popupId}`);
+            const popup = await apiService.get(`/hosts/popups/${this.popupId}`);
             console.log("불러온 팝업 데이터:", popup);
             this.renderPopupDetail(popup);
+            this.initVenueModal();
         } catch (err) {
             console.error("팝업 상세 불러오기 실패:", err);
             if (err.message?.includes("401") || err.status === 401) {
@@ -42,7 +45,6 @@ const HostPopupDetailPage = {
         });
 
         this.renderCategory(popup);
-
         this.renderTags(popup);
 
         const imageElement = document.getElementById("popup-image");
@@ -79,7 +81,6 @@ const HostPopupDetailPage = {
                     await apiService.delete(`/hosts/popups/${popup.id}`);
                     alert("팝업이 삭제되었습니다.");
                     window.location.href = "/mypage/host";
-                    return;
                 } catch (err) {
                     console.error("삭제 실패:", err);
                     alert("팝업 삭제에 실패했습니다.");
@@ -104,12 +105,9 @@ const HostPopupDetailPage = {
 
         let categoryText = '-';
 
-        // category 객체가 있으면 그것 사용
         if (popup.category && popup.category.name) {
             categoryText = popup.category.name;
-        }
-        // categoryId로 매핑
-        else if (popup.categoryId) {
+        } else if (popup.categoryId) {
             categoryText = categoryNames[popup.categoryId] || `카테고리 ${popup.categoryId}`;
         }
 
@@ -130,15 +128,12 @@ const HostPopupDetailPage = {
 
         let tagsHTML = '';
 
-        // tags 배열이 있으면 사용
         if (popup.tags && Array.isArray(popup.tags) && popup.tags.length > 0) {
             tagsHTML = popup.tags.map(tag => {
                 const tagName = tag.name || tagNames[tag.id] || `태그${tag.id}`;
                 return `<span class="tag-badge">${tagName}</span>`;
             }).join('');
-        }
-        // tagIds 배열로 매핑
-        else if (popup.tagIds && Array.isArray(popup.tagIds) && popup.tagIds.length > 0) {
+        } else if (popup.tagIds && Array.isArray(popup.tagIds) && popup.tagIds.length > 0) {
             tagsHTML = popup.tagIds.map(tagId => {
                 const tagName = tagNames[tagId] || `태그${tagId}`;
                 return `<span class="tag-badge">${tagName}</span>`;
@@ -152,54 +147,92 @@ const HostPopupDetailPage = {
         }
     },
 
-    renderOperatingHours(hours) {
-        let hoursElement = document.getElementById('popup-hours');
+    initVenueModal() {
+        const modal = document.getElementById('venue-modal');
+        const btnRegisterVenue = document.getElementById('btn-register-venue');
+        const closeBtn = modal.querySelector('.close');
+        const btnCancel = modal.querySelector('.btn-cancel');
+        const btnSearchAddress = document.getElementById('btn-search-address');
+        const venueForm = document.getElementById('venue-form');
 
-        if (!hoursElement) {
-            const statusElement = document.getElementById('popup-status');
-            if (statusElement && statusElement.parentElement) {
-                const newHoursRow = document.createElement('p');
-                newHoursRow.innerHTML = '<b>운영시간:</b><span id="popup-hours-content"></span>';
-                statusElement.parentElement.insertAdjacentElement('afterend', newHoursRow);
-                hoursElement = document.getElementById('popup-hours-content');
+        if (!modal || !btnRegisterVenue) return;
+
+        // 모달 열기
+        btnRegisterVenue.onclick = () => {
+            modal.style.display = 'block';
+        };
+
+        // 모달 닫기
+        const closeModal = () => {
+            modal.style.display = 'none';
+            venueForm.reset();
+        };
+
+        closeBtn.onclick = closeModal;
+        btnCancel.onclick = closeModal;
+
+        window.onclick = (e) => {
+            if (e.target === modal) {
+                closeModal();
             }
-        }
+        };
 
-        if (!hoursElement) return;
+        // 주소 검색
+        btnSearchAddress.onclick = () => {
+            this.searchAddress();
+        };
 
-        if (!hours || hours.length === 0) {
-            hoursElement.textContent = '운영시간 정보가 없습니다.';
+        // 폼 제출
+        venueForm.onsubmit = async (e) => {
+            e.preventDefault();
+            await this.submitVenue();
+        };
+    },
+
+    searchAddress() {
+        new daum.Postcode({
+            oncomplete: (data) => {
+                document.getElementById('venue-road-address').value = data.roadAddress || '';
+                document.getElementById('venue-jibun-address').value = data.jibunAddress || '';
+
+                // 좌표 변환
+                const geocoder = new kakao.maps.services.Geocoder();
+                geocoder.addressSearch(data.roadAddress || data.jibunAddress, (result, status) => {
+                    if (status === kakao.maps.services.Status.OK) {
+                        document.getElementById('venue-latitude').value = result[0].y;
+                        document.getElementById('venue-longitude').value = result[0].x;
+                        console.log('좌표 설정 완료:', result[0].y, result[0].x);
+                    }
+                });
+            }
+        }).open();
+    },
+
+    async submitVenue() {
+        const venueData = {
+            name: document.getElementById('venue-name').value.trim(),
+            roadAddress: document.getElementById('venue-road-address').value.trim(),
+            jibunAddress: document.getElementById('venue-jibun-address').value.trim(),
+            detailAddress: document.getElementById('venue-detail-address').value.trim(),
+            latitude: parseFloat(document.getElementById('venue-latitude').value) || null,
+            longitude: parseFloat(document.getElementById('venue-longitude').value) || null,
+            parkingAvailable: document.getElementById('venue-parking').checked
+        };
+
+        if (!venueData.name || !venueData.roadAddress) {
+            alert('장소명과 주소를 입력해 주세요.');
             return;
         }
 
-        const groupedHours = this.groupHoursByDay(hours);
-
-        const hoursHTML = Object.entries(groupedHours).map(([timeSlot, days]) => {
-            const dayNames = days.sort().map(day => this.getDayName(day)).join(', ');
-            return `<div class="hour-item">
-                <span class="hour-days">${dayNames}</span>
-                <span class="hour-time">${timeSlot}</span>
-            </div>`;
-        }).join('');
-
-        hoursElement.innerHTML = `<div class="operating-hours">${hoursHTML}</div>`;
-    },
-
-    groupHoursByDay(hours) {
-        const grouped = {};
-        hours.forEach(hour => {
-            const timeSlot = `${hour.openTime} - ${hour.closeTime}`;
-            if (!grouped[timeSlot]) {
-                grouped[timeSlot] = [];
-            }
-            grouped[timeSlot].push(hour.dayOfWeek);
-        });
-        return grouped;
-    },
-
-    getDayName(dayOfWeek) {
-        const days = ['일', '월', '화', '수', '목', '금', '토'];
-        return days[dayOfWeek] || dayOfWeek;
+        try {
+            await apiService.post(`/hosts/popups/${this.popupId}/venue`, venueData);
+            alert('장소가 등록되었습니다.');
+            document.getElementById('venue-modal').style.display = 'none';
+            location.reload();
+        } catch (err) {
+            console.error('장소 등록 실패:', err);
+            alert('장소 등록에 실패했습니다.');
+        }
     },
 
     translateStatus(status) {

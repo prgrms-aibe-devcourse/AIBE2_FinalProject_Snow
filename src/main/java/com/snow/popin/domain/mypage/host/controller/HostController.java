@@ -3,6 +3,7 @@ package com.snow.popin.domain.mypage.host.controller;
 import com.snow.popin.domain.mypage.host.dto.HostProfileResponseDto;
 import com.snow.popin.domain.mypage.host.dto.PopupRegisterRequestDto;
 import com.snow.popin.domain.mypage.host.dto.PopupRegisterResponseDto;
+import com.snow.popin.domain.mypage.host.dto.VenueRegisterDto;
 import com.snow.popin.domain.mypage.host.service.HostService;
 import com.snow.popin.domain.space.service.FileStorageService;
 import com.snow.popin.domain.user.entity.User;
@@ -115,6 +116,20 @@ public class HostController {
         HostProfileResponseDto profile = hostService.getMyHostProfile(user);
         log.info("[HostController] 호스트 프로필 조회 완료: userId={}", user.getId());
         return ResponseEntity.ok(profile);
+    }
+    /**
+     * 팝업 장소 등록/변경
+     *
+     * @param id 팝업 ID
+     * @param dto 장소 정보 DTO
+     * @return 성공 메시지
+     */
+    @PostMapping("/popups/{id}/venue")
+    public ResponseEntity<?> updatePopupVenue(@PathVariable Long id,
+                                              @RequestBody VenueRegisterDto dto) {
+        User user = userUtil.getCurrentUser();
+        hostService.updatePopupVenue(user, id, dto);
+        return ResponseEntity.ok(Map.of("message", "장소가 등록되었습니다"));
     }
 
     @PostMapping("/upload/image")

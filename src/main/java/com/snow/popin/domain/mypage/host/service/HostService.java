@@ -2,9 +2,12 @@ package com.snow.popin.domain.mypage.host.service;
 
 import com.snow.popin.domain.category.entity.Category;
 import com.snow.popin.domain.category.repository.CategoryRepository;
+import com.snow.popin.domain.map.entity.Venue;
+import com.snow.popin.domain.map.repository.MapRepository;
 import com.snow.popin.domain.mypage.host.dto.HostProfileResponseDto;
 import com.snow.popin.domain.mypage.host.dto.PopupRegisterRequestDto;
 import com.snow.popin.domain.mypage.host.dto.PopupRegisterResponseDto;
+import com.snow.popin.domain.mypage.host.dto.VenueRegisterDto;
 import com.snow.popin.domain.mypage.host.entity.Host;
 import com.snow.popin.domain.mypage.host.repository.HostRepository;
 import com.snow.popin.domain.popup.entity.Popup;
@@ -45,6 +48,7 @@ public class HostService {
     private final PopupHoursRepository popupHoursRepository;
     private final TagRepository tagRepository;
     private final CategoryRepository categoryRepository;
+    private final MapRepository mapRepository;
     /**
      * 팝업 등록
      *
@@ -199,4 +203,36 @@ public class HostService {
         log.info("[HostService] 호스트 프로필 조회 완료: userId={}", user.getId());
         return HostProfileResponseDto.from(host);
     }
+    @Transactional
+    public void updatePopupVenue(User user, Long popupId, VenueRegisterDto dto) {
+        Host host = hostRepository.findByUser(user)
+                .orElseThrow(() -> new GeneralException(ErrorCode.UNAUTHORIZED));
+
+        Popup popup = popupRepository.findById(popupId)
+                .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND));
+
+        if (!popup.getBrandId().equals(host.getBrand().getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "권한이 없습니다.");
+        }
+
+        // Venue 생성
+        Venue venue = Venue.of(
+                dto.getName(),
+                dto.getRoadAddress(),
+                dto.getJibunAddress(),
+                dto.getDetailAddress(),
+                dto.getLatitude(),
+                dto.getLongitude(),
+                dto.getParkingAvailable()
+        );
+
+        venue.setRegionFromAddress();
+
+        mapRepository.save(venue);
+        popup.setVenue(venue);
+
+        log.info("[HostService] 팝업 장소 등록 완료: popupId={}, venueId={}, region={}",
+                popupId, venue.getId(), venue.getRegion());
+    }
+
 }
