@@ -9,7 +9,8 @@ import java.util.*;
 
 public interface RewardOptionRepository extends JpaRepository<RewardOption, Long> {
 
-    List<RewardOption> findByMissionSetId(UUID missionSetId);
+    // missionSetId 기반 조회 (연관관계 경로 탐색)
+    List<RewardOption> findByMissionSet_Id(UUID missionSetId);
 
     /** 재고 차감 시 동시성 제어 (비관적 락) */
     @Lock(LockModeType.PESSIMISTIC_WRITE)

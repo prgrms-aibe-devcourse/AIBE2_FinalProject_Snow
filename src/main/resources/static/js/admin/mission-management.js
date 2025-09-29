@@ -107,7 +107,7 @@ class MissionManagement {
         }
     }
 
-// ===== 목록 =====
+    // ===== 목록 =====
     async loadMissionSets() {
         try {
             this.showLoading();
@@ -128,7 +128,6 @@ class MissionManagement {
             this.showError('미션셋 목록을 불러오는데 실패했습니다.');
         }
     }
-
 
     showLoading() {
         document.getElementById('tableContainer').innerHTML = '<div class="loading">데이터를 불러오는 중...</div>';
@@ -187,7 +186,7 @@ class MissionManagement {
       </tr>`;
     }
 
-// 페이지네이션
+    // 페이지네이션
     renderPagination(pageInfo) {
         const {number, totalPages, first, last} = pageInfo;
 
@@ -210,7 +209,6 @@ class MissionManagement {
 
         document.getElementById('pagination').innerHTML = html;
     }
-
 
     goToPage(page) {
         this.currentPage = page;
@@ -242,7 +240,7 @@ class MissionManagement {
         this.loadMissionSets();
     }
 
-// ===== 상세 =====
+    // ===== 상세 =====
     async viewDetail(setId) {
         try {
             const set = await apiService.getMissionSetDetail(setId);
@@ -258,6 +256,7 @@ class MissionManagement {
 
     showDetailModal(set) {
         const missions = Array.isArray(set.missions) ? set.missions : [];
+        const rewards = Array.isArray(set.rewards) ? set.rewards : [];
         const idDisp = (set.id || set.missionSetId || '').toString();
         const popupId = set.popupId;
         const popupTitle = popupId != null ? (this.popupTitleById[popupId] || `#${popupId}`) : '-';
@@ -269,7 +268,7 @@ class MissionManagement {
         <div class="detail-grid" id="missionSetInfoFields">
           <div class="detail-item"><span class="detail-label">미션셋 ID</span><span class="detail-value mono small">${idDisp}</span></div>
           <div class="detail-item"><span class="detail-label">팝업</span><span class="detail-value" title="${popupId ?? ''}">${this.escapeHtml(popupTitle)}</span></div>
-                    ${set.qrImageUrl ? `
+          ${set.qrImageUrl ? `
             <div class="detail-item">
               <span class="detail-label">QR 코드</span>
               <span class="detail-value">
@@ -293,9 +292,9 @@ class MissionManagement {
         ${missions.length === 0 ? '<div class="no-data">등록된 미션이 없습니다.</div>' : missions.map(m => `
           <div class="mission-row">
             <div>
-              <div><strong>${this.escapeHtml(m.title || '(제목없음)')}</strong></div>
-              <div class="small mono">${(m.id || '').toString().replace(/-/g, '')}</div>
-              ${m.description ? `<div class="small" style="margin-top:4px;">${this.escapeHtml(m.description)}</div>` : ''}
+                <div><strong>제목: ${this.escapeHtml(m.title || '(제목없음)')}</strong></div>
+                ${m.description ? `<div class="small" style="margin-top:4px;">상세설명: ${this.escapeHtml(m.description)}</div>` : ''}
+                ${m.answer ? `<div class="small" style="margin-top:4px;">정답: ${this.escapeHtml(m.answer)}</div>` : ''}
             </div>
             <div class="action-buttons">
               <button class="button button-sm button-danger-outline" onclick="missionManagement.deleteMission('${m.id}')">삭제</button>
@@ -304,10 +303,134 @@ class MissionManagement {
         `).join('')}
       </div>
     </div>
-  `;
+
+      <!-- 리워드 추가 -->
+      <div class="detail-section">
+        <h3 style="margin:0 0 8px 0;">리워드</h3>
+        <div style="display:grid; grid-template-columns: 1fr 160px 120px; gap:8px; align-items:end; max-width:520px; margin-bottom:12px;">
+          <div>
+            <label class="detail-label" for="rewardNameInput">리워드 이름</label>
+            <input id="rewardNameInput" type="text" placeholder="예) 머그컵" />
+          </div>
+          <div>
+            <label class="detail-label" for="rewardTotalInput">총 수량</label>
+            <input id="rewardTotalInput" type="number" min="0" step="1" value="0" />
+          </div>
+          <div>
+            <button class="button button-primary" id="addRewardBtn" style="width:100%;">리워드 추가</button>
+          </div>
+        </div>
+        <div id="rewardsArea"></div>
+      </div>
+    `;
         document.getElementById('detailModal').style.display = 'block';
         document.getElementById('editBtn').addEventListener('click', () => this.enableEditMode(set));
+        document.getElementById('addRewardBtn').addEventListener('click', () => this.addReward());
+
+        // 리워드 렌더
+        this.renderRewards(rewards);
     }
+
+    // 리워드 추가 (입력창 사용)
+    // 리워드 추가 (인풋 사용)
+    async addReward() {
+        if (!this.selectedSetId) return;
+
+        const nameEl = document.getElementById('rewardNameInput');
+        const totalEl = document.getElementById('rewardTotalInput');
+        const name = (nameEl?.value || '').trim();
+        const total = parseInt(totalEl?.value ?? '0', 10);
+
+        if (!name) {
+            alert('리워드 이름을 입력하세요.');
+            nameEl?.focus();
+            return;
+        }
+        if (!Number.isInteger(total) || total < 0) {
+            alert('총 수량은 0 이상의 정수여야 합니다.');
+            totalEl?.focus();
+            return;
+        }
+
+        await apiService.createReward(this.selectedSetId, {name, total});
+        alert('리워드를 추가했습니다.');
+        // 입력값 초기화
+        if (nameEl) nameEl.value = '';
+        if (totalEl) totalEl.value = '0';
+        // 목록 갱신
+        await this.viewDetail(this.selectedSetId);     }
+
+// 리워드 목록 렌더
+    renderRewards(list) {
+        const area = document.getElementById('rewardsArea');
+        if (!area) return;
+
+        if (!list.length) {
+            area.innerHTML = '<div class="no-data">등록된 리워드가 없습니다.</div>';
+            return;
+        }
+
+        area.innerHTML = `
+      <table class="popup-table">
+        <thead>
+          <tr>
+            <th>이름</th>
+            <th>총 수량</th>
+            <th>발급</th>
+            <th>잔여</th>
+            <th>액션</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(r => `
+            <tr data-id="${r.id}">
+              <td><input type="text" id="reward-name-${r.id}" value="${this.escapeHtml(r.name || '')}" /></td>
+              <td><input type="number" min="0" step="1" id="reward-total-${r.id}" value="${r.total ?? 0}" /></td>
+              <td>${r.issued ?? 0}</td>
+              <td>${(r.remaining != null ? r.remaining : Math.max(0, (r.total || 0) - (r.issued || 0)))}</td>
+              <td>
+                <button class="button button-sm" onclick="missionManagement.saveReward('${r.id}')">수정</button>
+                <button class="button button-sm button-danger-outline" onclick="missionManagement.deleteReward('${r.id}')">삭제</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+    }
+
+
+// 리워드 수정
+    async saveReward(rewardId) {
+        if (!this.selectedSetId) return;
+
+        const name = (document.getElementById(`reward-name-${rewardId}`)?.value || '').trim();
+        const total = parseInt(document.getElementById(`reward-total-${rewardId}`)?.value ?? '0', 10);
+
+        if (!name) {
+            alert('이름을 입력하세요.');
+            return;
+        }
+        if (!Number.isInteger(total) || total < 0) {
+            alert('총 수량은 0 이상의 정수여야 합니다.');
+            return;
+        }
+
+        await apiService.updateReward(this.selectedSetId, rewardId, {name, total});
+        alert('리워드를 저장했습니다.');
+        await this.viewDetail(this.selectedSetId);
+    }
+
+// 리워드 삭제
+    async deleteReward(rewardId) {
+        if (!this.selectedSetId) return;
+        if (!confirm('이 리워드를 삭제하시겠습니까?')) return;
+
+        await apiService.deleteReward(this.selectedSetId, rewardId);
+        alert('리워드를 삭제했습니다.');
+        await this.viewDetail(this.selectedSetId);
+    }
+
 
     closeDetailModal() {
         document.getElementById('detailModal').style.display = 'none';
@@ -359,7 +482,7 @@ class MissionManagement {
                 .join('');
     }
 
-// ===== 미션셋 등록 =====
+    // ===== 미션셋 등록 =====
     async createMissionSet() {
         const popupId = Number(document.getElementById('createPopupId').value);
         const requiredCount = Number(document.getElementById('createRequiredCount').value || 0);
@@ -417,7 +540,7 @@ class MissionManagement {
         document.getElementById('addMissionModal').style.display = 'none';
     }
 
-// ===== 미션 추가 =====
+    // ===== 미션 추가 =====
     async addMission() {
         if (!this.selectedSetId) return;
         const title = document.getElementById('missionTitle').value.trim();
@@ -439,7 +562,6 @@ class MissionManagement {
             alert('미션 추가에 실패했습니다.');
         }
     }
-
 
     async populatePopupFilter() {
         const sel = document.getElementById('popupFilter');
@@ -468,7 +590,6 @@ class MissionManagement {
         }
     }
 
-
     async deleteMission(missionId) {
         if (!confirm('이 미션을 삭제하시겠습니까?')) return;
         try {
@@ -480,7 +601,6 @@ class MissionManagement {
             alert('미션 삭제에 실패했습니다.');
         }
     }
-
 
     enableEditMode(set) {
         const fields = document.getElementById('missionSetInfoFields');
@@ -515,7 +635,6 @@ class MissionManagement {
         // 다시 상세를 로드해서 원래 표시 모드로 돌려놓기
         this.viewDetail(this.selectedSetId);
     }
-
 
     async deleteSet() {
         if (!this.selectedSetId) return;

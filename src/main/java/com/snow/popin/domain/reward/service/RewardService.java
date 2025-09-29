@@ -1,16 +1,16 @@
 package com.snow.popin.domain.reward.service;
 
-import com.snow.popin.domain.mission.entity.MissionSet;
 import com.snow.popin.domain.mission.constant.UserMissionStatus;
+import com.snow.popin.domain.mission.entity.MissionSet;
 import com.snow.popin.domain.mission.repository.MissionSetRepository;
 import com.snow.popin.domain.mission.repository.UserMissionRepository;
+import com.snow.popin.domain.reward.constant.UserRewardStatus;
 import com.snow.popin.domain.reward.entity.RewardOption;
 import com.snow.popin.domain.reward.entity.UserReward;
-import com.snow.popin.domain.reward.constant.UserRewardStatus;
 import com.snow.popin.domain.reward.repository.RewardOptionRepository;
 import com.snow.popin.domain.reward.repository.UserRewardRepository;
-import com.snow.popin.global.exception.RewardException;
 import com.snow.popin.global.exception.MissionException;
+import com.snow.popin.global.exception.RewardException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,22 +21,18 @@ import java.util.*;
 @RequiredArgsConstructor
 public class RewardService {
 
-    private final RewardOptionRepository optionRepository;
+    private final RewardOptionRepository rewardOptionRepository;
     private final UserRewardRepository rewardRepository;
     private final MissionSetRepository missionSetRepository;
     private final UserMissionRepository userMissionRepository;
 
     @Transactional(readOnly = true)
     public List<RewardOption> listOptions(UUID missionSetId) {
-        return optionRepository.findByMissionSetId(missionSetId);
+        return rewardOptionRepository.findByMissionSet_Id(missionSetId);
     }
 
     /**
      * 발급: 유저당 1회 / 미션 조건 충족 / 옵션 재고 차감
-     * @param missionSetId
-     * @param optionId
-     * @param userId
-     * @return
      */
     @Transactional
     public UserReward claim(UUID missionSetId, Long optionId, Long userId) {
@@ -57,11 +53,13 @@ public class RewardService {
         }
 
         // 옵션 잠금 + 재고 차감
-        RewardOption opt = optionRepository.lockById(optionId)
+        RewardOption opt = rewardOptionRepository.lockById(optionId)
                 .orElseThrow(RewardException.OptionNotFound::new);
-        if (!opt.getMissionSetId().equals(missionSetId)) {
+
+        if (!opt.getMissionSet().getId().equals(missionSetId)) {
             throw new RewardException.OptionNotInMissionSet();
         }
+
         opt.consumeOne(); // 재고 없으면 RewardException.OutOfStock 발생
 
         // 지급 레코드 생성
@@ -77,10 +75,6 @@ public class RewardService {
 
     /**
      * 리워드 수령
-     * @param missionSetId
-     * @param userId
-     * @param staffPinPlain
-     * @return
      */
     @Transactional
     public UserReward redeem(UUID missionSetId, Long userId, String staffPinPlain) {
