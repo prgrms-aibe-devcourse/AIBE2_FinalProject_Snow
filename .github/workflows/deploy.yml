@@ -9,15 +9,22 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd /home/ec2-user/app/AIBE2_FinalProject_Snow
-            git pull origin product
-            docker-compose down
-            docker-compose up -d --build
-            docker image prune -f
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Pull latest changes
+        run: |
+          cd /home/ec2-user/app/AIBE2_FinalProject_Snow
+          git pull origin product
+
+      - name: Deploy with Docker Compose
+        run: |
+          cd /home/ec2-user/app/AIBE2_FinalProject_Snow
+          docker-compose down
+          docker-compose up -d --build
+
+      - name: Clean up unused images
+        run: docker image prune -f
+
+      - name: Show running containers
+        run: docker ps
