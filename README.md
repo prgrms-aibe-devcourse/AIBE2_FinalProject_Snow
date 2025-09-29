@@ -158,6 +158,7 @@ Popin은 흩어져 있는 팝업스토어 정보를 한눈에 모아볼 수 있�
 ## 공간제공자 / 팝업 호스트 페이지
 <div align="center">
   <img width="400" alt="image" src="https://github.com/user-attachments/assets/78339923-dbf8-47d0-92d5-a20d729c2036" />
+  <img width="400" alt="image" src="https://github.com/user-attachments/assets/dc07015b-ac8a-4865-a2e7-3f9e67495310" />
   
 </div>
 
