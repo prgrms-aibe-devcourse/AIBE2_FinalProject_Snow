@@ -36,6 +36,7 @@ public class MissionSetAdminDto {
                 .missions(set.getMissions().stream()
                         .map(MissionDto::from)
                         .collect(Collectors.toList()))
+                .qrImageUrl(set.getQrImageUrl())
                 .rewards(set.getRewards() != null
                         ? set.getRewards().stream()
                         .map(RewardOptionDto::from)
