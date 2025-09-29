@@ -121,13 +121,23 @@ class PopupDetailManager {
         const reservationBtn = document.getElementById('reservation-btn');
         if (!reservationBtn || !this.popupData) return;
 
+        // reservationAvailable 체크 - false면 버튼 숨김
+        if (!this.popupData.reservationAvailable) {
+            reservationBtn.style.display = 'none';
+            return;
+        }
+
+        // reservationAvailable이 true일 때만 버튼 표시
+        reservationBtn.style.display = 'block';
+
+        // 팝업 상태에 따른 버튼 활성화/비활성화
         const popupStatus = this.popupData.status;
-        const isReservationAvailable = this.isReservationAvailable(popupStatus);
+        const isStatusAvailable = this.isReservationAvailable(popupStatus);
 
         // 버튼 클래스 초기화
         reservationBtn.className = 'reservation-btn';
 
-        if (isReservationAvailable) {
+        if (isStatusAvailable) {
             // 예약 가능한 상태: 버튼 활성화
             reservationBtn.disabled = false;
             reservationBtn.style.cursor = 'pointer';
