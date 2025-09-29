@@ -178,7 +178,7 @@ public class DataInitializer implements CommandLineRunner {
 
         List<RewardOption> options = rewardData.stream()
                 .map(data -> RewardOption.builder()
-                        .missionSetId(missionSet.getId())
+                        .missionSet(missionSet)
                         .name(data.name)
                         .total(data.total)
                         .build())

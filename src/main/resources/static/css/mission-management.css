@@ -263,3 +263,37 @@ a.qr-download {
 a.qr-download:visited {
     color: #5a5a5a; /* 방문 여부 무시 */
 }
+
+.reward-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    background: #fafafa;
+}
+
+.reward-row .action-buttons {
+    display: flex;
+    gap: 6px;
+}
+#rewardNameInput,
+#rewardTotalInput {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+input{
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
