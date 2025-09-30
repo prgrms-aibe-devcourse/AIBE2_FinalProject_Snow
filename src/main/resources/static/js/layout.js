@@ -255,13 +255,15 @@ async function performLogout() {
 // === 인증 체크 ===
 function checkAuthOnPageLoad() {
     // 현재 페이지가 로그인 페이지가 아닌 경우에만 체크
-    if (!window.location.pathname.includes('/auth/')) {
-        const token = apiService.getStoredToken();
-        if (!token || isTokenExpired(token)) {
-            console.log('인증되지 않은 사용자, 로그인 페이지로 리다이렉트');
-            window.location.href = '/auth/login';
-            return false;
-        }
+    const path = window.location.pathname;
+    if (path === '/' || path === '/index.html' || path.includes('/auth/')) {
+        return true;
+    }
+    const token = apiService.getStoredToken();
+    if (!token || isTokenExpired(token)) {
+        console.log('인증되지 않은 사용자, 로그인 페이지로 리다이렉트');
+        window.location.href = '/auth/login';
+        return false;
     }
     return true;
 }
