@@ -21,7 +21,7 @@
       <a href="https://github.com/yoohyebin">
         <img src="https://github.com/yoohyebin.png" width="80px"/><br/>
       </a>
-      백진우
+      유혜빈
     </th>
     <th width="17%">
       <a href="https://github.com/dearjh36">
@@ -33,7 +33,7 @@
       <a href="https://github.com/beakjinu">
         <img src="https://github.com/beakjinu.png" width="80px"/><br/>
       </a>
-      유혜빈
+      백진우
     </th>
     <th width="17%">
       <a href="https://github.com/sun-ryu">
@@ -65,12 +65,13 @@
     </td>
     <td>
       <ul>
-        <li>기획서 작성</li>
-        <li>요구사항 정의서 작성</li>
-        <li>정보구조도(IA) 작성</li>
-        <li>와이어프레임 제작</li>
-        <li>마이페이지(팝업주최자·공간제공자)</li>
-        <li>공간 대여 페이지</li>
+        <li>ERD 작성</li>
+        <li>GitHub 관리</li>
+        <li>GitHub 브랜치 전략 수립</li>
+        <li>PR/Merger 규칙 수립</li>
+        <li>메인 페이지</li>
+        <li>팝업 상세 페이지</li>
+        <li>AI 기반 팝업 추천 기능</li>
       </ul>
     </td>
     <td>
@@ -86,13 +87,12 @@
     </td>
     <td>
       <ul>
-        <li>ERD 작성</li>
-        <li>GitHub 관리</li>
-        <li>GitHub 브랜치 전략 수립</li>
-        <li>PR/Merger 규칙 수립</li>
-        <li>메인 페이지</li>
-        <li>팝업 상세 페이지</li>
-        <li>AI 기반 팝업 추천 기능</li>
+        <li>기획서 작성</li>
+        <li>요구사항 정의서 작성</li>
+        <li>정보구조도(IA) 작성</li>
+        <li>와이어프레임 제작</li>
+        <li>마이페이지(팝업주최자·공간제공자)</li>
+        <li>공간 대여 페이지</li>
       </ul>
     </td>
     <td>
