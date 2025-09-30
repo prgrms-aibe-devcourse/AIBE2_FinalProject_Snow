@@ -21,7 +21,7 @@
       <a href="https://github.com/yoohyebin">
         <img src="https://github.com/yoohyebin.png" width="80px"/><br/>
       </a>
-      유혜빈
+      백진우
     </th>
     <th width="17%">
       <a href="https://github.com/dearjh36">
@@ -33,7 +33,7 @@
       <a href="https://github.com/beakjinu">
         <img src="https://github.com/beakjinu.png" width="80px"/><br/>
       </a>
-      백진우
+      유혜빈
     </th>
     <th width="17%">
       <a href="https://github.com/sun-ryu">
