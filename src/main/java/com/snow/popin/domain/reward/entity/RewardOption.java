@@ -1,5 +1,6 @@
 package com.snow.popin.domain.reward.entity;
 
+import com.snow.popin.domain.mission.entity.MissionSet;
 import com.snow.popin.global.common.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -24,8 +25,10 @@ public class RewardOption extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "mission_set_id", nullable = false, columnDefinition = "BINARY(16)")
-    private UUID missionSetId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mission_set_id", nullable = false)
+    private MissionSet missionSet;
 
     @Column(nullable = false, length = 50)
     private String name;
@@ -42,11 +45,16 @@ public class RewardOption extends BaseEntity {
 
     // 생성자
     @Builder
-    public RewardOption(UUID missionSetId, String name, int total) {
-        this.missionSetId = missionSetId;
+    public RewardOption(MissionSet missionSet, String name, int total) {
+        this.missionSet = missionSet;
         this.name = name;
         this.total = total;
         this.issued = 0;
+    }
+
+    public void update(String name, int total) {
+        this.name = name;
+        this.total = total;
     }
 
     // 남은 재고
@@ -61,4 +69,9 @@ public class RewardOption extends BaseEntity {
         }
         issued++;
     }
+
+    public void setMissionSet(MissionSet missionSet) {
+        this.missionSet = missionSet;
+    }
+
 }

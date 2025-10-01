@@ -55,7 +55,7 @@ public class SpaceCreateRequestDto {
     @Size(max = 255, message = "상세 주소는 255자를 초과할 수 없습니다.")
     private String detailAddress;
 
-    private Double latitude;   // 좌표 (API 붙이면 활용)
+    private Double latitude;
     private Double longitude;
 
     private Boolean parkingAvailable;

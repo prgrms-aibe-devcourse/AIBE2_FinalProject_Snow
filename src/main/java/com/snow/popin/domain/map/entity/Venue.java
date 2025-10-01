@@ -110,4 +110,19 @@ public class Venue extends BaseEntity {
         venue.parkingAvailable = false;
         return venue;
     }
+    //region  메서드
+    public void setRegionFromAddress() {
+        if (this.roadAddress != null) {
+            String[] parts = this.roadAddress.trim().split(" ");
+            if (parts.length > 0) {
+                this.region = parts[0];  // ex) "서울"
+            }
+        } else if (this.jibunAddress != null) {
+            String[] parts = this.jibunAddress.trim().split(" ");
+            if (parts.length > 0) {
+                this.region = parts[0];
+            }
+        }
+    }
+
 }

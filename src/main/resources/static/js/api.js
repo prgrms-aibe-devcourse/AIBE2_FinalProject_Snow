@@ -1032,3 +1032,23 @@ apiService.getAvailableTimeSlots = async function(popupId, date) {
 apiService.getAvailableSlotsWithCapacity = async function(popupId, date) {
     return await this.get(`/reservations/popups/${encodeURIComponent(popupId)}/available-slots/with-capacity?date=${encodeURIComponent(date)}`);
 };
+
+// ===== 리워드 =====
+apiService.getRewards = async function(missionSetId) {
+    return await this.get(`/admin/mission-sets/${encodeURIComponent(missionSetId)}/rewards`);
+};
+
+// 리워드 생성
+apiService.createReward = async function(missionSetId, payload) {
+    return await this.post(`/admin/mission-sets/${encodeURIComponent(missionSetId)}/rewards`, payload);
+};
+
+// 리워드 수정
+apiService.updateReward = async function(missionSetId, rewardId, payload) {
+    return await this.put(`/admin/mission-sets/${encodeURIComponent(missionSetId)}/rewards/${encodeURIComponent(rewardId)}`, payload);
+};
+
+// 리워드 삭제
+apiService.deleteReward = async function(missionSetId, rewardId) {
+    return await this.delete(`/admin/mission-sets/${encodeURIComponent(missionSetId)}/rewards/${encodeURIComponent(rewardId)}`);
+};

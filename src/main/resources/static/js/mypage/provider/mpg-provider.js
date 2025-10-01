@@ -175,16 +175,14 @@ class ProviderManager {
         const listEl = this.elements.spaceList;
         if (!listEl) return;
 
-        const emptyEl = listEl.querySelector('[data-empty]');
+        listEl.innerHTML = '';
 
         if (spaces && spaces.length > 0) {
-            if (emptyEl) emptyEl.remove();
-
             spaces.forEach(space => {
                 const card = this.createSpaceCard(space);
                 listEl.appendChild(card);
             });
-        } else if (!emptyEl) {
+        } else {
             listEl.innerHTML = '<div class="empty" data-empty>아직 등록된 공간이 없습니다.</div>';
         }
     }
