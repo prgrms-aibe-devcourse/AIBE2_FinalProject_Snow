@@ -9,6 +9,7 @@ import com.snow.popin.domain.popup.entity.Popup;
 import com.snow.popin.domain.mypage.host.entity.Brand;
 import com.snow.popin.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/chat")
@@ -27,6 +29,8 @@ public class ChatApiController {
 
     @GetMapping("/{reservationId}/messages")
     public ResponseEntity<List<Map<String, Object>>> getMessages(@PathVariable Long reservationId) {
+        log.info("[ChatApiController] 채팅 메시지 조회 요청: reservationId={}", reservationId);
+
         List<ChatMessage> messages = chatService.getMessages(reservationId);
 
         List<Map<String, Object>> result = messages.stream()
@@ -41,14 +45,19 @@ public class ChatApiController {
                 })
                 .collect(Collectors.toList());
 
+        log.info("[ChatApiController] 채팅 메시지 조회 성공: reservationId={}, count={}", reservationId, result.size());
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{reservationId}/context")
     public ResponseEntity<Map<String, Object>> getChatContext(@PathVariable Long reservationId) {
+        log.info("[ChatApiController] 채팅 컨텍스트 조회 요청: reservationId={}", reservationId);
         try {
             SpaceReservation reservation = reservationRepository.findById(reservationId)
-                    .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
+                    .orElseThrow(() -> {
+                        log.error("[ChatApiController] 예약을 찾을 수 없음: reservationId={}", reservationId);
+                        return new IllegalArgumentException("예약을 찾을 수 없습니다.");
+                    });
 
             Map<String, Object> context = new HashMap<>();
             context.put("reservationId", reservationId);
@@ -59,7 +68,6 @@ public class ChatApiController {
             if (space != null) {
                 context.put("spaceName", space.getTitle());
                 context.put("spaceAddress", space.getAddress());
-                // 공간 소유자 정보
                 if (space.getOwner() != null) {
                     context.put("providerName", space.getOwner().getName());
                 }
@@ -80,26 +88,23 @@ public class ChatApiController {
                 context.put("brandDescription", brand.getDescription());
             }
 
-            // 호스트(예약자) 정보
+            // 호스트 정보
             User host = reservation.getHost();
             if (host != null) {
                 context.put("hostName", host.getName());
                 context.put("hostEmail", host.getEmail());
             }
 
-            // 예약 기간
             context.put("startDate", reservation.getStartDate());
             context.put("endDate", reservation.getEndDate());
-
-            // 예약 메시지
             context.put("message", reservation.getMessage());
             context.put("contactPhone", reservation.getContactPhone());
 
+            log.info("[ChatApiController] 채팅 컨텍스트 조회 성공: reservationId={}", reservationId);
             return ResponseEntity.ok(context);
 
         } catch (Exception e) {
-            System.err.println("채팅 컨텍스트 조회 실패: " + e.getMessage());
-            e.printStackTrace();
+            log.error("[ChatApiController] 채팅 컨텍스트 조회 실패: reservationId={}, message={}", reservationId, e.getMessage(), e);
             return ResponseEntity.badRequest().build();
         }
     }

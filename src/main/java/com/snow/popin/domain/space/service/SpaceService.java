@@ -19,9 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * SpaceService
- */
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -41,7 +38,7 @@ public class SpaceService {
      */
     @Transactional
     public Long create(User owner, SpaceCreateRequestDto dto) {
-        log.info("Creating new space for owner: {}", owner.getId());
+        log.info("[SpaceService] 공간 등록 요청: userId={}, title={}", owner.getId(), dto.getTitle());
 
         Venue venue = Venue.of(
                 dto.getTitle(),
@@ -52,6 +49,7 @@ public class SpaceService {
                 dto.getLongitude(),
                 dto.getParkingAvailable()
         );
+        venue.setRegionFromAddress();
         venueRepository.save(venue);
 
         String imageUrl = fileStorageService.save(dto.getImage());
@@ -70,7 +68,7 @@ public class SpaceService {
                 .build();
 
         Space saved = spaceRepository.save(space);
-        log.info("Space created successfully with ID: {}", saved.getId());
+        log.info("[SpaceService] 공간 등록 완료: spaceId={}, userId={}", saved.getId(), owner.getId());
         return saved.getId();
     }
 
@@ -82,10 +80,15 @@ public class SpaceService {
      */
     @Transactional(readOnly = true)
     public List<SpaceListResponseDto> listAll(User me, Pageable pageable) {
-        return spaceRepository.findByIsPublicTrueAndIsHiddenFalseOrderByCreatedAtDesc(pageable)
+        log.info("[SpaceService] 전체 공간 목록 조회 요청: userId={}", me.getId());
+
+        List<SpaceListResponseDto> result = spaceRepository.findByIsPublicTrueAndIsHiddenFalseOrderByCreatedAtDesc(pageable)
                 .stream()
                 .map(space -> SpaceListResponseDto.from(space, me))
                 .collect(Collectors.toList());
+
+        log.info("[SpaceService] 전체 공간 목록 조회 완료: userId={}, count={}", me.getId(), result.size());
+        return result;
     }
 
     /**
@@ -97,13 +100,18 @@ public class SpaceService {
      */
     @Transactional(readOnly = true)
     public SpaceResponseDto getDetail(User me, Long id) {
+        log.info("[SpaceService] 공간 상세 조회 요청: userId={}, spaceId={}", me != null ? me.getId() : null, id);
+
         Space space = spaceRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("공간이 존재하지 않습니다."));
 
         boolean mine = (me != null && space.getOwner().getId().equals(me.getId()));
         if (!Boolean.TRUE.equals(space.getIsPublic()) && !mine) {
+            log.warn("[SpaceService] 공간 상세 조회 권한 없음: userId={}, spaceId={}", me != null ? me.getId() : null, id);
             throw new IllegalArgumentException("조회 권한이 없습니다.");
         }
+
+        log.info("[SpaceService] 공간 상세 조회 완료: spaceId={}", id);
         return SpaceResponseDto.from(space);
     }
 
@@ -116,12 +124,13 @@ public class SpaceService {
      */
     @Transactional
     public void update(User owner, Long spaceId, SpaceUpdateRequestDto dto) {
-        log.info("Updating space ID {} by user: {}", spaceId, owner.getId());
+        log.info("[SpaceService] 공간 수정 요청: userId={}, spaceId={}", owner.getId(), spaceId);
 
         Space space = spaceRepository.findById(spaceId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 공간이 존재하지 않습니다."));
 
         if (!space.isOwner(owner)) {
+            log.warn("[SpaceService] 공간 수정 권한 없음: userId={}, spaceId={}", owner.getId(), spaceId);
             throw new AccessDeniedException("해당 공간에 대한 수정 권한이 없습니다.");
         }
 
@@ -147,6 +156,7 @@ public class SpaceService {
                     dto.getParkingAvailable()
             );
         }
+        venue.setRegionFromAddress();
         venueRepository.save(venue);
 
         String imageUrl = space.getCoverImageUrl();
@@ -166,7 +176,7 @@ public class SpaceService {
         space.updateVenue(venue);
         space.updateCoverImage(imageUrl);
 
-        log.info("Space ID {} updated successfully", spaceId);
+        log.info("[SpaceService] 공간 수정 완료: userId={}, spaceId={}", owner.getId(), spaceId);
     }
 
     /**
@@ -176,13 +186,13 @@ public class SpaceService {
      * @param id    공간 ID
      */
     public void deleteSpace(User owner, Long id) {
-        log.info("Deleting space ID: {} by owner: {}", id, owner.getId());
+        log.info("[SpaceService] 공간 삭제 요청: userId={}, spaceId={}", owner.getId(), id);
 
         Space space = spaceRepository.findByIdAndOwner(id, owner)
                 .orElseThrow(() -> new IllegalArgumentException("공간이 없거나 삭제 권한이 없습니다."));
 
         space.hide();
-        log.info("Space deleted successfully: {}", id);
+        log.info("[SpaceService] 공간 삭제 완료: userId={}, spaceId={}", owner.getId(), id);
     }
 
     /**
@@ -193,12 +203,15 @@ public class SpaceService {
      */
     @Transactional(readOnly = true)
     public List<SpaceListResponseDto> listMine(User owner) {
-        log.debug("Fetching spaces for owner: {}", owner.getId());
+        log.info("[SpaceService] 내 공간 목록 조회 요청: userId={}", owner.getId());
 
-        return spaceRepository.findByOwnerAndIsHiddenFalseOrderByCreatedAtDesc(owner)
+        List<SpaceListResponseDto> result = spaceRepository.findByOwnerAndIsHiddenFalseOrderByCreatedAtDesc(owner)
                 .stream()
                 .map(space -> SpaceListResponseDto.from(space, owner))
                 .collect(Collectors.toList());
+
+        log.info("[SpaceService] 내 공간 목록 조회 완료: userId={}, count={}", owner.getId(), result.size());
+        return result;
     }
 
     /**
@@ -209,17 +222,18 @@ public class SpaceService {
      */
     @Transactional
     public void hideSpace(User reporter, Long spaceId) {
-        log.info("Hiding space ID: {} reported by user: {}", spaceId, reporter.getId());
+        log.info("[SpaceService] 공간 신고 처리 요청: reporterId={}, spaceId={}", reporter.getId(), spaceId);
 
         Space space = spaceRepository.findById(spaceId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 공간이 존재하지 않습니다."));
 
         if (space.isOwner(reporter)) {
+            log.warn("[SpaceService] 자기 자신의 공간 신고 시도: userId={}, spaceId={}", reporter.getId(), spaceId);
             throw new IllegalArgumentException("자신의 공간은 신고할 수 없습니다.");
         }
 
         space.hide();
-        log.info("Space ID {} hidden successfully", spaceId);
+        log.info("[SpaceService] 공간 숨김 처리 완료: reporterId={}, spaceId={}", reporter.getId(), spaceId);
     }
 
     /**
@@ -235,12 +249,16 @@ public class SpaceService {
     @Transactional(readOnly = true)
     public List<SpaceListResponseDto> searchSpaces(User me, String keyword, String location,
                                                    Integer minArea, Integer maxArea) {
-        log.debug("Searching spaces with filters - keyword: {}, location: {}", keyword, location);
+        log.info("[SpaceService] 공간 검색 요청: keyword={}, location={}, minArea={}, maxArea={}",
+                keyword, location, minArea, maxArea);
 
         List<Space> spaces = spaceRepository.searchSpacesWithJoins(keyword, location, minArea, maxArea);
 
-        return spaces.stream()
+        List<SpaceListResponseDto> result = spaces.stream()
                 .map(space -> SpaceListResponseDto.from(space, me))
                 .collect(Collectors.toList());
+
+        log.info("[SpaceService] 공간 검색 완료: count={}", result.size());
+        return result;
     }
 }

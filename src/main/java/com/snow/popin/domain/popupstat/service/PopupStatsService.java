@@ -9,6 +9,7 @@ import com.snow.popin.domain.popupReservation.repository.ReservationQueryDslRepo
 import com.snow.popin.domain.popupReservation.repository.ReservationRepository;
 import com.snow.popin.domain.popupstat.dto.PopupStatsResponseDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ import java.util.*;
  * - 일별 예약/방문자/취소/미션 수행자 수
  * - 시간대별 방문자 수
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -41,10 +43,14 @@ public class PopupStatsService {
      * @return 통계 데이터 리스트 (일별 + 시간대별)
      */
     public List<PopupStatsResponseDto> getStats(Long popupId, LocalDate start, LocalDate end) {
-        Popup popup = popupRepository.findById(popupId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 팝업입니다."));
+        log.info("[PopupStatsService] 팝업 통계 조회 요청: popupId={}, start={}, end={}", popupId, start, end);
 
-        // 날짜 범위 설정 (기본 최근 7일)
+        Popup popup = popupRepository.findById(popupId)
+                .orElseThrow(() -> {
+                    log.error("[PopupStatsService] 팝업 없음: popupId={}", popupId);
+                    return new IllegalArgumentException("존재하지 않는 팝업입니다.");
+                });
+
         LocalDate startDate = start != null ? start : LocalDate.now().minusDays(6);
         LocalDate endDate = end != null ? end : LocalDate.now();
 
@@ -52,6 +58,7 @@ public class PopupStatsService {
         result.addAll(calculateDailyStats(popup, startDate, endDate));
         result.addAll(calculateHourlyStats(popup));
 
+        log.info("[PopupStatsService] 팝업 통계 조회 완료: popupId={}, 일별+시간대 통계 count={}", popupId, result.size());
         return result;
     }
 
@@ -64,6 +71,8 @@ public class PopupStatsService {
      * @return 일별 통계 리스트
      */
     private List<PopupStatsResponseDto> calculateDailyStats(Popup popup, LocalDate startDate, LocalDate endDate) {
+        log.debug("[PopupStatsService] 일별 통계 계산 시작: popupId={}, startDate={}, endDate={}", popup.getId(), startDate, endDate);
+
         List<PopupStatsResponseDto> dailyStats = new ArrayList<>();
 
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
@@ -73,15 +82,12 @@ public class PopupStatsService {
             Long reservationCount = reservationQueryDslRepository.countByPopupAndReservedAtBetweenAndStatus(
                     popup, dayStart, dayEnd, ReservationStatus.RESERVED
             );
-
             Long canceledCount = reservationQueryDslRepository.countByPopupAndReservedAtBetweenAndStatus(
                     popup, dayStart, dayEnd, ReservationStatus.CANCELLED
             );
-
             Long visitorCount = reservationQueryDslRepository.countByPopupAndReservedAtBetweenAndStatus(
                     popup, dayStart, dayEnd, ReservationStatus.VISITED
             );
-
             Long missionCount = userMissionRepository.countCompletedMissionsByPopupAndDate(
                     popup.getId(), dayStart, dayEnd
             );
@@ -96,6 +102,7 @@ public class PopupStatsService {
                     .build());
         }
 
+        log.debug("[PopupStatsService] 일별 통계 계산 완료: popupId={}, count={}", popup.getId(), dailyStats.size());
         return dailyStats;
     }
 
@@ -107,6 +114,8 @@ public class PopupStatsService {
      * @return 시간대별 통계 리스트
      */
     private List<PopupStatsResponseDto> calculateHourlyStats(Popup popup) {
+        log.debug("[PopupStatsService] 시간대별 통계 계산 시작: popupId={}", popup.getId());
+
         List<PopupStatsResponseDto> hourlyStats = new ArrayList<>();
         Map<Integer, Integer> hourlyVisitorMap = new HashMap<>();
 
@@ -130,6 +139,7 @@ public class PopupStatsService {
                     .build());
         }
 
+        log.debug("[PopupStatsService] 시간대별 통계 계산 완료: popupId={}, count={}", popup.getId(), hourlyStats.size());
         return hourlyStats;
     }
 }

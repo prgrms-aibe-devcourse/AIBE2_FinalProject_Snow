@@ -40,11 +40,14 @@ class SpaceRegisterManager {
                     // --- 좌표 변환 추가 ---
                     const geocoder = new kakao.maps.services.Geocoder();
                     geocoder.addressSearch(data.roadAddress, function (result, status) {
+                        console.log("Geocoder 호출 결과:", status, result);
+
                         if (status === kakao.maps.services.Status.OK) {
                             const lat = result[0].y;
                             const lng = result[0].x;
                             document.getElementById("latitude").value = lat;
                             document.getElementById("longitude").value = lng;
+                            console.log("위도/경도 세팅 완료:", lat, lng);
                         } else {
                             console.warn("좌표 변환 실패:", status);
                         }
@@ -53,6 +56,27 @@ class SpaceRegisterManager {
             }).open();
         });
     }
+
+    setupAddressAutoGeocode() {
+        const roadAddressInput = document.getElementById("roadAddress");
+        if (!roadAddressInput) return;
+
+        const geocoder = new kakao.maps.services.Geocoder();
+
+        roadAddressInput.addEventListener("change", () => {
+            const address = roadAddressInput.value;
+            if (!address || !address.trim()) return;
+
+            geocoder.addressSearch(address, function (result, status) {
+                if (status === kakao.maps.services.Status.OK) {
+                    document.getElementById("latitude").value = result[0].y;
+                    document.getElementById("longitude").value = result[0].x;
+                    console.log("도로명 주소 변경 → 위도/경도 자동 세팅:", result[0].y, result[0].x);
+                }
+            });
+        });
+    }
+
 
     async handleSubmit(e) {
         e.preventDefault();

@@ -13,6 +13,7 @@ public class MissionDto {
     private final UUID id;
     private final String title;
     private final String description;
+    private final String answer;
     private final UUID missionSetId;
 
     public static MissionDto from(Mission m) {
@@ -21,6 +22,7 @@ public class MissionDto {
                 .id(m.getId())
                 .title(m.getTitle())
                 .description(m.getDescription())
+                .answer(m.getAnswer())
                 .missionSetId(msId)
                 .build();
     }

@@ -2,6 +2,7 @@ package com.snow.popin.domain.mission.entity;
 
 import com.snow.popin.domain.mission.constant.MissionSetStatus;
 import com.snow.popin.domain.popup.entity.Popup;
+import com.snow.popin.domain.reward.entity.RewardOption;
 import com.snow.popin.global.common.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -54,6 +55,10 @@ public class MissionSet extends BaseEntity {
     @Column(name = "qr_image_url", length = 255)
     private String qrImageUrl;
 
+    @OneToMany(mappedBy = "missionSet", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RewardOption> rewards = new ArrayList<>();
+
+
 
     @Builder
     public MissionSet(Long popupId, Integer requiredCount, MissionSetStatus status, String rewardPin) {
@@ -76,6 +81,11 @@ public class MissionSet extends BaseEntity {
     public void addMission(Mission mission) {
         this.missions.add(mission);
         mission.setMissionSet(this);
+    }
+
+    public void addReward(RewardOption reward) {
+        rewards.add(reward);
+        reward.setMissionSet(this);
     }
 
     /**

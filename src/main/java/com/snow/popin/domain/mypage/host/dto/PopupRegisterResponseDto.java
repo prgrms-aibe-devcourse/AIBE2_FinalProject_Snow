@@ -24,9 +24,17 @@ public class PopupRegisterResponseDto {
     private String mainImageUrl;
     private String status;
 
+    private Boolean reservationAvailable;
+    private String reservationLink;
+    private Boolean waitlistAvailable;
+    private String notice;
+    private Boolean isFeatured;
+
     private List<String> imageUrls;
     private List<PopupHourResponseDto> hours;
-    private List<String> tags;
+
+    private Long categoryId;
+    private List<Long> tagIds;
 
     public static PopupRegisterResponseDto fromEntity(Popup popup) {
         return PopupRegisterResponseDto.builder()
@@ -42,7 +50,13 @@ public class PopupRegisterResponseDto {
                 .region(popup.getRegion())
                 .mainImageUrl(popup.getMainImageUrl())
                 .status(popup.getStatus().name())
-                // 추가된 필드들
+
+                .reservationAvailable(popup.getReservationAvailable())
+                .reservationLink(popup.getReservationLink())
+                .waitlistAvailable(popup.getWaitlistAvailable())
+                .notice(popup.getNotice())
+                .isFeatured(popup.getIsFeatured())
+
                 .imageUrls(
                         popup.getImages().stream()
                                 .map(img -> img.getImageUrl())
@@ -53,12 +67,12 @@ public class PopupRegisterResponseDto {
                                 .map(PopupHourResponseDto::fromEntity)
                                 .collect(Collectors.toList())
                 )
-                //태그 추후 추가
-//                .tags(
-//                        popup.getTags().stream()
-//                                .map(Tag::getName)
-//                                .collect(Collectors.toList())
-//                )
+                .categoryId(popup.getCategory() != null ? popup.getCategory().getId() : null)
+                .tagIds(
+                        popup.getTags().stream()
+                                .map(Tag::getId)
+                                .collect(Collectors.toList())
+                )
                 .build();
     }
 }

@@ -143,9 +143,9 @@ async function handleFormSubmit(e) {
         alert("팝업이 성공적으로 등록되었습니다!");
 
         if (response && response.id) {
-            window.location.href = `/mypage/host/popup/${response.id}`;
+            window.location.href = `/mypage/host`;
         } else {
-            window.location.href = "";
+            window.location.href = "/mypage/host";
         }
     } catch (err) {
         console.error("팝업 등록 실패:", err);

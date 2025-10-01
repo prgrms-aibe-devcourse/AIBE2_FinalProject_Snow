@@ -19,7 +19,6 @@ public interface MissionSetRepository extends JpaRepository<MissionSet, UUID> {
     Page<MissionSet> findByPopupId(Long popupId, Pageable pageable);
     Page<MissionSet> findByStatus(MissionSetStatus status, Pageable pageable);
 
-
     @Query("select um from UserMission um " +
             "join fetch um.mission m " +
             "join fetch m.missionSet ms " +
