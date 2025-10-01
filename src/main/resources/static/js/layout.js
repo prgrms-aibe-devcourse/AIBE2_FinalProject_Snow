@@ -1,5 +1,21 @@
 // 공통 레이아웃 스크립트
 
+// 페이지 로드 시 토큰을 쿠키에 동기화
+(function syncTokenToCookie() {
+    const token = localStorage.getItem('authToken') ||
+        localStorage.getItem('accessToken') ||
+        sessionStorage.getItem('authToken') ||
+        sessionStorage.getItem('accessToken');
+
+    if (token) {
+        // 쿠키에 토큰이 없으면 동기화
+        if (!document.cookie.includes('jwtToken=')) {
+            document.cookie = `jwtToken=${token}; path=/; max-age=86400; SameSite=Lax`;
+            console.log('✅ 토큰을 쿠키에 동기화했습니다.');
+        }
+    }
+})();
+
 // HTML 컴포넌트 로드 함수
 async function loadComponents() {
     try {
@@ -254,17 +270,36 @@ async function performLogout() {
 
 // === 인증 체크 ===
 function checkAuthOnPageLoad() {
-    // 현재 페이지가 로그인 페이지가 아닌 경우에만 체크
-    const path = window.location.pathname;
-    if (path === '/' || path === '/index.html' || path.includes('/auth/')) {
+    const currentPath = window.location.pathname;
+
+    // 공개 페이지는 인증 체크 하지 않음
+    const publicPaths = [
+        '/',
+        '/index.html',
+        '/main',
+        '/popup/',
+        '/map',
+        '/reviews/',
+        '/space',
+    ];
+
+    // 현재 경로가 공개 페이지인지 확인
+    const isPublicPage = publicPaths.some(path => currentPath.startsWith(path) || currentPath === path);
+
+    if (isPublicPage) {
+        console.log('공개 페이지 - 인증 체크 건너뜀');
         return true;
     }
+
+    // 비공개 페이지(마이페이지, 북마크 등)만 토큰 체크
     const token = apiService.getStoredToken();
     if (!token || isTokenExpired(token)) {
-        console.log('인증되지 않은 사용자, 로그인 페이지로 리다이렉트');
-        window.location.href = '/auth/login';
+        console.log('인증 필요한 페이지 - 로그인 페이지로 리다이렉트');
+        const redirectUrl = encodeURIComponent(currentPath);
+        window.location.href = `/auth/login?redirect=${redirectUrl}`;
         return false;
     }
+
     return true;
 }
 
@@ -399,23 +434,29 @@ async function getUserRole() {
 document.addEventListener('DOMContentLoaded', async () => {
     // 인증 체크
     if (checkAuthOnPageLoad()) {
-        setupAutoLogout();
 
-        // 로그인된 사용자면 알림 상태 초기화
-        const userInfo = getUserInfo();
-        if (userInfo?.userId) {
-            try {
-                // 초기 알림 목록 조회 → 뱃지 상태 업데이트
-                const notifications = await apiService.getNotifications();
-                const hasUnread = notifications.some(n => !n.read);
-                updateNotificationBadge(hasUnread);
-            } catch (err) {
-                console.error("초기 알림 조회 실패:", err);
+        // 토큰이 있는 사용자만 자동 로그아웃 설정 및 알림 체크
+        const token = apiService.getStoredToken();
+
+        if (token) {
+            setupAutoLogout();
+
+            // 로그인된 사용자면 알림 상태 초기화
+            const userInfo = getUserInfo();
+            if (userInfo?.userId) {
+                try {
+                    // 초기 알림 목록 조회 → 뱃지 상태 업데이트
+                    const notifications = await apiService.getNotifications();
+                    const hasUnread = notifications.some(n => !n.read);
+                    updateNotificationBadge(hasUnread);
+                } catch (err) {
+                    console.warn("초기 알림 조회 실패 (무시):", err);
+                    // 에러 무시 - 토큰이 만료되었거나 권한이 없을 수 있음
+                }
             }
         }
     }
 });
-
 
 // === 알림 목록 불러오기 ===
 async function showNotifications() {
@@ -423,9 +464,20 @@ async function showNotifications() {
     dropdown.classList.toggle("hidden");
 
     if (!dropdown.classList.contains("hidden")) {
+        const listEl = document.getElementById("notificationList");
+
+        // 로그인 여부 체크
+        const token = apiService.getStoredToken();
+
+        if (!token) {
+            // 로그인 안한 상태 - 로그인 안내 표시
+            listEl.innerHTML = "<li class='no-data'>로그인 후 알림을 확인할 수 있습니다.</li>";
+            updateNotificationBadge(false);
+            return;
+        }
+
         try {
             const notifications = await apiService.getNotifications();
-            const listEl = document.getElementById("notificationList");
             listEl.innerHTML = "";
 
             if (!notifications || notifications.length === 0) {
@@ -445,7 +497,7 @@ async function showNotifications() {
 
         } catch (err) {
             console.error("알림 불러오기 실패:", err);
-            document.getElementById("notificationList").innerHTML =
+            listEl.innerHTML =
                 "<li class='error'>알림을 불러오는 중 오류가 발생했습니다.</li>";
         }
     }

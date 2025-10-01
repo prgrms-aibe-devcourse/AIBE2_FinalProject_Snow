@@ -24,11 +24,15 @@ class SimpleApiService {
         const clean = String(token || '').trim();
         try {
             localStorage.setItem('accessToken', clean);
-            localStorage.setItem('authToken',   clean);
+            localStorage.setItem('authToken', clean);
         } catch {
             sessionStorage.setItem('accessToken', clean);
-            sessionStorage.setItem('authToken',   clean);
+            sessionStorage.setItem('authToken', clean);
         }
+
+        // 쿠키에도 토큰 저장
+        document.cookie = `jwtToken=${clean}; path=/; max-age=86400; SameSite=Lax`;
+
         this.token = clean;
     }
 
@@ -42,6 +46,10 @@ class SimpleApiService {
         } catch (error) {
             console.warn('토큰 제거 실패');
         }
+
+        // 쿠키에서도 토큰 제거
+        document.cookie = 'jwtToken=; path=/; max-age=0';
+
         this.token = null;
     }
 
@@ -73,6 +81,10 @@ class SimpleApiService {
             }
 
             if (!response.ok) {
+                if (options.silent) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
                 sessionStorage.setItem("errorCode", response.status);
                 window.location.href = '/error/error.html';
             }
@@ -80,7 +92,11 @@ class SimpleApiService {
             return await response.json();
         } catch (error) {
             console.error('API GET Error:', error);
-            window.location.href = '/error/error.html';
+
+            if (!options.silent) {
+                window.location.href = '/error/error.html';
+            }
+
             throw error;
         }
     }
@@ -842,7 +858,7 @@ apiService.removeBookmark = async function(popupId) {
 // 북마크 상태 확인
 apiService.checkBookmark = async function(popupId) {
     try {
-        return await this.get(`/bookmarks/check/${encodeURIComponent(popupId)}`);
+        return await this.get(`/bookmarks/check/${encodeURIComponent(popupId)}`, { silent: true });
     } catch (error) {
         return { isBookmarked: false };
     }

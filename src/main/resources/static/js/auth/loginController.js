@@ -43,7 +43,21 @@ class LoginController {
 
         // URL 파라미터 정리
         if (urlParams.toString()) {
-            window.history.replaceState({}, document.title, window.location.pathname);
+            const redirectParam = urlParams.get('redirect');
+
+            if (redirectParam) {
+                // redirect 파라미터만 남기고 나머지 제거
+                const cleanParams = new URLSearchParams();
+                cleanParams.set('redirect', redirectParam);
+                window.history.replaceState(
+                    {},
+                    document.title,
+                    `${window.location.pathname}?${cleanParams.toString()}`
+                );
+            } else {
+                // redirect가 없으면 모든 파라미터 제거
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
         }
     }
 
@@ -58,9 +72,20 @@ class LoginController {
         }
 
         if (token && !this.loginApi.isTokenExpired()) {
-            const shouldRedirect = confirm('이미 로그인되어 있습니다. 메인 페이지로 이동하시겠습니까?');
-            if (shouldRedirect) {
-                window.location.href = '/';
+            // redirect 파라미터 확인
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectUrl = urlParams.get('redirect');
+
+            if (redirectUrl) {
+                // redirect 파라미터가 있으면 자동으로 그 페이지로 이동
+                console.log('이미 로그인됨, 원래 페이지로 이동:', redirectUrl);
+                window.location.href = decodeURIComponent(redirectUrl);
+            } else {
+                // redirect 파라미터가 없으면 확인창 띄우기
+                const shouldRedirect = confirm('이미 로그인되어 있습니다. 메인 페이지로 이동하시겠습니까?');
+                if (shouldRedirect) {
+                    window.location.href = '/';
+                }
             }
         } else if (token) {
             // 만료된 토큰 제거

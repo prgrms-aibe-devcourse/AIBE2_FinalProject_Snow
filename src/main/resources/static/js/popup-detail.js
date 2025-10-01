@@ -189,8 +189,9 @@ class PopupDetailManager {
             this.isBookmarked = result.bookmarked || false;
             this.updateBookmarkButton();
         } catch (error) {
-            console.warn('북마크 상태 확인 실패:', error);
+            console.debug('북마크 상태 확인 실패:', error);
             this.isBookmarked = false; // 기본값으로 설정
+            this.updateBookmarkButton();
         }
     }
 
@@ -449,8 +450,15 @@ class PopupDetailManager {
         }
     }
 
-    // 북마크 처리
+// 북마크 처리
     async handleBookmark() {
+        // 로그인 체크
+        const token = apiService.getStoredToken();
+        if (!token) {
+            alert('로그인 후 이용 가능합니다.');
+            return;
+        }
+
         try {
             if (this.isBookmarked) {
                 await apiService.removeBookmark(this.popupId);
