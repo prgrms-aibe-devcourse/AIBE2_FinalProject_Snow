@@ -45,64 +45,56 @@ public class JwtFilter extends OncePerRequestFilter {
         try {
             String token = jwtTokenResolver.resolve(req);
 
-            if (StringUtils.hasText(token)) {
-                log.debug("토큰 발견 : {}", token.substring(0, Math.min(20, token.length())) + "...");
+            if (StringUtils.hasText(token) && jwtUtil.validateToken(token)) {
 
-                if (jwtUtil.validateToken(token)) {
-                    log.debug("✅ 토큰 유효함");
+                log.debug("✅ 토큰 유효함");
 
-                    String email = jwtUtil.getEmail(token);
+                String email = jwtUtil.getEmail(token);
 
-                    if (StringUtils.hasText(email)) {
-                        log.debug("토큰에서 이메일 추출 : {}", email);
+                if (StringUtils.hasText(email)) {
+                    log.debug("토큰에서 이메일 추출 : {}", email);
 
-                        if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                            try {
-                                UserDetails userDetails = getUserDetailsService().loadUserByUsername(email);
-                                log.debug("사용자 정보 로드 완료 : {}", userDetails.getUsername());
+                    if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                        try {
+                            UserDetails userDetails = getUserDetailsService().loadUserByUsername(email);
+                            log.debug("사용자 정보 로드 완료 : {}", userDetails.getUsername());
 
-                                UsernamePasswordAuthenticationToken authenticationToken =
-                                        new UsernamePasswordAuthenticationToken(
-                                                userDetails, null, userDetails.getAuthorities()
-                                        );
+                            UsernamePasswordAuthenticationToken authenticationToken =
+                                    new UsernamePasswordAuthenticationToken(
+                                            userDetails, null, userDetails.getAuthorities()
+                                    );
 
-                                authenticationToken.setDetails(
-                                        new WebAuthenticationDetailsSource().buildDetails(req)
-                                );
+                            authenticationToken.setDetails(
+                                    new WebAuthenticationDetailsSource().buildDetails(req)
+                            );
 
-                                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-                                log.debug("✅ 사용자 인증 설정 완료 : {}", email);
+                            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                            log.debug("✅ 사용자 인증 설정 완료 : {}", email);
 
-                            } catch (Exception e) {
-                                log.warn("⚠️ 사용자 정보 로드 실패 (공개 페이지면 무시) : {}", e.getMessage());
-                                SecurityContextHolder.clearContext();
-                            }
+                        } catch (Exception e) {
+                            log.warn("⚠️ 사용자 정보 로드 실패 (공개 페이지면 무시) : {}", e.getMessage());
+                            SecurityContextHolder.clearContext();
                         }
                     }
-                } else {
-                    log.debug("⚠️ 토큰 유효하지 않음 (공개 페이지면 무시)");
                 }
             } else {
-                log.debug("토큰 없음 (공개 페이지 접근 가능)");
+                log.debug("토큰 없음 또는 유효하지 않음 (공개 페이지는 계속 진행)");
             }
-
-            // 항상 다음 필터로 진행
-            filterChain.doFilter(req, res);
-
         } catch (Exception e) {
             log.error("❌ 필터에서 예외 발생: {} - {}", requestURI, e.getMessage(), e);
             SecurityContextHolder.clearContext();
-
-            // 예외 발생해도 다음 필터로 진행 (SecurityConfig가 판단)
-            filterChain.doFilter(req, res);
         }
+
+        // 예외 발생 여부와 관계없이 필터 체인은 정확히 한 번만 실행
+        filterChain.doFilter(req, res);
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest req) {
         String path = req.getRequestURI();
+        String method = req.getMethod();
 
-        log.debug("🔍 필터 제외 경로 확인 : {}", path);
+        log.debug("🔍 필터 제외 경로 확인 : {} [{}]", path, method);
 
         // 정적 리소스
         if (path.startsWith("/css/") || path.startsWith("/js/") ||
@@ -133,14 +125,24 @@ public class JwtFilter extends OncePerRequestFilter {
             return true;
         }
 
-        // 공개 API
+        // 공개 API - GET 요청만!
+        if ("GET".equals(method)) {
+            if (path.startsWith("/api/popups") ||
+                    path.startsWith("/api/spaces") ||
+                    path.startsWith("/api/reviews") ||
+                    path.startsWith("/api/venues") ||
+                    path.startsWith("/api/categories")) {
+                log.debug("✅ 공개 API (GET) - 필터 제외");
+                return true;
+            }
+        }
+
+        // 인증 API (모든 메서드)
         if (path.equals("/api/auth/login") ||
                 path.equals("/api/auth/signup") ||
                 path.equals("/api/auth/check-email") ||
-                path.equals("/api/auth/check-nickname") ||
-                path.startsWith("/api/popups") ||
-                (path.startsWith("/api/reviews") && req.getMethod().equals("GET"))) {
-            log.debug("✅ 공개 API - 필터 제외");
+                path.equals("/api/auth/check-nickname")) {
+            log.debug("✅ 인증 API - 필터 제외");
             return true;
         }
 

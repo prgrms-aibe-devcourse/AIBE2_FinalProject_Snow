@@ -43,7 +43,21 @@ class LoginController {
 
         // URL 파라미터 정리
         if (urlParams.toString()) {
-            window.history.replaceState({}, document.title, window.location.pathname);
+            const redirectParam = urlParams.get('redirect');
+
+            if (redirectParam) {
+                // redirect 파라미터만 남기고 나머지 제거
+                const cleanParams = new URLSearchParams();
+                cleanParams.set('redirect', redirectParam);
+                window.history.replaceState(
+                    {},
+                    document.title,
+                    `${window.location.pathname}?${cleanParams.toString()}`
+                );
+            } else {
+                // redirect가 없으면 모든 파라미터 제거
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
         }
     }
 

@@ -280,6 +280,7 @@ function checkAuthOnPageLoad() {
         '/popup/',
         '/map',
         '/reviews/',
+        '/space',
     ];
 
     // 현재 경로가 공개 페이지인지 확인
