@@ -57,47 +57,49 @@ public class SecurityConfig {
 
                 .authorizeRequests(authz -> authz
                         // 정적 리소스
-                        .antMatchers("/uploads/**","/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico", "/templates/**", "/*.json", "/pages/**", "/error/**").permitAll()
+                        .antMatchers("/uploads/**","/css/**", "/js/**", "/images/**",
+                                "/static/**", "/favicon.ico", "/templates/**", "/*.json",
+                                "/pages/**", "/error/**").permitAll()
 
-                        // 공개 페이지
-                        .antMatchers("/", "/index.html", "/main").permitAll()
-                        .antMatchers("/popup/**", "/map", "/users/**", "/mypage/**", "/space/**", "/missions/**" ,"/reviews/**", "/bookmarks/**","/admins/**").permitAll()
-
-
-                        // 인증 관련 페이지궁금
-                        .antMatchers("/auth/**").permitAll()
-
-                        // === 채팅 ===
-                        .antMatchers("/chat/**").permitAll()
-                        .antMatchers("/ws/**").permitAll()
-
-                        // === 미션 관련 API (조회만 공개) ===
-                        .antMatchers(HttpMethod.GET, "/api/mission-sets/**").permitAll()
-                        .antMatchers(HttpMethod.GET, "/api/missions/**").permitAll()
-
-                        // 공개 API
-                        .antMatchers("/api/auth/login").permitAll()
-                        .antMatchers("/api/auth/signup").permitAll()
-                        .antMatchers("/api/auth/check-email").permitAll()
-                        .antMatchers("/api/auth/check-nickname").permitAll()
-                        .antMatchers("/api/auth/logout").permitAll()
-
-                        // 팝업 관련 공개 API 추가
+                        // === 공개 API (GET만) ===
                         .antMatchers(HttpMethod.GET, "/api/popups/**").permitAll()
-                        .antMatchers(HttpMethod.GET, "/api/search/**").permitAll()
-                        .antMatchers(HttpMethod.GET, "/api/map/**").permitAll()
+                        .antMatchers(HttpMethod.GET, "/api/spaces/**").permitAll()
+                        .antMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
+                        .antMatchers(HttpMethod.GET, "/api/venues/**").permitAll()
+                        .antMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
 
-                        // 역할별 접근 제어
-                        .antMatchers("/admin/**").hasRole("ADMIN")
-                        .antMatchers("/host/**").hasRole("HOST")
-                        .antMatchers("/provider/**").hasRole("PROVIDER")
+                        // 공개 페이지 - 로그인 없이 접근 가능
+                        .antMatchers("/", "/index.html", "/main").permitAll()
+                        .antMatchers("/popup/**", "/map").permitAll()
+                        .antMatchers("/space/**").permitAll()
+                        .antMatchers("/reviews/**").permitAll()
 
-                        .antMatchers("/api/public/**").permitAll()
-                        .antMatchers("/api/**").permitAll()
-                        .antMatchers("/not-exist-page").permitAll()   // 테스트용
+                        // 인증 관련 API
+                        .antMatchers("/auth/**").permitAll()
+                        .antMatchers("/api/auth/**").permitAll()
 
+                        // === 로그인이 필요한 페이지 ===
+                        .antMatchers("/mypage/**").authenticated()
+                        .antMatchers("/bookmarks/**").authenticated()
+                        .antMatchers("/chat/**").authenticated()
 
-                        .anyRequest().authenticated()
+                        // === 로그인이 필요한 API (POST/PUT/DELETE) ===
+                        .antMatchers(HttpMethod.POST, "/api/reviews/**").authenticated()
+                        .antMatchers(HttpMethod.PUT, "/api/reviews/**").authenticated()
+                        .antMatchers(HttpMethod.DELETE, "/api/reviews/**").authenticated()
+                        .antMatchers(HttpMethod.POST, "/api/popups/**").authenticated()
+                        .antMatchers(HttpMethod.PUT, "/api/popups/**").authenticated()
+                        .antMatchers(HttpMethod.DELETE, "/api/popups/**").authenticated()
+                        .antMatchers("/api/bookmarks/**").authenticated()
+                        .antMatchers("/api/reservations/**").authenticated()
+                        .antMatchers("/api/host/**").authenticated()
+
+                        // 관리자 페이지
+                        .antMatchers("/admins/**").hasRole("ADMIN")
+                        .antMatchers("/api/admin/**").hasRole("ADMIN")
+
+                        // === 나머지는 모두 허용 ===
+                        .anyRequest().permitAll()
                 )
 
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
@@ -108,7 +110,9 @@ public class SecurityConfig {
                             if (isApiRequest(req)) {
                                 sendErrorResponse(res, ErrorCode.UNAUTHORIZED);
                             } else {
-                                res.sendRedirect("/auth/login");
+                                String redirectUrl = "/auth/login?redirect=" +
+                                        java.net.URLEncoder.encode(req.getRequestURI(), "UTF-8");
+                                res.sendRedirect(redirectUrl);
                             }
                         })
                         .accessDeniedHandler((req, res, accessDeniedException) -> {

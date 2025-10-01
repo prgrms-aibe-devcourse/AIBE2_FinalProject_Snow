@@ -1,6 +1,4 @@
 document.addEventListener('DOMContentLoaded', async function () {
-    await loadComponents();   // header/footer 로드
-    initializeLayout();
 
     // 로그인 체크
     const token = apiService.getStoredToken();
